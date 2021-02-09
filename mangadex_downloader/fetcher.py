@@ -57,13 +57,20 @@ class MangadexFetcher:
         num = 1
         results = []
         while True:
+            print(self._get_url() + str(num))
             r = requests.get(self._get_url() + str(num))
+            if 'Too many hits detected from ' in r.text:
+                raise Exception('Your ip is banned from mangadex')
             if '<strong>Warning:</strong> No results found.' in r.text:
                 break
             i = parse_infos(r.text)
             for a in i['chapters']:
                 results.append(a)
-            num += 1
+            # for those manga who dont have chapters more than 100
+            if 'page-item' not in r.text:
+                break
+            else:
+                num += 1
         i['chapters'] = results
         # Web scrapping cannot extract description, genres, etc.
         # we're using mangadex API for getting description, genres, etc.
