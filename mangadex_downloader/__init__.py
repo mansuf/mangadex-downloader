@@ -14,9 +14,10 @@ from mangadex_downloader.fetcher import (
 
 
 class Mangadex:
-    def __init__(self, language='English', verbose=False):
+    def __init__(self, language='English', verbose=False, output_folder=''):
         self.lang = language
         self._verbose = verbose
+        self.output_folder = output_folder
 
     def _logger_info(self, message):
         if self._verbose:
@@ -25,7 +26,7 @@ class Mangadex:
             return
 
     def _get_file(self, title: str, volume: str, chapter: str, part: str):
-        return '%s/Vol. %s Ch. %s/%s.jpg' % (
+        return os.path.join(self.output_folder, '%s/Vol. %s Ch. %s/%s.jpg') % (
             title,
             volume,
             chapter,
@@ -33,7 +34,7 @@ class Mangadex:
         )
 
     def _get_folder(self, title: str, volume: str, chapter: str):
-        return '%s/Vol. %s Ch. %s' % (
+        return os.path.join(self.output_folder, '%s/Vol. %s Ch. %s') % (
             title,
             volume,
             chapter
@@ -74,7 +75,7 @@ class Mangadex:
         for i in mangadata.chapters:
             fetch = MangadexChapterFetcher(i['chapter-id'])
             data = fetch.get()
-            self._create_directory('%s/Vol. %s Ch. %s' % (
+            self._create_directory(os.path.join(self.output_folder, '%s/Vol. %s Ch. %s') % (
                 mangadata.title,
                 i['volume'],
                 i['chapter']
@@ -125,7 +126,7 @@ class Mangadex:
         _tqdm.close()
         # Tachiyomi support
         self._logger_info('Downloading cover manga "%s"' % (mangadata.title))
-        dl(mangadata.cover, self._get_cover(mangadata.title), verbose=False, progressbar=False)
+        dl(mangadata.cover, self._get_cover(os.path.join(self.output_folder, mangadata.title)), verbose=False, progressbar=False)
         self._write_json(
             mangadata.title,
             mangadata.author,
@@ -156,7 +157,7 @@ class Mangadex:
                 total=len(data.chapters),
                 unit='chapters'
             )
-            self._create_directory(data.title)
+            self._create_directory(os.path.join(self.output_folder, data.title))
             chapters = self._download(data, t, use_secondary_server)
             for i in data.chapters:
                 for a in chapters:
