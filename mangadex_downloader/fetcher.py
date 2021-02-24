@@ -57,7 +57,6 @@ class MangadexFetcher:
         num = 1
         results = []
         while True:
-            print(self._get_url() + str(num))
             r = requests.get(self._get_url() + str(num))
             if 'Too many hits detected from ' in r.text:
                 raise Exception('Your ip is banned from mangadex')
