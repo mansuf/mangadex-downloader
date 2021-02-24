@@ -3,7 +3,8 @@ import json
 from mangadex_downloader.parser import (
     parse_infos,
     parse_chapters_info,
-    decode_description
+    decode_description,
+    get_absolute_url
 )
 from mangadex_downloader.constants import (
     BASE_API_CHAPTER_URL,
@@ -20,14 +21,14 @@ class MangadexFetcher:
         self.url = url
         self.lang = language
 
-    def _get_url(self):
-        url = self.url
+    def _get_url(self, u):
+        url = u
         if '/chapters/' in url:
-            return self.url
+            return url
         elif '/chapters' in url:
-            return self.url + '/'
+            return url + '/'
         elif '/chapters' not in url:
-            return self.url + '/chapters/'
+            return url + '/chapters/'
 
     def _get_api_tag(self, tag):
         data = json.loads(requests.get(BASE_API_TAG_URL + str(tag)).text)
@@ -56,8 +57,13 @@ class MangadexFetcher:
     def get(self):
         num = 1
         results = []
+        # now, MangadexFetcher will always get absolute url.
+        # to prevent empty and useless loop request to Mangadex
+        # and causing ip ban
+        r = requests.get(self.url)
+        absolute_url = get_absolute_url(r.text)
         while True:
-            r = requests.get(self._get_url() + str(num))
+            r = requests.get(self._get_url(absolute_url) + str(num))
             if 'Too many hits detected from ' in r.text:
                 raise Exception('Your ip is banned from mangadex')
             if '<strong>Warning:</strong> No results found.' in r.text:
