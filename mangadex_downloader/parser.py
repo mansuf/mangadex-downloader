@@ -128,3 +128,20 @@ def parse_chapters_info(json_data: str):
         infos.append(info)
         num += 1
     return [MangaChapterData(i) for i in infos]
+
+def get_absolute_url(body_string: str):
+    """Get absolute manga mangadex url"""
+    parser = BeautifulSoup(body_string, 'html.parser')
+    for link_elements in parser.find_all('link'):
+        # aiming for canonical link
+        try:
+            rel = link_elements.attrs['rel']
+            href = link_elements.attrs['href']
+        except KeyError:
+            continue
+        else:
+            if 'canonical' in rel:
+                return href
+            else:
+                continue
+

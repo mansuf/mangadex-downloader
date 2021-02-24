@@ -52,11 +52,16 @@ class MangaData:
                 groups[chap['chapter']] = chap
         return [groups[i] for i in groups.keys()]
             
+    def _get_total_chapters(self):
+        if 'Oneshot' in self.genres:
+            return 1
+        else:
+            return int(max([float(i['chapter']) for i in self.chapters]))
 
     def __repr__(self):
         return '<MangaData title="%s" chapters=%s language=%s>' %(
             self.title,
-            int(max([float(i['chapter']) for i in self.chapters])),
+            self._get_total_chapters(),
             self.language
         )
 
