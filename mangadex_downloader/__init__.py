@@ -52,7 +52,7 @@ class Mangadex:
         genre: list,
         status: str,
     ):
-        w = open(title + '/details.json', 'w')
+        w = open(os.path.join(self.output_folder, title) + '/details.json', 'w')
         w.write(json.dumps({
             'title': title,
             'author': author,
