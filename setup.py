@@ -2,7 +2,7 @@ import pathlib
 from setuptools import setup
 import sys
 
-__VERSION__ = 'v0.0.2'
+__VERSION__ = 'v0.0.3'
 
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
@@ -11,7 +11,7 @@ setup(
   name = 'mangadex-downloader',         
   packages = ['mangadex_downloader'],   
   version = __VERSION__,
-  license='MIT',     
+  license='The Unlicense',     
   description = 'Download manga from Mangadex through Python',
   long_description= README,
   long_description_content_type= 'text/markdown',
