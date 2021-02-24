@@ -134,7 +134,6 @@ def get_absolute_url(body_string: str):
     parser = BeautifulSoup(body_string, 'html.parser')
     for link_elements in parser.find_all('link'):
         # aiming for canonical link
-        print(link_elements)
         try:
             rel = link_elements.attrs['rel']
             href = link_elements.attrs['href']
