@@ -139,7 +139,9 @@ class Mangadex:
         
 
     def download(self, *urls: str, use_secondary_server=False):
-        pass
+        """Download all mangas"""
+        for url in urls:
+            self.extract_info(url, True, use_secondary_server)
 
     def extract_info(
         self,
@@ -147,6 +149,7 @@ class Mangadex:
         download=True,
         use_secondary_server=False
     ):
+        """Fetch manga information"""
         fetch = MangadexFetcher(url, self.lang)
         self._logger_info('Fetching "%s"' % (url))
         data = fetch.get()
