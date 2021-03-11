@@ -4,13 +4,27 @@ import json
 BASE_URL = 'https://mangadex.org'
 
 # Base url mangadex.org API for chapter
-BASE_API_CHAPTER_URL = BASE_URL + '/api/v2/chapter/'
+def get_manga_chapter_url(chapter_id, data_saver=False):
+    if data_saver:
+        return BASE_URL + '/api/v2/chapter/' + chapter_id + '?saver=true'
+    else:
+        return BASE_URL + '/api/v2/chapter/' + chapter_id
 
 # Base url mangadex.org API for manga
-BASE_API_MANGA_URL = BASE_URL + '/api/v2/manga/'
+def get_manga_api_url(manga_id, include_chapters=True):
+    if include_chapters:
+        return BASE_URL + '/api/v2/manga/' + manga_id + '?include=chapters'
+    else:
+        return BASE_URL + '/api/v2/manga/' + manga_id
 
 # Base url mangadex.org API for tag
 BASE_API_TAG_URL = BASE_URL + '/api/v2/tag/'
+
+# Base url mangadex.org API for group
+BASE_API_GROUP_URL = BASE_URL + '/api/v2/group/'
+
+# Base url mangadex.org API for user
+BASE_API_USER_URL = BASE_URL + '/api/v2/user/'
 
 class StringVar:
     """
@@ -31,18 +45,23 @@ class MangaData:
     a class representing manga info data
     """
     def __init__(self, data: dict):
+        print(data)
+
         self._data = data
         self.chapters = self._parse_chapters(data['chapters'])
         self.language = data['language']
-        self.title = data['title']
+        self.title = filter_forbidden_names(data['title'])
         self.description = data['description']
         self.artist = data['artist']
         self.author = data['author']
         self.genres = data['genres']
         self.cover = data['cover']
         self.status = data['status']
+        self.total_chapters = data['total_chapters']
 
     def _parse_chapters(self, chapters):
+        if chapters is None:
+            return
         # MangaData will remove chapters, if same chapter.
         groups = {}
         for chap in chapters:
@@ -55,11 +74,13 @@ class MangaData:
     def _get_total_chapters(self):
         if 'Oneshot' in self.genres:
             return 1
+        elif self.chapters is None:
+            return self.total_chapters
         else:
-            return int(max([float(i['chapter']) for i in self.chapters]))
+            return len(self.chapters)
 
     def __repr__(self):
-        return '<MangaData title="%s" chapters=%s language=%s>' %(
+        return '<MangaData title="%s" total_chapters=%s language=%s>' %(
             self.title,
             self._get_total_chapters(),
             self.language
@@ -78,7 +99,7 @@ class MangaChapterData:
     """
     def __init__(self, data: dict):
         self._data = data
-        self.title = data['title']
+        self.title = filter_forbidden_names(data['title'])
         self.chapter = data['chapter']
         self.volume = data['volume']
         self.page = data['page']
@@ -87,7 +108,7 @@ class MangaChapterData:
         self.secondary_url = data['secondary_url']
 
     def __repr__(self):
-        return '<MangaChapterData page=%s title=%s chapter=%s volume=%s>' % (
+        return '<MangaChapterData page=%s title="%s" chapter=%s volume=%s>' % (
             self.page,
             self.title,
             self.chapter,
@@ -99,3 +120,26 @@ class MangaChapterData:
 
     def to_dict(self):
         return self._data
+
+def filter_forbidden_names(string: str):
+    """Filter symbol names to prevent error when creating folder or file"""
+    result = ''
+    UNIX_FORBIDDEN_NAMES = ['/']
+    MAC_OS_FORBIDDEN_NAMES = [':']
+    WINDOWS_FORBIDDEN_NAMES = ['<', '>', ':', '\"', '/', '\\', '|', '?', '*']
+    for word in string:
+        if word in UNIX_FORBIDDEN_NAMES:
+            continue
+        elif word in MAC_OS_FORBIDDEN_NAMES:
+            continue
+        elif word in WINDOWS_FORBIDDEN_NAMES:
+            continue
+        else:
+            result += word
+    result += ' '
+    # remove dot or dot in ends words
+    # to prevent error when writing file or folder in windows
+    while result.endswith('.') or result.endswith(' '):
+        result = result[0:len(result) - 1]
+        result = result[0:len(result) - 1]
+    return result
