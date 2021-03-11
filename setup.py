@@ -2,7 +2,7 @@ import pathlib
 from setuptools import setup
 import sys
 
-__VERSION__ = 'v0.0.3'
+__VERSION__ = 'v0.0.4'
 
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
@@ -24,6 +24,13 @@ setup(
           'bs4',
           'download'
       ],
+  # TODO: Add this to next release.
+  # entry_points = {
+  #   'console_scripts': [
+  #     'mangadex-downloader=mangadex_downloader.__main__:main',
+  #     'mangadex-dl=mangadex_downloader.__main__:main'
+  #   ]
+  # },
   classifiers=[
     'Development Status :: 3 - Alpha',  
     'Intended Audience :: End Users/Desktop',
