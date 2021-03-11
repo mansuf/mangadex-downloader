@@ -28,84 +28,6 @@ def decode_description(desc):
     result = html.unescape(strings.get())
     return result
 
-def parse_infos(body_string, lang='English'):
-    """
-    parse manga info, return :class:`MangaData`
-    """
-    bs = BeautifulSoup(body_string, 'html.parser')
-    chapters = bs.find_all(class_=re.compile('chapter-row d-flex row no-gutters'))
-    info = {}
-    chapters_ = []
-    for i in chapters:
-        inf = {}
-        language = None
-        # finding language
-        for l in i.find_all('span'):
-            try:
-                l.attrs['title']
-            except KeyError:
-                continue
-            else:
-                if 'rounded' in l.attrs['class']:
-                    language = l.attrs['title']
-                else:
-                    continue
-        if language is None:
-            continue
-        # check if language is same or not
-        if lang.lower() != language.lower():
-            continue
-        else:
-            inf['language'] = language
-        # finding url chapter
-        for a in i.find_all('a'):
-            try:
-                a.attrs['class']
-            except KeyError:
-                continue
-            else:
-                if 'text-truncate' in a.attrs['class']:
-                    inf['url'] = BASE_URL + a.attrs['href']
-                else:
-                    continue
-        # finding group
-        for a in i.find_all('a'):
-            try:
-                a.attrs['href']
-            except KeyError:
-                continue
-            else:
-                if '/group/' in a.attrs['href']:
-                    inf['group'] = a.decode_contents()
-                else:
-                    continue
-        # finding uploader, chapter, volume
-        try:
-            i.attrs['data-id']
-        except KeyError:
-            continue
-        else:
-            inf['uploader'] = i.attrs['data-uploader']
-            inf['chapter'] = i.attrs['data-chapter']
-            inf['volume'] = i.attrs['data-volume']
-            inf['chapter-id'] = i.attrs['data-id']
-            info['manga-id'] = i.attrs['data-manga-id']
-            chapters_.append(inf)
-    # finding title
-    t = bs.find_all('span')
-    info['chapters'] = chapters_
-    for i in t:
-        try:
-            i.attrs['class']
-        except KeyError:
-            continue
-        else:
-            if 'mx-1' in i.attrs['class']:
-                info['title'] = i.decode_contents()
-            else:
-                continue
-    return info
-
 def parse_chapters_info(json_data: str):
     """
     parse manga chapter info, return :class:`MangaChapterData`
@@ -145,3 +67,19 @@ def get_absolute_url(body_string: str):
             else:
                 continue
 
+def get_manga_id(body_string: str):
+    """Finding manga id with scrapping"""
+    parser = BeautifulSoup(body_string, 'html.parser')
+    # finding data-manga-id in every buttons element
+    for button in parser.find_all('button'):
+        if button.attrs.get('data-manga-id') is None:
+            continue
+        else:
+            return button.attrs.get('data-manga-id')
+    # finding data-title-id in every buttons element
+    for button in parser.find_all('button'):
+        if button.attrs.get('data-title-id'):
+            if button.attrs.get('data-title-id') is None:
+                continue
+            else:
+                return button.attrs.get('data-title-id')
