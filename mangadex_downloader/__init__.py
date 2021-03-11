@@ -178,6 +178,8 @@ class Mangadex:
         data = fetch.get()
         if download:
             self._logger_info_downloader('Downloading manga "%s"' % (data.title))
+            if self.output_folder != '':
+                self._create_directory(self.output_folder)
             self._create_directory(os.path.join(self.output_folder, data.title))
             self._download(data, use_secondary_server, data_saver)
             return data
