@@ -48,6 +48,17 @@ info = m.extract_info('https://mangadex.org/title/43610/my-tiny-senpai-from-work
 
 ...
 
+# New in v0.0.4 
+# added Mangadex.extract_basic_info()
+# grab all information in manga without the chapters
+info = m.extract_basic_info('https://mangadex.org/title/43610/my-tiny-senpai-from-work')
+
+print(info)
+# Output: <MangaData title="My Tiny Senpai From Work" chapters=51 language=jp>
+
+print(info.chapters)
+# Output: None
+
 # if want to download a list containing mangadex urls
 # do: m.download('mangadex urls', 'mangadex urls', ...)
 # see example below
