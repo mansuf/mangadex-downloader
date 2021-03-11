@@ -32,7 +32,7 @@ class StringVar:
     with set() and get() only
     """
     def __init__(self, initial_value: str=None):
-        self._value = initial_value
+        self._value = initial_value or ''
 
     def set(self, value: str):
         self._value = value
@@ -45,8 +45,6 @@ class MangaData:
     a class representing manga info data
     """
     def __init__(self, data: dict):
-        print(data)
-
         self._data = data
         self.chapters = self._parse_chapters(data['chapters'])
         self.language = data['language']
@@ -77,7 +75,7 @@ class MangaData:
         elif self.chapters is None:
             return self.total_chapters
         else:
-            return len(self.chapters)
+            return int(max([float(i['chapter']) for i in self.chapters]))
 
     def __repr__(self):
         return '<MangaData title="%s" total_chapters=%s language=%s>' %(
@@ -136,10 +134,13 @@ def filter_forbidden_names(string: str):
             continue
         else:
             result += word
-    result += ' '
-    # remove dot or dot in ends words
+    final = StringVar(result)
+    # remove dot or space in ends words
     # to prevent error when writing file or folder in windows
-    while result.endswith('.') or result.endswith(' '):
-        result = result[0:len(result) - 1]
-        result = result[0:len(result) - 1]
-    return result
+    while True:
+        if final.get()[len(final.get()) - 1] == '.' or final.get()[len(final.get()) - 1] == ' ':
+            r = final.get()[0:len(final.get()) - 1]
+            final.set(r)
+        else:
+            break
+    return final.get()
