@@ -18,8 +18,8 @@ pip install mangadex-downloader
 ```python
 from mangadex_downloader import Mangadex
 
-# by default, verbose is False and language is English
-m = Mangadex(language='English', verbose=True)
+# by default, verbose is False
+m = Mangadex(verbose=True)
 
 # if you want to see all information in manga
 # plus you want to download it
