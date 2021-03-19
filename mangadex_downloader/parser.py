@@ -3,7 +3,6 @@ import json
 import html
 from bs4 import BeautifulSoup
 from mangadex_downloader.constants import (
-    BASE_URL,
     MangaChapterData,
     StringVar
 )
