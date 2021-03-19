@@ -5,7 +5,7 @@
 <br>
 or
 <br>
-**Insert snippets code here with explanations.**
+`Insert snippets code here with explanations.`
 
 ### Environments
 - OS: Linux Ubuntu 20.04 LTS
