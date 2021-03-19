@@ -64,6 +64,9 @@ class MangadexFetcher:
         # because scrapping can't get enough information manga
         self._log_info('Requesting info to mangadex main website')
         r = requests.get(self.url)
+        if r.status_code != 200:
+            self._log_error('Mangadex send %s code' % (r.status_code))
+            raise FetcherError('mangadex send %s code' % (r.status_code))
 
         self._log_info('Checking if ip user are banned or not')
         # Raise error if we're banned from mangadex
