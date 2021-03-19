@@ -2,9 +2,7 @@
 
 ### Steps
 - **Insert steps here.**
-<br>
 or
-<br>
 `Insert snippets code here with explanations.`
 
 ### Environments
