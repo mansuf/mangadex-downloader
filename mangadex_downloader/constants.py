@@ -1,30 +1,30 @@
 import json
 
-# Base url mangadex.org
-BASE_URL = 'https://mangadex.org'
+# Base url API mangadex.org
+BASE_API_URL = 'https://api.mangadex.org/v2'
 
 # Base url mangadex.org API for chapter
 def get_manga_chapter_url(chapter_id, data_saver=False):
     if data_saver:
-        return BASE_URL + '/api/v2/chapter/' + chapter_id + '?saver=true'
+        return BASE_API_URL + '/chapter/' + chapter_id + '?saver=true'
     else:
-        return BASE_URL + '/api/v2/chapter/' + chapter_id
+        return BASE_API_URL + '/chapter/' + chapter_id
 
 # Base url mangadex.org API for manga
 def get_manga_api_url(manga_id, include_chapters=True):
     if include_chapters:
-        return BASE_URL + '/api/v2/manga/' + manga_id + '?include=chapters'
+        return BASE_API_URL + '/manga/' + manga_id + '?include=chapters'
     else:
-        return BASE_URL + '/api/v2/manga/' + manga_id
+        return BASE_API_URL + '/manga/' + manga_id
 
 # Base url mangadex.org API for tag
-BASE_API_TAG_URL = BASE_URL + '/api/v2/tag/'
+BASE_API_TAG_URL = BASE_API_URL + '/tag/'
 
 # Base url mangadex.org API for group
-BASE_API_GROUP_URL = BASE_URL + '/api/v2/group/'
+BASE_API_GROUP_URL = BASE_API_URL + '/group/'
 
 # Base url mangadex.org API for user
-BASE_API_USER_URL = BASE_URL + '/api/v2/user/'
+BASE_API_USER_URL = BASE_API_URL + '/user/'
 
 class StringVar:
     """
@@ -56,6 +56,7 @@ class MangaData:
         self.cover = data['cover']
         self.status = data['status']
         self.total_chapters = data['total_chapters']
+        self.latest_chapters = self._get_latest_chapters()
 
     def _parse_chapters(self, chapters):
         if chapters is None:
@@ -69,13 +70,19 @@ class MangaData:
                 groups[chap['chapter']] = chap
         return [groups[i] for i in groups.keys()]
             
+    def _get_latest_chapters(self):
+        if 'Oneshot' in self.genres:
+            return 1
+        else:
+            return int(max([float(i['chapter']) for i in self.chapters]))
+
     def _get_total_chapters(self):
         if 'Oneshot' in self.genres:
             return 1
         elif self.chapters is None:
             return self.total_chapters
         else:
-            return int(max([float(i['chapter']) for i in self.chapters]))
+            return len(self.chapters)
 
     def __repr__(self):
         return '<MangaData title="%s" total_chapters=%s language=%s>' %(
