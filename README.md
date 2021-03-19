@@ -106,8 +106,8 @@ Python 3.x
 
 You can open a issue [here](https://github.com/mansuf/mangadex-downloader/issues), if its related to Mangadex.
 <br>
-For more information, click [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
+For more information, click [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md#Issues)
 
-### Pull request
+### Contributing
 
-You can see more information in [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md#Pull-request)
+You can check the guildlines [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
