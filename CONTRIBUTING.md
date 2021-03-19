@@ -1,0 +1,1 @@
+## Contributing to mangadex-downloader
