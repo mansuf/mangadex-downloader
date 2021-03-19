@@ -11,7 +11,7 @@ pip install mangadex-downloader
 
 - Download manga directly with python from mangadex
 - Extract all information manga from mangadex
-- [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) support
+- [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) support (Local files support)
 
 ### Usage
 
