@@ -48,6 +48,30 @@ info = m.extract_info('https://mangadex.org/title/43610/my-tiny-senpai-from-work
 
 ...
 
+# Also, you can use secondary server to download manga
+# by passing use_secondary_server to Mangadex.donwload()
+# and Mangadex.extract_info()
+# Secondary server can be used if primary server is slow to download
+# in my experience using this, secondary server always fast (well sometimes...)
+
+# by default use_secondary_server is False
+info = m.extract_info('https://mangadex.org/title/43610/my-tiny-senpai-from-work', use_secondary_server=True)
+m.download('https://mangadex.org/title/43610/my-tiny-senpai-from-work', use_secondary_server=True)
+
+# New in v0.0.4
+# You can pass data_saver argument in Mangdex.download()
+# and Mangadex.extract_info()
+
+# If data_saver is True
+# Mangadex class will request data-saver image to Mangadex
+# to use less size and low quality image
+
+# by default, data_saver argument is False
+info = m.extract_info('https://mangadex.org/title/43610/my-tiny-senpai-from-work', data_saver=True)
+m.download('https://mangadex.org/title/43610/my-tiny-senpai-from-work', data_saver=True)
+
+...
+
 # New in v0.0.4 
 # added Mangadex.extract_basic_info()
 # grab all information in manga without the chapters
@@ -77,8 +101,3 @@ m.download(
 ```
 Python 3.x
 ```
-
-### TODO
-- add multi-download
-- rework Mangadex() class
-- add download range chapters
