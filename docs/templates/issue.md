@@ -1,7 +1,7 @@
 **Insert description here.**
 
 ### Steps
-**Insert steps here.**
+- **Insert steps here.**
 <br>
 or
 <br>
