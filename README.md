@@ -110,4 +110,4 @@ For more information, click [here](https://github.com/mansuf/mangadex-downloader
 
 ### Contributing
 
-You can check the guildlines [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
+You can check the guidelines [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
