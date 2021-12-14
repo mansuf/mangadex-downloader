@@ -4,7 +4,7 @@ Download manga from Mangadex through Python
 
 ## Important Note
 
-Q: What happend to this application ? why i can't download manga from MangaDex ?
+Q: What happend to this application ? why i can't download manga from MangaDex with this app ?
 <br>
 A: This application is out of update with MangaDex API (This app using v3 meanwhile v3 is dead and v5 is born) and need to be rework.
 
