@@ -1,15 +1,15 @@
-class MangadexError(BaseException):
-    """Base Exception"""
+class MangaDexException(Exception):
+    """Base exception for MangaDex errors"""
     pass
 
-class FetcherError(MangadexError):
-    """Raised when error happened during fetching manga"""
+class HTTPException(MangaDexException):
+    """HTTP errors"""
     pass
 
-class MangaNotFound(MangadexError):
-    """Raised when given manga is not exist"""
+class InvalidManga(MangaDexException):
+    """Raised when invalid manga is found"""
     pass
 
-class UserBanned(MangadexError):
-    """Raised when user are banned from mangadex"""
+class InvalidURL(MangaDexException):
+    """Raised when given mangadex url is invalid"""
     pass
