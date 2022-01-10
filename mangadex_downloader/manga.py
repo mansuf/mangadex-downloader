@@ -1,4 +1,4 @@
-from .utils import uploads_url
+from .network import uploads_url
 
 # This is shortcut to extract data from weird dict structure
 # in MangaDex JSON data

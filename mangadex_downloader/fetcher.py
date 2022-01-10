@@ -1,7 +1,6 @@
 from requests.exceptions import HTTPError
-from .utils import base_url
 from .errors import HTTPException
-from .network import Net
+from .network import Net, base_url
 
 def get_manga(manga_id):
     url = '{0}/manga/{1}'.format(base_url, manga_id)

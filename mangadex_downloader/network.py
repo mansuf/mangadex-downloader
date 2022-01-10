@@ -12,8 +12,12 @@ log = logging.getLogger(__name__)
 
 __all__ = (
     'Net', 'NetworkObject',
-    'set_proxy', 'clear_proxy'
+    'set_proxy', 'clear_proxy',
+    'base_url', 'uploads_url'
 )
+
+base_url = 'https://api.mangadex.org'
+uploads_url = 'https://uploads.mangadex.org'
 
 # Modified requests session class with __del__ handler
 # so the session will be closed properly
@@ -30,9 +34,6 @@ class requestsMangaDexSession(requests.Session):
         self.headers = {
             "User-Agent": user_agent
         }
-
-    def __del__(self):
-        self.close()
 
     # Ratelimit handler
     def request(self, *args, **kwargs):

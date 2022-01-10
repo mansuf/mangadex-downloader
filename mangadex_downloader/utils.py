@@ -7,9 +7,6 @@ from .downloader import FileDownloader
 
 log = logging.getLogger(__name__)
 
-base_url = 'https://api.mangadex.org'
-uploads_url = 'https://uploads.mangadex.org'
-
 def validate_url(url):
     """Validate mangadex url and return the uuid"""
     re_url = re.compile(r'https:\/\/mangadex\.org\/title\/([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})')
