@@ -36,7 +36,8 @@ class requestsProxiedSession(requests.Session):
 
     # Ratelimit handler
     def request(self, *args, **kwargs):
-        for attempt in range(5):
+        attempt = 1
+        while True:
             resp = super().request(*args, **kwargs)
 
             # We are being rate limited
@@ -52,6 +53,7 @@ class requestsProxiedSession(requests.Session):
                 
                 log.debug('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
                 time.sleep(delay)
+                attempt += 1
                 continue
 
             return resp
