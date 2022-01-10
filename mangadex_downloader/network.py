@@ -17,7 +17,7 @@ __all__ = (
 
 # Modified requests session class with __del__ handler
 # so the session will be closed properly
-class requestsProxiedSession(requests.Session):
+class requestsMangaDexSession(requests.Session):
     def __init__(self, trust_env=True) -> None:
         super().__init__()
         self.trust_env = trust_env
@@ -84,7 +84,7 @@ class NetworkObject:
         self._trust_env = trust_env
 
         # This will be disable proxy from environtments
-        self._requests = requestsProxiedSession(trust_env=self._trust_env)
+        self._requests = requestsMangaDexSession(trust_env=self._trust_env)
 
     @property
     def proxy(self):
@@ -160,7 +160,7 @@ class NetworkObject:
     def close(self):
         """Close requests session only"""
         self._requests.close()
-        self._requests = requestsProxiedSession(self._trust_env)
+        self._requests = requestsMangaDexSession(self._trust_env)
 
     async def close_async(self):
         """Close aiohttp & requests session"""
