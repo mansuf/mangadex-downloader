@@ -17,7 +17,7 @@ def setup_logging(name_module, verbose=False):
         log.setLevel(logging.INFO)
     return log
 
-def main(argv):
+def _main(argv):
     parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument('URL', help='MangaDex URL')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
@@ -43,8 +43,12 @@ def main(argv):
     log.debug('Closing network object')
     Net.close()
 
-
+def main(argv=None):
+    if argv is None:
+        _main(sys.argv[1:])
+    else:
+        _main(argv)
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
 
