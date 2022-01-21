@@ -22,7 +22,7 @@ def main(argv):
     parser.add_argument('URL', help='MangaDex URL')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
-    parser.add_argument('--proxy-env', action='store_true', help='use http/proxy from environments')
+    parser.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
     args = parser.parse_args(argv)
 
