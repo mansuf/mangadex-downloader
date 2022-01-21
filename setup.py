@@ -30,7 +30,8 @@ setup(
     'bs4',
     'requests[socks]',
     'tqdm',
-    'aiohttp'
+    'aiohttp',
+    'pathvalidate'
   ],
   entry_points = {
     'console_scripts': [
