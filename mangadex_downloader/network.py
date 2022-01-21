@@ -104,9 +104,10 @@ class NetworkObject:
     @trust_env.setter
     def trust_env(self, yes):
         self._trust_env = yes
-        if self.aiohttp:
-            self.aiohttp._trust_env = yes
-        self._requests.trust_env = yes
+        if self._aiohttp:
+            self._aiohttp._trust_env = yes
+        if self._requests:
+            self._requests.trust_env = yes
 
     def is_proxied(self):
         """Return ``True`` if requests/aiohttp from :class:`NetworkObject`
@@ -122,15 +123,23 @@ class NetworkObject:
         if self._requests:
             self._update_requests_proxy(proxy)
         if self._aiohttp:
-            self._aiohttp.set_proxy(proxy)
+            self._update_aiohttp_proxy(proxy)
 
     def clear_proxy(self):
-        """Remove all proxy from aiohttp/requests"""
+        """Remove all proxy from aiohttp/request and disable environments proxy"""
         self._proxy = None
+        self._trust_env = False
         if self._requests:
             self._requests.proxies.clear()
+            self._requests.trust_env = False
         if self._aiohttp:
             self._aiohttp.remove_proxy()
+            self._aiohttp._trust_env = False
+
+    def _update_aiohttp_proxy(self, proxy):
+        if self._aiohttp:
+            self._aiohttp.set_proxy(proxy)
+            self._aiohttp._trust_env = self._trust_env
 
     @property
     def aiohttp(self):
@@ -145,6 +154,7 @@ class NetworkObject:
                 'https': proxy
             }
             self._requests.proxies.update(pr)
+            self._requests.trust_env = self._trust_env
 
     def _create_requests(self):
         if self._requests is None:
@@ -169,6 +179,7 @@ class NetworkObject:
 
         if self._aiohttp is None:
             self._aiohttp = aiohttpProxiedSession(self.proxy)
+            self._update_aiohttp_proxy(self.proxy)
 
     def close(self):
         """Close requests session only"""
