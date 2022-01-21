@@ -38,6 +38,8 @@ python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.
 
 ## Usage
 
+**NOTE:** This app will download manga in english language only. Other languages are implemented soon.
+
 ### Command Line Interface (CLI)
 
 Options
