@@ -32,7 +32,6 @@ def get_cover_art(cover_id):
 def get_all_chapters(manga_id):
     url = '{0}/manga/{1}/aggregate'.format(base_url, manga_id)
     r = Net.requests.get(url, params={'translatedLanguage[]': ['en']})
-    print(r.url)
     try:
         r.raise_for_status()
     except HTTPError:
