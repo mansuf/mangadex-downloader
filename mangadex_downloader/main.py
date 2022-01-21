@@ -98,4 +98,4 @@ def download(url, folder=None):
             img_path
         )
         downloader.download()
-    return Manga(data)
+    return manga
