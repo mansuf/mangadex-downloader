@@ -123,14 +123,14 @@ class NetworkObject:
             'http': proxy,
             'https': proxy
         }
-        self._requests.proxies.update(pr)
+        self.requests.proxies.update(pr)
         if self.aiohttp:
             self.aiohttp.set_proxy(proxy)
 
     def clear_proxy(self):
         """Remove all proxy from aiohttp/requests"""
         self._proxy = None
-        self._requests.proxies.clear()
+        self.requests.proxies.clear()
         if self.aiohttp:
             self.aiohttp.remove_proxy()
 
@@ -140,11 +140,14 @@ class NetworkObject:
         self._create_aiohttp()
         return self._aiohttp
 
+    def _create_requests(self):
+        if self._requests is None:
+            self._requests = requestsMangaDexSession(self._trust_env)
+
     @property
     def requests(self):
         """Return proxied requests (if configured)"""
-        if self._requests is None:
-            self._requests = requestsMangaDexSession(self._trust_env)
+        self._create_requests()
         return self._requests
 
     def _create_aiohttp(self):
