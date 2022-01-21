@@ -85,7 +85,7 @@ class NetworkObject:
         self._trust_env = trust_env
 
         # This will be disable proxy from environtments
-        self._requests = requestsMangaDexSession(trust_env=self._trust_env)
+        self._requests = None
 
     @property
     def proxy(self):
@@ -143,6 +143,8 @@ class NetworkObject:
     @property
     def requests(self):
         """Return proxied requests (if configured)"""
+        if self._requests is None:
+            self._requests = requestsMangaDexSession(self._trust_env)
         return self._requests
 
     def _create_aiohttp(self):
@@ -161,7 +163,7 @@ class NetworkObject:
     def close(self):
         """Close requests session only"""
         self._requests.close()
-        self._requests = requestsMangaDexSession(self._trust_env)
+        self._requests = None
 
     async def close_async(self):
         """Close aiohttp & requests session"""
