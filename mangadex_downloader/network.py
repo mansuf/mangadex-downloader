@@ -52,7 +52,7 @@ class requestsMangaDexSession(requests.Session):
                 elif resp.headers.get('Retry-After'):
                     delay = float(resp.headers.get('Retry-After'))
                 
-                log.debug('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
+                log.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
                 time.sleep(delay)
                 attempt += 1
                 continue
