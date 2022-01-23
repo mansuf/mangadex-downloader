@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 def validate_url(url):
     """Validate mangadex url and return the uuid"""
     re_url = re.compile(r'([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})')
-    match = re_url.match(url)
+    match = re_url.search(url)
     if match is None:
         raise InvalidURL('Invalid MangaDex URL or manga id')
     return match.group(1)
