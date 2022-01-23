@@ -15,7 +15,13 @@ __all__ = (
     'download',
 )
 
-def download(url, folder=None):
+def download(url, folder=None, start_chapter=None, end_chapter=None):
+    # Validate start_chapter and end_chapter param
+    if start_chapter is not None and not isinstance(start_chapter, float):
+        raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
+    if end_chapter is not None and not isinstance(end_chapter, float):
+        raise ValueError("end_chapter must be float, not %s" % type(end_chapter))
+
     log.debug('Validating the url...')
     try:
         manga_id = validate_url(url)
@@ -79,12 +85,20 @@ def download(url, folder=None):
     chapters = Chapter(get_all_chapters(manga.id))
 
     # Begin downloading
-    for vol, chap, page, img_url, img_name in chapters.iter_chapter_images():
+    for vol, chap, page, img_url, img_name in chapters.iter_chapter_images(start_chapter, end_chapter):
         # Create chapter folder
         chapter_folder = "" # type: str
-        if vol != 'none':
-            chapter_folder += 'Volume. %s ' % vol
-        chapter_folder += 'Chapter. ' + chap
+        # Determine oneshot chapter
+        if vol == 0 and chap == "none":
+            chapter_folder += "Oneshot"
+        elif vol == "none" and chap == "none":
+            chapter_folder += "Oneshot"
+        elif vol == "none" and chap == "0":
+            chapter_folder += "Oneshot"
+        else:
+            if vol != 'none':
+                chapter_folder += 'Volume. %s ' % vol
+            chapter_folder += 'Chapter. ' + chap
         
         chapter_path = base_path / chapter_folder
         if not chapter_path.exists():
@@ -98,4 +112,5 @@ def download(url, folder=None):
             img_path
         )
         downloader.download()
+    log.info("Download finished for manga \"%s\"" % manga.title)
     return manga
