@@ -82,6 +82,10 @@ from mangadex_downloader import download
 # The parameters are:
 # - url: str
 # - folder: str (default: None)
+# - compressed_image: bool (default: False)
+# - start_chapter: float (default: None)
+# - end_chapter: float (default: None)
+# - no_oneshot_chapter: bool (default: None)
 
 download("insert MangaDex URL here")
 ```
