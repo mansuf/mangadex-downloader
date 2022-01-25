@@ -101,7 +101,7 @@ download("insert MangaDex URL here")
 download(
   "insert MangaDex URL here",
   folder="Homework", # Store manga in "Homework" folder
-  compressed=True, # Use compressed images for low size
+  compressed_image=True, # Use compressed images for low size
   start_chapter=5.0, # Start downloading from chapter 5
   end_chapter=10.0, # Stop downloading from chapter 10
   no_oneshot_chapter=True # for those of you who hates oneshot :)
