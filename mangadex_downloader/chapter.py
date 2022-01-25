@@ -77,7 +77,10 @@ class Chapter:
                                 end_chapter
                             ))
                             continue
-                log.info('Getting images from chapter %s' % chapter.chapter)
+                log.info('Getting %s from chapter %s' % (
+                    'compressed images' if data_saver else 'images',
+                    chapter.chapter
+                ))
                 data = get_chapter_images(chapter.id)
 
                 # Construct image url
