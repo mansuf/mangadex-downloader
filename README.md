@@ -68,10 +68,10 @@ mangadex-downloader "insert MangaDex URL here"
 # Use this if "mangadex-dl" or "mangadex-downloader" didn't work
 
 # For Windows
-py -3 -m mangadex-downloader "insert MangaDex URL here" 
+py -3 -m mangadex_downloader "insert MangaDex URL here" 
 
 # For Linux / Mac OS
-python3 -m mangadex-downloader "insert MangaDex URL here" 
+python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
 ### Embedding (API)
