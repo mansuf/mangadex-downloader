@@ -24,6 +24,10 @@ def _main(argv):
     parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
     parser.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
+    parser.add_argument('--start-chapter', help='Start download chapter from given chapter number')
+    parser.add_argument('--end-chapter', help='Stop download chapter from given chapter number')
+    parser.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)')
+    parser.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter')
     args = parser.parse_args(argv)
 
     log = setup_logging('mangadex_downloader', args.verbose)
