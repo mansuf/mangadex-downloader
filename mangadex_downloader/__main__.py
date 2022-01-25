@@ -26,8 +26,8 @@ def _main(argv):
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
     parser.add_argument('--start-chapter', help='Start download chapter from given chapter number')
     parser.add_argument('--end-chapter', help='Stop download chapter from given chapter number')
-    parser.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)')
-    parser.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter')
+    parser.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
+    parser.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
     args = parser.parse_args(argv)
 
     log = setup_logging('mangadex_downloader', args.verbose)
@@ -42,7 +42,14 @@ def _main(argv):
     if args.proxy:
         log.debug('Setting up proxy from --proxy option')
         Net.set_proxy(args.proxy)
-    download(args.URL, args.folder)
+    download(
+        args.URL,
+        args.folder,
+        args.use_compressed_image,
+        args.start_chapter,
+        args.end_chapter,
+        args.no_oneshot_chapter
+    )
 
     log.debug('Closing network object')
     Net.close()
