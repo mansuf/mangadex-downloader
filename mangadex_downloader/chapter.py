@@ -52,10 +52,12 @@ class Chapter:
             chapters.reverse()
             self._volumes[volume] = chapters
 
-    def iter_chapter_images(self, start_chapter=None, end_chapter=None, data_saver=False):
+    def iter_chapter_images(self, start_chapter=None, end_chapter=None, no_oneshot=False, data_saver=False):
         for volume, chapters in self._volumes.items():
             for chapter in chapters:
-                # Normally this is oneshot in different language
+                if no_oneshot and chapter.chapter == "none":
+                    log.warning("Ignoring oneshot chapter since \"no_oneshot\" is True")
+                    continue
                 if chapter.chapter != "none":
                     num_chap = float(chapter.chapter)
                     if start_chapter is not None:

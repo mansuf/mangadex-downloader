@@ -15,7 +15,14 @@ __all__ = (
     'download',
 )
 
-def download(url, folder=None, start_chapter=None, end_chapter=None):
+def download(
+    url,
+    folder=None,
+    compressed_image=False,
+    start_chapter=None,
+    end_chapter=None,
+    no_oneshot_chapter=False
+):
     # Validate start_chapter and end_chapter param
     if start_chapter is not None and not isinstance(start_chapter, float):
         raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
@@ -85,7 +92,12 @@ def download(url, folder=None, start_chapter=None, end_chapter=None):
     chapters = Chapter(get_all_chapters(manga.id))
 
     # Begin downloading
-    for vol, chap, page, img_url, img_name in chapters.iter_chapter_images(start_chapter, end_chapter):
+    for vol, chap, page, img_url, img_name in chapters.iter_chapter_images(
+        start_chapter,
+        end_chapter,
+        no_oneshot_chapter,
+        compressed_image
+    ):
         # Create chapter folder
         chapter_folder = "" # type: str
         # Determine oneshot chapter
