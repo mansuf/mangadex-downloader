@@ -53,8 +53,15 @@ options:
   --folder FOLDER       Store manga in given folder
   --proxy SOCKS / HTTP Proxy
                         Set http/socks proxy
-  --proxy-env           use http/proxy from environments
+  --proxy-env           use http/socks proxy from environments
   --verbose             Enable verbose output
+  --start-chapter START_CHAPTER
+                        Start download chapter from given chapter number
+  --end-chapter END_CHAPTER
+                        Stop download chapter from given chapter number
+  --use-compressed-image
+                        Use low size images manga (compressed quality)
+  --no-oneshot-chapter  If exist, don't download oneshot chapter
 ```
 
 Usage
