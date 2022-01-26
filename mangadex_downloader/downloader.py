@@ -222,13 +222,7 @@ class ChapterPageDownloader(FileDownloader):
             'bytes': size,
             'duration': _time
         }
-        log.debug('Reporting to MangaDex network')
-        r = Net.requests.post('https://api.mangadex.network/report', json=data)
-
-        if r.status_code != 200:
-            log.debug('Failed to report to MangaDex network')
-        else:
-            log.debug('Successfully send report to MangaDex network')
+        Net.requests.report(data)
 
 class StdoutDownloader(BaseDownloader):
     def __init__(self, url) -> None:

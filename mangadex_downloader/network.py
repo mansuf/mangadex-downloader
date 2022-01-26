@@ -3,6 +3,7 @@
 import requests
 import aiohttp
 import asyncio
+import queue
 import time
 import logging
 import sys
@@ -45,6 +46,16 @@ class requestsMangaDexSession(requests.Session):
         # For login
         self._login_lock = Future()
 
+        self._queue_report = queue.Queue()
+
+        # Run the queue worker report
+        t = threading.Thread(target=self._worker_queue_report)
+        t.start()
+
+        # Run mainthread shutdown handler for queue worker
+        t = threading.Thread(target=self._worker_queue_report_handler)
+        t.start()
+
     # Ratelimit handler
     def request(self, *args, **kwargs):
         attempt = 1
@@ -72,6 +83,40 @@ class requestsMangaDexSession(requests.Session):
                 raise HTTPException('Server sending %s code' % resp.status_code)
 
             return resp
+
+    def _worker_queue_report_handler(self):
+        """If mainthread is shutted down all queue worker must shut down too"""
+        is_alive = lambda: threading.main_thread().is_alive()
+        alive = is_alive()
+        while alive:
+            time.sleep(0.3)
+            alive = is_alive()
+        self.report(None)
+
+    def _worker_queue_report(self):
+        """Queue worker for reporting MangaDex network
+        
+        This function will run in another thread.
+        """
+        while True:
+            data = self._queue_report.get()
+            if data is None:
+                return
+            else:
+                log.debug('Reporting %s to MangaDex network' % data)
+                r = self.post('https://api.mangadex.network/report', json=data)
+
+                if r.status_code != 200:
+                    log.debug('Failed to report %s to MangaDex network' % data)
+                else:
+                    log.debug('Successfully send report %s to MangaDex network' % data)
+
+    def _shutdown_report_queue_worker(self):
+        """Shutdown queue worker for reporting MangaDex network
+        
+        client should not call this.
+        """
+        self._queue_report.put(None)
 
     def _update_token(self, result):
         session_token = result['token']['session']
@@ -178,6 +223,10 @@ class requestsMangaDexSession(requests.Session):
         self._reset_token()
         self._notify_login_lock()
         self._login_lock = Future()
+    
+    def report(self, data):
+        """Report to MangaDex network"""
+        self._queue_report.put(data)
 
 # Because aiohttp doesn't support proxy from session
 # we need to subclass it to proxy each requests without
