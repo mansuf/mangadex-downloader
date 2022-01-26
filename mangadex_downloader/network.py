@@ -6,8 +6,12 @@ import asyncio
 import time
 import logging
 import sys
+import threading
 from . import __version__
-from .errors import HTTPException
+from .errors import AlreadyLoggedIn, HTTPException, InvalidLogin, LoginFailed, NotLoggedIn
+from concurrent.futures import Future
+
+EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +39,11 @@ class requestsMangaDexSession(requests.Session):
         self.headers = {
             "User-Agent": user_agent
         }
+        self._session_token = None
+        self._refresh_token = None
+
+        # For login
+        self._login_lock = Future()
 
     # Ratelimit handler
     def request(self, *args, **kwargs):
@@ -64,6 +73,111 @@ class requestsMangaDexSession(requests.Session):
 
             return resp
 
+    def _update_token(self, result):
+        session_token = result['token']['session']
+        refresh_token = result['token']['refresh']
+
+        self._refresh_token = refresh_token
+        self._session_token = session_token
+        self.headers['Authorization'] = 'Bearer %s' % session_token
+
+    def _reset_token(self):
+        self._refresh_token = None
+        self._session_token = None
+        self.headers.pop('Authorization')
+
+    def _notify_login_lock(self):
+        self._login_lock.set_result(True)
+    
+    def _wait_login_lock(self):
+        """Wait until time is running out and then re-login with refresh token or logout() is called"""
+        while True:
+            try:
+                logout = self._login_lock.result(EXP_LOGIN_SESSION)
+            except TimeoutError:
+                logout = False
+
+            # Time has expired
+            if not logout:
+                self.refresh_login()
+            # self.logout() is called
+            else:
+                break
+
+    def refresh_login(self):
+        """Refresh login session with refresh token"""
+        if self._refresh_token is None:
+            raise RuntimeError("User are not logged in")
+        
+        url = '{0}/auth/refresh'.format(base_url)
+        r = self.post(url, json={"token": self._refresh_token})
+        result = r.json()
+
+        if r.status_code != 200:
+            raise LoginFailed("Refresh token failed, reason: %s" % result["errors"][0]["detail"])
+
+        self._update_token(result)
+
+    def check_login(self):
+        """Check if user are still logged in"""
+        if self._refresh_token is None and self._session_token is None:
+            return False
+
+        url = '{0}/auth/check'.format(base_url)
+        r = self.get(url)
+
+        return r.json()['isAuthenticated']
+
+    def login(self, password, username=None, email=None):
+        """Login to MangaDex"""
+        # Raise error if already logged in
+        if self.check_login():
+            raise AlreadyLoggedIn("User already logged in")
+
+        # Type checking
+        if not isinstance(password, str):
+            raise ValueError("password must be str, not %s" % type(password))
+        if username and not isinstance(username, str):
+            raise ValueError("username must be str, not %s" % type(username))
+        if email and not isinstance(email, str):
+            raise ValueError("email must be str, not %s" % type(email))
+
+        if not username and not email:
+            raise InvalidLogin("at least provide \"username\" or \"email\" to login")
+
+        # Raise error if password length are less than 8 characters
+        if len(password) < 8:
+            raise ValueError("password length must be more than 8 characters")
+
+        url = '{0}/auth/login'.format(base_url)
+        data = {"password": password}
+        
+        if username:
+            data['username'] = username
+        if email:
+            data['email'] = email
+        
+        # Begin to log in
+        r = self.post(url, json=data)
+        if r.status_code == 401:
+            result = r.json()
+            raise InvalidLogin(result["errors"][0]["detail"])
+        
+        result = r.json()
+        self._update_token(result)
+
+        t = threading.Thread(target=self._wait_login_lock, daemon=True)
+        t.start()
+
+    def logout(self):
+        """Logout from MangaDex"""
+        if not self.check_login():
+            raise NotLoggedIn("User are not logged in")
+        
+        self.post("{0}/auth/logout".format(base_url))
+        self._reset_token()
+        self._notify_login_lock()
+        self._login_lock = Future()
 
 # Because aiohttp doesn't support proxy from session
 # we need to subclass it to proxy each requests without
