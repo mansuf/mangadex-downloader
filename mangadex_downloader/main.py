@@ -8,12 +8,49 @@ from .fetcher import *
 from .manga import Manga
 from .chapter import Chapter
 from .downloader import ChapterPageDownloader
+from .network import Net
 
 log = logging.getLogger(__name__)
 
 __all__ = (
-    'download',
+    'download', 'login', 'logout'
 )
+
+def login(*args, **kwargs):
+    """Login to MangaDex
+
+    Do not worry about token session, the library automatically handle this. 
+    Login session will be automtically renewed (unless you called :meth:`logout()`).
+    
+    Parameters
+    -----------
+    password: :class:`str`
+        Password to login
+    username: Optional[:class:`str`]
+        Username to login
+    email: Optional[:class:`str`]
+        Email to login
+    
+    Raises
+    -------
+    AlreadyLoggedIn
+        User are already logged in
+    ValueError
+        Parameters are not valid
+    InvalidLogin
+        Login credential are not valid
+    """
+    Net.requests.login(*args, **kwargs)
+
+def logout():
+    """Logout from MangaDex
+    
+    Raises
+    -------
+    NotLoggedIn
+        User are not logged in
+    """
+    Net.requests.logout()
 
 def download(
     url,
