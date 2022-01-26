@@ -112,13 +112,3 @@ download(
 ```
 Python 3.5.x
 ```
-
-## Issues
-
-You can open a issue [here](https://github.com/mansuf/mangadex-downloader/issues), if its related to Mangadex.
-<br>
-For more information, click [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md#Issues)
-
-## Contributing
-
-You can check the guidelines [here](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
