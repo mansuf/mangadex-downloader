@@ -190,7 +190,7 @@ class ChapterPageDownloader(FileDownloader):
                     break
                 writer.write(chunk)
                 self._update_progress_bar(len(chunk))
-            t2 = time.time_ns()
+            t2 = time.time()
         
         # Delete original file if replace is True and real file is exist
         if real_file_sizes and self.replace:
