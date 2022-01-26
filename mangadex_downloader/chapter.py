@@ -5,6 +5,45 @@ from .fetcher import get_chapter_images
 
 log = logging.getLogger(__name__)
 
+class ChapterImages:
+    def __init__(self, chapter_id, data_saver=False) -> None:
+        self.id = chapter_id
+        self.data_saver = data_saver
+        self._images = []
+        self._low_images = []
+        self._data = None
+        self._base_url = None
+        self._hash = None
+    
+    def fetch(self):
+        data = get_chapter_images(self.id)
+        # Construct image url
+        self._data = data
+        self._base_url = data.get('baseUrl')
+        self._hash = data['chapter']['hash']
+        self._images = data['chapter']['data']
+        self._low_images = data['chapter']['dataSaver']
+
+    def iter(self):
+        if self._data is None:
+            raise Exception("fetch() is not called")
+
+        quality_mode = 'data-saver' if self.data_saver else 'data'
+        images = self._low_images if self.data_saver else self._images
+
+        page = 1
+        for img in images:
+            url = '{0}/{1}/{2}/{3}'.format(
+                self._base_url,
+                quality_mode,
+                self._hash,
+                img
+            )
+
+            yield page, url, img
+
+            page += 1
+
 class _Chapter:
     def __init__(self, data) -> None:
         self.id = data.get('id')
@@ -77,32 +116,6 @@ class Chapter:
                                 end_chapter
                             ))
                             continue
-                log.info('Getting %s from chapter %s' % (
-                    'compressed images' if data_saver else 'images',
-                    chapter.chapter
-                ))
-                data = get_chapter_images(chapter.id)
 
-                # Construct image url
-                base_url = data.get('baseUrl')
-                chapter_hash = data['chapter']['hash']
-                quality_mode = 'data-saver' if data_saver else 'data'
-                if data_saver:
-                    images = data['chapter']['dataSaver']
-                else:
-                    images = data['chapter']['data']
-
-                chapter_page = 1
-                for img in images:
-                    url = '{0}/{1}/{2}/{3}'.format(
-                        base_url,
-                        quality_mode,
-                        chapter_hash,
-                        img
-                    )
-
-                    # Yield it
-                    yield volume, chapter.chapter, chapter_page, url, img
-
-                    chapter_page += 1
+                yield volume, chapter.chapter, ChapterImages(chapter.id, data_saver)
 

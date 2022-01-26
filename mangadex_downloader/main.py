@@ -92,12 +92,19 @@ def download(
     chapters = Chapter(get_all_chapters(manga.id))
 
     # Begin downloading
-    for vol, chap, page, img_url, img_name in chapters.iter_chapter_images(
+    for vol, chap, images in chapters.iter_chapter_images(
         start_chapter,
         end_chapter,
         no_oneshot_chapter,
         compressed_image
     ):
+        # Fetching chapter images
+        log.info('Getting %s from chapter %s' % (
+            'compressed images' if compressed_image else 'images',
+            chap
+        ))
+        images.fetch()
+
         # Create chapter folder
         chapter_folder = "" # type: str
         # Determine oneshot chapter
@@ -116,13 +123,34 @@ def download(
         if not chapter_path.exists():
             chapter_path.mkdir(exist_ok=True)
 
-        img_path = chapter_path / img_name
+        while True:
+            error = False
+            for page, img_url, img_name in images.iter():
+                img_path = chapter_path / img_name
 
-        log.info('Downloading %s page %s' % (chapter_folder, page))
-        downloader = ChapterPageDownloader(
-            img_url,
-            img_path
-        )
-        downloader.download()
+                log.info('Downloading %s page %s' % (chapter_folder, page))
+                downloader = ChapterPageDownloader(
+                    img_url,
+                    img_path
+                )
+                success = downloader.download()
+
+                # One of MangaDex network are having problem
+                # Fetch the new one, and start re-downloading
+                if not success:
+                    log.error('One of MangaDex network are having problem, re-fetching the images...')
+                    log.info('Getting %s from chapter %s' % (
+                        'compressed images' if compressed_image else 'images',
+                        chap
+                    ))
+                    error = True
+                    images.fetch()
+                    break
+                else:
+                    continue
+            
+            if not error:
+                break
+                
     log.info("Download finished for manga \"%s\"" % manga.title)
     return manga

@@ -154,6 +154,7 @@ class ChapterPageDownloader(FileDownloader):
             length = len(resp.content)
             t2 = time.time()
             self._report(resp, length, round((t2 - t1) * 1000), False)
+            return False
 
         # Grab the file sizes
         file_sizes = float(resp.headers.get('Content-Length'))
@@ -198,6 +199,7 @@ class ChapterPageDownloader(FileDownloader):
 
         # Finally report it to MangaDex network
         self._report(resp, total_size, round((t2 - t1) * 1000), True)
+        return True
 
     def _report(self, resp, size, _time, success):
         self.cleanup()
