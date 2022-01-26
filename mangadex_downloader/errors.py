@@ -18,10 +18,6 @@ class LoginFailed(MangaDexException):
     """Raised when login is failed"""
     pass
 
-class InvalidLogin(MangaDexException):
-    """Raised when login is failed"""
-    pass
-
 class AlreadyLoggedIn(MangaDexException):
     """Raised when user try login but already logged in """
     pass

@@ -8,7 +8,7 @@ import logging
 import sys
 import threading
 from . import __version__
-from .errors import AlreadyLoggedIn, HTTPException, InvalidLogin, LoginFailed, NotLoggedIn
+from .errors import AlreadyLoggedIn, HTTPException, LoginFailed, NotLoggedIn
 from concurrent.futures import Future, TimeoutError
 
 EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
@@ -143,7 +143,7 @@ class requestsMangaDexSession(requests.Session):
             raise ValueError("email must be str, not %s" % type(email))
 
         if not username and not email:
-            raise InvalidLogin("at least provide \"username\" or \"email\" to login")
+            raise LoginFailed("at least provide \"username\" or \"email\" to login")
 
         # Raise error if password length are less than 8 characters
         if len(password) < 8:
@@ -161,7 +161,7 @@ class requestsMangaDexSession(requests.Session):
         r = self.post(url, json=data)
         if r.status_code == 401:
             result = r.json()
-            raise InvalidLogin(result["errors"][0]["detail"])
+            raise LoginFailed(result["errors"][0]["detail"])
         
         result = r.json()
         self._update_token(result)
