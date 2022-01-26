@@ -7,6 +7,7 @@ import time
 import logging
 import sys
 from . import __version__
+from .errors import HTTPException
 
 log = logging.getLogger(__name__)
 
@@ -56,6 +57,10 @@ class requestsMangaDexSession(requests.Session):
                 time.sleep(delay)
                 attempt += 1
                 continue
+
+            # Server error
+            elif resp.status_code >= 500:
+                raise HTTPException('Server sending %s code' % resp.status_code)
 
             return resp
 

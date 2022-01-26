@@ -7,6 +7,7 @@ import sys
 import time
 import logging
 from .network import Net
+from .errors import HTTPException
 
 log = logging.getLogger(__name__)
 
@@ -140,7 +141,13 @@ class ChapterPageDownloader(FileDownloader):
 
         # Initiate request
         t1 = time.time()
-        resp = Net.requests.get(self.url, headers=headers, stream=True)
+
+        # Since server error are handled by session
+        # We need to catch the error to report it to MangaDex network
+        try:
+            resp = Net.requests.get(self.url, headers=headers, stream=True)
+        except HTTPException:
+            pass
         
         # Report it to MangaDex network if failing
         if resp.status_code != 200:
