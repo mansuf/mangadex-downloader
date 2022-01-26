@@ -3,6 +3,7 @@ import argparse
 import logging
 from .network import Net
 from .main import download
+from .utils import validate_url
 from . import __description__
 
 def setup_logging(name_module, verbose=False):
@@ -19,7 +20,7 @@ def setup_logging(name_module, verbose=False):
 
 def _main(argv):
     parser = argparse.ArgumentParser(description=__description__)
-    parser.add_argument('URL', help='MangaDex URL')
+    parser.add_argument('URL', type=validate_url, help='MangaDex URL')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
     parser.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
