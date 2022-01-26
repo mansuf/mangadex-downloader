@@ -1,10 +1,12 @@
 from requests.exceptions import HTTPError
-from .errors import HTTPException
+from .errors import HTTPException, InvalidManga
 from .network import Net, base_url
 
 def get_manga(manga_id):
     url = '{0}/manga/{1}'.format(base_url, manga_id)
     r = Net.requests.get(url)
+    if r.status_code == 404:
+        raise InvalidManga('Manga \"%s\" cannot be found' % manga_id)
     return r.json()
 
 def get_author(author_id):
