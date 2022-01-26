@@ -9,7 +9,7 @@ import sys
 import threading
 from . import __version__
 from .errors import AlreadyLoggedIn, HTTPException, InvalidLogin, LoginFailed, NotLoggedIn
-from concurrent.futures import Future
+from concurrent.futures import Future, TimeoutError
 
 EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
 
