@@ -168,7 +168,7 @@ class ChapterPageDownloader(FileDownloader):
         if real_file_sizes:
             if file_sizes == real_file_sizes and not self.replace:
                 log.info('File exist and replace is False, cancelling download...')
-                return
+                return True
 
         # Build the progress bar
         self._build_progres_bar(initial_file_sizes, float(file_sizes))
