@@ -1,9 +1,12 @@
 import sys
 import argparse
 import logging
+import signal
+from getpass import getpass
 from .network import Net
-from .main import download
+from .main import download, login, logout
 from .utils import validate_url as _validate
+from .utils import _keyboard_interrupt_handler
 from .errors import InvalidURL
 from . import __description__
 
@@ -37,9 +40,31 @@ def _main(argv):
     parser.add_argument('--end-chapter', type=float, help='Stop download chapter from given chapter number')
     parser.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
     parser.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
+    parser.add_argument('--login', help='Login to MangaDex', action='store_true')
+    parser.add_argument(
+        '--login-username',
+        help='Login to MangaDex with username (you will be prompted to input password if --login-password are not present)'
+    )
+    parser.add_argument(
+        '--login-password',
+        help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)'
+    )
     args = parser.parse_args(argv)
 
     log = setup_logging('mangadex_downloader', args.verbose)
+
+    if args.login:
+        if not args.login_username:
+            username = input("MangaDex username => ")
+        else:
+            username = args.login_username
+        if not args.login_password:
+            password = getpass("MangaDex password => ")
+        else:
+            password = args.login_password
+
+        # Logging in
+        login(password, username)
 
     # Give warning if --proxy and --proxy-env is present
     if args.proxy and args.proxy_env:
@@ -60,10 +85,17 @@ def _main(argv):
         args.no_oneshot_chapter
     )
 
+    if args.login:
+        logout()
+
+    log.info("Cleaning up...")
     log.debug('Closing network object')
     Net.close()
 
 def main(argv=None):
+    # Register KeyboardInterrupt handler
+    signal.signal(signal.SIGINT, _keyboard_interrupt_handler)
+
     if argv is None:
         _main(sys.argv[1:])
     else:

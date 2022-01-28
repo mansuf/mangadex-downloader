@@ -2,8 +2,9 @@ import re
 import time
 import json
 import logging
+import sys
 from .errors import InvalidURL
-from .downloader import FileDownloader
+from .downloader import FileDownloader, _cleanup_jobs
 
 log = logging.getLogger(__name__)
 
@@ -37,3 +38,11 @@ def write_details(manga, path):
     data['status'] = manga.status
     with open(path, 'w') as writer:
         writer.write(json.dumps(data))
+
+def _keyboard_interrupt_handler(*args):
+    # Downloader are not cleaned up
+    for job in _cleanup_jobs:
+        job()
+
+    print("Action interrupted by user", file=sys.stdout)
+    sys.exit(0)

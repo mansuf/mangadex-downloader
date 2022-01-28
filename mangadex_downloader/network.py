@@ -194,6 +194,8 @@ class requestsMangaDexSession(requests.Session):
         if len(password) < 8:
             raise ValueError("password length must be more than 8 characters")
 
+        log.info('Logging in to MangaDex')
+
         url = '{0}/auth/login'.format(base_url)
         data = {"password": password}
         
@@ -206,7 +208,9 @@ class requestsMangaDexSession(requests.Session):
         r = self.post(url, json=data)
         if r.status_code == 401:
             result = r.json()
-            raise LoginFailed(result["errors"][0]["detail"])
+            err = result["errors"][0]["detail"]
+            log.error("Login to MangaDex failed, reason: %s" % err)
+            raise LoginFailed(err)
         
         result = r.json()
         self._update_token(result)
@@ -214,15 +218,21 @@ class requestsMangaDexSession(requests.Session):
         t = threading.Thread(target=self._wait_login_lock, daemon=True)
         t.start()
 
+        log.info("Logged in to MangaDex")
+
     def logout(self):
         """Logout from MangaDex"""
         if not self.check_login():
             raise NotLoggedIn("User are not logged in")
         
+        log.info("Logging out from MangaDex")
+
         self.post("{0}/auth/logout".format(base_url))
         self._reset_token()
         self._notify_login_lock()
         self._login_lock = Future()
+
+        log.info("Logged out from MangaDex")
     
     def report(self, data):
         """Report to MangaDex network"""

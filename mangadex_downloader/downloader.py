@@ -11,6 +11,9 @@ from .errors import HTTPException
 
 log = logging.getLogger(__name__)
 
+# For KeyboardInterrupt handler
+_cleanup_jobs = []
+
 # re.compile('bytes=([0-9]{1,}|)-([0-9]{1,}|)', re.IGNORECASE)
 
 class BaseDownloader:
@@ -34,7 +37,12 @@ class FileDownloader(BaseDownloader):
             raise ValueError('"Range" header is not supported while in resume state')
 
         self._tqdm = None
+        
+        self._register_keyboardinterrupt_handler()
     
+    def _register_keyboardinterrupt_handler(self):
+        _cleanup_jobs.append(lambda: self.cleanup())
+
     def _build_progres_bar(self, initial_size, file_sizes, desc='file_sizes'):
         if self.progress_bar:
             kwargs = {
@@ -133,6 +141,7 @@ class ChapterPageDownloader(FileDownloader):
     
     When the download is finished this downloader class will report the download info to MangaDex network.
     """
+
     def download(self):
         initial_file_sizes = self._get_file_size(self.file)
 
@@ -150,7 +159,7 @@ class ChapterPageDownloader(FileDownloader):
             resp = e.response
         
         # Report it to MangaDex network if failing
-        if resp.status_code != 200:
+        if resp.status_code > 200 and not resp.status_code < 400:
             length = len(resp.content)
             t2 = time.time()
             self._report(resp, length, round((t2 - t1) * 1000), False)
