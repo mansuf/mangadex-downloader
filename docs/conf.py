@@ -49,6 +49,13 @@ extensions = [
     'myst_parser'
 ]
 
+myst_enable_extensions = [
+    'dollarmath',
+    'linkify'
+]
+
+myst_linkify_fuzzy_links=False
+
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',

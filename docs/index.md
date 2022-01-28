@@ -13,6 +13,14 @@ Download manga from Mangadex through Python
 
 ***And ability to not download oneshot chapters***
 
+## Installation
+
+```{toctree}
+:maxdepth: 2
+
+installation
+```
+
 ## Usage
 
 ```{toctree}

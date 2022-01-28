@@ -17,7 +17,7 @@ extras_require = {
   'docs': [
     'sphinx',
     'furo',
-    'myst-parser'
+    'myst-parser[linkify]'
   ]
 }
 
