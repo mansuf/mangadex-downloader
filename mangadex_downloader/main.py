@@ -61,6 +61,33 @@ def download(
     end_chapter=None,
     no_oneshot_chapter=False
 ):
+    """Download a manga
+    
+    Parameters
+    -----------
+    url: :class:`str`
+        A MangaDex URL or manga id
+    folder: :class:`str` (default: ``None``)
+        Store manga in given folder
+    replace: :class:`bool` (default: ``False``)
+        Replace manga if exist
+    compressed_image: :class:`bool` (defautl: ``False``)
+        Use compressed images for low size when downloading manga
+    start_chapter: :class:`float` (default: ``None``)
+        Start downloading manga from given chapter
+    end_chapter: :class:`float` (default: ``None``)
+        Stop downloading manga from given chapter
+    no_oneshot_manga: :class:`bool` (default: ``False``)
+        If exist, don\'t download oneshot chapter
+
+    Raises
+    -------
+    InvalidURL
+        Not a valid MangaDex url
+    InvalidManga
+        Given manga cannot be found
+    """
+
     # Validate start_chapter and end_chapter param
     if start_chapter is not None and not isinstance(start_chapter, float):
         raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
