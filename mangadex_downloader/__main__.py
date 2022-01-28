@@ -37,18 +37,30 @@ def _main(argv):
     parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
     parser.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
-    parser.add_argument('--start-chapter', type=float, help='Start download chapter from given chapter number')
-    parser.add_argument('--end-chapter', type=float, help='Stop download chapter from given chapter number')
+    parser.add_argument(
+        '--start-chapter',
+        type=float,
+        help='Start download chapter from given chapter number',
+        metavar='CHAPTER'
+    )
+    parser.add_argument(
+        '--end-chapter',
+        type=float,
+        help='Stop download chapter from given chapter number',
+        metavar='CHAPTER'
+    )
     parser.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
     parser.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
     parser.add_argument('--login', help='Login to MangaDex', action='store_true')
     parser.add_argument(
         '--login-username',
-        help='Login to MangaDex with username (you will be prompted to input password if --login-password are not present)'
+        help='Login to MangaDex with username (you will be prompted to input password if --login-password are not present)',
+        metavar='USERNAME'
     )
     parser.add_argument(
         '--login-password',
-        help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)'
+        help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)',
+        metavar='PASSWORD'
     )
     args = parser.parse_args(argv)
 
