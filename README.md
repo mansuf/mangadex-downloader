@@ -12,6 +12,11 @@ Download manga from Mangadex through Python
 - Download manga directly with python from mangadex
 - [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) support (Local files support)
 
+## Minimum Python version
+```
+Python 3.5.x
+```
+
 ## Installation
 
 ### From PyPI
@@ -42,30 +47,6 @@ python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.
 
 ### Command Line Interface (CLI)
 
-Options
-
-```
-positional arguments:
-  URL                   MangaDex URL
-
-options:
-  -h, --help            show this help message and exit
-  --folder FOLDER       Store manga in given folder
-  --proxy SOCKS / HTTP Proxy
-                        Set http/socks proxy
-  --proxy-env           use http/socks proxy from environments
-  --verbose             Enable verbose output
-  --start-chapter START_CHAPTER
-                        Start download chapter from given chapter number
-  --end-chapter END_CHAPTER
-                        Stop download chapter from given chapter number
-  --use-compressed-image
-                        Use low size images manga (compressed quality)
-  --no-oneshot-chapter  If exist, don't download oneshot chapter
-```
-
-Usage
-
 ```shell
 
 mangadex-dl "insert MangaDex URL here" 
@@ -81,34 +62,14 @@ py -3 -m mangadex_downloader "insert MangaDex URL here"
 python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
+For more information, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/usage_cli.html)
+
 ### Embedding (API)
 
 ```python
 from mangadex_downloader import download
 
-# The parameters are:
-# - url: str
-# - folder: str (default: None)
-# - compressed_image: bool (default: False)
-# - start_chapter: float (default: None)
-# - end_chapter: float (default: None)
-# - no_oneshot_chapter: bool (default: None)
-
-# Simple usage
 download("insert MangaDex URL here")
-
-# Advanced usage
-download(
-  "insert MangaDex URL here",
-  folder="Homework", # Store manga in "Homework" folder
-  compressed_image=True, # Use compressed images for low size
-  start_chapter=5.0, # Start downloading from chapter 5
-  end_chapter=10.0, # Stop downloading from chapter 10
-  no_oneshot_chapter=True # for those of you who hates oneshot :)
-)
 ```
 
-## Minimum Python version
-```
-Python 3.5.x
-```
+For more information, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/usage_api.html)
