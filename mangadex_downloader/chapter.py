@@ -95,14 +95,14 @@ class Chapter:
         for volume, chapters in self._volumes.items():
             for chapter in chapters:
                 if no_oneshot and chapter.chapter == "none":
-                    log.warning("Ignoring oneshot chapter since \"no_oneshot\" is True")
+                    log.info("Ignoring oneshot chapter since \"no_oneshot\" is True")
                     continue
                 if chapter.chapter != "none":
                     num_chap = float(chapter.chapter)
                     if start_chapter is not None:
                         # Lifehack
                         if not (num_chap >= start_chapter):
-                            log.warning("Ignoring chapter %s as \"start_chapter\" is %s" % (
+                            log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
                                 num_chap,
                                 start_chapter
                             ))
@@ -111,7 +111,7 @@ class Chapter:
                     if end_chapter is not None:
                         # Lifehack
                         if not (num_chap <= end_chapter):
-                            log.warning("Ignoring chapter %s as \"end_chapter\" is %s" % (
+                            log.info("Ignoring chapter %s as \"end_chapter\" is %s" % (
                                 num_chap,
                                 end_chapter
                             ))
