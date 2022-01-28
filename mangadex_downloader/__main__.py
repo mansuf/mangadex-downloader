@@ -33,6 +33,7 @@ def _main(argv):
     parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument('URL', type=validate_url, help='MangaDex URL')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
+    parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
     parser.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
@@ -79,6 +80,7 @@ def _main(argv):
     download(
         args.URL,
         args.folder,
+        args.replace,
         args.use_compressed_image,
         args.start_chapter,
         args.end_chapter,

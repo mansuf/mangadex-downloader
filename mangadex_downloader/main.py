@@ -55,6 +55,7 @@ def logout():
 def download(
     url,
     folder=None,
+    replace=False,
     compressed_image=False,
     start_chapter=None,
     end_chapter=None,
@@ -118,7 +119,7 @@ def download(
     # Cover path
     cover_path = base_path / 'cover.jpg'
     log.info('Downloading cover manga %s' % manga.title)
-    download_file(manga.cover_art, str(cover_path))
+    download_file(manga.cover_art, str(cover_path), replace=replace)
 
     # Write details.json for tachiyomi local manga
     details_path = base_path / 'details.json'
@@ -168,7 +169,8 @@ def download(
                 log.info('Downloading %s page %s' % (chapter_folder, page))
                 downloader = ChapterPageDownloader(
                     img_url,
-                    img_path
+                    img_path,
+                    replace=replace
                 )
                 success = downloader.download()
 
