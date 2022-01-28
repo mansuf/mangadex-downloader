@@ -5,6 +5,7 @@ import logging
 import sys
 from .errors import InvalidURL
 from .downloader import FileDownloader, _cleanup_jobs
+from .network import Net
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +44,10 @@ def _keyboard_interrupt_handler(*args):
     # Downloader are not cleaned up
     for job in _cleanup_jobs:
         job()
+
+    # Logging out
+    Net.requests.logout()
+    log.info("Cleaning up...")
 
     print("Action interrupted by user", file=sys.stdout)
     sys.exit(0)
