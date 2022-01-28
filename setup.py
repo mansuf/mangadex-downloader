@@ -41,7 +41,7 @@ setup(
     'aiohttp',
     'pathvalidate'
   ],
-  extras_require=extras_require
+  extras_require=extras_require,
   entry_points = {
     'console_scripts': [
       'mangadex-downloader=mangadex_downloader.__main__:main',
