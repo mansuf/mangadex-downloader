@@ -16,6 +16,8 @@ Download manga from Mangadex through Python
 - HTTP / SOCKS proxy support
 - [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local files support
 
+***And ability to not download oneshot chapters***
+
 ## Minimum Python version
 ```
 Python 3.5.x
