@@ -146,8 +146,8 @@ class ChapterPageDownloader(FileDownloader):
         # We need to catch the error to report it to MangaDex network
         try:
             resp = Net.requests.get(self.url, headers=headers, stream=True)
-        except HTTPException:
-            pass
+        except HTTPException as e:
+            resp = e.response
         
         # Report it to MangaDex network if failing
         if resp.status_code != 200:
