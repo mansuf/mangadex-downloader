@@ -4,7 +4,9 @@ class MangaDexException(Exception):
 
 class HTTPException(MangaDexException):
     """HTTP errors"""
-    pass
+    def __init__(self, *args: object, resp=None) -> None:
+        self.response = resp
+        super().__init__(*args)
 
 class InvalidManga(MangaDexException):
     """Raised when invalid manga is found"""

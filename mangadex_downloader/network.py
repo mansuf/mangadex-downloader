@@ -80,7 +80,7 @@ class requestsMangaDexSession(requests.Session):
 
             # Server error
             elif resp.status_code >= 500:
-                raise HTTPException('Server sending %s code' % resp.status_code)
+                raise HTTPException('Server sending %s code' % resp.status_code, resp=resp)
 
             return resp
 
