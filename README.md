@@ -9,8 +9,12 @@ Download manga from Mangadex through Python
 
 ## Key Features
 
-- Download manga directly with python from mangadex
-- [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) support (Local files support)
+- Download manga directly from MangaDex 
+- Authentication support (login and logout)
+- Control how many chapters you want to download
+- Ability to use compressed images (if you want to)
+- HTTP / SOCKS proxy support
+- [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local files support
 
 ## Minimum Python version
 ```
