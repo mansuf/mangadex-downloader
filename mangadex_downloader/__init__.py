@@ -11,5 +11,7 @@ __repository__ = "https://github.com/mansuf/mangadex-downloader"
 import logging
 from .network import *
 from .main import *
+from .errors import *
+from .manga import Manga
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

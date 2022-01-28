@@ -37,7 +37,7 @@ def login(*args, **kwargs):
         User are already logged in
     ValueError
         Parameters are not valid
-    InvalidLogin
+    LoginFailed
         Login credential are not valid
     """
     Net.requests.login(*args, **kwargs)
@@ -71,7 +71,7 @@ def download(
         Store manga in given folder
     replace: :class:`bool` (default: ``False``)
         Replace manga if exist
-    compressed_image: :class:`bool` (defautl: ``False``)
+    compressed_image: :class:`bool` (default: ``False``)
         Use compressed images for low size when downloading manga
     start_chapter: :class:`float` (default: ``None``)
         Start downloading manga from given chapter
