@@ -13,6 +13,14 @@ if _version is None:
 
 version = _version.group(1)
 
+extras_require = {
+  'docs': [
+    'sphinx',
+    'furo',
+    'myst-parser'
+  ]
+}
+
 setup(
   name = 'mangadex-downloader',         
   packages = ['mangadex_downloader'],   
@@ -33,6 +41,7 @@ setup(
     'aiohttp',
     'pathvalidate'
   ],
+  extras_require=extras_require
   entry_points = {
     'console_scripts': [
       'mangadex-downloader=mangadex_downloader.__main__:main',
@@ -40,7 +49,7 @@ setup(
     ]
   },
   classifiers=[
-    'Development Status :: 3 - Alpha',  
+    'Development Status :: 5 - Production/Stable',  
     'Intended Audience :: End Users/Desktop',
     'License :: OSI Approved :: The Unlicense (Unlicense)',  
     'Programming Language :: Python :: 3 :: Only',
