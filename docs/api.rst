@@ -31,18 +31,18 @@ Proxy
 Exceptions
 -----------
 
-.. autoclass:: MangaDexException
+.. autoexception:: MangaDexException
 
-.. autoclass:: HTTPException
+.. autoexception:: HTTPException
 
-.. autoclass:: InvalidManga
+.. autoexception:: InvalidManga
 
-.. autoclass:: InvalidURL
+.. autoexception:: InvalidURL
 
-.. autoclass:: LoginFailed
+.. autoexception:: LoginFailed
 
-.. autoclass:: AlreadyLoggedIn
+.. autoexception:: AlreadyLoggedIn
 
-.. autoclass:: NotLoggedIn
+.. autoexception:: NotLoggedIn
 
 
