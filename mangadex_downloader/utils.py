@@ -3,7 +3,7 @@ import time
 import json
 import logging
 import sys
-from .errors import InvalidURL
+from .errors import InvalidURL, NotLoggedIn
 from .downloader import FileDownloader, _cleanup_jobs
 from .network import Net
 
@@ -46,7 +46,10 @@ def _keyboard_interrupt_handler(*args):
         job()
 
     # Logging out
-    Net.requests.logout()
+    try:
+        Net.requests.logout()
+    except NotLoggedIn:
+        pass
     log.info("Cleaning up...")
 
     print("Action interrupted by user", file=sys.stdout)
