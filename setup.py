@@ -13,6 +13,10 @@ if _version is None:
 
 version = _version.group(1)
 
+requirements = []
+with open('./requirements.txt', 'r') as r:
+  requirements = r.read().splitlines()
+
 extras_require = {
   'docs': [
     'sphinx',
@@ -34,13 +38,7 @@ setup(
   url = 'https://github.com/mansuf/mangadex-downloader',  
   download_url = 'https://github.com/mansuf/mangadex-downloader/archive/%s.tar.gz' % (version),
   keywords = ['mangadex'], 
-  install_requires=[           
-    'bs4',
-    'requests[socks]',
-    'tqdm',
-    'aiohttp',
-    'pathvalidate'
-  ],
+  install_requires=requirements,
   extras_require=extras_require,
   entry_points = {
     'console_scripts': [
