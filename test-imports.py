@@ -1,1 +1,0 @@
-from mangadex_downloader import *
