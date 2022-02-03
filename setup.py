@@ -17,12 +17,12 @@ requirements = []
 with open('./requirements.txt', 'r') as r:
   requirements = r.read().splitlines()
 
+requirements_docs = []
+with open('./requirements-docs.txt', 'r') as r:
+  requirements_docs = r.read().splitlines()
+
 extras_require = {
-  'docs': [
-    'sphinx',
-    'furo',
-    'myst-parser[linkify]'
-  ]
+  'docs': requirements_docs
 }
 
 setup(
