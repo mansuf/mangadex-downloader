@@ -1,0 +1,81 @@
+name: Pull Request build check
+on:
+  pull_request:
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - 'docs/*'
+
+
+jobs:
+  build:
+    name: Build app & docs
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [ '3.5', '3.6', '3.7', '3.8', '3.9', '3.10' ]
+
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+          all_but_latest: true
+
+      - name: Clone repo
+        uses: actions/checkout@v2
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
+
+      - name: Install required libraries
+        run: |
+          pip install -U wheel pyinstaller
+          pip install -r requirements.txt
+          pip install -r requirements-docs.txt
+
+      - name: Test import module
+        run: |
+          python -c "import mangadex_downloader; from mangadex_downloader.__main__ import main"
+
+      - name: Get python version
+        run: |
+          $PythonVersion = (python --version)
+          echo "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      # Build mangadex-downloader with PyInstaller
+      # only allow python 3.10
+
+      - name: Compile script
+        if: ${{ contains(env.python_version, '3.10') }}
+        run: python compile.py
+
+      - name: Cleanup build
+        if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader-binary-files-test'
+        run: |
+          copy "dist\mangadex-dl-win32.exe" "mangadex-dl_win32_${{ github.ref_name }}.exe"
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader-binary-files-test'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: mangadex-downloader ${{ github.ref_name }}
+          files: |
+            mangadex-dl_win32_${{ github.ref_name }}.exe
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Only build docs in Python 3.10
+
+      - name: Build docs
+        if: contains(env.python_version, '3.10')
+        run: |
+          cd docs
+          sphinx-build -M "html" "." "_build"
+
