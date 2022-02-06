@@ -53,24 +53,6 @@ jobs:
         if: ${{ contains(env.python_version, '3.10') }}
         run: python compile.py
 
-      - name: Cleanup build
-        if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader-binary-files-test'
-        run: |
-          copy "dist\mangadex-dl-win32.exe" "mangadex-dl_win32_${{ github.ref_name }}.exe"
-
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader-binary-files-test'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: mangadex-downloader ${{ github.ref_name }}
-          files: |
-            mangadex-dl_win32_${{ github.ref_name }}.exe
-          draft: true
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       # Only build docs in Python 3.10
 
       - name: Build docs
