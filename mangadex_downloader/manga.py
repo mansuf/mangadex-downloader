@@ -9,6 +9,8 @@ from .network import uploads_url
 #     }
 # }
 def _get_attr(data):
+    if not data:
+        return ""
     for key, val in data.items():
         return val
 
