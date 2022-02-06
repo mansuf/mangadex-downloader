@@ -1,11 +1,21 @@
 import sys
-from PyInstaller.__main__ import run
+from subprocess import run
 
-output = 'mangadex-dl-%s' % sys.platform
+output_one_file = 'mangadex-dl-%s' % sys.platform
 
 run([
+    'pyinstaller',
     'run.py',
     '-F',
     '-n',
-    output
+    output_one_file
+])
+
+output_one_folder = 'mangadex-dl'
+
+run([
+    'pyinstaller',
+    'run.py',
+    '-n',
+    output_one_folder
 ])
