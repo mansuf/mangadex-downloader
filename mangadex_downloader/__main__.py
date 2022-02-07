@@ -1,11 +1,12 @@
 import sys
+import os
 import argparse
 import logging
 import signal
 from getpass import getpass
 from .network import Net
 from .main import download, login, logout
-from .utils import get_language, validate_url as _validate
+from .utils import get_language, validate_url as __validate
 from .utils import _keyboard_interrupt_handler, Language
 from .errors import InvalidURL
 from .update import check_version, update_app
@@ -23,12 +24,19 @@ def setup_logging(name_module, verbose=False):
         log.setLevel(logging.INFO)
     return log
 
-def validate_url(url):
+def _validate(url):
     try:
-        _id = _validate(url)
+        _id = __validate(url)
     except InvalidURL as e:
         raise argparse.ArgumentTypeError(str(e))
     return _id
+
+def validate_url(url):
+    if os.path.exists(url):
+        with open(url, 'r') as opener:
+            return [_validate(i) for i in opener.read().splitlines()]
+    else:
+        return _validate(url)
 
 def validate_language(lang):
     try:
@@ -50,7 +58,7 @@ def _main(argv):
         sys.exit(0)
 
     parser = argparse.ArgumentParser(description=__description__)
-    parser.add_argument('URL', type=validate_url, help='MangaDex URL')
+    parser.add_argument('URL', type=validate_url, help='MangaDex URL or a file containing MangaDex URLs')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
@@ -120,16 +128,23 @@ def _main(argv):
     if args.proxy:
         log.debug('Setting up proxy from --proxy option')
         Net.set_proxy(args.proxy)
-    download(
-        args.URL,
+
+    dl = lambda url: download(
+        url,
         args.folder,
         args.replace,
         args.use_compressed_image,
         args.start_chapter,
         args.end_chapter,
         args.no_oneshot_chapter,
-        args.language
+        args.language or Language.English
     )
+
+    if isinstance(args.URL, list):
+        for url in args.URL:
+            dl(url)
+    else:
+        dl(args.URL)
 
     if args.login:
         logout()
@@ -143,6 +158,8 @@ def _main(argv):
         ))
     elif latest_version == False:
         sys.exit(1)
+    else:
+        log.info("No update found")
 
     log.info("Cleaning up...")
     log.debug('Closing network object')
