@@ -32,7 +32,7 @@ jobs:
 
       - name: Install required libraries
         run: |
-          pip install -U wheel pyinstaller
+          pip install -U wheel pyinstaller setuptools
           pip install -r requirements.txt
 
       - name: Test import module
@@ -56,9 +56,9 @@ jobs:
         run: |
           copy "LICENSE" "dist\mangadex-dl"
           copy "README.md" "dist\mangadex-dl"
-          echo "${{ github.ref_name }}" | Out-File -FilePath "dist\version.txt" -NoNewLine
+          echo "${{ github.ref_name }}" | Out-File -FilePath "dist\mangadex-dl\version.txt" -NoNewLine
           echo "mangadex-dl.exe --update" | Out-File -FilePath "dist\mangadex-dl\update.bat"
-          Compress-Archive -Path "dist\mangadex-dl" -DestinationPath "dist\mangadex-dl_${{ github.ref_name }}.zip"
+          Compress-Archive -Path "dist\mangadex-dl" -DestinationPath "mangadex-dl_${{ github.ref_name }}.zip"
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader'
@@ -67,9 +67,8 @@ jobs:
           tag_name: ${{ env.GIRHUB_REF_NAME }}
           name: mangadex-downloader ${{ github.ref_name }}
           files: |
-            mangadex-dl_win32_${{ github.ref_name }}.exe
+            mangadex-dl_${{ github.ref_name }}.zip
           draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
