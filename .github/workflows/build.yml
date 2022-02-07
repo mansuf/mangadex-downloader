@@ -57,6 +57,7 @@ jobs:
           copy "LICENSE" "dist\mangadex-dl"
           copy "README.md" "dist\mangadex-dl"
           echo "${{ github.ref_name }}" | Out-File -FilePath "dist\version.txt" -NoNewLine
+          echo "mangadex-dl.exe --update" | Out-File -FilePath "dist\mangadex-dl\update.bat"
           Compress-Archive -Path "dist\mangadex-dl" -DestinationPath "dist\mangadex-dl_${{ github.ref_name }}.zip"
 
       - name: Create Release

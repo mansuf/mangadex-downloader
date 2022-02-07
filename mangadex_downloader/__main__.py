@@ -8,6 +8,7 @@ from .main import download, login, logout
 from .utils import validate_url as _validate
 from .utils import _keyboard_interrupt_handler
 from .errors import InvalidURL
+from .update import check_version, update_app
 from . import __description__
 
 def setup_logging(name_module, verbose=False):
@@ -30,6 +31,12 @@ def validate_url(url):
     return _id
 
 def _main(argv):
+    lowered_argv = [i.lower() for i in argv]
+    if '--update' in lowered_argv:
+        setup_logging('mangadex_downloader')
+        update_app()
+        sys.exit(0)
+
     parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument('URL', type=validate_url, help='MangaDex URL')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
@@ -101,6 +108,16 @@ def _main(argv):
 
     if args.login:
         logout()
+
+    log.info('Checking update...')
+    latest_version = check_version()
+    if latest_version:
+        log.info("There is new version mangadex-downloader ! (%s), you should update it with \"%s\" option" % (
+            latest_version,
+            '--update'
+        ))
+    elif latest_version == False:
+        sys.exit(1)
 
     log.info("Cleaning up...")
     log.debug('Closing network object')
