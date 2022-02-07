@@ -5,8 +5,8 @@ import signal
 from getpass import getpass
 from .network import Net
 from .main import download, login, logout
-from .utils import validate_url as _validate
-from .utils import _keyboard_interrupt_handler
+from .utils import get_language, validate_url as _validate
+from .utils import _keyboard_interrupt_handler, Language
 from .errors import InvalidURL
 from .update import check_version, update_app
 from . import __description__
@@ -29,6 +29,18 @@ def validate_url(url):
     except InvalidURL as e:
         raise argparse.ArgumentTypeError(str(e))
     return _id
+
+def validate_language(lang):
+    try:
+        return get_language(lang)
+    except Exception as e:
+        raise argparse.ArgumentTypeError(str(e))
+
+def list_languages():
+    text = ""
+    for lang in Language:
+        text += "%s = %s; " % (lang.name, lang.value)
+    return text
 
 def _main(argv):
     lowered_argv = [i.lower() for i in argv]
@@ -69,6 +81,18 @@ def _main(argv):
         help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)',
         metavar='PASSWORD'
     )
+    parser.add_argument(
+        '--language',
+        metavar='LANGUAGE',
+        help='Download manga in given language, to see all languages, use --list-languages option',
+        type=validate_language
+    )
+    parser.add_argument(
+        '--list-languages',
+        action='version',
+        help='List all available languages',
+        version=list_languages()
+    )
     args = parser.parse_args(argv)
 
     log = setup_logging('mangadex_downloader', args.verbose)
@@ -103,7 +127,8 @@ def _main(argv):
         args.use_compressed_image,
         args.start_chapter,
         args.end_chapter,
-        args.no_oneshot_chapter
+        args.no_oneshot_chapter,
+        args.language
     )
 
     if args.login:

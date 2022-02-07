@@ -1,7 +1,7 @@
 import logging
 from pathvalidate import sanitize_filename
 from pathlib import Path
-from .utils import validate_url, write_details
+from .utils import Language, get_language, validate_url, write_details
 from .utils import download as download_file
 from .errors import InvalidURL
 from .fetcher import *
@@ -59,7 +59,8 @@ def download(
     compressed_image=False,
     start_chapter=None,
     end_chapter=None,
-    no_oneshot_chapter=False
+    no_oneshot_chapter=False,
+    language=Language.English
 ):
     """Download a manga
     
@@ -87,6 +88,14 @@ def download(
     InvalidManga
         Given manga cannot be found
     """
+    # Parse language
+    if isinstance(language, Language):
+        lang = language.value
+    elif isinstance(language, str):
+        lang = get_language(language).value
+    else:
+        raise ValueError("language must be Language or str, not %s" % language.__class__.__name__)
+    log.info("Using %s language" % Language(lang).name)
 
     # Validate start_chapter and end_chapter param
     if start_chapter is not None and not isinstance(start_chapter, float):
@@ -154,7 +163,7 @@ def download(
     write_details(manga, details_path)
 
     # Fetching chapters
-    chapters = Chapter(get_all_chapters(manga.id))
+    chapters = Chapter(get_all_chapters(manga.id, lang))
 
     # Begin downloading
     for vol, chap, images in chapters.iter_chapter_images(
