@@ -41,11 +41,18 @@ python3 -m pip install mangadex-downloader
 
 ```shell
 # For Windows
-py -3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.2.0
+py -3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.4.0
 
 # For Linux / Mac OS
-python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.2.0
+python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.4.0
 ```
+
+### Compiled app (for Windows only)
+
+Go to latest release in https://github.com/mansuf/mangadex-downloader/releases and download it.
+
+**NOTE**: According to [`pyinstaller`](https://github.com/pyinstaller/pyinstaller) it should support Windows 7,
+but its recommended to use it on Windows 8+.
 
 ## Usage
 

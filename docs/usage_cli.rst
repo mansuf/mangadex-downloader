@@ -31,6 +31,12 @@ Global options
 - ``--replace``     Replace manga if exist
 - ``--verbose``     Enable verbose output
 
+Language related
+~~~~~~~~~~~~~~~~~~
+
+- ``--language LANGUAGE`` Download manga in given language, to see all languages, use --list-languages option
+- ``--list-languages`` List all available languages
+
 Folder related
 ~~~~~~~~~~~~~~~
 
@@ -108,3 +114,8 @@ Example usage from environments:
     $ set https_proxy=http://127.0.0.1
 
     $ mangadex-dl "insert mangadex url here" --proxy-env
+
+Update app
+~~~~~~~~~~~~
+
+- ``--update`` Update mangadex-downloader to the latest version.

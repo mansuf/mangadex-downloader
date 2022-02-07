@@ -12,6 +12,12 @@ Global
 
 .. autofunction:: logout
 
+Languages
+----------
+
+.. autoclass:: Language
+    :members:
+
 Manga
 ------
 

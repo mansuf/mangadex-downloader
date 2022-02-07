@@ -53,7 +53,8 @@ Advanced usage
         compressed_image=True, # Use compressed images for low size file
         start_chapter=5.0, # Start downloading from chapter 5
         end_chapter=10.0, # Stop downloading from chapter 10
-        no_oneshot_chapter=True # for those of you who hates oneshot :)
+        no_oneshot_chapter=True, # for those of you who hates oneshot :)
+        language=Language.English # Download manga in english language
     )
 
 Set up proxy

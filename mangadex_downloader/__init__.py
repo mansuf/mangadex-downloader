@@ -13,5 +13,6 @@ from .network import *
 from .main import *
 from .errors import *
 from .manga import Manga
+from .utils import Language, get_language
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
