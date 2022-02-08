@@ -96,10 +96,21 @@ class Chapter:
             # Retrieving chapters
             value = data[str(volume)]
             c = value.get('chapters')
-            for value in c.values():
+
+            def append_chapters(value):
                 chap = _Chapter(value)
                 chapters.append(chap)
                 self._chapters.append(chap.to_dict())
+
+            # Sometimes chapters are in list not in dict
+            # I don't know why
+            # Reference: https://api.mangadex.org/manga/433e77d2-5a58-48a3-95b8-e3c02f309255/aggregate?translatedLanguage[]=en
+            if isinstance(c, list):
+                for value in c:
+                    append_chapters(value)
+            else:
+                for value in c.values():
+                    append_chapters(value)
 
             chapters.reverse()
             self._volumes[volume] = chapters
