@@ -140,6 +140,12 @@ def download(
 
     manga = Manga(data)
 
+    # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
+    # and downloading the cover manga.
+    # This will check if selected language in manga has chapters inside of it.
+    # If the chapters are not available, it will throw error.
+    chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
+
     # base path
     base_path = Path('.')
 
@@ -161,9 +167,6 @@ def download(
     details_path = base_path / 'details.json'
     log.info('Writing details.json')
     write_details(manga, details_path)
-
-    # Fetching chapters
-    chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
 
     # Begin downloading
     for vol, chap, images in chapters.iter_chapter_images(
