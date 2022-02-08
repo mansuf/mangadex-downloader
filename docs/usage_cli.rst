@@ -27,9 +27,43 @@ Options
 Global options
 ~~~~~~~~~~~~~~~
 
-- ``URL``           MangaDex URL
+- ``URL``           MangaDex URL or a file containing MangaDex URLs
 - ``--replace``     Replace manga if exist
 - ``--verbose``     Enable verbose output
+
+.. note:: 
+
+    You can download mangas from a file containing urls, see example below:
+
+    urls.txt
+
+    .. code-block::
+
+        https://mangadex.org/title/aa6c76f7-5f5f-46b6-a800-911145f81b9b/sono-bisque-doll-wa-koi-o-suru
+        https://mangadex.org/title/6e445564-d9a8-4862-bff1-f4d6be6dba2c/karakai-jouzu-no-takagi-san
+        https://mangadex.org/title/30f3ac69-21b6-45ad-a110-d011b7aaadaa/tonikaku-kawaii
+    
+    Command
+
+    .. code-block:: shell
+
+        $ mangadex-dl "urls.txt"
+        # ...
+
+.. warning::
+
+    If you specify invalid path to file that containing MangaDex urls, the app will see it as URL. 
+    See example below
+
+    .. code-block:: shell
+
+        # Not valid path
+        $ mangadex-dl "not-exist-lol/lmao.txt"
+        # error: argument URL: Invalid MangaDex URL or manga id
+
+        # valid path
+        $ mangadex-dl "yes-it-exist/exist.txt"
+        # ...
 
 Language related
 ~~~~~~~~~~~~~~~~~~
