@@ -14,6 +14,7 @@ Download manga from Mangadex through Python
 - Control how many chapters you want to download
 - Ability to use compressed images (if you want to)
 - HTTP / SOCKS proxy support
+- Multi languages support
 - [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local files support
 
 ***And ability to not download oneshot chapters***
@@ -55,8 +56,6 @@ Go to latest release in https://github.com/mansuf/mangadex-downloader/releases a
 but its recommended to use it on Windows 8+.
 
 ## Usage
-
-**NOTE:** This app will download manga in english language only. Other languages will be implemented soon.
 
 ### Command Line Interface (CLI)
 
