@@ -8,6 +8,10 @@ class HTTPException(MangaDexException):
         self.response = resp
         super().__init__(*args)
 
+class ChapterNotFound(MangaDexException):
+    """Raised when selected manga has no chapters"""
+    pass
+
 class InvalidManga(MangaDexException):
     """Raised when invalid manga is found"""
     pass

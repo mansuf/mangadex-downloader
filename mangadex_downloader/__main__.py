@@ -8,7 +8,7 @@ from .network import Net
 from .main import download, login, logout
 from .utils import get_language, validate_url as __validate
 from .utils import _keyboard_interrupt_handler, Language
-from .errors import InvalidURL
+from .errors import ChapterNotFound, InvalidURL
 from .update import check_version, update_app
 from . import __description__
 
@@ -129,16 +129,20 @@ def _main(argv):
         log.debug('Setting up proxy from --proxy option')
         Net.set_proxy(args.proxy)
 
-    dl = lambda url: download(
-        url,
-        args.folder,
-        args.replace,
-        args.use_compressed_image,
-        args.start_chapter,
-        args.end_chapter,
-        args.no_oneshot_chapter,
-        args.language or Language.English
-    )
+    def dl(url):
+        try:
+            download(
+                url,
+                args.folder,
+                args.replace,
+                args.use_compressed_image,
+                args.start_chapter,
+                args.end_chapter,
+                args.no_oneshot_chapter,
+                args.language or Language.English
+            )
+        except ChapterNotFound as e:
+            log.error(str(e))
 
     if isinstance(args.URL, list):
         for url in args.URL:
@@ -149,7 +153,7 @@ def _main(argv):
     if args.login:
         logout()
 
-    log.info('Checking update...')
+    log.debug('Checking update...')
     latest_version = check_version()
     if latest_version:
         log.info("There is new version mangadex-downloader ! (%s), you should update it with \"%s\" option" % (
@@ -159,9 +163,9 @@ def _main(argv):
     elif latest_version == False:
         sys.exit(1)
     else:
-        log.info("No update found")
+        log.debug("No update found")
 
-    log.info("Cleaning up...")
+    log.debug("Cleaning up...")
     log.debug('Closing network object')
     Net.close()
 

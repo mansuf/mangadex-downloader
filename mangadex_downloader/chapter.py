@@ -1,7 +1,10 @@
 import logging
 import re
 from typing import Dict, List
+
+from .utils import Language
 from .fetcher import get_chapter_images
+from .errors import ChapterNotFound
 
 log = logging.getLogger(__name__)
 
@@ -53,14 +56,24 @@ class _Chapter:
         return {'Chapter %s' % self.chapter: self.id}
 
 class Chapter:
-    def __init__(self, data) -> None:
+    def __init__(self, data, title, lang) -> None:
         self._data = data
         self._volumes = {} # type: Dict[str, List[_Chapter]]
         self._chapters = [] # type: List
+        self._lang = lang
+        self._title = title
         self._parse_volumes()
     
     def _parse_volumes(self):
         data = self._data.get('volumes')
+
+        # if translated language is not found in selected manga
+        # raise error
+        if not data:
+            raise ChapterNotFound("Manga \"%s\" with %s language has no chapters" % (
+                self._title,
+                Language(self._lang).name
+            ))
 
         # Sorting volumes
         volumes = []

@@ -163,7 +163,7 @@ def download(
     write_details(manga, details_path)
 
     # Fetching chapters
-    chapters = Chapter(get_all_chapters(manga.id, lang))
+    chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
 
     # Begin downloading
     for vol, chap, images in chapters.iter_chapter_images(
