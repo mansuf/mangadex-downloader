@@ -1,7 +1,14 @@
 import logging
 from pathvalidate import sanitize_filename
 from pathlib import Path
-from .utils import Language, get_language, validate_url, write_details, valid_cover_types
+from .utils import (
+    Language,
+    get_language,
+    validate_url, 
+    write_details,
+    valid_cover_types,
+    default_cover_type
+)
 from .utils import download as download_file
 from .errors import InvalidURL
 from .fetcher import *
@@ -136,7 +143,7 @@ def download(
     end_chapter=None,
     no_oneshot_chapter=False,
     language=Language.English,
-    cover="original"
+    cover=default_cover_type
 ):
     """Download a manga
     
