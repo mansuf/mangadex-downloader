@@ -79,13 +79,26 @@ class Chapter:
         volumes = []
         none_volume = False
         none_value = None
-        for num in data.keys():
+
+        def append_volumes(num):
             try:
                 volumes.append(int(num))
             except ValueError:
                 # none volume detected
                 none_volume = True
                 none_value = num
+
+        # Sometimes volumes are in list not in dict
+        # wtf
+        # Reference: https://api.mangadex.org/manga/d667637e-9e6d-4c5a-89c4-0faba6f96338/aggregate?translatedLanguage[]=en
+        if isinstance(data, list):
+            for info in data:
+                num = info['volume']
+                append_volumes(num)
+        else:
+            for num in data.keys():
+                append_volumes(num)
+
         volumes = sorted(volumes)
         if none_volume:
             volumes.append(none_value)
@@ -93,8 +106,13 @@ class Chapter:
 
             chapters = []
 
+            # As far as i know, if volumes are in list, the list only have 1 data
+            if isinstance(data, list):
+                value = data[0]
+            else:
+                value = data[str(volume)]
+
             # Retrieving chapters
-            value = data[str(volume)]
             c = value.get('chapters')
 
             def append_chapters(value):
