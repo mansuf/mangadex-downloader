@@ -17,8 +17,8 @@ def _get_attr(data):
 class Manga:
     def __init__(self, data):
         self._data = data.get('data')
-        self._artist = data.get('artist')
-        self._author = data.get('author')
+        self._artists = data.get('artists')
+        self._authors = data.get('authors')
         self._cover = data.get('cover_art')
         self._attr = self._data.get('attributes')
         self._chapters = None
@@ -45,14 +45,23 @@ class Manga:
         return _get_attr(self._attr.get('description'))
 
     @property
-    def author(self):
-        """:class:`str`: Author of the manga"""
-        return self._author['data']['attributes']['name']
+    def authors(self):
+        """List[:class:`str`]: Author of the manga"""
+        # return self._author['data']['attributes']['name']
+        authors = []
+        for data in self._authors:
+            author = data['data']['attributes']['name']
+            authors.append(author)
+        return authors
     
     @property
-    def artist(self):
-        """:class:`str`: Artist of the manga"""
-        return self._artist['data']['attributes']['name']
+    def artists(self):
+        """List[:class:`str`]: Artist of the manga"""
+        artists = []
+        for data in self._artists:
+            artist = data['data']['attributes']['name']
+            artists.append(artist)
+        return artists
 
     def _parse_cover_art(self):
         return self._cover['data']['attributes']['fileName']

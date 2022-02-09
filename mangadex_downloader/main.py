@@ -93,27 +93,26 @@ def fetch(url, language=Language.English):
 
     # Append some additional informations
     rels = data['data']['relationships']
-    author = None
-    artist = None
-    cover = None
+    authors = []
+    artists = []
     for rel in rels:
         _type = rel.get('type')
         _id = rel.get('id')
+
         if _type == 'author':
-            author = _id
+            log.debug('Getting author (%s) manga' % _id)
+            authors.append(get_author(_id))
+
         elif _type == 'artist':
-            artist = _id
+            log.debug('Getting artist (%s) manga' % _id)
+            artists.append(get_author(_id))
+
         elif _type == 'cover_art':
-            cover = _id
+            log.debug('Getting cover (%s) manga' % _id)
+            data['cover_art'] = get_cover_art(_id)
 
-    log.debug('Getting author manga')
-    data['author'] = get_author(author)
-
-    log.debug('Getting artist manga')
-    data['artist'] = get_author(artist)
-
-    log.debug('Getting cover manga')
-    data['cover_art'] = get_cover_art(cover)
+    data['authors'] = authors
+    data['artists'] = artists
 
     manga = Manga(data)
 

@@ -40,8 +40,29 @@ def download(url, file, progress_bar=True, replace=False, **headers):
 def write_details(manga, path):
     data = {}
     data['title'] = manga.title
-    data['author'] = manga.author
-    data['artist'] = manga.artist
+
+    # Parse authors
+    authors = ""
+    for index in range(len(manga.authors)):
+        author = manga.authors[index]
+        if index < (len(manga.authors) - 1):
+            authors += author + ", "
+        # If this is last index, append author without comma
+        else:
+            authors += author
+    data['author'] = authors
+
+    # Parse artists
+    artists = ""
+    for index in range(len(manga.artists)):
+        artist = manga.artists[index]
+        if index < (len(manga.artists) - 1):
+            artists += artist + ", "
+        # If this is last index, append artist without comma
+        else:
+            artists += artist
+    data['artist'] = artists
+
     data['description'] = manga.description
     data['genre'] = manga.genres
     data['status'] = MangaStatus[manga.status].value
