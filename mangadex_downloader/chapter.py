@@ -77,16 +77,22 @@ class Chapter:
 
         # Sorting volumes
         volumes = []
-        none_volume = False
-        none_value = None
+
+        # I forgot if variables are inside functions they become local not global
+        # rofl
+        class _dummy:
+            pass
+        vol = _dummy()
+        vol.none_volume = False
+        vol.none_value = None
 
         def append_volumes(num):
             try:
                 volumes.append(int(num))
             except ValueError:
                 # none volume detected
-                none_volume = True
-                none_value = num
+                vol.none_volume = True
+                vol.none_value = num
 
         # Sometimes volumes are in list not in dict
         # wtf
@@ -100,8 +106,8 @@ class Chapter:
                 append_volumes(num)
 
         volumes = sorted(volumes)
-        if none_volume:
-            volumes.append(none_value)
+        if vol.none_volume:
+            volumes.append(vol.none_value)
         for volume in volumes:
 
             chapters = []
