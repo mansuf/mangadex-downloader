@@ -1,7 +1,7 @@
 import logging
 from pathvalidate import sanitize_filename
 from pathlib import Path
-from .utils import Language, get_language, validate_url, write_details
+from .utils import Language, get_language, validate_url, write_details, valid_cover_types
 from .utils import download as download_file
 from .errors import InvalidURL
 from .fetcher import *
@@ -135,7 +135,8 @@ def download(
     start_chapter=None,
     end_chapter=None,
     no_oneshot_chapter=False,
-    language=Language.English
+    language=Language.English,
+    cover="original"
 ):
     """Download a manga
     
@@ -176,6 +177,9 @@ def download(
     if start_chapter > end_chapter:
         raise ValueError("start_chapter cannot be more than end_chapter")
 
+    if cover not in valid_cover_types:
+        raise ValueError("invalid cover type, available are: %s" % valid_cover_types)
+
     manga = fetch(url, language)
 
     # base path
@@ -193,7 +197,17 @@ def download(
     # Cover path
     cover_path = base_path / 'cover.jpg'
     log.info('Downloading cover manga %s' % manga.title)
-    download_file(manga.cover_art, str(cover_path), replace=replace)
+
+    # Determine cover art quality
+    if cover == "original":
+        cover_url = manga.cover_art
+    elif cover == "512px":
+        cover_url = manga.cover_art_512px
+    elif cover == "256px":
+        cover_url = manga.cover_art_256px
+
+    # Download the cover art
+    download_file(cover_url, str(cover_path), replace=True)
 
     # Write details.json for tachiyomi local manga
     details_path = base_path / 'details.json'

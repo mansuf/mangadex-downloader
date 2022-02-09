@@ -7,7 +7,7 @@ from getpass import getpass
 from .network import Net
 from .main import download, login, logout
 from .utils import get_language, validate_url as __validate
-from .utils import _keyboard_interrupt_handler, Language
+from .utils import _keyboard_interrupt_handler, Language, valid_cover_types, default_cover_type
 from .errors import ChapterNotFound, HTTPException, InvalidURL, LoginFailed
 from .update import check_version, update_app
 from . import __description__
@@ -101,6 +101,11 @@ def _main(argv):
         help='List all available languages',
         version=list_languages()
     )
+    parser.add_argument(
+        '--cover',
+        choices=valid_cover_types,
+        help='Choose quality cover, default is \"original\"',
+    )
     args = parser.parse_args(argv)
 
     log = setup_logging('mangadex_downloader', args.verbose)
@@ -163,7 +168,8 @@ def _main(argv):
                 args.start_chapter,
                 args.end_chapter,
                 args.no_oneshot_chapter,
-                args.language or Language.English
+                args.language or Language.English,
+                args.cover or default_cover_type
             )
         except ChapterNotFound as e:
             log.error(str(e))

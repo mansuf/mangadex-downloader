@@ -10,6 +10,14 @@ from .network import Net
 
 log = logging.getLogger(__name__)
 
+valid_cover_types = [
+    'original',
+    '512px',
+    '256px'
+]
+
+default_cover_type = "original"
+
 # Compliance with Tachiyomi local JSON format
 class MangaStatus(Enum):
     Ongoing = "1"
