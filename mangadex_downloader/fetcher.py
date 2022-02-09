@@ -19,6 +19,11 @@ def get_cover_art(cover_id):
     r = Net.requests.get(url)
     return r.json()
 
+def get_chapter(chapter_id):
+    url = '{0}/chapter/{1}'.format(base_url, chapter_id)
+    r = Net.requests.get(url)
+    return r.json()
+
 def get_all_chapters(manga_id, lang):
     url = '{0}/manga/{1}/aggregate'.format(base_url, manga_id)
     r = Net.requests.get(url, params={'translatedLanguage[]': [lang]})

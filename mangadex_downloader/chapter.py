@@ -3,7 +3,7 @@ import re
 from typing import Dict, List
 
 from .utils import Language
-from .fetcher import get_chapter_images
+from .fetcher import get_chapter_images, get_chapter
 from .errors import ChapterNotFound
 
 log = logging.getLogger(__name__)
@@ -164,6 +164,14 @@ class Chapter:
                                 end_chapter
                             ))
                             continue
+
+                # Some manga has chapters where it has no pages / images inside of it.
+                # We need to verify it, to prevent error when downloading the manga.
+                chapter_data = get_chapter(chapter.id)
+                pages = chapter_data['data']['attributes']['pages']
+                if pages == 0:
+                    log.warning("Chapter %s has no images, ignoring..." % chapter.chapter)
+                    continue
 
                 yield volume, chapter.chapter, ChapterImages(chapter.id, data_saver)
 
