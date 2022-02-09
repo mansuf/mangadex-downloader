@@ -10,6 +10,13 @@ from .network import Net
 
 log = logging.getLogger(__name__)
 
+# Compliance with Tachiyomi local JSON format
+class MangaStatus(Enum):
+    Ongoing = "1"
+    Completed = "2"
+    Hiatus = "6"
+    Cancelled = "5"
+
 def validate_url(url):
     """Validate mangadex url and return the uuid"""
     re_url = re.compile(r'([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})')
@@ -37,7 +44,16 @@ def write_details(manga, path):
     data['artist'] = manga.artist
     data['description'] = manga.description
     data['genre'] = manga.genres
-    data['status'] = manga.status
+    data['status'] = MangaStatus[manga.status].value
+    data['_status values'] = [
+        "0 = Unknown",
+        "1 = Ongoing",
+        "2 = Completed",
+        "3 = Licensed",
+        "4 = Publishing finished",
+        "5 = Cancelled",
+        "6 = On hiatus"
+    ]
     with open(path, 'w') as writer:
         writer.write(json.dumps(data))
 
