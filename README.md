@@ -5,7 +5,7 @@
 
 # mangadex-downloader
 
-Download manga from Mangadex through Python
+Download manga from Mangadex with [Python](https://www.python.org/)
 
 ## Key Features
 
@@ -50,7 +50,9 @@ python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.
 
 ### Compiled app (for Windows only)
 
-Go to latest release in https://github.com/mansuf/mangadex-downloader/releases and download it.
+Because this is independent executable, [Python](https://www.python.org/) are not required to install.
+<br>
+Go to latest release in https://github.com/mansuf/mangadex-downloader/releases, download, extract, and run it !
 
 **NOTE**: According to [`pyinstaller`](https://github.com/pyinstaller/pyinstaller) it should support Windows 7,
 but its recommended to use it on Windows 8+.
