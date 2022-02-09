@@ -115,11 +115,13 @@ def fetch(url, language=Language.English):
     data['artists'] = artists
 
     manga = Manga(data)
+    log.info("Found manga \"%s\"" % manga.title)
 
     # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
     # and downloading the cover manga.
     # This will check if selected language in manga has chapters inside of it.
     # If the chapters are not available, it will throw error.
+    log.info("Fetching all chapters...")
     chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
     manga._chapters = chapters
 
