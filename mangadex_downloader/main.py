@@ -165,14 +165,16 @@ def download(
     ChapterNotFound
         Given manga has no chapters
     """
-    manga = fetch(url, language)
-
     # Validate start_chapter and end_chapter param
     if start_chapter is not None and not isinstance(start_chapter, float):
         raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
     if end_chapter is not None and not isinstance(end_chapter, float):
         raise ValueError("end_chapter must be float, not %s" % type(end_chapter))
 
+    if start_chapter > end_chapter:
+        raise ValueError("start_chapter cannot be more than end_chapter")
+
+    manga = fetch(url, language)
 
     # base path
     base_path = Path('.')
