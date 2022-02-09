@@ -13,7 +13,7 @@ from .network import Net
 log = logging.getLogger(__name__)
 
 __all__ = (
-    'download', 'login', 'logout'
+    'download', 'fetch', 'login', 'logout'
 )
 
 def login(*args, **kwargs):
@@ -52,34 +52,15 @@ def logout():
     """
     Net.requests.logout()
 
-def download(
-    url,
-    folder=None,
-    replace=False,
-    compressed_image=False,
-    start_chapter=None,
-    end_chapter=None,
-    no_oneshot_chapter=False,
-    language=Language.English
-):
-    """Download a manga
-    
+def fetch(url, language=Language.English):
+    """Fetch the manga
+
     Parameters
     -----------
     url: :class:`str`
         A MangaDex URL or manga id
-    folder: :class:`str` (default: ``None``)
-        Store manga in given folder
-    replace: :class:`bool` (default: ``False``)
-        Replace manga if exist
-    compressed_image: :class:`bool` (default: ``False``)
-        Use compressed images for low size when downloading manga
-    start_chapter: :class:`float` (default: ``None``)
-        Start downloading manga from given chapter
-    end_chapter: :class:`float` (default: ``None``)
-        Stop downloading manga from given chapter
-    no_oneshot_manga: :class:`bool` (default: ``False``)
-        If exist, don\'t download oneshot chapter
+    language: :class:`Language` (default: :class:`Language.English`)
+        Select a translated language for manga
 
     Raises
     -------
@@ -87,6 +68,8 @@ def download(
         Not a valid MangaDex url
     InvalidManga
         Given manga cannot be found
+    ChapterNotFound
+        Given manga has no chapters
     """
     # Parse language
     if isinstance(language, Language):
@@ -96,12 +79,6 @@ def download(
     else:
         raise ValueError("language must be Language or str, not %s" % language.__class__.__name__)
     log.info("Using %s language" % Language(lang).name)
-
-    # Validate start_chapter and end_chapter param
-    if start_chapter is not None and not isinstance(start_chapter, float):
-        raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
-    if end_chapter is not None and not isinstance(end_chapter, float):
-        raise ValueError("end_chapter must be float, not %s" % type(end_chapter))
 
     log.debug('Validating the url...')
     try:
@@ -145,6 +122,58 @@ def download(
     # This will check if selected language in manga has chapters inside of it.
     # If the chapters are not available, it will throw error.
     chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
+    manga._chapters = chapters
+
+    return manga
+
+def download(
+    url,
+    folder=None,
+    replace=False,
+    compressed_image=False,
+    start_chapter=None,
+    end_chapter=None,
+    no_oneshot_chapter=False,
+    language=Language.English
+):
+    """Download a manga
+    
+    Parameters
+    -----------
+    url: :class:`str`
+        A MangaDex URL or manga id
+    folder: :class:`str` (default: ``None``)
+        Store manga in given folder
+    replace: :class:`bool` (default: ``False``)
+        Replace manga if exist
+    compressed_image: :class:`bool` (default: ``False``)
+        Use compressed images for low size when downloading manga
+    start_chapter: :class:`float` (default: ``None``)
+        Start downloading manga from given chapter
+    end_chapter: :class:`float` (default: ``None``)
+        Stop downloading manga from given chapter
+    no_oneshot_manga: :class:`bool` (default: ``False``)
+        If exist, don\'t download oneshot chapter
+    language: :class:`Language` (default: :class:`Language.English`)
+        Select a translated language for manga
+
+    Raises
+    -------
+    InvalidURL
+        Not a valid MangaDex url
+    InvalidManga
+        Given manga cannot be found
+    ChapterNotFound
+        Given manga has no chapters
+    """
+    manga = fetch(url, language)
+
+    # Validate start_chapter and end_chapter param
+    if start_chapter is not None and not isinstance(start_chapter, float):
+        raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
+    if end_chapter is not None and not isinstance(end_chapter, float):
+        raise ValueError("end_chapter must be float, not %s" % type(end_chapter))
+
 
     # base path
     base_path = Path('.')
@@ -169,7 +198,7 @@ def download(
     write_details(manga, details_path)
 
     # Begin downloading
-    for vol, chap, images in chapters.iter_chapter_images(
+    for vol, chap, images in manga.chapters.iter_chapter_images(
         start_chapter,
         end_chapter,
         no_oneshot_chapter,
