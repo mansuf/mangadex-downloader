@@ -8,7 +8,7 @@ from .network import Net
 from .main import download, login, logout
 from .utils import get_language, validate_url as __validate
 from .utils import _keyboard_interrupt_handler, Language
-from .errors import ChapterNotFound, InvalidURL
+from .errors import ChapterNotFound, HTTPException, InvalidURL, LoginFailed
 from .update import check_version, update_app
 from . import __description__
 
@@ -116,7 +116,31 @@ def _main(argv):
             password = args.login_password
 
         # Logging in
-        login(password, username)
+        login_success = False
+        for _ in range(5):
+            attempt = _ + 1
+            try:
+                login(password, username)
+            except LoginFailed as e:
+                sys.exit(1)
+            except ValueError as e:
+                log.error(e)
+                sys.exit(1)
+            except HTTPException as e:
+                log.info(
+                    'Login failed because of MangaDex server error, status code: %s. ' \
+                    'Trying again... (attempt: %s)',
+                    e.response.status_code,
+                    attempt
+                )
+            else:
+                login_success = True
+                break
+
+        if not login_success:
+            log.error("5 attempts login failed, exiting...")
+            sys.exit(1)
+            
 
     # Give warning if --proxy and --proxy-env is present
     if args.proxy and args.proxy_env:
@@ -151,7 +175,24 @@ def _main(argv):
         dl(args.URL)
 
     if args.login:
-        logout()
+        logout_success = False
+        for _ in range(5):
+            attempt = _ + 1
+            try:
+                logout()
+            except HTTPException as e:
+                log.info(
+                    'Logout failed because of MangaDex server error, status code: %s. ' \
+                    'Trying again... (attempt: %s)',
+                    e.response.status_code,
+                    attempt
+                )
+            else:
+                logout_success = True
+                break
+        
+        if not logout_success:
+            log.error("5 attempts logout failed, ignoring...")
 
     log.debug('Checking update...')
     latest_version = check_version()
