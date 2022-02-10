@@ -32,12 +32,13 @@ jobs:
 
       - name: Install required libraries
         run: |
-          pip install -U wheel pyinstaller setuptools
+          pip install -U wheel pyinstaller setuptools tox
           pip install -r requirements.txt
 
-      - name: Test import module
+      - name: Tox tests
         run: |
-          python -c "import mangadex_downloader; from mangadex_downloader.__main__ import main"
+          python setup_tox.py
+          tox
 
       - name: Get python version
         run: |
