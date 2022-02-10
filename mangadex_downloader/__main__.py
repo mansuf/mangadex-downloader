@@ -93,7 +93,8 @@ def _main(argv):
         '--language',
         metavar='LANGUAGE',
         help='Download manga in given language, to see all languages, use --list-languages option',
-        type=validate_language
+        type=validate_language,
+        default=Language.English
     )
     parser.add_argument(
         '--list-languages',
@@ -105,6 +106,7 @@ def _main(argv):
         '--cover',
         choices=valid_cover_types,
         help='Choose quality cover, default is \"original\"',
+        default=default_cover_type
     )
     args = parser.parse_args(argv)
 
@@ -168,8 +170,8 @@ def _main(argv):
                 args.start_chapter,
                 args.end_chapter,
                 args.no_oneshot_chapter,
-                args.language or Language.English,
-                args.cover or default_cover_type
+                args.language,
+                args.cover
             )
         except ChapterNotFound as e:
             log.error(str(e))
