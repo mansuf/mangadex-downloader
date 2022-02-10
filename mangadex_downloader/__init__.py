@@ -2,7 +2,7 @@
 Download manga from Mangadex with Python
 """
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 __description__ = "Download manga from Mangadex with Python"
 __author__ = "mansuf"
 __license__ = "MIT"
