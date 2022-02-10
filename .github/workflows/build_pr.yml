@@ -37,9 +37,10 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-docs.txt
 
-      - name: Test import module
+      - name: Tox tests
         run: |
-          python -c "import mangadex_downloader; from mangadex_downloader.__main__ import main"
+          python setup_tox.py
+          tox
 
       - name: Get python version
         run: |
