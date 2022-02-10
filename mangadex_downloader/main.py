@@ -181,8 +181,9 @@ def download(
     if end_chapter is not None and not isinstance(end_chapter, float):
         raise ValueError("end_chapter must be float, not %s" % type(end_chapter))
 
-    if start_chapter > end_chapter:
-        raise ValueError("start_chapter cannot be more than end_chapter")
+    if start_chapter is not None and end_chapter is not None:
+        if start_chapter > end_chapter:
+            raise ValueError("start_chapter cannot be more than end_chapter")
 
     if cover not in valid_cover_types:
         raise ValueError("invalid cover type, available are: %s" % valid_cover_types)
