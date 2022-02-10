@@ -86,6 +86,7 @@ Chapters related
 Images related
 ~~~~~~~~~~~~~~~
 - ``--use-compressed-image`` Use compressed image for low size file
+- ``--cover {original,512px,256px}`` Choose quality cover, default is "original"
 
 Authentication related
 ~~~~~~~~~~~~~~~~~~~~~~~

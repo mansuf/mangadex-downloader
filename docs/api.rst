@@ -8,6 +8,8 @@ Global
 
 .. autofunction:: download
 
+.. autofunction:: fetch
+
 .. autofunction:: login
 
 .. autofunction:: logout
