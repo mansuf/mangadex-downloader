@@ -29,7 +29,7 @@ setup(
   name = 'mangadex-downloader',         
   packages = ['mangadex_downloader'],   
   version = version,
-  license='The Unlicense',     
+  license='MIT',     
   description = 'Download manga from Mangadex through Python',
   long_description= README,
   long_description_content_type= 'text/markdown',
