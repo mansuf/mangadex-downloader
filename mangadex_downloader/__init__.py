@@ -5,7 +5,7 @@ Download manga from Mangadex with Python
 __version__ = "0.4.1"
 __description__ = "Download manga from Mangadex with Python"
 __author__ = "mansuf"
-__license__ = "The Unlicense"
+__license__ = "MIT"
 __repository__ = "https://github.com/mansuf/mangadex-downloader"
 
 import logging
