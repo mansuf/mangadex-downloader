@@ -16,7 +16,7 @@ if _version is None:
 version = _version.group(1)
 
 # Read description
-re_description = r'__description__ = (\".{1,}\")'
+re_description = r'__description__ = \"(.{1,})\"'
 _description = re.search(re_description, init_file)
 
 if _description is None:
