@@ -5,13 +5,24 @@ from setuptools import setup
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
 
+init_file = (HERE / "mangadex_downloader/__init__.py").read_text()
+
 re_version = r'__version__ = \"([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})\"'
-_version = re.search(re_version, (HERE / "mangadex_downloader/__init__.py").read_text())
+_version = re.search(re_version, init_file)
 
 if _version is None:
   raise RuntimeError("Version is not set")
 
 version = _version.group(1)
+
+# Read description
+re_description = r'__description__ = (\".{1,}\")'
+_description = re.search(re_description, init_file)
+
+if _description is None:
+  raise RuntimeError("Description is not set")
+
+description = _description.group(1)
 
 requirements = []
 with open('./requirements.txt', 'r') as r:
@@ -30,7 +41,7 @@ setup(
   packages = ['mangadex_downloader'],   
   version = version,
   license='MIT',     
-  description = 'Download manga from Mangadex through Python',
+  description = description,
   long_description= README,
   long_description_content_type= 'text/markdown',
   author = 'Rahman Yusuf',              
