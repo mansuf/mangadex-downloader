@@ -2,10 +2,9 @@
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 
-
 # mangadex-downloader
 
-Download manga from Mangadex with [Python](https://www.python.org/)
+A Command-Line tool to download manga from [MangaDex](https://mangadex.org/), written in [Python](https://www.python.org/).
 
 ## Key Features
 
@@ -19,14 +18,16 @@ Download manga from Mangadex with [Python](https://www.python.org/)
 
 ***And ability to not download oneshot chapters***
 
-## Minimum Python version
-```
-Python 3.5.x
-```
-
 ## Installation
 
-### From PyPI
+What will you need:
+- Python 3.5.x with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
+
+That's it.
+
+### How to (PyPI)
+
+Installing mangadex-downloader is easy, as long as you have requirements above.
 
 ```shell
 # For Windows
@@ -36,30 +37,31 @@ py -3 -m install mangadex-downloader
 python3 -m pip install mangadex-downloader
 ```
 
-### From Git 
+There you go, easy ain't it ?.
+
+### How to (Standalone executable)
+
+**NOTE:** This installation only apply to Windows.
+
+Because this is standalone executable, Python are not required to install.
+
+Steps:
+- Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
+- Extract it.
+- And, run it !.
+
+### How to (Development version)
 
 **NOTE:** You must have git installed. If you don't have it, install it from here https://git-scm.com/.
 
 ```shell
-# For Windows
-py -3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.4.0
-
-# For Linux / Mac OS
-python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.4.0
+git clone https://github.com/mansuf/mangadex-downloader.git
+cd mangadex-downloader
 ```
-
-### Compiled app (for Windows only)
-
-Because this is independent executable, [Python](https://www.python.org/) are not required to install.
-<br>
-Go to latest release in https://github.com/mansuf/mangadex-downloader/releases, download, extract, and run it !
-
-**NOTE**: According to [`pyinstaller`](https://github.com/pyinstaller/pyinstaller) it should support Windows 7,
-but its recommended to use it on Windows 8+.
 
 ## Usage
 
-### Command Line Interface (CLI)
+### Command Line Interface (PyPI version)
 
 ```shell
 
@@ -76,7 +78,23 @@ py -3 -m mangadex_downloader "insert MangaDex URL here"
 python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
-For more information, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/usage_cli.html)
+### Command Line Interface (Standalone executable version)
+
+- Navigate to folder where you downloaded mangadex-downloader
+
+[insert image here]
+
+- Click "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
+
+[insert image here]
+
+- And then start using mangadex-downloader, see example below:
+
+```shell
+mangadex-dl.exe "insert MangaDex URL here" 
+```
+
+For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/stable/usage_cli.html)
 
 ### Embedding (API)
 
