@@ -31,3 +31,7 @@ class AlreadyLoggedIn(MangaDexException):
 class NotLoggedIn(MangaDexException):
     """Raised when user try to logout when user are not logged in"""
     pass
+
+class InvalidFormat(MangaDexException):
+    """Raised when invalid format is given"""
+    pass

@@ -142,28 +142,33 @@ class Chapter:
     def iter_chapter_images(self, start_chapter=None, end_chapter=None, no_oneshot=False, data_saver=False):
         for volume, chapters in self._volumes.items():
             for chapter in chapters:
-                if no_oneshot and chapter.chapter == "none":
-                    log.info("Ignoring oneshot chapter since \"no_oneshot\" is True")
-                    continue
                 if chapter.chapter != "none":
                     num_chap = float(chapter.chapter)
-                    if start_chapter is not None:
-                        # Lifehack
-                        if not (num_chap >= start_chapter):
-                            log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
-                                num_chap,
-                                start_chapter
-                            ))
-                            continue
 
-                    if end_chapter is not None:
-                        # Lifehack
-                        if not (num_chap <= end_chapter):
-                            log.info("Ignoring chapter %s as \"end_chapter\" is %s" % (
-                                num_chap,
-                                end_chapter
-                            ))
-                            continue
+                    # There is a chance that "Chapter 0" is Oneshot or prologue
+                    # We need to verify that is valid oneshot chapter
+                    # if it's valid oneshot chapter
+                    # then we need to skip start_chapter and end_chapter checking
+                    if num_chap == 0.0:
+                        pass
+                    else:
+                        if start_chapter is not None:
+                            # Lifehack
+                            if not (num_chap >= start_chapter):
+                                log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
+                                    num_chap,
+                                    start_chapter
+                                ))
+                                continue
+
+                        if end_chapter is not None:
+                            # Lifehack
+                            if not (num_chap <= end_chapter):
+                                log.info("Ignoring chapter %s as \"end_chapter\" is %s" % (
+                                    num_chap,
+                                    end_chapter
+                                ))
+                                continue
 
                 # Some manga has chapters where it has no pages / images inside of it.
                 # We need to verify it, to prevent error when downloading the manga.
@@ -173,5 +178,35 @@ class Chapter:
                     log.warning("Chapter %s has no images, ignoring..." % chapter.chapter)
                     continue
 
-                yield volume, chapter.chapter, ChapterImages(chapter.id, data_saver)
+                chapter_title = chapter_data['data']['attributes']['title']
+                if chapter_title is None:
+                    lowered_chapter_title = ""
+                else:
+                    lowered_chapter_title = chapter_title.lower()
+
+                # Oneshot chapter checking
+                chapter_name = ""
+                if 'oneshot' in lowered_chapter_title and no_oneshot:
+                    log.info("Ignoring oneshot chapter since \"no_oneshot\" is True")
+                    continue
+                elif 'oneshot' in lowered_chapter_title:
+                    chapter_name += "Oneshot"
+                else:
+                    # If chapter 0 is prologue or whatever and not oneshot
+                    # Re-check start_chapter
+                    if start_chapter is not None:
+                        # Lifehack
+                        if not (num_chap >= start_chapter):
+                            log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
+                                num_chap,
+                                start_chapter
+                            ))
+                            continue
+
+                    if volume != 'none':
+                        chapter_name += 'Volume. %s ' % volume
+                    chapter_name += 'Chapter. ' + chapter.chapter
+
+
+                yield volume, chapter.chapter, chapter_name, ChapterImages(chapter.id, data_saver)
 

@@ -16,6 +16,7 @@ from .manga import Manga
 from .chapter import Chapter
 from .downloader import ChapterPageDownloader
 from .network import Net
+from .format import default_save_as_format, get_format
 
 log = logging.getLogger(__name__)
 
@@ -143,7 +144,8 @@ def download(
     end_chapter=None,
     no_oneshot_chapter=False,
     language=Language.English,
-    cover=default_cover_type
+    cover=default_cover_type,
+    save_as=default_save_as_format
 ):
     """Download a manga
     
@@ -188,6 +190,9 @@ def download(
     if cover not in valid_cover_types:
         raise ValueError("invalid cover type, available are: %s" % valid_cover_types)
 
+    # Validation save as format
+    fmt_class = get_format(save_as)
+
     manga = fetch(url, language)
 
     # base path
@@ -222,72 +227,25 @@ def download(
     else:
         download_file(cover_url, str(cover_path), replace=True)
 
-    # Write details.json for tachiyomi local manga
-    details_path = base_path / 'details.json'
-    log.info('Writing details.json')
-    write_details(manga, details_path)
+    kwargs_iter_chapter_images = {
+        "start_chapter": start_chapter,
+        "end_chapter": end_chapter,
+        "no_oneshot": no_oneshot_chapter,
+        "data_saver": compressed_image
+    }
 
-    # Begin downloading
-    for vol, chap, images in manga.chapters.iter_chapter_images(
-        start_chapter,
-        end_chapter,
-        no_oneshot_chapter,
-        compressed_image
-    ):
-        # Fetching chapter images
-        log.info('Getting %s from chapter %s' % (
-            'compressed images' if compressed_image else 'images',
-            chap
-        ))
-        images.fetch()
+    log.info("Using %s format" % save_as)
 
-        # Create chapter folder
-        chapter_folder = "" # type: str
-        # Determine oneshot chapter
-        if vol == 0 and chap == "none":
-            chapter_folder += "Oneshot"
-        elif vol == "none" and chap == "none":
-            chapter_folder += "Oneshot"
-        elif vol == "none" and chap == "0":
-            chapter_folder += "Oneshot"
-        else:
-            if vol != 'none':
-                chapter_folder += 'Volume. %s ' % vol
-            chapter_folder += 'Chapter. ' + chap
-        
-        chapter_path = base_path / chapter_folder
-        if not chapter_path.exists():
-            chapter_path.mkdir(exist_ok=True)
+    fmt = fmt_class(
+        base_path,
+        manga,
+        compressed_image,
+        replace,
+        kwargs_iter_chapter_images
+    )
 
-        while True:
-            error = False
-            for page, img_url, img_name in images.iter():
-                img_path = chapter_path / img_name
-
-                log.info('Downloading %s page %s' % (chapter_folder, page))
-                downloader = ChapterPageDownloader(
-                    img_url,
-                    img_path,
-                    replace=replace
-                )
-                success = downloader.download()
-
-                # One of MangaDex network are having problem
-                # Fetch the new one, and start re-downloading
-                if not success:
-                    log.error('One of MangaDex network are having problem, re-fetching the images...')
-                    log.info('Getting %s from chapter %s' % (
-                        'compressed images' if compressed_image else 'images',
-                        chap
-                    ))
-                    error = True
-                    images.fetch()
-                    break
-                else:
-                    continue
-            
-            if not error:
-                break
+    # Execute main format
+    fmt.main()
                 
     log.info("Download finished for manga \"%s\"" % manga.title)
     return manga

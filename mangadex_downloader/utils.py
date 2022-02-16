@@ -157,3 +157,10 @@ def get_language(lang):
     except KeyError:
         pass
     return Language(lang)
+
+def create_chapter_folder(base_path, chapter_title):
+    chapter_path = base_path / chapter_title
+    if not chapter_path.exists():
+        chapter_path.mkdir(exist_ok=True)
+
+    return chapter_path
