@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 valid_cover_types = [
     'original',
     '512px',
-    '256px'
+    '256px',
+    'none'
 ]
 
 default_cover_type = "original"

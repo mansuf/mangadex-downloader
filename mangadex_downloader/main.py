@@ -213,9 +213,14 @@ def download(
         cover_url = manga.cover_art_512px
     elif cover == "256px":
         cover_url = manga.cover_art_256px
+    elif cover == 'none':
+        cover_url = None
 
     # Download the cover art
-    download_file(cover_url, str(cover_path), replace=True)
+    if cover_url is None:
+        log.debug('Not downloading cover manga, since \"cover\" is none')
+    else:
+        download_file(cover_url, str(cover_path), replace=True)
 
     # Write details.json for tachiyomi local manga
     details_path = base_path / 'details.json'
