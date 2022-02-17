@@ -41,6 +41,11 @@ extras_require = {
   'optional': requirements_optional
 }
 
+packages = [
+  'mangadex_downloader',
+  'mangadex_downloader.format'
+]
+
 setup(
   name = 'mangadex-downloader',         
   packages = ['mangadex_downloader'],   

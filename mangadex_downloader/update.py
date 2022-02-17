@@ -1,5 +1,6 @@
 import os
 import io
+import sys
 import subprocess
 import sys
 import logging
@@ -25,6 +26,10 @@ except ImportError:
 else:
     executable = False
 
+is_64bits = sys.maxsize > 2**32
+
+architecture = 'x64' if is_64bits else 'x86'
+
 # Helper functions
 def _get_api_tags():
     versions = []
@@ -41,8 +46,11 @@ def _get_asset(_version):
     r = Net.requests.get('https://api.github.com/repos/mansuf/mangadex-downloader/releases')
     for release_info in r.json():
         if version == release_info['tag_name']:
-            asset = release_info['assets'][0]
-            return asset['browser_download_url']
+            assets = release_info['assets']
+            for asset in assets:
+                filename = 'mangadex-dl_{arch}_{version}.zip'.format(arch=architecture, version=version)
+                if asset['name'] == filename:
+                    return asset['browser_download_url']
 
 def check_version():
     # Get latest version
