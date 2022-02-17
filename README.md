@@ -21,7 +21,7 @@ A Command-Line tool to download manga from [MangaDex](https://mangadex.org/), wr
 ## Installation
 
 What will you need:
-- Python 3.5.x with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
+- Python 3.8.x or up with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
 
 That's it.
 
