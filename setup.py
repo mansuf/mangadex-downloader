@@ -32,8 +32,13 @@ requirements_docs = []
 with open('./requirements-docs.txt', 'r') as r:
   requirements_docs = r.read().splitlines()
 
+requirements_optional = []
+with open('./requirements-optional.txt', 'r') as r:
+  requirements_optional = r.read().splitlines()
+
 extras_require = {
-  'docs': requirements_docs
+  'docs': requirements_docs,
+  'optional': requirements_optional
 }
 
 setup(

@@ -10,6 +10,7 @@ from .utils import get_language, validate_url as __validate
 from .utils import _keyboard_interrupt_handler, Language, valid_cover_types, default_cover_type
 from .errors import ChapterNotFound, HTTPException, InvalidURL, LoginFailed
 from .update import check_version, update_app
+from .format import formats, default_save_as_format
 from . import __description__
 
 def setup_logging(name_module, verbose=False):
@@ -50,64 +51,97 @@ def list_languages():
         text += "%s = %s; " % (lang.name, lang.value)
     return text
 
-def _main(argv):
-    lowered_argv = [i.lower() for i in argv]
-    if '--update' in lowered_argv:
+class UpdateAppAction(argparse.Action):
+    def __call__(self, *args, **kwargs):
         setup_logging('mangadex_downloader')
         update_app()
         sys.exit(0)
 
+def _main(argv):
     parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument('URL', type=validate_url, help='MangaDex URL or a file containing MangaDex URLs')
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
-    parser.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
-    parser.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
-    parser.add_argument(
-        '--start-chapter',
-        type=float,
-        help='Start download chapter from given chapter number',
-        metavar='CHAPTER'
-    )
-    parser.add_argument(
-        '--end-chapter',
-        type=float,
-        help='Stop download chapter from given chapter number',
-        metavar='CHAPTER'
-    )
-    parser.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
-    parser.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
-    parser.add_argument('--login', help='Login to MangaDex', action='store_true')
-    parser.add_argument(
-        '--login-username',
-        help='Login to MangaDex with username (you will be prompted to input password if --login-password are not present)',
-        metavar='USERNAME'
-    )
-    parser.add_argument(
-        '--login-password',
-        help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)',
-        metavar='PASSWORD'
-    )
-    parser.add_argument(
+
+    # Language related
+    lang_group = parser.add_argument_group('Language')
+    lang_group.add_argument(
         '--language',
         metavar='LANGUAGE',
         help='Download manga in given language, to see all languages, use --list-languages option',
         type=validate_language,
         default=Language.English
     )
-    parser.add_argument(
+    lang_group.add_argument(
         '--list-languages',
         action='version',
         help='List all available languages',
         version=list_languages()
     )
-    parser.add_argument(
+
+    chap_group = parser.add_argument_group('Chapter')
+    chap_group.add_argument(
+        '--start-chapter',
+        type=float,
+        help='Start download chapter from given chapter number',
+        metavar='CHAPTER'
+    )
+    chap_group.add_argument(
+        '--end-chapter',
+        type=float,
+        help='Stop download chapter from given chapter number',
+        metavar='CHAPTER'
+    )
+    chap_group.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
+
+    # Images related
+    img_group = parser.add_argument_group('Images')
+    img_group.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
+    img_group.add_argument(
         '--cover',
         choices=valid_cover_types,
         help='Choose quality cover, default is \"original\"',
         default=default_cover_type
     )
+
+    # Authentication related
+    auth_group = parser.add_argument_group('Authentication')
+    auth_group.add_argument('--login', help='Login to MangaDex', action='store_true')
+    auth_group.add_argument(
+        '--login-username',
+        help='Login to MangaDex with username (you will be prompted to input password if --login-password are not present)',
+        metavar='USERNAME'
+    )
+    auth_group.add_argument(
+        '--login-password',
+        help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)',
+        metavar='PASSWORD'
+    )
+
+    # Save as format
+    save_as_group = parser.add_argument_group('Save as format')
+    save_as_group.add_argument(
+        '--save-as',
+        choices=formats.keys(),
+        help='Select save as format, default to \"tachiyomi\"',
+        default=default_save_as_format
+    )
+
+    # Proxy related
+    proxy_group = parser.add_argument_group('Proxy')
+    proxy_group.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
+    proxy_group.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
+
+    # Update application
+    update_group = parser.add_argument_group('Update application')
+    update_group.add_argument(
+        '--update',
+        help='Update mangadex-downloader to latest version',
+        action=UpdateAppAction,
+        nargs=0
+    )
+
     args = parser.parse_args(argv)
 
     log = setup_logging('mangadex_downloader', args.verbose)
@@ -171,7 +205,8 @@ def _main(argv):
                 args.end_chapter,
                 args.no_oneshot_chapter,
                 args.language,
-                args.cover
+                args.cover,
+                args.save_as
             )
         except ChapterNotFound as e:
             log.error(str(e))

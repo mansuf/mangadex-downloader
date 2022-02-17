@@ -36,6 +36,7 @@ jobs:
           pip install -U wheel pyinstaller
           pip install -r requirements.txt
           pip install -r requirements-docs.txt
+          pip install -r requirements-optional.txt
 
       - name: Tox tests
         run: |

@@ -35,3 +35,7 @@ class NotLoggedIn(MangaDexException):
 class InvalidFormat(MangaDexException):
     """Raised when invalid format is given"""
     pass
+
+class PillowNotInstalled(MangaDexException):
+    """Raised when trying to download in PDF format but Pillow is not installed"""
+    pass
