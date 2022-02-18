@@ -88,30 +88,6 @@ def write_details(manga, path):
     with open(path, 'w') as writer:
         writer.write(json.dumps(data))
 
-def _keyboard_interrupt_handler(*args):
-    # Downloader are not cleaned up
-    for job in _cleanup_jobs:
-        job()
-
-    # Unfinished jobs in pdf converting
-    from .format.pdf import _cleanup_jobs as pdf_cleanup
-
-    for job in pdf_cleanup:
-        job()
-
-    # Logging out
-    try:
-        Net.requests.logout()
-    except NotLoggedIn:
-        pass
-    log.info("Cleaning up...")
-
-    print("Action interrupted by user", file=sys.stdout)
-    sys.exit(0)
-
-def register_keyboard_interrupt_handler():
-    signal.signal(signal.SIGINT, _keyboard_interrupt_handler)
-
 # Adapted from https://github.com/tachiyomiorg/tachiyomi-extensions/blob/master/src/all/mangadex/src/eu/kanade/tachiyomi/extension/all/mangadex/MangaDexFactory.kt#L54-L96
 class Language(Enum):
     """List of MangaDex languages"""

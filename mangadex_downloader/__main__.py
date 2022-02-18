@@ -7,11 +7,33 @@ from getpass import getpass
 from .network import Net
 from .main import download, login, logout
 from .utils import get_language, validate_url as __validate
-from .utils import _keyboard_interrupt_handler, Language, valid_cover_types, default_cover_type
-from .errors import ChapterNotFound, HTTPException, InvalidURL, LoginFailed
+from .utils import Language, valid_cover_types, default_cover_type
+from .errors import ChapterNotFound, HTTPException, InvalidURL, LoginFailed, NotLoggedIn
 from .update import check_version, update_app
 from .format import formats, default_save_as_format
+from .downloader import _cleanup_jobs
 from . import __description__
+
+def _keyboard_interrupt_handler(*args):
+    print("Cleaning up...")
+    # Downloader are not cleaned up
+    for job in _cleanup_jobs:
+        job()
+
+    # Unfinished jobs in pdf converting
+    from .format.pdf import _cleanup_jobs as pdf_cleanup
+
+    for job in pdf_cleanup:
+        job()
+
+    # Logging out
+    try:
+        Net.requests.logout()
+    except NotLoggedIn:
+        pass
+
+    print("Action interrupted by user", file=sys.stdout)
+    sys.exit(0)
 
 def setup_logging(name_module, verbose=False):
     log = logging.getLogger(name_module)
