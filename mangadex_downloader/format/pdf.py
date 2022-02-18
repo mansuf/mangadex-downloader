@@ -40,7 +40,8 @@ class PDF(BaseFormat):
             raise PillowNotInstalled("pillow is not installed")
 
         super().__init__(*args, **kwargs)
-    
+        self.register_keyboardinterrupt_handler()
+
     def main(self):
         base_path = self.path
         manga = self.manga
@@ -123,28 +124,31 @@ class PDF(BaseFormat):
                         images.fetch()
                         break
                     else:
-                        # Begin converting to PDF
-                        img = Image.open(img_path)
-                        converted_img = img.convert('RGB')
+                        def convert_pdf():
+                            # Begin converting to PDF
+                            img = Image.open(img_path)
+                            converted_img = img.convert('RGB')
 
-                        def cleanup():
+                            def cleanup():
+                                img.close()
+                                converted_img.close()
+
+                            _cleanup_jobs.append(cleanup)
+
+                            # Save it to PDF
+                            converted_img.save(pdf_file, save_all=True, append=True if pdf_file_exists(True) else False)                        
+
+                            # Close the image
                             img.close()
                             converted_img.close()
 
-                        _cleanup_jobs.append(cleanup)
+                            # And then remove it original file
+                            delete_file(img_path)
 
-                        # Save it to PDF
-                        converted_img.save(pdf_file, save_all=True, append=True if pdf_file_exists(True) else False)                        
+                            tracker.write(img_name + '\n')
+                            tracker.flush()
 
-                        # Close the image
-                        img.close()
-                        converted_img.close()
-
-                        # And then remove it original file
-                        delete_file(img_path)
-
-                        tracker.write(img_name + '\n')
-                        tracker.flush()
+                        self._submit(convert_pdf)
                         continue
                 
                 if not error:

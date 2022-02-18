@@ -64,6 +64,10 @@ class Tachiyomi(BaseFormat):
                     break
 
 class TachiyomiZip(BaseFormat):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_keyboardinterrupt_handler()
+
     def main(self):
         base_path = self.path
         manga = self.manga
@@ -130,7 +134,10 @@ class TachiyomiZip(BaseFormat):
                         break
                     else:
                         # Write it to zipfile
-                        chapter_zip.writestr(img_name, img_path.read_bytes())
+                        wrap = lambda: chapter_zip.writestr(img_name, img_path.read_bytes())
+                        
+                        # KeyboardInterrupt safe
+                        self._submit(wrap)
                         
                         # And then remove it original file
                         os.remove(img_path)
