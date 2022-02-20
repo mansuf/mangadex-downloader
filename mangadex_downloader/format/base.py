@@ -17,6 +17,7 @@ class BaseFormat:
         self.replace = replace
         self.kwargs_iter = kwargs_iter_chapter_img
 
+        self._shutdown_event = threading.Event()
         self._queue = queue.Queue()
 
     def register_keyboardinterrupt_handler(self):
@@ -37,8 +38,10 @@ class BaseFormat:
         alive = is_alive()
         while alive:
             time.sleep(0.3)
+            if self._shutdown_event.is_set():
+                break
             alive = is_alive()
-        self._shutdown()
+        self._shutdown_main()
 
     def _submit(self, job):
         event = threading.Event()
@@ -46,8 +49,13 @@ class BaseFormat:
         self._queue.put(data)
         event.wait()
 
-    def _shutdown(self):
+    def _shutdown_main(self):
+        # Shutdown only to _main function
         self._queue.put(None)
+
+    def _shutdown(self):
+        # Shutdown both
+        self._shutdown_event.set()
 
     def _main(self):
         while True:

@@ -148,3 +148,6 @@ class TachiyomiZip(BaseFormat):
             
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
+
+        # Shutdown queue-based thread process
+        self._shutdown()
