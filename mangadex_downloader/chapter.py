@@ -143,32 +143,38 @@ class Chapter:
         for volume, chapters in self._volumes.items():
             for chapter in chapters:
                 if chapter.chapter != "none":
-                    num_chap = float(chapter.chapter)
+                    try:
+                        num_chap = float(chapter.chapter)
+                    except ValueError:
+                        # Fix https://github.com/mansuf/mangadex-downloader/issues/7
+                        # Sometimes chapter are in string value not in numbers
+                        num_chap = chapter.chapter
 
                     # There is a chance that "Chapter 0" is Oneshot or prologue
                     # We need to verify that is valid oneshot chapter
                     # if it's valid oneshot chapter
                     # then we need to skip start_chapter and end_chapter checking
-                    if num_chap == 0.0:
-                        pass
-                    else:
-                        if start_chapter is not None:
-                            # Lifehack
-                            if not (num_chap >= start_chapter):
-                                log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
-                                    num_chap,
-                                    start_chapter
-                                ))
-                                continue
+                    if isinstance(num_chap, float):
+                        if num_chap == 0.0:
+                            pass
+                        else:
+                            if start_chapter is not None:
+                                # Lifehack
+                                if not (num_chap >= start_chapter):
+                                    log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
+                                        num_chap,
+                                        start_chapter
+                                    ))
+                                    continue
 
-                        if end_chapter is not None:
-                            # Lifehack
-                            if not (num_chap <= end_chapter):
-                                log.info("Ignoring chapter %s as \"end_chapter\" is %s" % (
-                                    num_chap,
-                                    end_chapter
-                                ))
-                                continue
+                            if end_chapter is not None:
+                                # Lifehack
+                                if not (num_chap <= end_chapter):
+                                    log.info("Ignoring chapter %s as \"end_chapter\" is %s" % (
+                                        num_chap,
+                                        end_chapter
+                                    ))
+                                    continue
 
                 # Some manga has chapters where it has no pages / images inside of it.
                 # We need to verify it, to prevent error when downloading the manga.
@@ -194,7 +200,7 @@ class Chapter:
                 else:
                     # If chapter 0 is prologue or whatever and not oneshot
                     # Re-check start_chapter
-                    if start_chapter is not None:
+                    if start_chapter is not None and isinstance(num_chap, float):
                         # Lifehack
                         if not (num_chap >= start_chapter):
                             log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (

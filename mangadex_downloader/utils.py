@@ -4,6 +4,7 @@ import signal
 import json
 import logging
 import sys
+from pathvalidate import sanitize_filename
 from enum import Enum
 from .errors import InvalidURL, NotLoggedIn
 from .downloader import FileDownloader, _cleanup_jobs
@@ -145,7 +146,7 @@ def get_language(lang):
     return Language(lang)
 
 def create_chapter_folder(base_path, chapter_title):
-    chapter_path = base_path / chapter_title
+    chapter_path = base_path / sanitize_filename(chapter_title)
     if not chapter_path.exists():
         chapter_path.mkdir(exist_ok=True)
 
