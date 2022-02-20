@@ -54,7 +54,9 @@ Advanced usage
         start_chapter=5.0, # Start downloading from chapter 5
         end_chapter=10.0, # Stop downloading from chapter 10
         no_oneshot_chapter=True, # for those of you who hates oneshot :)
-        language=Language.English # Download manga in english language
+        language=Language.English # Download manga in english language,
+        cover="original" # Download cover manga with original quality
+        save_as="pdf" # Save manga as PDF
     )
 
 Set up proxy

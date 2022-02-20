@@ -167,6 +167,10 @@ def download(
         If exist, don\'t download oneshot chapter
     language: :class:`Language` (default: :class:`Language.English`)
         Select a translated language for manga
+    cover: :class:`str` (default: ``original``)
+        Choose quality cover manga
+    save_as: :class:`str` (default: ``tachiyomi``)
+        Choose save as format
 
     Raises
     -------

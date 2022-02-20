@@ -86,7 +86,12 @@ Chapters related
 Images related
 ~~~~~~~~~~~~~~~
 - ``--use-compressed-image`` Use compressed image for low size file
-- ``--cover {original,512px,256px}`` Choose quality cover, default is "original"
+- ``--cover {original,512px,256px,none}`` Choose quality cover, default is "original". Choose ``none`` to not download cover manga
+
+Save as format
+~~~~~~~~~~~~~~~
+
+- ``--save-as {tachiyomi,tachiyomi-zip,pdf}`` Choose save as format, default to "tachiyomi"
 
 Authentication related
 ~~~~~~~~~~~~~~~~~~~~~~~

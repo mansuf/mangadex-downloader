@@ -14,9 +14,9 @@ A Command-Line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - Ability to use compressed images
 - HTTP / SOCKS proxy support
 - Multi languages support
-- [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local files support
+- Save as PDF or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local
 
-***And ability to not download oneshot chapters***
+***And ability to not download oneshot chapter***
 
 ## Installation
 
@@ -36,6 +36,9 @@ py -3 -m install mangadex-downloader
 # For Linux / Mac OS
 python3 -m pip install mangadex-downloader
 ```
+
+You can also install optional dependencies
+- [Pillow](https://pypi.org/project/pillow/), for PDF support
 
 There you go, easy ain't it ?.
 
@@ -61,7 +64,7 @@ cd mangadex-downloader
 
 ## Usage
 
-### Command Line Interface (PyPI version)
+### Command-Line Interface (PyPI version)
 
 ```shell
 
@@ -78,13 +81,10 @@ py -3 -m mangadex_downloader "insert MangaDex URL here"
 python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
-### Command Line Interface (Standalone executable version)
+### Command-Line Interface (Standalone executable version)
 
 - Navigate to folder where you downloaded mangadex-downloader
-
-[insert image here]
-
-- Click "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
+- Open "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
 
 [insert image here]
 
@@ -93,6 +93,8 @@ python3 -m mangadex_downloader "insert MangaDex URL here"
 ```shell
 mangadex-dl.exe "insert MangaDex URL here" 
 ```
+
+[insert image here]
 
 For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/stable/usage_cli.html)
 
