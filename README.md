@@ -86,7 +86,7 @@ python3 -m mangadex_downloader "insert MangaDex URL here"
 - Navigate to folder where you downloaded mangadex-downloader
 - Open "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
 
-[insert image here]
+![example_start_cmd](https://github.com/mansuf/mangadex-downloader/blob/main/assets/example_start_cmd.png)
 
 - And then start using mangadex-downloader, see example below:
 
@@ -94,7 +94,7 @@ python3 -m mangadex_downloader "insert MangaDex URL here"
 mangadex-dl.exe "insert MangaDex URL here" 
 ```
 
-[insert image here]
+![example_usage_executable](https://github.com/mansuf/mangadex-downloader/blob/main/assets/example_usage_executable.png)
 
 For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/stable/usage_cli.html)
 
