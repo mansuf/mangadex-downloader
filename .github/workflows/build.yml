@@ -100,9 +100,9 @@ jobs:
           tag_name: ${{ env.GIRHUB_REF_NAME }}
           name: mangadex-downloader ${{ github.ref_name }}
           files: |
+            mangadex-dl_${{ github.ref_name }}.zip
             mangadex-dl_x64_${{ github.ref_name }}.zip
             mangadex-dl_x86_${{ github.ref_name }}.zip
-            mangadex-dl_${{ github.ref_name }}.zip
           draft: true
           prerelease: false
         env:
