@@ -59,8 +59,17 @@ class requestsMangaDexSession(requests.Session):
     # Ratelimit handler
     def request(self, *args, **kwargs):
         attempt = 1
-        while True:
-            resp = super().request(*args, **kwargs)
+        for _ in range(5):
+            try:
+                resp = super().request(*args, **kwargs)
+            except requests.exceptions.ConnectionError as e:
+                attempt += 1
+                log.error("Failed to connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
+                    e.request.url,
+                    str(e),
+                    attempt
+                ))
+                continue
 
             # We are being rate limited
             if resp.status_code == 429:
@@ -83,6 +92,8 @@ class requestsMangaDexSession(requests.Session):
                 raise HTTPException('Server sending %s code' % resp.status_code, resp=resp)
 
             return resp
+        
+        raise RuntimeError("Unhandled HTTP error")
 
     def _worker_queue_report_handler(self):
         """If mainthread is shutted down all queue worker must shut down too"""
