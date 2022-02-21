@@ -78,7 +78,8 @@ jobs:
           echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x86\mangadex-dl_x86\update.bat"
           echo "start cmd" | Out-File -FilePath "dist_x86\mangadex-dl_x86\start cmd.bat"
           Rename-Item -Path "dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" -NewName "mangadex-dl.exe"
-          Compress-Archive -Path "dist_x86\mangadex-dl_x86" -DestinationPath "mangadex-dl_x86_${{ github.ref_name }}.zip"
+          Rename-Item -Path "dist_x86\mangadex-dl_x86" -NewName "mangadex-dl"
+          Compress-Archive -Path "dist_x86\mangadex-dl" -DestinationPath "mangadex-dl_x86_${{ github.ref_name }}.zip"
 
           # x64 executable
           copy "LICENSE" "dist_x64\mangadex-dl_x64"
@@ -87,7 +88,8 @@ jobs:
           echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x64\mangadex-dl_x64\update.bat"
           echo "start cmd" | Out-File -FilePath "dist_x64\mangadex-dl_x64\start cmd.bat"
           Rename-Item -Path "dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" -NewName "mangadex-dl.exe"
-          Compress-Archive -Path "dist_x64\mangadex-dl_x64" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
+          Rename-Item -Path "dist_x64\mangadex-dl_x64" -NewName "mangadex-dl"
+          Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
           # legacy x86 executable
           Rename-Item -Path "dist_x86\mangadex-dl_x86" -NewName "mangadex-dl"
