@@ -49,10 +49,10 @@ jobs:
       - name: Test imports
         run: |
           # Execute setup tests for x64
-          .\setup_tests_x64.ps1
+          & "$PSScriptroot\setup_tests_x64.ps1"
 
           # Execute setup tests for x86
-          .\setup_tests_x86.ps1
+          & "$PSScriptroot\setup_tests_x86.ps1"
 
       - name: Get python version
         run: |
