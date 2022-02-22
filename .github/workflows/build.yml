@@ -76,6 +76,7 @@ jobs:
           echo "Executing test imports"
           & "${pythonvenv_x64}" "test_imports.py"
 
+          cd "..\"
 
           # Setup for venv python x86
           echo "Creating virtual environment"
