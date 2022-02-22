@@ -41,14 +41,11 @@ extras_require = {
   'optional': requirements_optional
 }
 
-packages = [
-  'mangadex_downloader',
-  'mangadex_downloader.format'
-]
+packages = find_packages('.')
 
 setup(
   name = 'mangadex-downloader',         
-  packages = find_packages('.'),   
+  packages = packages,   
   version = version,
   license='MIT',     
   description = description,
