@@ -54,23 +54,21 @@ def write_details(manga, path):
 
     # Parse authors
     authors = ""
-    for index in range(len(manga.authors)):
-        author = manga.authors[index]
+    for index, author in enumerate(manga.authors):
         if index < (len(manga.authors) - 1):
-            authors += author + ", "
-        # If this is last index, append author without comma
+            authors += author + ","
         else:
+            # If this is last index, append author without comma
             authors += author
     data['author'] = authors
 
     # Parse artists
     artists = ""
-    for index in range(len(manga.artists)):
-        artist = manga.artists[index]
+    for index, artist in enumerate(manga.artists):
         if index < (len(manga.artists) - 1):
-            artists += artist + ", "
-        # If this is last index, append artist without comma
+            artists += artist + ","
         else:
+            # If this is last index, append artist without comma
             artists += artist
     data['artist'] = artists
 
