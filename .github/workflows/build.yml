@@ -144,7 +144,6 @@ jobs:
           Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
           # legacy x86 executable
-          Rename-Item -Path "dist_x86\mangadex-dl_x86" -NewName "mangadex-dl"
           Compress-Archive -Path "dist_x86\mangadex-dl" -DestinationPath "mangadex-dl_${{ github.ref_name }}.zip"
 
       - name: Create Release
