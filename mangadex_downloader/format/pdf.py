@@ -52,13 +52,13 @@ class PDF(BaseFormat):
             raise PillowNotInstalled("pillow is not installed")
 
         super().__init__(*args, **kwargs)
-        self.register_keyboardinterrupt_handler()
 
     def main(self):
         base_path = self.path
         manga = self.manga
         compressed_image = self.compress_img
         replace = self.replace
+        worker = self.create_worker()
 
         # Begin downloading
         for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
@@ -160,7 +160,7 @@ class PDF(BaseFormat):
                             tracker.write(img_name + '\n')
                             tracker.flush()
 
-                        self._submit(convert_pdf)
+                        worker.submit(convert_pdf)
                         continue
                 
                 if not error:
@@ -173,7 +173,7 @@ class PDF(BaseFormat):
             shutil.rmtree(chapter_path, ignore_errors=True)
         
         # Shutdown queue-based thread process
-        self._shutdown()
+        worker.shutdown()
 
 class PDFWrap(PDF):
     def main(self):
@@ -181,6 +181,7 @@ class PDFWrap(PDF):
         manga = self.manga
         compressed_image = self.compress_img
         replace = self.replace
+        worker = self.create_worker()
 
         # In order to add "next chapter" image mark in end of current chapter
         # We need to cache all chapters
@@ -301,7 +302,7 @@ class PDFWrap(PDF):
                             tracker.write(img_name_manifest + '\n')
                             tracker.flush()
 
-                        self._submit(convert_pdf)
+                        worker.submit(convert_pdf)
                         downloaded = True
                 
                 if not error:
@@ -328,7 +329,7 @@ class PDFWrap(PDF):
                 img.close()
             
             if downloaded:
-                self._submit(insert_mark_image)
+                worker.submit(insert_mark_image)
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
@@ -338,6 +339,6 @@ class PDFWrap(PDF):
         delete_file(finished_chapter_path)
 
         # Shutdown queue-based thread process
-        self._shutdown()
+        worker.shutdown()
 
         
