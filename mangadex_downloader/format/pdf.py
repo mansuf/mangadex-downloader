@@ -244,6 +244,7 @@ class PDFWrap(PDF):
 
             chapter_path = create_chapter_folder(base_path, chap_name)
 
+            downloaded = False
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
@@ -301,6 +302,7 @@ class PDFWrap(PDF):
                             tracker.flush()
 
                         self._submit(convert_pdf)
+                        downloaded = True
                 
                 if not error:
                     break
@@ -325,7 +327,8 @@ class PDFWrap(PDF):
 
                 img.close()
             
-            self._submit(insert_mark_image)
+            if downloaded:
+                self._submit(insert_mark_image)
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
