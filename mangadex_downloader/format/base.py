@@ -1,6 +1,11 @@
 import queue
+import sys
 import threading
 import time
+import logging
+import traceback
+
+log = logging.getLogger(__name__)
 
 class _Worker:
     def __init__(self) -> None:
@@ -49,8 +54,12 @@ class _Worker:
                 event, job = data
                 try:
                     job()
-                except Exception:
-                    pass
+                except Exception as err:
+                    log.error("Exception raised in worker thread, %s: %s" % (
+                        err.__class__.__name__,
+                        str(err)
+                    ))
+                    traceback.print_exception(type(err), err, err.__traceback__, file=sys.stderr)
                 event.set()
 
 class BaseFormat:
@@ -67,9 +76,6 @@ class BaseFormat:
         self.compress_img = compress_img
         self.replace = replace
         self.kwargs_iter = kwargs_iter_chapter_img
-
-        self._shutdown_event = threading.Event()
-        self._queue = queue.Queue()
 
     def create_worker(self):
         # If CTRL+C is pressed all process is interrupted, right ?
