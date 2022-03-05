@@ -139,9 +139,18 @@ class Chapter:
             chapters.reverse()
             self._volumes[volume] = chapters
 
-    def iter_chapter_images(self, start_chapter=None, end_chapter=None, no_oneshot=False, data_saver=False):
+    def iter_chapter_images(
+        self,
+        start_chapter=None,
+        end_chapter=None,
+        no_oneshot=False,
+        data_saver=False,
+        log_cache=False # For internal use only
+    ):
         for volume, chapters in self._volumes.items():
             for chapter in chapters:
+                if log_cache:
+                    log.debug("Caching Volume. %s Chapter. %s" % (volume, chapter.chapter))
                 if chapter.chapter != "none":
                     try:
                         num_chap = float(chapter.chapter)
