@@ -3,6 +3,7 @@ import sys
 import threading
 import logging
 import traceback
+from concurrent.futures import Future
 
 log = logging.getLogger(__name__)
 
@@ -26,10 +27,14 @@ class _Worker:
         self._shutdown_main()
 
     def submit(self, job):
-        event = threading.Event()
-        data = [event, job]
+        fut = Future()
+        data = [fut, job]
         self._queue.put(data)
-        event.wait()
+        result = fut.result()
+        if isinstance(result, Exception):
+            # Error is raised
+            # Exit app with code 1
+            sys.exit(1)
 
     def _shutdown_main(self):
         # Shutdown only to _main function
@@ -45,7 +50,7 @@ class _Worker:
             if data is None:
                 return
             else:
-                event, job = data
+                fut, job = data
                 try:
                     job()
                 except Exception as err:
@@ -54,7 +59,8 @@ class _Worker:
                         str(err)
                     ))
                     traceback.print_exception(type(err), err, err.__traceback__, file=sys.stderr)
-                event.set()
+                    fut.set_result(err)
+                fut.set_result(None)
 
 class BaseFormat:
     def __init__(
