@@ -1,7 +1,6 @@
 import queue
 import sys
 import threading
-import time
 import logging
 import traceback
 
@@ -22,13 +21,8 @@ class _Worker:
         self._thread_shutdown.start()
 
     def _loop_check_mainthread(self):
-        is_alive = lambda: threading.main_thread().is_alive()
-        alive = is_alive()
-        while alive:
-            time.sleep(0.3)
-            if self._shutdown_event.is_set():
-                break
-            alive = is_alive()
+        main_thread = threading.main_thread()
+        main_thread.join()
         self._shutdown_main()
 
     def submit(self, job):
