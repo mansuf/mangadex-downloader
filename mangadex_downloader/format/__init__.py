@@ -1,6 +1,6 @@
 from .pdf import PDF, PDFSingle
 from .tachiyomi import Tachiyomi, TachiyomiZip
-from .comic_book import ComicBookArchive
+from .comic_book import ComicBookArchive, ComicBookArchiveSingle
 from ..errors import InvalidFormat
 
 formats = {
@@ -8,7 +8,8 @@ formats = {
     "tachiyomi-zip": TachiyomiZip,
     "pdf": PDF,
     "pdf-single": PDFSingle,
-    "cbz": ComicBookArchive
+    "cbz": ComicBookArchive,
+    "cbz-single": ComicBookArchiveSingle
 }
 
 default_save_as_format = "tachiyomi"
