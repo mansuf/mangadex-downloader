@@ -3,7 +3,7 @@ import sys
 
 from getpass import getpass
 from ..main import login, logout
-from ..errors import HTTPException, LoginFailed
+from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
 from ..network import Net
 
 log = logging.getLogger(__name__)
@@ -32,12 +32,6 @@ def logout_with_err_handler(args):
                     e.response.status_code,
                     attempt
                 )
-            except RuntimeError as e:
-                log.error(str(e))
-                return
-            except Exception as e:
-                log.error("Unhandled exception, %s: %s" % (e.__class__.__name__, str(e)))
-                return
             else:
                 logout_success = True
                 break
@@ -80,12 +74,6 @@ def login_with_err_handler(args):
                     e.response.status_code,
                     attempt
                 )
-            except RuntimeError as e:
-                log.error(str(e))
-                sys.exit(1)
-            except Exception as e:
-                log.error("Unhandled exception, %s: %s" % (e.__class__.__name__, str(e)))
-                sys.exit(1)
             else:
                 login_success = True
                 break

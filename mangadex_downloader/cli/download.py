@@ -25,10 +25,6 @@ def download(args):
         except MangaDexException as e:
             # The error is already explained
             log.error(str(e))
-        except RuntimeError:
-            log.error("Unhandled HTTP error")
-        except Exception as e:
-            log.error("Unhandled exception, %s: %s" % (e.__class__.__name__, str(e)))
         else:
             err = False
         

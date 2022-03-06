@@ -2,6 +2,10 @@ class MangaDexException(Exception):
     """Base exception for MangaDex errors"""
     pass
 
+class UnhandledHTTPError(MangaDexException):
+    """Raised when we unable to handle HTTP errors"""
+    pass
+
 class HTTPException(MangaDexException):
     """HTTP errors"""
     def __init__(self, *args: object, resp=None) -> None:

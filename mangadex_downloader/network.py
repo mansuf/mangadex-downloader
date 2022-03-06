@@ -9,7 +9,13 @@ import logging
 import sys
 import threading
 from . import __version__
-from .errors import AlreadyLoggedIn, HTTPException, LoginFailed, NotLoggedIn
+from .errors import (
+    AlreadyLoggedIn,
+    HTTPException,
+    LoginFailed,
+    NotLoggedIn,
+    UnhandledHTTPError
+)
 from concurrent.futures import Future, TimeoutError
 
 EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
@@ -93,7 +99,7 @@ class requestsMangaDexSession(requests.Session):
 
             return resp
         
-        raise RuntimeError("Unhandled HTTP error")
+        raise UnhandledHTTPError("Unhandled HTTP error")
 
     def _worker_queue_report_handler(self):
         """If mainthread is shutted down all queue worker must shut down too"""
