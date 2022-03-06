@@ -1,5 +1,3 @@
-from ..errors import PillowNotInstalled
-
 try:
     from PIL import (
         Image,
@@ -7,9 +5,7 @@ try:
         ImageFont,
     )
 except ImportError:
-    pillow_ready = False
-else:
-    pillow_ready = True
+    pass
 
 rgb_white = (255, 255, 255)
 rgb_black = (0, 0, 0)
@@ -21,8 +17,6 @@ text_pos = (150, int(500 / 1.25))
 text_align = "center"
 
 def get_mark_image(chap_name, cache, index):
-    if not pillow_ready:
-        raise PillowNotInstalled("pillow is not installed")
     text = ""
     text += "Finished: " + chap_name
     try:
