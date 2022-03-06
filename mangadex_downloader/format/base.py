@@ -7,6 +7,10 @@ from concurrent.futures import Future
 
 log = logging.getLogger(__name__)
 
+class WorkerThreadError(Exception):
+    """Raised when error is happened in worker thread"""
+    pass
+
 class _Worker:
     def __init__(self) -> None:
         self._queue = queue.Queue()
@@ -30,11 +34,9 @@ class _Worker:
         fut = Future()
         data = [fut, job]
         self._queue.put(data)
-        result = fut.result()
-        if isinstance(result, Exception):
-            # Error is raised
-            # Exit app with code 1
-            sys.exit(1)
+        err = fut.exception()
+        if err:
+            raise WorkerThreadError(str(err))
 
     def _shutdown_main(self):
         # Shutdown only to _main function
@@ -59,7 +61,7 @@ class _Worker:
                         str(err)
                     ))
                     traceback.print_exception(type(err), err, err.__traceback__, file=sys.stderr)
-                    fut.set_result(err)
+                    fut.set_exception(err)
                 fut.set_result(None)
 
 class BaseFormat:
