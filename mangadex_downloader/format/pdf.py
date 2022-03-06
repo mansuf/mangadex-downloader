@@ -421,7 +421,7 @@ class PDF(BaseFormat):
         # Shutdown queue-based thread process
         worker.shutdown()
 
-class PDFWrap(PDF):
+class PDFSingle(PDF):
     def main(self):
         base_path = self.path
         manga = self.manga

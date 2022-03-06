@@ -1,4 +1,4 @@
-from .pdf import PDF, PDFWrap
+from .pdf import PDF, PDFSingle
 from .tachiyomi import Tachiyomi, TachiyomiZip
 from .comic_book import ComicBookArchive
 from ..errors import InvalidFormat
@@ -7,7 +7,7 @@ formats = {
     "tachiyomi": Tachiyomi,
     "tachiyomi-zip": TachiyomiZip,
     "pdf": PDF,
-    "pdf-wrap": PDFWrap,
+    "pdf-single": PDFSingle,
     "cbz": ComicBookArchive
 }
 
