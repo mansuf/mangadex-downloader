@@ -172,6 +172,7 @@ class ComicBookArchiveSingle(BaseFormat):
                     
                     if img_exist and not self.replace:
                         log.info("File exist and replace is False, cancelling download...")
+                        count += 1
                         continue
 
                     downloader = ChapterPageDownloader(
