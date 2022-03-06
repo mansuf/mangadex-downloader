@@ -1,14 +1,13 @@
 import logging
 import io
 import os
-from pathlib import Path
 import time
 import shutil
-import queue
 
 from pathvalidate import sanitize_filename
 from tqdm import tqdm
 from .base import BaseFormat
+from .utils import get_mark_image
 from ..errors import PillowNotInstalled
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
@@ -18,21 +17,9 @@ log = logging.getLogger(__name__)
 # For keyboardInterrupt handler
 _cleanup_jobs = []
 
-# Some constants for PDFWrap
-rgb_white = (255, 255, 255)
-rgb_black = (0, 0, 0)
-font_family = "arial.ttf"
-font_size = 30
-image_size = (720, int(1100 / 1.25))
-image_mode = "RGB"
-text_pos = (150, int(500 / 1.25))
-text_align = "center"
-
 try:
     from PIL import (
         Image,
-        ImageDraw,
-        ImageFont,
         ImageFile,
         ImageSequence,
         PdfParser,
@@ -533,24 +520,6 @@ class PDFSingle(PDF):
                 
                 if not error:
                     break
-            
-            # Create image that marked chapter is finished
-            def get_mark_image(chap_name, cache, index):
-                text = ""
-                text += "Finished: " + chap_name
-                try:
-                    next_chap_name = cache[index + 1]
-                except IndexError:
-                    pass
-                else:
-                    text += "\n" + "Next: " + next_chap_name[2]
-
-                font = ImageFont.truetype(font_family, font_size)
-                img = Image.new(image_mode, image_size, rgb_white)
-                draw = ImageDraw.Draw(img, image_mode)
-                draw.text(text_pos, text, rgb_black, font, align='center')
-
-                return img
 
             # Insert mark chapter image
             imgs.append(_ChapterMarkImage(get_mark_image, (chap_name, cache, index)))
