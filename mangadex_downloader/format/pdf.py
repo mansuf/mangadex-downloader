@@ -433,6 +433,7 @@ class PDFSingle(PDF):
 
         # In order to add "next chapter" image mark in end of current chapter
         # We need to cache all chapters
+        log.info("Preparing to download...")
         cache = []
         # Enable log cache
         kwargs_iter = self.kwargs_iter.copy()
