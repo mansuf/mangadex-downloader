@@ -1,5 +1,5 @@
 from requests.exceptions import HTTPError
-from .errors import HTTPException, InvalidManga
+from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList
 from .network import Net, base_url
 
 def get_manga(manga_id):
@@ -22,6 +22,15 @@ def get_cover_art(cover_id):
 def get_chapter(chapter_id):
     url = '{0}/chapter/{1}'.format(base_url, chapter_id)
     r = Net.requests.get(url)
+    if r.status_code == 404:
+        raise ChapterNotFound("Chapter %s cannot be found" % chapter_id)
+    return r.json()
+
+def get_list(list_id):
+    url = '{0}/list/{0}'.format(base_url, list_id)
+    r = Net.requests.get(url)
+    if r.status_code == 404:
+        raise InvalidMangaDexList("List %s cannot be found" % list_id)
     return r.json()
 
 def get_all_chapters(manga_id, lang):

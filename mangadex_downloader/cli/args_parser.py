@@ -3,10 +3,10 @@ import os
 import logging
 import sys
 
+from .url import smart_select_url, valid_types
 from .utils import setup_logging
 from ..update import update_app
 from ..utils import (
-    validate_url as __validate,
     get_language,
     Language,
     valid_cover_types,
@@ -20,15 +20,15 @@ log = logging.getLogger(__name__)
 
 def _validate(url):
     try:
-        _id = __validate(url)
+        _url = smart_select_url(url)
     except InvalidURL as e:
         raise argparse.ArgumentTypeError(str(e))
-    return _id
+    return _url
 
 def validate_url(url):
     if os.path.exists(url):
         with open(url, 'r') as opener:
-            return [_validate(i) for i in opener.read().splitlines()]
+            return [_validate(url) for i in opener.read().splitlines()]
     else:
         return [_validate(url)]
 
@@ -53,6 +53,11 @@ class UpdateAppAction(argparse.Action):
 def get_args(argv):
     parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument('URL', type=validate_url, help='MangaDex URL or a file containing MangaDex URLs')
+    parser.add_argument(
+        '--type',
+        help='Override type MangaDex url. By default, it auto detect given url',
+        choices=valid_types
+    )
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
@@ -73,6 +78,7 @@ def get_args(argv):
         version=list_languages()
     )
 
+    # Chapter related
     chap_group = parser.add_argument_group('Chapter')
     chap_group.add_argument(
         '--start-chapter',
@@ -87,6 +93,21 @@ def get_args(argv):
         metavar='CHAPTER'
     )
     chap_group.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
+
+    # Chapter page related
+    chap_page_group = parser.add_argument_group("Chapter Page")
+    chap_page_group.add_argument(
+        '--start-page',
+        type=int,
+        help='Start download chapter page from given page number',
+        metavar='NUM_PAGE'
+    )
+    chap_page_group.add_argument(
+        '--end-page',
+        type=int,
+        help='Stop download chapter page from given page number',
+        metavar='NUM_PAGE'
+    )
 
     # Images related
     img_group = parser.add_argument_group('Images')

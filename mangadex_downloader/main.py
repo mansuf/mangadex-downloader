@@ -10,18 +10,18 @@ from .utils import (
     default_cover_type
 )
 from .utils import download as download_file
-from .errors import InvalidURL
+from .errors import InvalidURL, MangaDexException
 from .fetcher import *
 from .manga import Manga
 from .chapter import Chapter
-from .downloader import ChapterPageDownloader
 from .network import Net
 from .format import default_save_as_format, get_format
 
 log = logging.getLogger(__name__)
 
 __all__ = (
-    'download', 'fetch', 'login', 'logout'
+    'download', 'download_chapter', 'download_list',
+    'fetch', 'login', 'logout'
 )
 
 def login(*args, **kwargs):
@@ -60,6 +60,35 @@ def logout():
     """
     Net.requests.logout()
 
+def _fetch_manga(manga_id):
+    data = get_manga(manga_id)
+
+    # Append some additional informations
+    rels = data['data']['relationships']
+    authors = []
+    artists = []
+    for rel in rels:
+        _type = rel.get('type')
+        _id = rel.get('id')
+
+        if _type == 'author':
+            log.debug('Getting author (%s) manga' % _id)
+            authors.append(get_author(_id))
+
+        elif _type == 'artist':
+            log.debug('Getting artist (%s) manga' % _id)
+            artists.append(get_author(_id))
+
+        elif _type == 'cover_art':
+            log.debug('Getting cover (%s) manga' % _id)
+            data['cover_art'] = get_cover_art(_id)
+
+    data['authors'] = authors
+    data['artists'] = artists
+
+    manga = Manga(data)
+    return manga
+
 def fetch(url, language=Language.English):
     """Fetch the manga
 
@@ -97,32 +126,7 @@ def fetch(url, language=Language.English):
     
     # Begin fetching
     log.info('Fetching manga %s' % manga_id)
-    data = get_manga(manga_id)
-
-    # Append some additional informations
-    rels = data['data']['relationships']
-    authors = []
-    artists = []
-    for rel in rels:
-        _type = rel.get('type')
-        _id = rel.get('id')
-
-        if _type == 'author':
-            log.debug('Getting author (%s) manga' % _id)
-            authors.append(get_author(_id))
-
-        elif _type == 'artist':
-            log.debug('Getting artist (%s) manga' % _id)
-            artists.append(get_author(_id))
-
-        elif _type == 'cover_art':
-            log.debug('Getting cover (%s) manga' % _id)
-            data['cover_art'] = get_cover_art(_id)
-
-    data['authors'] = authors
-    data['artists'] = artists
-
-    manga = Manga(data)
+    manga = _fetch_manga(manga_id)
     log.info("Found manga \"%s\"" % manga.title)
 
     # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
@@ -253,3 +257,127 @@ def download(
                 
     log.info("Download finished for manga \"%s\"" % manga.title)
     return manga
+
+def download_chapter(
+    url,
+    folder=None,
+    replace=False,
+    start_page=None,
+    end_page=None,
+    compressed_image=False,
+    save_as=default_save_as_format
+):
+    """Download a chapter
+    
+    Parameters
+    -----------
+    url: :class:`str`
+        A MangaDex URL or chapter id
+    folder: :class:`str` (default: ``None``)
+        Store chapter manga in given folder
+    replace: :class:`bool` (default: ``False``)
+        Replace chapter manga if exist
+    compressed_image: :class:`bool` (default: ``False``)
+        Use compressed images for low size when downloading chapter manga
+    save_as: :class:`str` (default: ``tachiyomi``)
+        Choose save as format
+    """
+    # Validate start_page and end_page param
+    if start_page is not None and not isinstance(start_page, int):
+        raise ValueError("start_page must be int, not %s" % type(start_page))
+    if end_page is not None and not isinstance(end_page, int):
+        raise ValueError("end_page must be int, not %s" % type(end_page))
+
+    if start_page is not None and end_page is not None:
+        if start_page > end_page:
+            raise ValueError("start_page cannot be more than end_page")
+
+    fmt_class = get_format(save_as)
+
+    log.debug('Validating the url...')
+    try:
+        chap_id = validate_url(url)
+    except InvalidURL as e:
+        log.error('%s is not valid mangadex url' % url)
+        raise e from None
+
+    log.info("Fetching chapter %s" % chap_id)
+    data = get_chapter(chap_id)
+    vol = data['data']['attributes']['volume']
+    if vol is None:
+        vol = "none"
+    chap = data['data']['attributes']['chapter']
+    if chap is None:
+        chap = "none"
+    rels = data['data']['relationships']
+    
+    # Find manga id
+    manga_id = None
+    for rel in rels:
+        _type = rel['type']
+        _id = rel['id']
+        if _type == "manga":
+            manga_id = _id
+
+    if manga_id is None:
+        raise MangaDexException("chapter %s has no manga relationship" % chap_id)
+
+    # For Chapter class
+    parse_data = {
+        "volumes": {
+            vol: {
+                "volume": vol,
+                "chapters": {
+                    chap: {
+                        "chapter": chap,
+                        "id": chap_id
+                    }
+                }
+            }
+        }
+    }
+
+    # Fetch manga
+    manga = _fetch_manga(manga_id)
+    manga._chapters = Chapter(parse_data, manga.title, "en")
+    log.info("Found chapter %s from manga \"%s\"" % (chap, manga.title))
+
+    # base path
+    base_path = Path('.')
+
+    # Extend the folder
+    if folder:
+        base_path /= folder
+    base_path /= sanitize_filename(manga.title)
+    
+    # Create folder
+    log.debug("Creating folder for downloading")
+    base_path.mkdir(parents=True, exist_ok=True)
+
+    kwargs_iter_chapter_images = {
+        "start_chapter": None,
+        "end_chapter": None,
+        "start_page": start_page,
+        "end_page": end_page,
+        "no_oneshot": False,
+        "data_saver": compressed_image
+    }
+
+    log.info("Using %s format" % save_as)
+
+    fmt = fmt_class(
+        base_path,
+        manga,
+        compressed_image,
+        replace,
+        kwargs_iter_chapter_images
+    )
+
+    # Execute main format
+    fmt.main()
+
+    log.info("Finished download chapter %s from manga \"%s\"" % (chap, manga.title))
+    return manga
+
+def download_list():
+    pass

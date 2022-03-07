@@ -9,7 +9,13 @@ from .errors import ChapterNotFound
 log = logging.getLogger(__name__)
 
 class ChapterImages:
-    def __init__(self, chapter_id, data_saver=False) -> None:
+    def __init__(
+        self,
+        chapter_id,
+        start_page=None,
+        end_page=None,
+        data_saver=False
+    ) -> None:
         self.id = chapter_id
         self.data_saver = data_saver
         self._images = []
@@ -17,6 +23,8 @@ class ChapterImages:
         self._data = None
         self._base_url = None
         self._hash = None
+        self.start_page = start_page
+        self.end_page = end_page
     
     def fetch(self):
         data = get_chapter_images(self.id)
@@ -36,6 +44,26 @@ class ChapterImages:
 
         page = 1
         for img in images:
+            if self.start_page is not None:
+                if not (page >= self.start_page):
+                    log.info("Ignoring page %s as \"start_page\" is %s" % (
+                        page,
+                        self.start_page
+                    ))
+
+                    page += 1
+                    continue
+                
+            if self.end_page is not None:
+                if not (page <= self.end_page):
+                    log.info("Ignoring page %s as \"end_page\" is %s" % (
+                        page,
+                        self.end_page
+                    ))
+
+                    page += 1
+                    continue
+
             url = '{0}/{1}/{2}/{3}'.format(
                 self._base_url,
                 quality_mode,
@@ -143,6 +171,8 @@ class Chapter:
         self,
         start_chapter=None,
         end_chapter=None,
+        start_page=None,
+        end_page=None,
         no_oneshot=False,
         data_saver=False,
         log_cache=False # For internal use only
@@ -222,6 +252,12 @@ class Chapter:
                         chapter_name += 'Volume. %s ' % volume
                     chapter_name += 'Chapter. ' + chapter.chapter
 
+                chap_imgs = ChapterImages(
+                    chapter.id,
+                    start_page,
+                    end_page,
+                    data_saver
+                )
 
-                yield volume, chapter.chapter, chapter_name, ChapterImages(chapter.id, data_saver)
+                yield volume, chapter.chapter, chapter_name, chap_imgs
 

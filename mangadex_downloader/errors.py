@@ -16,6 +16,10 @@ class ChapterNotFound(MangaDexException):
     """Raised when selected manga has no chapters"""
     pass
 
+class InvalidMangaDexList(MangaDexException):
+    """Raised when invalid MangaDex list is found"""
+    pass
+
 class InvalidManga(MangaDexException):
     """Raised when invalid manga is found"""
     pass
