@@ -28,7 +28,7 @@ def _validate(url):
 def validate_url(url):
     if os.path.exists(url):
         with open(url, 'r') as opener:
-            return [_validate(url) for i in opener.read().splitlines()]
+            return [_validate(i) for i in opener.read().splitlines()]
     else:
         return [_validate(url)]
 
