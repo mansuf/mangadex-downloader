@@ -91,7 +91,7 @@ Images related
 Save as format
 ~~~~~~~~~~~~~~~
 
-- ``--save-as {tachiyomi,tachiyomi-zip,pdf}`` Choose save as format, default to "tachiyomi"
+- ``--save-as {tachiyomi,tachiyomi-zip,pdf,pdf-single,cbz,cbz-single}`` Choose save as format, default to "tachiyomi"
 
 Authentication related
 ~~~~~~~~~~~~~~~~~~~~~~~
