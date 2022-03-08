@@ -27,6 +27,19 @@ What will you need:
 
 That's it.
 
+## Supported formats
+
+mangadex-downloader can download in different formats, here a list of supported formats.
+
+- tachiyomi (the default)
+- tachiyomi-zip
+- pdf
+- pdf-single
+- cbz
+- cbz-single
+
+For more info about supported formats, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/formats.html)
+
 ### How to (PyPI)
 
 Installing mangadex-downloader is easy, as long as you have requirements above.

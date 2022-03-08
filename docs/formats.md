@@ -6,7 +6,6 @@ mangadex-downloader can download in different formats, here a list of supported 
 
 This is default format of mangadex-downloader, If you don't know tachiyomi, it's android app for reading manga and it's open source !. You can learn more [here](https://tachiyomi.org/)
 
-<br>
 
 You can [read here](https://tachiyomi.org/help/guides/local-manga) for instruction how to create local manga in tachiyomi
 
@@ -53,9 +52,7 @@ Same as `tachiyomi` except, all images in each chapter will stored in ZIP file.
  ┣ 📜cover.jpg
  ┣ 📜details.json
  ┣ 📜Volume. 1 Chapter. 1.zip
- ┣ ┣ 🖼️images
  ┗ 📜Volume. 1 Chapter. 2.zip
-   ┣ 🖼️images
 ```
 
 ### Usage

@@ -22,6 +22,14 @@ Download manga from Mangadex through Python
 installation
 ```
 
+## Supported formats
+
+```{toctree}
+:maxdepth: 2
+
+formats
+```
+
 ## Command-Line Interface (CLI) reference
 
 ```{toctree}
