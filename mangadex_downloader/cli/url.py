@@ -26,6 +26,8 @@ def download_manga(url, args):
         args.use_compressed_image,
         args.start_chapter,
         args.end_chapter,
+        args.start_page,
+        args.end_page,
         args.no_oneshot_chapter,
         args.language,
         args.cover,

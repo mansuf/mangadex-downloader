@@ -149,6 +149,8 @@ def download(
     compressed_image=False,
     start_chapter=None,
     end_chapter=None,
+    start_page=None,
+    end_page=None,
     no_oneshot_chapter=False,
     language=Language.English,
     cover=default_cover_type,
@@ -170,6 +172,10 @@ def download(
         Start downloading manga from given chapter
     end_chapter: :class:`float` (default: ``None``)
         Stop downloading manga from given chapter
+    start_page: :class:`int` (default: ``None``)
+        Start download chapter page from given page number
+    end_page: :class:`int` (default: ``None``)
+        Stop download chapter page from given page number
     no_oneshot_manga: :class:`bool` (default: ``False``)
         If exist, don\'t download oneshot chapter
     language: :class:`Language` (default: :class:`Language.English`)
@@ -244,6 +250,8 @@ def download(
     kwargs_iter_chapter_images = {
         "start_chapter": start_chapter,
         "end_chapter": end_chapter,
+        "start_page": start_page,
+        "end_page": end_page,
         "no_oneshot": no_oneshot_chapter,
         "data_saver": compressed_image
     }
@@ -361,8 +369,6 @@ def download_chapter(
     base_path.mkdir(parents=True, exist_ok=True)
 
     kwargs_iter_chapter_images = {
-        "start_chapter": None,
-        "end_chapter": None,
         "start_page": start_page,
         "end_page": end_page,
         "no_oneshot": False,
