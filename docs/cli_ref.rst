@@ -1,4 +1,4 @@
-Command Line Interface (CLI) Usage
+Command-Line Interface (CLI) reference
 ===================================
 
 App names

@@ -22,12 +22,12 @@ Download manga from Mangadex through Python
 installation
 ```
 
-## Usage
+## Command-Line Interface (CLI) reference
 
 ```{toctree}
 :maxdepth: 2
 
-usage_cli
+cli_ref
 ```
 
 ```{toctree}
@@ -36,7 +36,7 @@ usage_cli
 usage_api
 ```
 
-## API Reference
+## API reference
 
 ```{toctree}
 :maxdepth: 2

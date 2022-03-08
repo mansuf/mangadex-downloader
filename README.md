@@ -11,10 +11,12 @@ A Command-Line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - Download manga directly from MangaDex 
 - Authentication support
 - Control how many chapters you want to download
-- Ability to use compressed images
+- Control how many chapter pages you want to download
+- [MangaDex list](https://mangadex.org/my/lists) support (authentication required if list is private)
+- Compressed images for manga support
 - HTTP / SOCKS proxy support
 - Multi languages support
-- Save as PDF or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local
+- Save as PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local
 
 ***And ability to not download oneshot chapter***
 
@@ -96,7 +98,7 @@ mangadex-dl.exe "insert MangaDex URL here"
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
 
-For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/stable/usage_cli.html)
+For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/cli_ref.html)
 
 ### Embedding (API)
 

@@ -291,6 +291,10 @@ def download_chapter(
         Store chapter manga in given folder
     replace: :class:`bool` (default: ``False``)
         Replace chapter manga if exist
+    start_page: :class:`int` (default: ``None``)
+        Start download chapter page from given page number
+    end_page: :class:`int` (default: ``None``)
+        Stop download chapter page from given page number
     compressed_image: :class:`bool` (default: ``False``)
         Use compressed images for low size when downloading chapter manga
     save_as: :class:`str` (default: ``tachiyomi``)
