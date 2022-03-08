@@ -156,7 +156,7 @@ def download(
     Parameters
     -----------
     url: :class:`str`
-        A MangaDex URL or manga id
+        A MangaDex URL or manga id. It also accepting :class:`Manga` object
     folder: :class:`str` (default: ``None``)
         Store manga in given folder
     replace: :class:`bool` (default: ``False``)
@@ -201,7 +201,10 @@ def download(
     # Validation save as format
     fmt_class = get_format(save_as)
 
-    manga = fetch(url, language)
+    if not isinstance(url, Manga):
+        manga = fetch(url, language)
+    else:
+        manga = url
 
     # base path
     base_path = Path('.')
