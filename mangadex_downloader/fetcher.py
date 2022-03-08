@@ -14,6 +14,11 @@ def get_author(author_id):
     r = Net.requests.get(url)
     return r.json()
 
+def get_user(user_id):
+    url = '{0}/user/{1}'.format(base_url, user_id)
+    r = Net.requests.get(url)
+    return r.json()
+
 def get_cover_art(cover_id):
     url = '{0}/cover/{1}'.format(base_url, cover_id)
     r = Net.requests.get(url)
@@ -27,7 +32,7 @@ def get_chapter(chapter_id):
     return r.json()
 
 def get_list(list_id):
-    url = '{0}/list/{0}'.format(base_url, list_id)
+    url = '{0}/list/{1}'.format(base_url, list_id)
     r = Net.requests.get(url)
     if r.status_code == 404:
         raise InvalidMangaDexList("List %s cannot be found" % list_id)

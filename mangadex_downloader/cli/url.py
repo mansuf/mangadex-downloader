@@ -43,8 +43,16 @@ def download_chapter(url, args):
         args.save_as
     )
 
-def download_list():
-    pass
+def download_list(url, args):
+    dl_list(
+        url,
+        args.folder,
+        args.replace,
+        args.use_compressed_image,
+        args.language,
+        args.cover,
+        args.save_as
+    )
 
 valid_types = [
     "manga",

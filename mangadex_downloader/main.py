@@ -60,33 +60,44 @@ def logout():
     """
     Net.requests.logout()
 
-def _fetch_manga(manga_id):
+def _fetch_manga(manga_id, lang, fetch_relationships=True, fetch_all_chapters=True):
     data = get_manga(manga_id)
 
-    # Append some additional informations
-    rels = data['data']['relationships']
-    authors = []
-    artists = []
-    for rel in rels:
-        _type = rel.get('type')
-        _id = rel.get('id')
+    if fetch_relationships:
+        # Append some additional informations
+        rels = data['data']['relationships']
+        authors = []
+        artists = []
+        for rel in rels:
+            _type = rel.get('type')
+            _id = rel.get('id')
 
-        if _type == 'author':
-            log.debug('Getting author (%s) manga' % _id)
-            authors.append(get_author(_id))
+            if _type == 'author':
+                log.debug('Getting author (%s) manga' % _id)
+                authors.append(get_author(_id))
 
-        elif _type == 'artist':
-            log.debug('Getting artist (%s) manga' % _id)
-            artists.append(get_author(_id))
+            elif _type == 'artist':
+                log.debug('Getting artist (%s) manga' % _id)
+                artists.append(get_author(_id))
 
-        elif _type == 'cover_art':
-            log.debug('Getting cover (%s) manga' % _id)
-            data['cover_art'] = get_cover_art(_id)
+            elif _type == 'cover_art':
+                log.debug('Getting cover (%s) manga' % _id)
+                data['cover_art'] = get_cover_art(_id)
 
-    data['authors'] = authors
-    data['artists'] = artists
+        data['authors'] = authors
+        data['artists'] = artists
 
     manga = Manga(data)
+
+    if fetch_all_chapters:
+        # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
+        # and downloading the cover manga.
+        # This will check if selected language in manga has chapters inside of it.
+        # If the chapters are not available, it will throw error.
+        log.info("Fetching all chapters...")
+        chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
+        manga._chapters = chapters
+
     return manga
 
 def fetch(url, language=Language.English):
@@ -126,16 +137,8 @@ def fetch(url, language=Language.English):
     
     # Begin fetching
     log.info('Fetching manga %s' % manga_id)
-    manga = _fetch_manga(manga_id)
+    manga = _fetch_manga(manga_id, lang)
     log.info("Found manga \"%s\"" % manga.title)
-
-    # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
-    # and downloading the cover manga.
-    # This will check if selected language in manga has chapters inside of it.
-    # If the chapters are not available, it will throw error.
-    log.info("Fetching all chapters...")
-    chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
-    manga._chapters = chapters
 
     return manga
 
@@ -341,7 +344,7 @@ def download_chapter(
     }
 
     # Fetch manga
-    manga = _fetch_manga(manga_id)
+    manga = _fetch_manga(manga_id, "en", fetch_all_chapters=False)
     manga._chapters = Chapter(parse_data, manga.title, "en")
     log.info("Found chapter %s from manga \"%s\"" % (chap, manga.title))
 
@@ -382,5 +385,42 @@ def download_chapter(
     log.info("Finished download chapter %s from manga \"%s\"" % (chap, manga.title))
     return manga
 
-def download_list():
-    pass
+def download_list(
+    url,
+    folder=None,
+    replace=False,
+    compressed_image=False,
+    language=Language.English,
+    cover=default_cover_type,
+    save_as=default_save_as_format
+):
+    log.debug('Validating the url...')
+    try:
+        list_id = validate_url(url)
+    except InvalidURL as e:
+        log.error('%s is not valid mangadex url' % url)
+        raise e from None
+
+    data = get_list(list_id)
+    name = data['data']['attributes']['name']
+    rels = data['data']['relationships']
+
+    # Get list of mangas
+    mangas_id = []
+    for rel in rels:
+        _id = rel['id']
+        _type = rel['type']
+        if _type == "manga":
+            manga = _fetch_manga(_id, "en", fetch_all_chapters=False, fetch_relationships=False)
+            log.info("Found \"%s\" manga from \"%s\" list" % (manga.title, name))
+            mangas_id.append(_id)
+
+    for manga_id in mangas_id:
+        download(
+            manga_id,
+            folder,
+            replace,
+            compressed_image,
+            cover=cover,
+            save_as=save_as
+        )
