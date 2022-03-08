@@ -1,5 +1,5 @@
 Command-Line Interface (CLI) reference
-===================================
+=======================================
 
 App names
 ----------
@@ -28,6 +28,7 @@ Global options
 ~~~~~~~~~~~~~~~
 
 - ``URL``           MangaDex URL or a file containing MangaDex URLs
+- ``--type {manga,list,chapter}`` Override type MangaDex url. By default, it auto detect given url
 - ``--replace``     Replace manga if exist
 - ``--verbose``     Enable verbose output
 
@@ -48,6 +49,20 @@ Global options
     .. code-block:: shell
 
         $ mangadex-dl "urls.txt"
+        # ...
+
+    also you can download MangaDex list, see example below:
+
+    .. code-block:: shell
+
+        $ mangadex-dl "https://mangadex.org/list/..."
+        # ...
+
+    and you can download individual chapter, see example below:
+
+    .. code-block:: shell
+
+        $ mangadex-dl "https://mangadex.org/chapter/..."
         # ...
 
 .. warning::
@@ -82,6 +97,11 @@ Chapters related
 - ``--start-chapter CHAPTER``       Start download manga from given chapter
 - ``--end-chapter CHAPTER``         Stop download manga from given chapter
 - ``--no-oneshot-chapter``  If exist, don't download oneshot chapter
+
+Chapter page related
+~~~~~~~~~~~~~~~~~~~~~
+- ``--start-page NUM_PAGE`` Start download chapter page from given page number
+- ``--end-page NUM_PAGE``   Stop download chapter page from given page number
 
 Images related
 ~~~~~~~~~~~~~~~

@@ -10,10 +10,9 @@ A Command-Line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 - Download manga directly from MangaDex 
 - Authentication support
-- Control how many chapters you want to download
-- Control how many chapter pages you want to download
+- Control how many chapters and pages you want to download
 - [MangaDex list](https://mangadex.org/my/lists) support (authentication required if list is private)
-- Compressed images for manga support
+- Compressed images support
 - HTTP / SOCKS proxy support
 - Multi languages support
 - Save as PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local

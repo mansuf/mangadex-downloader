@@ -8,6 +8,10 @@ Global
 
 .. autofunction:: download
 
+.. autofunction:: download_chapter
+
+.. autofunction:: download_list
+
 .. autofunction:: fetch
 
 .. autofunction:: login
