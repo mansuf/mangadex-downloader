@@ -3,14 +3,15 @@ import os
 import logging
 import sys
 
-from .url import smart_select_url, valid_types
+from .url import build_URL_from_type, smart_select_url, valid_types
 from .utils import setup_logging
 from ..update import update_app
 from ..utils import (
     get_language,
     Language,
     valid_cover_types,
-    default_cover_type
+    default_cover_type,
+    validate_url as __validate
 )
 from ..format import formats, default_save_as_format
 from ..errors import InvalidURL
@@ -20,7 +21,7 @@ log = logging.getLogger(__name__)
 
 def _validate(url):
     try:
-        _url = smart_select_url(url)
+        _url = __validate(url)
     except InvalidURL as e:
         raise argparse.ArgumentTypeError(str(e))
     return _url
@@ -28,9 +29,9 @@ def _validate(url):
 def validate_url(url):
     if os.path.exists(url):
         with open(url, 'r') as opener:
-            return [_validate(i) for i in opener.read().splitlines()]
+            return [(_validate(i), i) for i in opener.read().splitlines()]
     else:
-        return [_validate(url)]
+        return [(_validate(url), url)]
 
 def validate_language(lang):
     try:
@@ -156,4 +157,19 @@ def get_args(argv):
         nargs=0
     )
 
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+
+    if args.type:
+        urls = []
+        for parsed_url, orig_url in args.URL:
+            url = build_URL_from_type(args.type, parsed_url)
+            urls.append(url)
+        args.URL = urls
+    else:
+        urls = []
+        for parsed_url, orig_url in args.URL:
+            url = smart_select_url(orig_url)
+            urls.append(url)
+        args.URL = urls
+
+    return args

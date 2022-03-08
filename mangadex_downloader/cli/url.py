@@ -67,15 +67,23 @@ funcs = {i: globals()['download_%s' % i] for i in valid_types}
 regexs = {i: _build_re(i) for i in valid_types}
 
 class URL:
-    def __init__(self, func, url, _id):
+    def __init__(self, func, _id):
         self.func = func
-        self.url = url
         self.id = _id
     
     def __call__(self, args, _type=None):
         if _type is not None:
             self.func = funcs[_type]
         self.func(self.id, args)
+
+    def __repr__(self) -> str:
+        return '<URL func = "%s" id = "%s">' % (
+            self.func.__name__,
+            self.id
+        )
+
+def build_URL_from_type(_type, _id):
+    return URL(funcs[_type], _id)
 
 def smart_select_url(url):
     """Wisely determine type url. The process is checking given url one by one"""
@@ -131,4 +139,4 @@ def smart_select_url(url):
         if func is None:
             raise InvalidURL("Invalid MangaDex url")
     
-    return URL(func, url, _id)
+    return URL(func, _id)
