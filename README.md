@@ -110,6 +110,8 @@ mangadex-dl.exe "insert MangaDex URL here"
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
 
+For more example usage, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/cli_usage.html)
+
 For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/cli_ref.html)
 
 ### Embedding (API)

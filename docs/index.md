@@ -31,6 +31,14 @@ installation
 formats
 ```
 
+## Command-Line Interface (CLI) example usage
+
+```{toctree}
+:maxdepth: 2
+
+cli_usage
+```
+
 ## Command-Line Interface (CLI) reference
 
 ```{toctree}

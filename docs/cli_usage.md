@@ -116,7 +116,7 @@ mangadex-dl "https://mangadex.org/list/..." --start-page 5 --end-page 20
 ```
 ````
 
-# Manga cover related
+## Manga cover related
 
 ```shell
 # Download manga with original quality cover (the default)
@@ -132,7 +132,7 @@ mangadex-dl "https://mangadex.org/title/..." --cover "256px"
 mangadex-dl "https://mangadex.org/title/..." --cover "none"
 ```
 
-# Download manga with compressed size images
+## Download manga with compressed size images
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --use-compressed-image
