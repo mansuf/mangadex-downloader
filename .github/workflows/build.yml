@@ -143,9 +143,6 @@ jobs:
           Rename-Item -Path "dist_x64\mangadex-dl_x64" -NewName "mangadex-dl"
           Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
-          # legacy x86 executable
-          Compress-Archive -Path "dist_x86\mangadex-dl" -DestinationPath "mangadex-dl_${{ github.ref_name }}.zip"
-
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader'
         uses: softprops/action-gh-release@v1
@@ -153,7 +150,6 @@ jobs:
           tag_name: ${{ env.GIRHUB_REF_NAME }}
           name: mangadex-downloader ${{ github.ref_name }}
           files: |
-            mangadex-dl_${{ github.ref_name }}.zip
             mangadex-dl_x64_${{ github.ref_name }}.zip
             mangadex-dl_x86_${{ github.ref_name }}.zip
           draft: true
