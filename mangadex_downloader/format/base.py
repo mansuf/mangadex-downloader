@@ -56,11 +56,6 @@ class _Worker:
                 try:
                     job()
                 except Exception as err:
-                    log.error("Exception raised in worker thread, %s: %s" % (
-                        err.__class__.__name__,
-                        str(err)
-                    ))
-                    traceback.print_exception(type(err), err, err.__traceback__, file=sys.stderr)
                     fut.set_exception(err)
                 fut.set_result(None)
 
