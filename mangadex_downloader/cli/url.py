@@ -2,7 +2,7 @@ import logging
 import re
 
 from ..fetcher import get_chapter, get_list, get_manga
-from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL
+from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
 from ..utils import validate_url
 from ..main import (
     download as dl_manga,
@@ -45,7 +45,19 @@ def download_chapter(url, args):
         args.save_as
     )
 
+def _error_list(option):
+    raise MangaDexException("%s is not allowed when download a list" % option)
+
 def download_list(url, args):
+    if args.start_chapter:
+        _error_list('--start-chapter')
+    elif args.end_chapter:
+        _error_list('--end-chapter')
+    elif args.start_page:
+        _error_list('--start-page')
+    elif args.end_page:
+        _error_list('--end-page')
+
     dl_list(
         url,
         args.folder,
