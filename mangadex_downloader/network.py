@@ -103,11 +103,8 @@ class requestsMangaDexSession(requests.Session):
 
     def _worker_queue_report_handler(self):
         """If mainthread is shutted down all queue worker must shut down too"""
-        is_alive = lambda: threading.main_thread().is_alive()
-        alive = is_alive()
-        while alive:
-            time.sleep(0.3)
-            alive = is_alive()
+        main_thread = threading.main_thread()
+        main_thread.join()
         self.report(None)
 
     def _worker_queue_report(self):
