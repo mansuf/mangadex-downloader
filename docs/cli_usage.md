@@ -88,6 +88,12 @@ mangadex-dl "https://mangadex.org/list/..." --start-chapter 20 --end-chapter 69
 ```
 ````
 
+## Download manga with no oneshot chapter (PLEASE, I HATE ONESHOT)
+
+```shell
+mangadex-dl "https://mangadex.org/title/..." --no-oneshot-chapter
+```
+
 ## Download chapter with page from 5 to 20
 
 ```shell
