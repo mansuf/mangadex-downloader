@@ -19,13 +19,6 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 ***And ability to not download oneshot chapter***
 
-## Installation
-
-What will you need:
-- Python 3.8.x or up with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
-
-That's it.
-
 ## Supported formats
 
 mangadex-downloader can download in different formats, here a list of supported formats.
@@ -38,6 +31,13 @@ mangadex-downloader can download in different formats, here a list of supported 
 - cbz-single
 
 For more info about supported formats, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/formats.html)
+
+## Installation
+
+What will you need:
+- Python 3.8.x or up with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
+
+That's it.
 
 ### How to (PyPI)
 
