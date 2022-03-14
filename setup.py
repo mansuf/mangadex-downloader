@@ -54,7 +54,7 @@ setup(
   author = 'Rahman Yusuf',              
   author_email = 'danipart4@gmail.com',
   url = 'https://github.com/mansuf/mangadex-downloader',  
-  download_url = 'https://github.com/mansuf/mangadex-downloader/archive/%s.tar.gz' % (version),
+  download_url = 'https://github.com/mansuf/mangadex-downloader/releases',
   keywords = ['mangadex'], 
   install_requires=requirements,
   extras_require=extras_require,
