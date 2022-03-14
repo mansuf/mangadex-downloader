@@ -8,14 +8,13 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 ## Key Features
 
-- Download manga directly from MangaDex 
+- Download manga, chapter, or list directly from MangaDex
 - Authentication support
 - Control how many chapters and pages you want to download
-- [MangaDex list](https://mangadex.org/my/lists) support (authentication required if list is private)
 - Compressed images support
 - HTTP / SOCKS proxy support
 - Multi languages support
-- Save as PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local
+- Save as PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
 
 ***And ability to not download oneshot chapter***
 
@@ -35,6 +34,7 @@ For more info about supported formats, you can [read here](https://mangadex-down
 ## Installation
 
 What will you need:
+
 - Python 3.8.x or up with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
 
 That's it.
@@ -52,6 +52,7 @@ python3 -m pip install mangadex-downloader
 ```
 
 You can also install optional dependencies
+
 - [Pillow](https://pypi.org/project/pillow/), for PDF support
 
 There you go, easy ain't it ?.
@@ -63,6 +64,7 @@ There you go, easy ain't it ?.
 Because this is standalone executable, Python are not required to install.
 
 Steps:
+
 - Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
 - Extract it.
 - And, run it !.
