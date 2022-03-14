@@ -432,5 +432,6 @@ def download_list(
             replace,
             compressed_image,
             cover=cover,
-            save_as=save_as
+            save_as=save_as,
+            language=language
         )
