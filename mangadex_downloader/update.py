@@ -120,7 +120,7 @@ def update_app():
                 current_version,
                 latest_version
             ))
-            install_script.write("copy /Y \"%s\" \"%s\" >nul 2>&1 \n" % (extracted_update_path, current_path))
+            install_script.write("xcopy /S /E /Y \"%s\" \"%s\" >nul 2>&1 \n" % (extracted_update_path, current_path))
             install_script.write("start cmd /c \"rmdir /Q /S \"%s\"\"\n" % temp_folder)
             install_script.write("echo Successfully updated mangadex-downloader to v%s\n" % latest_version)
             install_script.write("echo You may close this window\n")
