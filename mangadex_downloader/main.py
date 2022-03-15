@@ -2,13 +2,12 @@ import logging
 from pathvalidate import sanitize_filename
 from pathlib import Path
 from .utils import (
-    Language,
-    get_language,
     validate_url, 
     write_details,
     valid_cover_types,
     default_cover_type
 )
+from .language import Language, get_language
 from .utils import download as download_file
 from .errors import InvalidURL, MangaDexException
 from .fetcher import *

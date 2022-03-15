@@ -7,12 +7,11 @@ from .url import build_URL_from_type, smart_select_url, valid_types
 from .utils import setup_logging
 from ..update import update_app
 from ..utils import (
-    get_language,
-    Language,
     valid_cover_types,
     default_cover_type,
     validate_url as __validate
 )
+from ..language import get_language, Language
 from ..format import formats, default_save_as_format
 from ..errors import InvalidURL
 from .. import __description__

@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Dict, List
 
-from .utils import Language
+from .language import Language
 from .fetcher import get_chapter_images, get_chapter
 from .errors import ChapterNotFound
 
