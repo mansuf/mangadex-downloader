@@ -49,9 +49,28 @@ class Language(Enum):
     Norwegian = 'no' #:
     Nepali = 'ne' #:
 
+class RomanizedLanguage(Enum):
+    RomanizedJapanese = 'ja-ro'
+    RomanizedKorean = 'ko-ro'
+    RomanizedChinese = 'zh-ro'
+
 def get_language(lang):
     try:
         return Language[lang]
     except KeyError:
         pass
     return Language(lang)
+
+def get_details_language(lang):
+    # Retrieve base languages first
+    try:
+        return get_language(lang)
+    except ValueError:
+        pass
+
+    # Retrieve romanized language
+    try:
+        return RomanizedLanguage[lang]
+    except KeyError:
+        pass
+    return RomanizedLanguage(lang)

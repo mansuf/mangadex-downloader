@@ -59,7 +59,13 @@ def logout():
     """
     Net.requests.logout()
 
-def _fetch_manga(manga_id, lang, fetch_relationships=True, fetch_all_chapters=True):
+def _fetch_manga(
+    manga_id,
+    lang,
+    fetch_relationships=True,
+    fetch_all_chapters=True,
+    use_alt_details=False
+):
     data = get_manga(manga_id)
 
     if fetch_relationships:
@@ -86,7 +92,7 @@ def _fetch_manga(manga_id, lang, fetch_relationships=True, fetch_all_chapters=Tr
         data['authors'] = authors
         data['artists'] = artists
 
-    manga = Manga(data)
+    manga = Manga(data, use_alt_details)
 
     if fetch_all_chapters:
         # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
@@ -99,7 +105,7 @@ def _fetch_manga(manga_id, lang, fetch_relationships=True, fetch_all_chapters=Tr
 
     return manga
 
-def fetch(url, language=Language.English):
+def fetch(url, language=Language.English, use_alt_details=False):
     """Fetch the manga
 
     Parameters
@@ -136,7 +142,7 @@ def fetch(url, language=Language.English):
     
     # Begin fetching
     log.info('Fetching manga %s' % manga_id)
-    manga = _fetch_manga(manga_id, lang)
+    manga = _fetch_manga(manga_id, lang, use_alt_details=use_alt_details)
     log.info("Found manga \"%s\"" % manga.title)
 
     return manga
@@ -153,7 +159,8 @@ def download(
     no_oneshot_chapter=False,
     language=Language.English,
     cover=default_cover_type,
-    save_as=default_save_as_format
+    save_as=default_save_as_format,
+    use_alt_details=False
 ):
     """Download a manga
     
@@ -183,6 +190,8 @@ def download(
         Choose quality cover manga
     save_as: :class:`str` (default: ``tachiyomi``)
         Choose save as format
+    use_alt_details: :class:`bool` (default: ``False``)
+        Use alternative title and description manga
 
     Raises
     -------
@@ -210,7 +219,7 @@ def download(
     fmt_class = get_format(save_as)
 
     if not isinstance(url, Manga):
-        manga = fetch(url, language)
+        manga = fetch(url, language, use_alt_details)
     else:
         manga = url
 

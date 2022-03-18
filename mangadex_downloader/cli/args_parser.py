@@ -62,6 +62,14 @@ def get_args(argv):
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
 
+    # Manga related
+    manga_group = parser.add_argument_group('Manga')
+    manga_group.add_argument(
+        '--use-alt-details',
+        action='store_true',
+        help='Use alternative title and description manga'
+    )
+
     # Language related
     lang_group = parser.add_argument_group('Language')
     lang_group.add_argument(

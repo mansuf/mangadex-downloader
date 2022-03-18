@@ -31,7 +31,8 @@ def download_manga(url, args):
         args.no_oneshot_chapter,
         args.language,
         args.cover,
-        args.save_as
+        args.save_as,
+        args.use_alt_details
     )
 
 def download_chapter(url, args):

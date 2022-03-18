@@ -1,6 +1,11 @@
-from .network import uploads_url
+import logging
 
-# This is shortcut to extract data from weird dict structure
+from .network import uploads_url
+from .language import get_details_language
+
+log = logging.getLogger(__name__)
+
+# This is shortcut to extract data from local dict structure
 # in MangaDex JSON data
 # For example: 
 # {
@@ -15,23 +20,117 @@ def _get_attr(data):
         return val
 
 class Manga:
-    def __init__(self, data):
+    def __init__(self, data, use_alt_details=False):
         self._data = data.get('data')
         self._artists = data.get('artists')
         self._authors = data.get('authors')
         self._cover = data.get('cover_art')
         self._attr = self._data.get('attributes')
+        self._use_alt_details = use_alt_details
         self._chapters = None
+        self._altTitles = self._attr.get('altTitles')
+        self._orig_title = _get_attr(self._attr.get('title'))
+        self._title = self._parse_title()
+        self._description = self._parse_description()
 
     @property
     def id(self):
         """:class:`str`: ID manga"""
         return self._data.get('id')
     
+    def _parse_title(self):
+        title = self._attr.get('title')
+        alt_titles = self._altTitles
+
+        if not self._use_alt_details:
+            return _get_attr(title)
+
+        # The manga doesn't have alternative titles
+        if not alt_titles and self._use_alt_details:
+            log.info("Manga \"%s\" has no alternative titles" % _get_attr(title))
+            return  _get_attr(title)
+
+        # Append choices for user input
+        choices = {}
+        for count, data in enumerate(alt_titles, start=1):
+            for alt_title in data.values():
+                choices[str(count)] = alt_title
+        
+        # Append the original title
+        count += 1
+        choices[str(count)] = _get_attr(title)
+
+        print("Manga \"%s\" has alternative titles, please choose one" % _get_attr(title))
+
+        def print_choices():
+            for count, data in enumerate(alt_titles, start=1):
+                for lang, alt_title in data.items():
+                    language = get_details_language(lang)
+                    print('(%s). [%s]: %s' % (count, language.name, alt_title))
+            
+            # Append the original title
+            count += 1
+            for lang, orig_title in title.items():
+                language = get_details_language(lang)
+                print('(%s). [%s]: %s' % (count, language.name, orig_title))
+
+        print_choices()
+
+        # User input
+        while True:
+            choice = input("=> ")
+            try:
+                title = choices[choice]
+            except KeyError:
+                print('Invalid choice, try again')
+                print_choices()
+                continue
+            else:
+                return title
+
+    def _parse_description(self):
+        description = self._attr.get('description')
+
+        # The manga has no description
+        if not description:
+            return ""
+        
+        # The manga has only 1 description
+        if len(description) <= 1:
+            return _get_attr(description)
+        
+        # Append choices for user input
+        choices = {}
+        for count, desc in enumerate(description.values(), start=1):
+            choices[str(count)] = desc
+        
+        print("Manga \"%s\" has different descriptions, please choose one" % self._orig_title)
+
+        def print_choices():
+            count = 1
+            for lang, desc in description.items():
+                language = get_details_language(lang)
+                print('(%s). [%s]: %s' % (count, language.name, (desc[:90] + '...')))
+                count += 1
+
+        print_choices()
+
+        # User input
+        while True:
+            choice = input("=> ")
+            try:
+                desc = choices[choice]
+            except KeyError:
+                print('Invalid choice, try again')
+                print_choices()
+                continue
+            else:
+                return desc
+
     @property
     def title(self):
         """:class:`str`: Return title of the manga"""
-        return _get_attr(self._attr.get('title'))
+        return self._title
 
     @property
     def alternative_titles(self):
@@ -42,12 +141,11 @@ class Manga:
     @property
     def description(self):
         """:class:`str`: Description manga"""
-        return _get_attr(self._attr.get('description'))
+        return self._description
 
     @property
     def authors(self):
         """List[:class:`str`]: Author of the manga"""
-        # return self._author['data']['attributes']['name']
         authors = []
         for data in self._authors:
             author = data['data']['attributes']['name']
