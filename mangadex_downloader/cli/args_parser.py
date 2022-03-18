@@ -73,6 +73,7 @@ def get_args(argv):
     # Language related
     lang_group = parser.add_argument_group('Language')
     lang_group.add_argument(
+        '-lang',
         '--language',
         metavar='LANGUAGE',
         help='Download manga in given language, to see all languages, use --list-languages option',
