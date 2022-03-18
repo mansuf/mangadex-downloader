@@ -107,7 +107,7 @@ class Manga:
         for count, desc in enumerate(description.values(), start=1):
             choices[str(count)] = desc
         
-        print("Manga \"%s\" has different descriptions, please choose one" % self._orig_title)
+        print("Manga \"%s\" has alternative descriptions, please choose one" % self._orig_title)
 
         def print_choices():
             count = 1
