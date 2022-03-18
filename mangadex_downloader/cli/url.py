@@ -32,7 +32,8 @@ def download_manga(url, args):
         args.language,
         args.cover,
         args.save_as,
-        args.use_alt_details
+        args.use_alt_details,
+        args.no_group
     )
 
 def download_chapter(url, args):
@@ -43,7 +44,8 @@ def download_chapter(url, args):
         args.start_page,
         args.end_page,
         args.use_compressed_image,
-        args.save_as
+        args.save_as,
+        args.no_group
     )
 
 def _error_list(option):
@@ -66,7 +68,8 @@ def download_list(url, args):
         args.use_compressed_image,
         args.language,
         args.cover,
-        args.save_as
+        args.save_as,
+        args.no_group
     )
 
 valid_types = [

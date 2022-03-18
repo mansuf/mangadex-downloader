@@ -160,7 +160,8 @@ def download(
     language=Language.English,
     cover=default_cover_type,
     save_as=default_save_as_format,
-    use_alt_details=False
+    use_alt_details=False,
+    no_group=False
 ):
     """Download a manga
     
@@ -192,6 +193,8 @@ def download(
         Choose save as format
     use_alt_details: :class:`bool` (default: ``False``)
         Use alternative title and description manga
+    no_group: :class:`bool` (default: ``False``)
+        If ``True``, Do not use scanlation group name for each chapter.
 
     Raises
     -------
@@ -261,7 +264,8 @@ def download(
         "start_page": start_page,
         "end_page": end_page,
         "no_oneshot": no_oneshot_chapter,
-        "data_saver": compressed_image
+        "data_saver": compressed_image,
+        "no_group": no_group
     }
 
     log.info("Using %s format" % save_as)
@@ -287,7 +291,8 @@ def download_chapter(
     start_page=None,
     end_page=None,
     compressed_image=False,
-    save_as=default_save_as_format
+    save_as=default_save_as_format,
+    no_group=False
 ):
     """Download a chapter
     
@@ -307,6 +312,8 @@ def download_chapter(
         Use compressed images for low size when downloading chapter manga
     save_as: :class:`str` (default: ``tachiyomi``)
         Choose save as format
+    no_group: :class:`bool` (default: ``False``)
+        If ``True``, Do not use scanlation group name for each chapter.
     """
     # Validate start_page and end_page param
     if start_page is not None and not isinstance(start_page, int):
@@ -384,7 +391,8 @@ def download_chapter(
         "start_page": start_page,
         "end_page": end_page,
         "no_oneshot": False,
-        "data_saver": compressed_image
+        "data_saver": compressed_image,
+        "no_group": no_group
     }
 
     log.info("Using %s format" % save_as)
@@ -410,7 +418,8 @@ def download_list(
     compressed_image=False,
     language=Language.English,
     cover=default_cover_type,
-    save_as=default_save_as_format
+    save_as=default_save_as_format,
+    no_group=False
 ):
     log.debug('Validating the url...')
     try:

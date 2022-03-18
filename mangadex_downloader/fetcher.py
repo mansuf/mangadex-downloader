@@ -38,6 +38,11 @@ def get_list(list_id):
         raise InvalidMangaDexList("List %s cannot be found" % list_id)
     return r.json()
 
+def get_group(group_id):
+    url = '{0}/group/{1}'.format(base_url, group_id)
+    r = Net.requests.get(url)
+    return r.json()
+
 def get_all_chapters(manga_id, lang):
     url = '{0}/manga/{1}/aggregate'.format(base_url, manga_id)
     r = Net.requests.get(url, params={'translatedLanguage[]': [lang]})

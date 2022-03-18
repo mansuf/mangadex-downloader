@@ -3,7 +3,7 @@ import re
 from typing import Dict, List
 
 from .language import Language
-from .fetcher import get_chapter_images, get_chapter
+from .fetcher import get_chapter_images, get_chapter, get_group
 from .errors import ChapterNotFound
 
 log = logging.getLogger(__name__)
@@ -175,6 +175,7 @@ class Chapter:
         end_page=None,
         no_oneshot=False,
         data_saver=False,
+        no_group=False,
         log_cache=False # For internal use only
     ):
         for volume, chapters in self._volumes.items():
@@ -251,6 +252,23 @@ class Chapter:
                     if volume != 'none':
                         chapter_name += 'Volume. %s ' % volume
                     chapter_name += 'Chapter. ' + chapter.chapter
+
+                # Get scanlator group of the chapter
+                if not no_group:
+                    group_id = None
+                    rels = chapter_data['data']['relationships']
+                    for rel in rels:
+                        _id = rel['id']
+                        _type = rel['type']
+                        if _type == 'scanlation_group':
+                            group_id = _id
+                    
+                    if group_id is None:
+                        raise RuntimeError("Cannot find scanlator group from chapter %s" % chapter.id)
+
+                    group_data = get_group(group_id)
+                    group_name = group_data['data']['attributes']['name']
+                    chapter_name = '[%s] %s' % (group_name, chapter_name)
 
                 chap_imgs = ChapterImages(
                     chapter.id,
