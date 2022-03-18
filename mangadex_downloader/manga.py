@@ -91,6 +91,9 @@ class Manga:
     def _parse_description(self):
         description = self._attr.get('description')
 
+        if not self._use_alt_details:
+            return _get_attr(description)
+
         # The manga has no description
         if not description:
             return ""
