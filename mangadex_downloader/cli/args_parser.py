@@ -35,9 +35,18 @@ def _validate(url):
 def validate_url(url):
     if os.path.exists(url):
         with open(url, 'r') as opener:
-            return [(_validate(i), i) for i in opener.read().splitlines()]
+            content = opener.read()
     else:
-        return [(_validate(url), url)]
+        content = url
+
+    urls = []
+    for _url in content.splitlines():
+        if not _url:
+            continue
+
+        urls.append((_validate(_url), _url))
+    
+    return urls
 
 def validate_language(lang):
     try:
