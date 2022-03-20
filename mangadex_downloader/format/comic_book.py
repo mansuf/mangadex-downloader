@@ -32,7 +32,10 @@ class ComicBookArchive(BaseFormat):
         worker = self.create_worker()
 
         # Begin downloading
-        for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            chap = chap_class.chapter
+            chap_name = chap_class.get_name()
+
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
                 'compressed images' if compressed_image else 'images',
@@ -126,25 +129,24 @@ class ComicBookArchiveSingle(BaseFormat):
         # Enable log cache
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**kwargs_iter):
-            item = [vol, chap, chap_name, images]
+        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            item = [vol, chap_class, images]
             cache.append(item)
 
         # Construct .cbz filename from first and last chapter
-        first_chapter = cache[0][2]
-        last_chapter = cache[len(cache) - 1][2]
-        manga_zip_path = base_path / sanitize_filename(first_chapter + " - " + last_chapter + '.cbz')
+        first_chapter = cache[0][1]
+        last_chapter = cache[len(cache) - 1][1]
+        manga_zip_path = base_path / sanitize_filename(first_chapter.name + " - " + last_chapter.name + '.cbz')
         manga_zip = zipfile.ZipFile(
             str(manga_zip_path),
             "a" if path_exists(manga_zip_path) else "w"
         )
 
-        # Begin downloading
-        for index, item in enumerate(cache):
-            vol = item[0]
-            chap = item[1]
-            chap_name = item[2]
-            images = item[3]
+        start = True
+        for index, (vol, chap_class, images) in enumerate(cache):
+            # Group name will be placed inside the start and end of chapter images
+            chap = chap_class.chapter
+            chap_name = chap_class.name
 
             log.info('Getting %s from chapter %s' % (
                 'compressed images' if compressed_image else 'images',
@@ -159,9 +161,13 @@ class ComicBookArchiveSingle(BaseFormat):
                 for page, img_url, img_name in images.iter():
                     img_path = chapter_path / img_name
 
-                    file = '%s_%s' % (count, img_name)
+                    if not start:
+                        file = '%s_%s' % (count, img_name)
+                    else:
+                        file = '%s_start.png' % (count)
 
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    if not start:
+                        log.info('Downloading %s page %s' % (chap_name, page))
 
                     try:
                         manga_zip.getinfo(file)
@@ -171,16 +177,20 @@ class ComicBookArchiveSingle(BaseFormat):
                         img_exist = True
                     
                     if img_exist and not self.replace:
-                        log.info("File exist and replace is False, cancelling download...")
+                        if not start:
+                            log.info("File exist and replace is False, cancelling download...")
                         count += 1
                         continue
 
-                    downloader = ChapterPageDownloader(
-                        img_url,
-                        img_path,
-                        replace=replace
-                    )
-                    success = downloader.download()
+                    if not start:
+                        downloader = ChapterPageDownloader(
+                            img_url,
+                            img_path,
+                            replace=replace
+                        )
+                        success = downloader.download()
+                    else:
+                        success = True
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -195,13 +205,26 @@ class ComicBookArchiveSingle(BaseFormat):
                         break
                     else:
                         # Write it to zipfile
-                        wrap = lambda: manga_zip.writestr(file, img_path.read_bytes())
+                        if not start:
+                            wrap = lambda: manga_zip.writestr(file, img_path.read_bytes())
+                        else:
+                            # Insert start of chapter image
+                            def wrap():
+                                start_chap_file = '%s_start.png' % count
+                                start_chap_img = get_mark_image(chap_class, cache, index, start)
+                                fp = io.BytesIO()
+                                start_chap_img.save(fp, 'png')
+                                manga_zip.writestr(start_chap_file, fp.getvalue())
                         
                         # KeyboardInterrupt safe
                         worker.submit(wrap)
                         
-                        # And then remove it original file
-                        os.remove(img_path)
+                        if not start:
+                            # And then remove it original file
+                            os.remove(img_path)
+
+                        if start:
+                            start = False
 
                         count += 1
                         continue
@@ -209,13 +232,13 @@ class ComicBookArchiveSingle(BaseFormat):
                 if not error:
                     break            
 
-            # get mark image
+            # get end of chapter image
             mark_img_file = '%s_mark_image.png' % count
-            mark_img = get_mark_image(chap_name, cache, index)
+            mark_img = get_mark_image(chap_class, cache, index)
             fp = io.BytesIO()
             mark_img.save(fp, 'png')
 
-            # Insert mark image
+            # Insert end of chapter image
             wrap = lambda: manga_zip.writestr(mark_img_file, fp.getvalue())
             worker.submit(wrap)
 

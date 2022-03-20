@@ -23,7 +23,10 @@ class Tachiyomi(BaseFormat):
         write_details(manga, details_path)
 
         # Begin downloading
-        for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            chap = chap_class.chapter
+            chap_name = chap_class.get_name()
+
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
                 'compressed images' if compressed_image else 'images',
@@ -77,7 +80,10 @@ class TachiyomiZip(BaseFormat):
         write_details(manga, details_path)
 
         # Begin downloading
-        for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            chap = chap_class.chapter
+            chap_name = chap_class.get_name()
+
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
                 'compressed images' if compressed_image else 'images',

@@ -36,7 +36,7 @@ class _Worker:
         self._queue.put(data)
         err = fut.exception()
         if err:
-            raise WorkerThreadError(str(err))
+            raise err
 
     def _shutdown_main(self):
         # Shutdown only to _main function
@@ -57,7 +57,8 @@ class _Worker:
                     job()
                 except Exception as err:
                     fut.set_exception(err)
-                fut.set_result(None)
+                else:
+                    fut.set_result(None)
 
 class BaseFormat:
     def __init__(

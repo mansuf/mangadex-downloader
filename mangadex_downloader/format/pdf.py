@@ -35,7 +35,7 @@ def delete_file(file):
     # If 10 attempts is failed to delete file (ex: PermissionError, or etc.)
     # raise error
     err = None
-    for _ in range(10):
+    for _ in range(100):
         try:
             os.remove(file)
         except Exception as e:
@@ -294,7 +294,10 @@ class PDF(BaseFormat):
         worker = self.create_worker()
 
         # Begin downloading
-        for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            chap = chap_class.chapter
+            chap_name = chap_class.get_name()
+
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
                 'compressed images' if compressed_image else 'images',
@@ -425,19 +428,19 @@ class PDFSingle(PDF):
         # Enable log cache
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for vol, chap, chap_name, images in manga.chapters.iter_chapter_images(**kwargs_iter):
-            item = [vol, chap, chap_name, images]
+        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            item = [vol, chap_class, images]
             cache.append(item)
         
         # Construct pdf filename from first and last chapter
-        first_chapter = cache[0][2]
-        last_chapter = cache[len(cache) - 1][2]
-        pdf_name = sanitize_filename(first_chapter + " - " + last_chapter + '.pdf')
+        first_chapter = cache[0][1]
+        last_chapter = cache[len(cache) - 1][1]
+        pdf_name = sanitize_filename(first_chapter.name + " - " + last_chapter.name + '.pdf')
         pdf_file = base_path / pdf_name
 
         # This file is for tracking downloaded chapter images
         # if gets deleted, the chapter images will be re-downloaded from zero
-        finished_download_path = base_path / (chap_name + '.finished_download')
+        finished_download_path = base_path / (pdf_name + '.finished_download')
 
         if replace:
             open(finished_download_path, "w").close()
@@ -464,12 +467,12 @@ class PDFSingle(PDF):
 
         # In case KeyboardInterrupt is called
         _cleanup_jobs.append(lambda: tracker_download.close())
-
-        for index, item in enumerate(cache):
-            vol = item[0]
-            chap = item[1]
-            chap_name = item[2]
-            images = item[3]
+        
+        start = True
+        for index, (vol, chap_class, images) in enumerate(cache):
+            # Group name will be placed inside the start and end of chapter images
+            chap = chap_class.chapter
+            chap_name = chap_class.name
 
             log.info('Getting %s from chapter %s' % (
                 'compressed images' if compressed_image else 'images',
@@ -485,21 +488,30 @@ class PDFSingle(PDF):
                 for page, img_url, img_name in images.iter():
                     img_path = chapter_path / img_name
 
-                    img_name_manifest = str(img_path)
-
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    if not start:
+                        img_name_manifest = str(img_path)
+                    else:
+                        img_name_manifest = 'start_%s' % chap_class.name
+                    
+                    if not start:
+                        log.info('Downloading %s page %s' % (chap_name, page))
 
                     if img_name_manifest in finished_download and not self.replace:
                         imgs.append(Image.open(img_path))
-                        log.info("File exist and replace is False, cancelling download...")
+
+                        if not start:
+                            log.info("File exist and replace is False, cancelling download...")
                         continue
 
-                    downloader = ChapterPageDownloader(
-                        img_url,
-                        img_path,
-                        replace=replace
-                    )
-                    success = downloader.download()
+                    if not start:
+                        downloader = ChapterPageDownloader(
+                            img_url,
+                            img_path,
+                            replace=replace
+                        )
+                        success = downloader.download()
+                    else:
+                        success = True
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -513,7 +525,17 @@ class PDFSingle(PDF):
                         images.fetch()
                         break
                     else:
-                        imgs.append(Image.open(img_path))
+                        if not start:
+                            imgs.append(Image.open(img_path))
+                        else:
+                            imgs.append(
+                                _ChapterMarkImage(
+                                    get_mark_image,
+                                    (chap_class, cache, index, start)
+                                )
+                            )
+                            start = False
+
                         tracker_download.write(img_name_manifest + "\n")
                         tracker_download.flush()
                         continue
@@ -521,18 +543,19 @@ class PDFSingle(PDF):
                 if not error:
                     break
 
-            # Insert mark chapter image
-            imgs.append(_ChapterMarkImage(get_mark_image, (chap_name, cache, index)))
+            # Insert end of chapter image
+            imgs.append(_ChapterMarkImage(get_mark_image, (chap_class, cache, index, start)))
 
         log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
 
         pdf_plugin = PDFPlugin(imgs)
 
-        # Convert it to PDF
-        im = imgs.pop(0)
+        # The first one image always be _ChapterMarkImage object
+        start_img = imgs.pop(0)
+        im = start_img.func(*start_img.args)
 
+        # Convert it to PDF
         def save_pdf():
-            # breakpoint()
             im.save(
                 pdf_file,
                 save_all=True,

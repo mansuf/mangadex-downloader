@@ -79,6 +79,17 @@ class _Chapter:
     def __init__(self, data) -> None:
         self.id = data.get('id')
         self.chapter = data.get('chapter')
+        self.group = None
+        self.name = None
+        self.lang = None
+
+    def get_lang_key(self):
+        return Language(self.lang).name
+
+    def get_name(self):
+        if self.group is not None:
+            return '[%s] %s' % (self.group, self.name)
+        return self.name
 
     def to_dict(self):
         return {'Chapter %s' % self.chapter: self.id}
@@ -253,6 +264,11 @@ class Chapter:
                         chapter_name += 'Volume. %s ' % volume
                     chapter_name += 'Chapter. ' + chapter.chapter
 
+                chapter.name = chapter_name
+
+                # Set chapter language
+                chapter.lang = chapter_data['data']['attributes']['translatedLanguage']
+
                 # Get scanlator group of the chapter
                 if not no_group:
                     group_id = None
@@ -268,7 +284,7 @@ class Chapter:
 
                     group_data = get_group(group_id)
                     group_name = group_data['data']['attributes']['name']
-                    chapter_name = '[%s] %s' % (group_name, chapter_name)
+                    chapter.group = group_name                    
 
                 chap_imgs = ChapterImages(
                     chapter.id,
@@ -277,5 +293,5 @@ class Chapter:
                     data_saver
                 )
 
-                yield volume, chapter.chapter, chapter_name, chap_imgs
+                yield volume, chapter, chap_imgs
 
