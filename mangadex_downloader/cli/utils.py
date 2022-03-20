@@ -8,6 +8,9 @@ from ..errors import NotLoggedIn
 
 log = logging.getLogger(__name__)
 
+# Will be used in main() and get_args()
+sys_argv = sys.argv[1:]
+
 def setup_logging(name_module, verbose=False):
     log = logging.getLogger(name_module)
     handler = logging.StreamHandler()

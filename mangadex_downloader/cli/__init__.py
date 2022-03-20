@@ -1,3 +1,4 @@
+import logging
 import sys
 import traceback
 from .update import check_update
@@ -6,7 +7,8 @@ from .utils import (
     close_network_object,
     setup_logging,
     setup_proxy,
-    register_keyboardinterrupt_handler
+    register_keyboardinterrupt_handler,
+    sys_argv
 )
 from .auth import login_with_err_handler, logout_with_err_handler
 from .download import download
@@ -64,7 +66,7 @@ def _main(argv):
 
 def main(argv=None):
     if argv is None:
-        exit_code = _main(sys.argv[1:])
+        exit_code = _main(sys_argv)
     else:
         exit_code = _main(argv)
     sys.exit(exit_code)

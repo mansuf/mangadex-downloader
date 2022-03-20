@@ -1,10 +1,11 @@
 import argparse
 import os
 import logging
+import threading
 import sys
 
 from .url import build_URL_from_type, smart_select_url, valid_types
-from .utils import setup_logging
+from .utils import setup_logging, sys_argv
 from ..update import update_app
 from ..utils import (
     valid_cover_types,
@@ -15,6 +16,12 @@ from ..language import get_language, Language
 from ..format import formats, default_save_as_format
 from ..errors import InvalidURL
 from .. import __description__
+
+# Dummy class for storing parser object
+class _dummy():
+    pass
+global_parser = _dummy()
+global_parser.parser = None
 
 log = logging.getLogger(__name__)
 
@@ -50,9 +57,66 @@ class UpdateAppAction(argparse.Action):
         update_app()
         sys.exit(0)
 
+class InputHandler(argparse.Action):
+    def __init__(
+        self,
+        option_strings,
+        dest,
+        nargs=None,
+        const=None,
+        default=None,
+        type=None,
+        choices=None,
+        required=False,
+        help=None,
+        metavar=None,
+    ):
+        super().__init__(
+            option_strings,
+            dest,
+            nargs=nargs,
+            const=const,
+            default=default,
+            type=type,
+            choices=choices,
+            required=required,
+            help=help,
+            metavar=metavar
+        )
+        # Get url from pipe input
+        lowered_args = [i.lower() for i in sys.argv]
+        if '-pipe' in lowered_args:
+            pipe = True
+            pipe_value = sys.stdin.read()
+        else:
+            pipe = False
+            pipe_value = None
+
+        # Manipulate positional arguments
+        if pipe:
+            sys_argv.append(pipe_value)
+
+        self.pipe = pipe
+        try:
+            self.pipe_value = validate_url(pipe_value) if pipe_value is not None else None
+        except argparse.ArgumentTypeError as e:
+            print("Invalid MangaDex URL or manga id", file=sys.stderr)
+            sys.exit(1)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if self.pipe:
+            setattr(namespace, self.dest, self.pipe_value)
+        else:
+            setattr(namespace, self.dest, values)
+
 def get_args(argv):
-    parser = argparse.ArgumentParser(description=__description__)
-    parser.add_argument('URL', type=validate_url, help='MangaDex URL or a file containing MangaDex URLs')
+    parser = argparse.ArgumentParser(description=__description__, exit_on_error=False)
+    parser.add_argument(
+        'URL',
+        action=InputHandler,
+        help='MangaDex URL or a file containing MangaDex URLs',
+        type=validate_url,
+    )
     parser.add_argument(
         '--type',
         help='Override type MangaDex url. By default, it auto detect given url',
@@ -156,6 +220,10 @@ def get_args(argv):
     proxy_group = parser.add_argument_group('Proxy')
     proxy_group.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
     proxy_group.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
+
+    # Miscellaneous
+    misc_group = parser.add_argument_group('Miscellaneous')
+    misc_group.add_argument('-pipe', action='store_true', help="Download from pipe input")
 
     # Update application
     update_group = parser.add_argument_group('Update application')
