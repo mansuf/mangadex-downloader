@@ -28,6 +28,7 @@ __all__ = (
     'base_url', 'uploads_url'
 )
 
+origin_url = 'https://mangadex.org'
 base_url = 'https://api.mangadex.org'
 uploads_url = 'https://uploads.mangadex.org'
 

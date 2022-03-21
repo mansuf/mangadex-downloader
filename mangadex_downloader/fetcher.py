@@ -1,6 +1,7 @@
 from requests.exceptions import HTTPError
-from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList
-from .network import Net, base_url
+from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException
+from .network import Net, base_url, origin_url
+from .utils import validate_url
 
 def get_manga(manga_id):
     url = '{0}/manga/{1}'.format(base_url, manga_id)
@@ -8,6 +9,41 @@ def get_manga(manga_id):
     if r.status_code == 404:
         raise InvalidManga('Manga \"%s\" cannot be found' % manga_id)
     return r.json()
+
+def get_legacy_id(_type, _id):
+    supported_types = ['manga', 'chapter', 'title']
+
+    # Alias for title
+    if _type == 'manga':
+        _type = 'title'
+
+    if _type not in supported_types:
+        raise MangaDexException("\"%s\" is not supported type" % _type)
+
+    # Normally, this can be done from API url. But, somehow the API endpoint (/legacy/mapping)
+    # throwing server error (500) in response. We will use this, until the API gets fixed.
+    # NOTE: The error only applied to "chapter" type, "manga" type is working fine.
+    url = '{0}/{1}/{2}'.format(origin_url, _type, _id)
+
+    # The process is by sending request to "mangadex.org" (not "api.mangadex.org"), if it gets redirected,
+    # the legacy id is exist. Otherwise the legacy id is not found in MangaDex database
+    r = Net.requests.get(url, allow_redirects=False)
+
+    if r.status_code >= 300:
+        # Redirected request, the legacy id is exist
+        location_url = r.headers.get('location')
+
+        # Get the new id
+        url = validate_url(location_url)
+    else:
+        # 200 status code, the legacy id is not exist.
+        # Raise error based on type url
+        if _type == 'title':
+            raise InvalidManga('Manga \"%s\" cannot be found' % _id)
+        elif _type == 'chapter':
+            raise ChapterNotFound("Chapter %s cannot be found" % _id)
+
+    return url
 
 def get_author(author_id):
     url = '{0}/author/{1}'.format(base_url, author_id)
