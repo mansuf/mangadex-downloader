@@ -450,5 +450,6 @@ def download_list(
             compressed_image,
             cover=cover,
             save_as=save_as,
-            language=language
+            language=language,
+            no_group=no_group
         )
