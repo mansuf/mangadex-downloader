@@ -33,7 +33,7 @@ def validate_url(url):
     re_url = re.compile(r'([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})')
     match = re_url.search(url)
     if match is None:
-        raise InvalidURL('Invalid MangaDex URL or manga id')
+        raise InvalidURL('\"%s\" is not valid MangaDex URL' % url)
     return match.group(1)
 
 def download(url, file, progress_bar=True, replace=False, **headers):

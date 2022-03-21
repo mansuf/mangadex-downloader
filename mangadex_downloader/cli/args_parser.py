@@ -109,7 +109,7 @@ class InputHandler(argparse.Action):
         try:
             self.pipe_value = validate_url(pipe_value) if pipe_value is not None else None
         except argparse.ArgumentTypeError as e:
-            print("Invalid MangaDex URL or manga id", file=sys.stderr)
+            print(str(e), file=sys.stderr)
             sys.exit(1)
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -119,7 +119,7 @@ class InputHandler(argparse.Action):
             setattr(namespace, self.dest, values)
 
 def get_args(argv):
-    parser = argparse.ArgumentParser(description=__description__, exit_on_error=False)
+    parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument(
         'URL',
         action=InputHandler,
