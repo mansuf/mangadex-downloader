@@ -10,7 +10,8 @@ from ..update import update_app
 from ..utils import (
     valid_cover_types,
     default_cover_type,
-    validate_url as __validate
+    validate_url as __validate,
+    validate_legacy_url
 )
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
@@ -28,6 +29,11 @@ log = logging.getLogger(__name__)
 def _validate(url):
     try:
         _url = __validate(url)
+    except InvalidURL:
+        pass
+    # Legacy support
+    try:
+        _url = validate_legacy_url(url)
     except InvalidURL as e:
         raise argparse.ArgumentTypeError(str(e))
     return _url

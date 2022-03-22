@@ -7,19 +7,26 @@ from ..utils import validate_url
 from ..main import (
     download as dl_manga,
     download_chapter as dl_chapter,
-    download_list as dl_list
+    download_list as dl_list,
+    download_legacy_chapter as dl_legacy_chapter,
+    download_legacy_manga as dl_legacy_manga
 )
 
 log = logging.getLogger(__name__)
 
 # Helper for building smart select url regex
 def _build_re(_type):
-    # Base url
-    regex = r"mangadex\.org\/%s\/([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})" % _type
+    # Legacy support
+    if 'legacy-manga' in _type:
+        regex = r'mangadex\.org\/manga\/(?P<id>[0-9]{1,})'
+    elif 'legacy-chapter' in _type:
+        regex = r'mangadex\.org\/chapter\/(?P<id>[0-9]{1,})'
+    else:
+        regex = r"mangadex\.org\/%s\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})" % _type
     return re.compile(regex)
 
-def download_manga(url, args):
-    dl_manga(
+def download_manga(url, args, legacy=False):
+    args = (
         url,
         args.folder,
         args.replace,
@@ -36,8 +43,14 @@ def download_manga(url, args):
         args.no_group
     )
 
-def download_chapter(url, args):
-    dl_chapter(
+    if legacy:
+        dl_legacy_manga(*args)
+    else:
+        dl_manga(*args)
+        
+
+def download_chapter(url, args, legacy=False):
+    args = (
         url,
         args.folder,
         args.replace,
@@ -47,6 +60,11 @@ def download_chapter(url, args):
         args.save_as,
         args.no_group
     )
+
+    if legacy:
+        dl_legacy_chapter(*args)
+    else:
+        dl_chapter(*args)
 
 def _error_list(option):
     raise MangaDexException("%s is not allowed when download a list" % option)
@@ -72,13 +90,19 @@ def download_list(url, args):
         args.no_group
     )
 
+# Legacy support
+download_legacy_manga = lambda url, args: download_manga(url, args, True)
+download_legacy_chapter = lambda url, args: download_chapter(url, args, True)
+
 valid_types = [
     "manga",
     "list",
-    "chapter"
+    "chapter",
+    "legacy-manga",
+    "legacy-chapter"
 ]
 
-funcs = {i: globals()['download_%s' % i] for i in valid_types}
+funcs = {i: globals()['download_%s' % i.replace('-', '_')] for i in valid_types}
 
 regexs = {i: _build_re(i) for i in valid_types}
 
@@ -114,12 +138,21 @@ def smart_select_url(url):
             continue
 
         # Get UUID
-        _id = match.group(1)
+        _id = match.group('id')
 
         # Get download function
         func = funcs[_type]
 
+        if 'legacy-' in _type:
+            # Only for legacy url
+            # Because inside `download_legacy_*` has already validator legacy url.
+            # Unlike download function for new id, if it's parsed id, it will throw error.
+            _id = url
+
         found = True
+        
+        if found:
+            break
     
     # If none of patterns is match, grab UUID instantly and then
     # fetch one by one, starting from manga, list, and then chapter.
