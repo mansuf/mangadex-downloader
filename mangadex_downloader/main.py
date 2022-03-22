@@ -2,6 +2,7 @@ import logging
 from pathvalidate import sanitize_filename
 from pathlib import Path
 from .utils import (
+    validate_legacy_url,
     validate_url, 
     write_details,
     valid_cover_types,
@@ -453,3 +454,37 @@ def download_list(
             language=language,
             no_group=no_group
         )
+
+def download_legacy_manga(url, *args, **kwargs):
+    """Download manga from old MangaDex url
+    
+    The rest of parameters will be passed to :meth:`download`.
+    """
+    log.debug('Validating the url...')
+    try:
+        legacy_id = validate_legacy_url(url)
+    except InvalidURL as e:
+        log.error('%s is not valid mangadex url' % url)
+        raise e from None
+
+    new_id = get_legacy_id('manga', legacy_id)
+
+    manga = download(new_id, *args, **kwargs)
+    return manga
+
+def download_legacy_chapter(url, *args, **kwargs):
+    """Download chapter from old MangaDex url
+    
+    The rest of parameters will be passed to :meth:`download_chapter`
+    """
+    log.debug('Validating the url...')
+    try:
+        legacy_id = validate_legacy_url(url)
+    except InvalidURL as e:
+        log.error('%s is not valid mangadex url' % url)
+        raise e from None
+
+    new_id = get_legacy_id('chapter', legacy_id)
+
+    manga = download_chapter(new_id, *args, **kwargs)
+    return manga
