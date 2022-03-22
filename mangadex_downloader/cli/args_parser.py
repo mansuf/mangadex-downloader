@@ -181,7 +181,7 @@ def get_args(argv):
         metavar='CHAPTER'
     )
     chap_group.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
-    chap_group.add_argument('--no-group', action='store_true', help='Do not use scanlation group name for each chapter')
+    chap_group.add_argument('--no-group-name', action='store_true', help='Do not use scanlation group name for each chapter')
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")
