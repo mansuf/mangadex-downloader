@@ -40,7 +40,7 @@ def download_manga(url, args, legacy=False):
         args.cover,
         args.save_as,
         args.use_alt_details,
-        args.no_group
+        args.no_group_name
     )
 
     if legacy:
@@ -58,7 +58,7 @@ def download_chapter(url, args, legacy=False):
         args.end_page,
         args.use_compressed_image,
         args.save_as,
-        args.no_group
+        args.no_group_name
     )
 
     if legacy:
@@ -87,7 +87,7 @@ def download_list(url, args):
         args.language,
         args.cover,
         args.save_as,
-        args.no_group
+        args.no_group_name
     )
 
 # Legacy support
