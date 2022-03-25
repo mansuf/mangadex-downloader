@@ -162,7 +162,7 @@ def download(
     cover=default_cover_type,
     save_as=default_save_as_format,
     use_alt_details=False,
-    no_group=False
+    no_group_name=False
 ):
     """Download a manga
     
@@ -194,7 +194,7 @@ def download(
         Choose save as format
     use_alt_details: :class:`bool` (default: ``False``)
         Use alternative title and description manga
-    no_group: :class:`bool` (default: ``False``)
+    no_group_name: :class:`bool` (default: ``False``)
         If ``True``, Do not use scanlation group name for each chapter.
 
     Raises
@@ -266,7 +266,7 @@ def download(
         "end_page": end_page,
         "no_oneshot": no_oneshot_chapter,
         "data_saver": compressed_image,
-        "no_group": no_group
+        "no_group_name": no_group_name
     }
 
     log.info("Using %s format" % save_as)
@@ -293,7 +293,7 @@ def download_chapter(
     end_page=None,
     compressed_image=False,
     save_as=default_save_as_format,
-    no_group=False
+    no_group_name=False
 ):
     """Download a chapter
     
@@ -313,7 +313,7 @@ def download_chapter(
         Use compressed images for low size when downloading chapter manga
     save_as: :class:`str` (default: ``tachiyomi``)
         Choose save as format
-    no_group: :class:`bool` (default: ``False``)
+    no_group_name: :class:`bool` (default: ``False``)
         If ``True``, Do not use scanlation group name for each chapter.
     """
     # Validate start_page and end_page param
@@ -393,7 +393,7 @@ def download_chapter(
         "end_page": end_page,
         "no_oneshot": False,
         "data_saver": compressed_image,
-        "no_group": no_group
+        "no_group_name": no_group_name
     }
 
     log.info("Using %s format" % save_as)
@@ -420,7 +420,7 @@ def download_list(
     language=Language.English,
     cover=default_cover_type,
     save_as=default_save_as_format,
-    no_group=False
+    no_group_name=False
 ):
     log.debug('Validating the url...')
     try:
@@ -452,7 +452,7 @@ def download_list(
             cover=cover,
             save_as=save_as,
             language=language,
-            no_group=no_group
+            no_group_name=no_group_name
         )
 
 def download_legacy_manga(url, *args, **kwargs):

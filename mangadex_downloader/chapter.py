@@ -186,7 +186,7 @@ class Chapter:
         end_page=None,
         no_oneshot=False,
         data_saver=False,
-        no_group=False,
+        no_group_name=False,
         log_cache=False # For internal use only
     ):
         for volume, chapters in self._volumes.items():
@@ -270,7 +270,7 @@ class Chapter:
                 chapter.lang = chapter_data['data']['attributes']['translatedLanguage']
 
                 # Get scanlator group of the chapter
-                if not no_group:
+                if not no_group_name:
                     group_id = None
                     rels = chapter_data['data']['relationships']
                     for rel in rels:
