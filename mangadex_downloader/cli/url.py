@@ -26,6 +26,9 @@ def _build_re(_type):
     return re.compile(regex)
 
 def download_manga(url, args, legacy=False):
+    if args.group and args.no_group_name:
+        raise MangaDexException("--group cannot be used together with --no-group-name")
+
     args = (
         url,
         args.folder,
@@ -40,7 +43,8 @@ def download_manga(url, args, legacy=False):
         args.cover,
         args.save_as,
         args.use_alt_details,
-        args.no_group_name
+        args.no_group_name,
+        args.group
     )
 
     if legacy:
@@ -79,6 +83,9 @@ def download_list(url, args):
     elif args.end_page:
         _error_list('--end-page')
 
+    if args.group and args.no_group_name:
+        raise MangaDexException("--group cannot be used together with --no-group-name")
+
     dl_list(
         url,
         args.folder,
@@ -87,7 +94,8 @@ def download_list(url, args):
         args.language,
         args.cover,
         args.save_as,
-        args.no_group_name
+        args.no_group_name,
+        args.group
     )
 
 # Legacy support

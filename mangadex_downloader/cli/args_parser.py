@@ -11,7 +11,8 @@ from ..utils import (
     valid_cover_types,
     default_cover_type,
     validate_url as __validate,
-    validate_legacy_url
+    validate_legacy_url,
+    validate_group_url as _validate_group_url
 )
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
@@ -31,6 +32,8 @@ def _validate(url):
         _url = __validate(url)
     except InvalidURL:
         pass
+    else:
+        return _url
     # Legacy support
     try:
         _url = validate_legacy_url(url)
@@ -53,6 +56,12 @@ def validate_url(url):
         urls.append((_validate(_url), _url))
     
     return urls
+
+def validate_group_url(url):
+    try:
+        return _validate_group_url(url)
+    except InvalidURL as e:
+        raise argparse.ArgumentTypeError(str(e))
 
 def validate_language(lang):
     try:
@@ -147,6 +156,15 @@ def get_args(argv):
         '--use-alt-details',
         action='store_true',
         help='Use alternative title and description manga'
+    )
+
+    # Group related
+    group_group = parser.add_argument_group('Group') # wtf group_group
+    group_group.add_argument(
+        '--group',
+        metavar='GROUP_ID',
+        help='Use different scanlation group for each chapter',
+        type=validate_group_url
     )
 
     # Language related

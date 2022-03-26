@@ -2,6 +2,7 @@ import logging
 from pathvalidate import sanitize_filename
 from pathlib import Path
 from .utils import (
+    validate_group_url,
     validate_legacy_url,
     validate_url, 
     write_details,
@@ -162,7 +163,8 @@ def download(
     cover=default_cover_type,
     save_as=default_save_as_format,
     use_alt_details=False,
-    no_group_name=False
+    no_group_name=False,
+    group=None
 ):
     """Download a manga
     
@@ -196,6 +198,8 @@ def download(
         Use alternative title and description manga
     no_group_name: :class:`bool` (default: ``False``)
         If ``True``, Do not use scanlation group name for each chapter.
+    group: :class:`str` (default: ``None``)
+        Use different scanlation group for each chapter.
 
     Raises
     -------
@@ -218,6 +222,12 @@ def download(
 
     if cover not in valid_cover_types:
         raise ValueError("invalid cover type, available are: %s" % valid_cover_types)
+
+    if group and group.lower().strip() == "all" and no_group_name:
+        raise ValueError("no_group_name cannot be True while group is used")
+
+    # Validate group
+    group_id = validate_group_url(group)
 
     # Validation save as format
     fmt_class = get_format(save_as)
@@ -266,7 +276,8 @@ def download(
         "end_page": end_page,
         "no_oneshot": no_oneshot_chapter,
         "data_saver": compressed_image,
-        "no_group_name": no_group_name
+        "no_group_name": no_group_name,
+        "group": group_id
     }
 
     log.info("Using %s format" % save_as)
@@ -420,7 +431,8 @@ def download_list(
     language=Language.English,
     cover=default_cover_type,
     save_as=default_save_as_format,
-    no_group_name=False
+    no_group_name=False,
+    group=None,
 ):
     log.debug('Validating the url...')
     try:
@@ -452,7 +464,8 @@ def download_list(
             cover=cover,
             save_as=save_as,
             language=language,
-            no_group_name=no_group_name
+            no_group_name=no_group_name,
+            group=group
         )
 
 def download_legacy_manga(url, *args, **kwargs):

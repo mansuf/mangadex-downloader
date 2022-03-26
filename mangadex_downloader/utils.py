@@ -44,6 +44,14 @@ def validate_legacy_url(url):
         raise InvalidURL('\"%s\" is not valid MangaDex URL' % url)
     return match.group('id')
 
+def validate_group_url(url):
+    """Validate group mangadex url and return the id"""
+    all_group = url.lower().strip() == "all"
+    if not all_group:
+        return validate_url(url)
+    else:
+        return "all"
+
 def download(url, file, progress_bar=True, replace=False, **headers):
     """Shortcut for :class:`FileDownloader`"""
     downloader = FileDownloader(
