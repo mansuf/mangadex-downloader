@@ -46,6 +46,8 @@ def validate_legacy_url(url):
 
 def validate_group_url(url):
     """Validate group mangadex url and return the id"""
+    if url is None:
+        return
     all_group = url.lower().strip() == "all"
     if not all_group:
         return validate_url(url)

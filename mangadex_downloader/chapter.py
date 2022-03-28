@@ -246,13 +246,13 @@ class Chapter:
                                 continue
 
                 # Utility for re-use self._parse_vol_chap_imgs
-                def parse(cd, no_group_name, group_name):
+                def parse(cd, group_name):
                     return self._parse_vol_chap_imgs(
                         volume,
                         chapter,
                         cd,
-                        no_group_name,
                         group_name,
+                        no_group_name,
                         num_chap,
                         no_oneshot,
                         start_chapter,
@@ -266,7 +266,9 @@ class Chapter:
                     chapter_ids.extend(chapter.others_id)
                     all_group = group.lower() == "all"
 
-                    param_group_name = get_group(group)['data']['attributes']['name']
+                    if not all_group:
+                        param_group_name = get_group(group)['data']['attributes']['name']
+
                     # Get chapter from different scanlation group
                     match = False
                     for chapter_id in chapter_ids:
@@ -276,7 +278,7 @@ class Chapter:
 
                         if all_group:
                             # One chapter but all different scanlation groups
-                            result = parse(cd, no_group_name, group_name)
+                            result = parse(cd, group_name)
                             if result is None:
                                 continue
                             yield result
@@ -298,15 +300,17 @@ class Chapter:
                         ))
                         continue
                     elif not all_group:
-                        result = parse(cd, no_group_name, group_name)
+                        result = parse(cd, group_name)
                         if result is None:
                             continue
 
                         yield result
                 else:
                     chapter_data = get_chapter(chapter.id)
-                    
-                    result = parse(chapter_data, no_group_name, None)
+                    group_id = get_group_id(chapter_data)
+                    group_name = get_group(group_id)['data']['attributes']['name']
+
+                    result = parse(chapter_data, group_name)
                     if result is None:
                         continue
 
