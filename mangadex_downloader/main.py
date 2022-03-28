@@ -164,7 +164,8 @@ def download(
     save_as=default_save_as_format,
     use_alt_details=False,
     no_group_name=False,
-    group=None
+    group=None,
+    legacy_sorting=False
 ):
     """Download a manga
     
@@ -287,6 +288,7 @@ def download(
         manga,
         compressed_image,
         replace,
+        legacy_sorting,
         kwargs_iter_chapter_images
     )
 

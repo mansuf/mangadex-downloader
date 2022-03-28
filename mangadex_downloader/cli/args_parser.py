@@ -257,6 +257,11 @@ def get_args(argv):
     # Miscellaneous
     misc_group = parser.add_argument_group('Miscellaneous')
     misc_group.add_argument('-pipe', action='store_true', help="Download from pipe input")
+    misc_group.add_argument(
+        '--enable-legacy-sorting',
+        action='store_true',
+        help='Enable legacy sorting chapter images for old reader application'
+    )
 
     # Update application
     update_group = parser.add_argument_group('Update application')

@@ -44,7 +44,8 @@ def download_manga(url, args, legacy=False):
         args.save_as,
         args.use_alt_details,
         args.no_group_name,
-        args.group
+        args.group,
+        args.enable_legacy_sorting
     )
 
     if legacy:

@@ -67,12 +67,14 @@ class BaseFormat:
         manga,
         compress_img,
         replace,
+        legacy_sorting,
         kwargs_iter_chapter_img
     ):
         self.path = path
         self.manga = manga
         self.compress_img = compress_img
         self.replace = replace
+        self.legacy_sorting = legacy_sorting
         self.kwargs_iter = kwargs_iter_chapter_img
 
     def create_worker(self):
