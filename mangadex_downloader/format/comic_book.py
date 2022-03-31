@@ -6,7 +6,7 @@ import os
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_mark_image
+from .utils import get_mark_image, NumberWithLeadingZeros
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
 from ..errors import PillowNotInstalled
@@ -133,7 +133,7 @@ class ComicBookArchiveSingle(BaseFormat):
         compressed_image = self.compress_img
         replace = self.replace
         worker = self.create_worker()
-        count = 0
+        total = 0
 
         # In order to add "next chapter" image mark in end of current chapter
         # We need to cache all chapters
@@ -143,8 +143,18 @@ class ComicBookArchiveSingle(BaseFormat):
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
         for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+            # Fix #10
+            # Some programs wouldn't display images correctly
+            if self.legacy_sorting:
+                images.fetch()
+
+                for _ in images.iter():
+                    total += 1
+
             item = [vol, chap_class, images]
             cache.append(item)
+
+        count = NumberWithLeadingZeros(total)
 
         # Construct .cbz filename from first and last chapter
         first_chapter = cache[0][1]
@@ -165,19 +175,29 @@ class ComicBookArchiveSingle(BaseFormat):
                 'compressed images' if compressed_image else 'images',
                 chap
             ))
-            images.fetch()
+            # If legacy_sorting is True
+            # Do not fetch it again, it has already been fetched during caching process
+            if not self.legacy_sorting:
+                images.fetch()
 
             chapter_path = create_chapter_folder(base_path, chap_name)
 
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    if not start:
+                        img_ext = os.path.splitext(img_name)[1]
+                    else:
+                        img_ext = '.png'
+
+                    if self.legacy_sorting:
+                        count_str = count.get()
+                    else:
+                        count_str = count.get_without_zeros()
+
                     img_path = chapter_path / img_name
 
-                    if not start:
-                        file = '%s_%s' % (count, img_name)
-                    else:
-                        file = '%s_start.png' % (count)
+                    file = count_str + img_ext
 
                     if not start:
                         log.info('Downloading %s page %s' % (chap_name, page))
@@ -192,7 +212,7 @@ class ComicBookArchiveSingle(BaseFormat):
                     if img_exist and not self.replace:
                         if not start:
                             log.info("File exist and replace is False, cancelling download...")
-                        count += 1
+                        count.increase()
                         continue
 
                     if not start:
@@ -223,7 +243,7 @@ class ComicBookArchiveSingle(BaseFormat):
                         else:
                             # Insert start of chapter image
                             def wrap():
-                                start_chap_file = '%s_start.png' % count
+                                start_chap_file = count_str + '.png'
                                 start_chap_img = get_mark_image(chap_class, cache, index, start)
                                 fp = io.BytesIO()
                                 start_chap_img.save(fp, 'png')
@@ -239,14 +259,19 @@ class ComicBookArchiveSingle(BaseFormat):
                         if start:
                             start = False
 
-                        count += 1
+                        count.increase()
                         continue
                 
                 if not error:
                     break            
 
+            count.increase()
+
             # get end of chapter image
-            mark_img_file = '%s_mark_image.png' % count
+            if self.legacy_sorting:
+                mark_img_file = count.get() + '.png'
+            else:
+                mark_img_file = count.get_without_zeros() + '.png'
             mark_img = get_mark_image(chap_class, cache, index)
             fp = io.BytesIO()
             mark_img.save(fp, 'png')
@@ -254,8 +279,6 @@ class ComicBookArchiveSingle(BaseFormat):
             # Insert end of chapter image
             wrap = lambda: manga_zip.writestr(mark_img_file, fp.getvalue())
             worker.submit(wrap)
-
-            count += 1
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)

@@ -48,3 +48,37 @@ def get_mark_image(chap, cache, index, start=False):
     draw.text(text_pos, text, rgb_black, font, align='center')
 
     return img
+
+class NumberWithLeadingZeros:
+    """A helper class for parsing numbers with leading zeros
+
+    total argument can be iterable or number
+    """
+    def __init__(self, total):
+        try:
+            iter_total = iter(total)
+        except TypeError:
+            if not isinstance(total, int):
+                raise ValueError("total must be iterable or int") from None
+            total_num = total
+        else:
+            total_num = 0
+            for _ in iter_total:
+                total_num += 1
+
+        self._total = total_num
+        self._num = 0
+
+    def increase(self):
+        self._num += 1
+    
+    def decrease(self):
+        self._num -= 1
+
+    def get_without_zeros(self):
+        """This will return number without leading zeros"""
+        return self._num
+
+    def get(self):
+        num_str = str(self._num)
+        return num_str.zfill(len(str(self._total)))
