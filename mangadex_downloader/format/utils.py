@@ -77,7 +77,7 @@ class NumberWithLeadingZeros:
 
     def get_without_zeros(self):
         """This will return number without leading zeros"""
-        return self._num
+        return str(self._num)
 
     def get(self):
         num_str = str(self._num)
