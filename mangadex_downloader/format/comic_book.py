@@ -265,7 +265,6 @@ class ComicBookArchiveSingle(BaseFormat):
                 if not error:
                     break            
 
-            count.increase()
 
             # get end of chapter image
             if self.legacy_sorting:
@@ -279,6 +278,8 @@ class ComicBookArchiveSingle(BaseFormat):
             # Insert end of chapter image
             wrap = lambda: manga_zip.writestr(mark_img_file, fp.getvalue())
             worker.submit(wrap)
+
+            count.increase()
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
