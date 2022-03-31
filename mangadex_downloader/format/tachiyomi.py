@@ -115,18 +115,16 @@ class TachiyomiZip(BaseFormat):
             while True:
                 # Fix #10
                 # Some old programs wouldn't display images correctly
-                total = 0
+                count = None
                 if self.legacy_sorting:
-                    for _ in images.iter():
-                        total += 1
-                total_str = str(total)
+                    count = NumberWithLeadingZeros(images.iter())
 
                 error = False
-                for count, (page, img_url, img_name) in enumerate(images.iter()):
+                for page, img_url, img_name in images.iter():
                     if self.legacy_sorting:
-                        count_str = str(count)
                         img_ext = os.path.splitext(img_name)[1]
-                        img_name = (count_str.zfill(len(total_str)) + img_ext)
+                        img_name = count.get() + img_ext
+
                     img_path = chapter_path / img_name
 
                     log.info('Downloading %s page %s' % (chap_name, page))
@@ -169,6 +167,9 @@ class TachiyomiZip(BaseFormat):
                         
                         # And then remove it original file
                         os.remove(img_path)
+                        
+                        if self.legacy_sorting:
+                            count.increase()
                         continue
                 
                 if not error:
