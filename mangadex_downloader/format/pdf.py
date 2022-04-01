@@ -7,7 +7,7 @@ import shutil
 from pathvalidate import sanitize_filename
 from tqdm import tqdm
 from .base import BaseFormat
-from .utils import get_mark_image
+from .utils import get_mark_image, delete_file
 from ..errors import PillowNotInstalled
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
@@ -29,22 +29,6 @@ except ImportError:
     pillow_ready = False
 else:
     pillow_ready = True
-
-# Helper function to delete file
-def delete_file(file):
-    # If 10 attempts is failed to delete file (ex: PermissionError, or etc.)
-    # raise error
-    err = None
-    for _ in range(100):
-        try:
-            os.remove(file)
-        except Exception as e:
-            err = e
-        else:
-            break
-    if err is not None:
-        log.debug("Failed to delete file \"%s\"" % file)
-        raise err
 
 class _ChapterMarkImage:
     def __init__(self, func, args) -> None:

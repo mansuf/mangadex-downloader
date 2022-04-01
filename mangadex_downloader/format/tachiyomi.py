@@ -3,7 +3,7 @@ import shutil
 import zipfile
 import os
 from .base import BaseFormat
-from .utils import NumberWithLeadingZeros
+from .utils import NumberWithLeadingZeros, delete_file
 from ..utils import create_chapter_folder, write_details
 from ..downloader import ChapterPageDownloader
 
@@ -166,7 +166,7 @@ class TachiyomiZip(BaseFormat):
                         worker.submit(wrap)
                         
                         # And then remove it original file
-                        os.remove(img_path)
+                        delete_file(img_path)
                         
                         if self.legacy_sorting:
                             count.increase()

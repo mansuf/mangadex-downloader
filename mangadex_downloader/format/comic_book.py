@@ -6,7 +6,7 @@ import os
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_mark_image, NumberWithLeadingZeros
+from .utils import get_mark_image, NumberWithLeadingZeros, delete_file
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
 from ..errors import PillowNotInstalled
@@ -105,7 +105,7 @@ class ComicBookArchive(BaseFormat):
                         worker.submit(wrap)
                         
                         # And then remove it original file
-                        os.remove(img_path)
+                        delete_file(img_path)
 
                         if self.legacy_sorting:
                             count.increase()
@@ -254,7 +254,7 @@ class ComicBookArchiveSingle(BaseFormat):
                         
                         if not start:
                             # And then remove it original file
-                            os.remove(img_path)
+                            delete_file(img_path)
 
                         if start:
                             start = False

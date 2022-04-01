@@ -1,3 +1,9 @@
+import logging
+import os
+import time
+
+log = logging.getLogger(__name__)
+
 try:
     from PIL import (
         Image,
@@ -82,3 +88,24 @@ class NumberWithLeadingZeros:
     def get(self):
         num_str = str(self._num)
         return num_str.zfill(len(str(self._total)))
+
+# Helper function to delete file
+def delete_file(file):
+    # If 5 attempts is failed to delete file (ex: PermissionError, or etc.)
+    # raise error
+    err = None
+    for attempt in range(5):
+        try:
+            os.remove(file)
+        except Exception as e:
+            log.debug("Failed to delete file \"%s\", reason: %s. Trying... (attempt: %s)" % (
+                file,
+                str(e),
+                attempt 
+            ))
+            err = e
+            time.sleep(0.3)
+        else:
+            break
+    if err is not None:
+        raise err
