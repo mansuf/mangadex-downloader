@@ -201,6 +201,8 @@ def download(
         If ``True``, Do not use scanlation group name for each chapter.
     group: :class:`str` (default: ``None``)
         Use different scanlation group for each chapter.
+    legacy_sorting: :class:`bool` (default: ``False``)
+        if ``True``, Enable legacy sorting chapter images for old reader application.
 
     Raises
     -------
@@ -306,7 +308,8 @@ def download_chapter(
     end_page=None,
     compressed_image=False,
     save_as=default_save_as_format,
-    no_group_name=False
+    no_group_name=False,
+    legacy_sorting=False
 ):
     """Download a chapter
     
@@ -328,6 +331,8 @@ def download_chapter(
         Choose save as format
     no_group_name: :class:`bool` (default: ``False``)
         If ``True``, Do not use scanlation group name for each chapter.
+    legacy_sorting: :class:`bool` (default: ``False``)
+        if ``True``, Enable legacy sorting chapter images for old reader application.
     """
     # Validate start_page and end_page param
     if start_page is not None and not isinstance(start_page, int):
@@ -416,6 +421,7 @@ def download_chapter(
         manga,
         compressed_image,
         replace,
+        legacy_sorting,
         kwargs_iter_chapter_images
     )
 
@@ -435,6 +441,7 @@ def download_list(
     save_as=default_save_as_format,
     no_group_name=False,
     group=None,
+    legacy_sorting=False,
 ):
     log.debug('Validating the url...')
     try:
@@ -467,7 +474,8 @@ def download_list(
             save_as=save_as,
             language=language,
             no_group_name=no_group_name,
-            group=group
+            group=group,
+            legacy_sorting=legacy_sorting
         )
 
 def download_legacy_manga(url, *args, **kwargs):

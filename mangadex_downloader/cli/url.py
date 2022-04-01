@@ -63,7 +63,8 @@ def download_chapter(url, args, legacy=False):
         args.end_page,
         args.use_compressed_image,
         args.save_as,
-        args.no_group_name
+        args.no_group_name,
+        args.enable_legacy_sorting
     )
 
     if legacy:
@@ -96,7 +97,8 @@ def download_list(url, args):
         args.cover,
         args.save_as,
         args.no_group_name,
-        args.group
+        args.group,
+        args.enable_legacy_sorting
     )
 
 # Legacy support
