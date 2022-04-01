@@ -25,6 +25,10 @@ def get_group_id(chapter_data):
     
     return group_id
 
+def get_group_name(group_id):
+    data = get_group(group_id)
+    return data['data']['attributes']['name']
+
 class ChapterImages:
     def __init__(
         self,
@@ -267,14 +271,14 @@ class Chapter:
                     all_group = group.lower() == "all"
 
                     if not all_group:
-                        param_group_name = get_group(group)['data']['attributes']['name']
+                        param_group_name = get_group_name(group)
 
                     # Get chapter from different scanlation group
                     match = False
                     for chapter_id in chapter_ids:
                         cd = get_chapter(chapter_id)
                         group_id = get_group_id(cd)
-                        group_name = get_group(group_id)['data']['attributes']['name']
+                        group_name = get_group_name(group_id)
 
                         if all_group:
                             # One chapter but all different scanlation groups
@@ -308,7 +312,10 @@ class Chapter:
                 else:
                     chapter_data = get_chapter(chapter.id)
                     group_id = get_group_id(chapter_data)
-                    group_name = get_group(group_id)['data']['attributes']['name']
+                    if no_group_name:
+                        group_name = None
+                    else:
+                        group_name = get_group_name(group_id)
 
                     result = parse(chapter_data, group_name)
                     if result is None:
