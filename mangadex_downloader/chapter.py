@@ -9,25 +9,40 @@ from .errors import ChapterNotFound
 log = logging.getLogger(__name__)
 
 # Helper for get group id
-def get_group_id(chapter_data):
+def get_group_ids(chapter_data):
     chapter = chapter_data['data']['attributes']['chapter']
 
-    group_id = None
+    group_ids = []
     rels = chapter_data['data']['relationships']
     for rel in rels:
         _id = rel['id']
         _type = rel['type']
         if _type == 'scanlation_group':
-            group_id = _id
+            group_ids.append(_id)
     
-    if group_id is None:
+    if not group_ids:
         raise RuntimeError("Cannot find scanlator group from chapter %s" % chapter)
     
-    return group_id
+    return group_ids
 
-def get_group_name(group_id):
-    data = get_group(group_id)
-    return data['data']['attributes']['name']
+# Fix #11
+# Duplicate scanlation group name
+def get_group_names(group_ids):
+    # Get first group
+    first_group_id = group_ids[0]
+    group_ids.pop(0)
+    
+    # Fetch first group
+    data = get_group(first_group_id)
+    name = data['data']['attributes']['name']
+
+    # Fetch additional groups
+    for group_id in group_ids:
+        data = get_group(group_id)
+        group_name = data['data']['attributes']['name']
+        name += f' & {group_name}'
+    
+    return name
 
 class ChapterImages:
     def __init__(
@@ -269,14 +284,14 @@ class Chapter:
                     all_group = group.lower() == "all"
 
                     if not all_group:
-                        param_group_name = get_group_name(group)
+                        param_group_name = get_group_names([group])
 
                     # Get chapter from different scanlation group
                     match = False
                     for chapter_id in chapter_ids:
                         cd = get_chapter(chapter_id)
-                        group_id = get_group_id(cd)
-                        group_name = get_group_name(group_id)
+                        group_ids = get_group_ids(cd)
+                        group_name = get_group_names(group_ids)
 
                         if all_group:
                             # One chapter but all different scanlation groups
@@ -287,19 +302,19 @@ class Chapter:
 
                             match = True
 
-                        elif group != group_id:
-                            continue
+                        elif group not in group_ids:
+                            log.info("Ignoring chapter %s : \"%s\", scanlator group \"%s\" is not match with \"%s\"" % (
+                                num_chap,
+                                cd['data']['attributes']['title'],
+                                group_name,
+                                param_group_name
+                            ))
                         else:
                             # "group" is matching with "group_id"
                             match = True
                             break
                     
                     if not match:
-                        log.info("Ignoring chapter %s, scanlator group \"%s\" is not match with \"%s\"" % (
-                            num_chap,
-                            group_name,
-                            param_group_name
-                        ))
                         continue
                     elif not all_group:
                         result = parse(cd, group_name)
@@ -309,11 +324,11 @@ class Chapter:
                         yield result
                 else:
                     chapter_data = get_chapter(chapter.id)
-                    group_id = get_group_id(chapter_data)
+                    group_ids = get_group_ids(chapter_data)
                     if no_group_name:
                         group_name = None
                     else:
-                        group_name = get_group_name(group_id)
+                        group_name = get_group_names(group_ids)
 
                     result = parse(chapter_data, group_name)
                     if result is None:
