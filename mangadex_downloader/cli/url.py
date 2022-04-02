@@ -35,6 +35,10 @@ def download_manga(url, args, legacy=False):
         if args.start_chapter > args.end_chapter:
             raise MangaDexException("--start-chapter cannot be more than --end-chapter")
 
+    if args.start_page is not None and args.end_page is not None:
+        if args.start_page > args.end_page:
+            raise MangaDexException("--start-page cannot be more than --end-page")
+
     args = (
         url,
         args.folder,

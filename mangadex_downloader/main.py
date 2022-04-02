@@ -223,6 +223,10 @@ def download(
         if start_chapter > end_chapter:
             raise ValueError("start_chapter cannot be more than end_chapter")
 
+    if start_page is not None and end_page is not None:
+        if start_page > end_page:
+            raise ValueError("start_page cannot be more than end_page")
+
     if cover not in valid_cover_types:
         raise ValueError("invalid cover type, available are: %s" % valid_cover_types)
 
