@@ -70,12 +70,12 @@ class requestsMangaDexSession(requests.Session):
             try:
                 resp = super().request(*args, **kwargs)
             except requests.exceptions.ConnectionError as e:
-                attempt += 1
                 log.error("Failed to connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
                     e.request.url,
                     str(e),
                     attempt
                 ))
+                attempt += 1
                 continue
 
             # We are being rate limited
