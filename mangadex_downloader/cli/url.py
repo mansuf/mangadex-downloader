@@ -31,6 +31,10 @@ def download_manga(url, args, legacy=False):
     if args.group and args.no_group_name:
         raise MangaDexException("--group cannot be used together with --no-group-name")
 
+    if args.start_chapter is not None and args.end_chapter is not None:
+        if args.start_chapter > args.end_chapter:
+            raise MangaDexException("--start-chapter cannot be more than --end-chapter")
+
     args = (
         url,
         args.folder,

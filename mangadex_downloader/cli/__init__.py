@@ -25,12 +25,6 @@ def _main(argv):
         # Setup logging
         log = setup_logging('mangadex_downloader', args.verbose)
 
-        # Add checking before log in
-        if args.start_chapter is not None and args.end_chapter is not None:
-            if args.start_chapter > args.end_chapter:
-                log.error("--start-chapter cannot be more than --end-chapter")
-                return 1
-
         # Setup proxy
         setup_proxy(args.proxy, args.proxy_env)
 
