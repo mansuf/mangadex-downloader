@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import logging
+from pathlib import Path
 from .network import Net
 from .errors import HTTPException
 
@@ -143,72 +144,108 @@ class ChapterPageDownloader(FileDownloader):
     """
 
     def download(self):
-        initial_file_sizes = self._get_file_size(self.file)
+        while True:
+            initial_file_sizes = self._get_file_size(self.file)
 
-        # Parse headers
-        headers = self._parse_headers(initial_file_sizes)
+            # Parse headers
+            headers = self._parse_headers(initial_file_sizes)
 
-        # Initiate request
-        t1 = time.time()
+            # Initiate request
+            t1 = time.time()
 
-        # Since server error are handled by session
-        # We need to catch the error to report it to MangaDex network
-        try:
-            resp = Net.requests.get(self.url, headers=headers, stream=True)
-        except HTTPException as e:
-            resp = e.response
-        
-        # Report it to MangaDex network if failing
-        if resp.status_code > 200 and not resp.status_code < 400:
-            length = len(resp.content)
-            t2 = time.time()
-            self._report(resp, length, round((t2 - t1) * 1000), False)
-            return False
+            # Since server error are handled by session
+            # We need to catch the error to report it to MangaDex network
+            try:
+                resp = Net.requests.get(self.url, headers=headers, stream=True)
+            except HTTPException as e:
+                resp = e.response
 
-        # Grab the file sizes
-        file_sizes = float(resp.headers.get('Content-Length'))
-
-        # If "Range" header request is present
-        # Content-Length header response is not same as full size
-        if initial_file_sizes:
-            file_sizes += initial_file_sizes
-
-        real_file_sizes = self._get_file_size(self.real_file)
-        if real_file_sizes:
-            if file_sizes == real_file_sizes and not self.replace:
-                log.info('File exist and replace is False, cancelling download...')
+            # The downloader are requesting out of range bytes file
+            # Because previous download are cancelled or error and .temp file are exists
+            # and fully downloaded
+            if resp.status_code == 416:
+                # Mark it as finished
+                self._write_final_file()
                 return True
 
-        # Build the progress bar
-        self._build_progres_bar(initial_file_sizes, float(file_sizes))
+            # Report it to MangaDex network if failing
+            if resp.status_code > 200 and not resp.status_code < 400:
+                length = len(resp.content)
+                t2 = time.time()
+                self._report(resp, length, round((t2 - t1) * 1000), False)
+                return False
 
-        # Heavily adapted from https://github.com/choldgraf/download/blob/master/download/download.py#L377-L390
-        total_size = 0
-        chunk_size = 2 ** 16
-        with open(self.file, 'ab' if initial_file_sizes else 'wb') as writer:
-            while True:
-                t0 = time.time()
-                chunk = resp.raw.read(chunk_size)
-                total_size += len(chunk)
-                dt = time.time() - t0
-                if dt < 0.005:
-                    chunk_size *= 2
-                elif dt > 0.1 and chunk_size > 2 ** 16:
-                    chunk_size = chunk_size // 2
-                if not chunk:
-                    break
-                writer.write(chunk)
-                self._update_progress_bar(len(chunk))
-            t2 = time.time()
-        
-        # Delete original file if replace is True and real file is exist
-        if real_file_sizes and self.replace:
+            # Grab the file sizes
+            file_sizes = float(resp.headers.get('Content-Length'))
+
+            # If "Range" header request is present
+            # Content-Length header response is not same as full size
+            if initial_file_sizes:
+                file_sizes += initial_file_sizes
+
+            real_file_sizes = self._get_file_size(self.real_file)
+            if real_file_sizes:
+                if file_sizes == real_file_sizes and not self.replace:
+                    log.info('File exist and replace is False, cancelling download...')
+                    return True
+
+            current_size = initial_file_sizes or 0
+
+            # Build the progress bar
+            self._build_progres_bar(initial_file_sizes, float(file_sizes))
+
+            # Heavily adapted from https://github.com/choldgraf/download/blob/master/download/download.py#L377-L390
+            report_total_size = 0
+            chunk_size = 2 ** 16
+            with open(self.file, 'ab' if initial_file_sizes else 'wb') as writer:
+                while True:
+                    t0 = time.time()
+                    chunk = resp.raw.read(chunk_size)
+                    report_total_size += len(chunk)
+                    current_size += len(chunk)
+                    dt = time.time() - t0
+                    if dt < 0.005:
+                        chunk_size *= 2
+                    elif dt > 0.1 and chunk_size > 2 ** 16:
+                        chunk_size = chunk_size // 2
+                    if not chunk:
+                        break
+                    writer.write(chunk)
+                    writer.flush()
+                    self._update_progress_bar(len(chunk))
+                t2 = time.time()
+
+            # See #14
+            # Download is not finished but marked as "finished"
+            if current_size != file_sizes:
+                log.warning("File download is incomplete, restarting download...")
+                self.cleanup()
+                continue
+
+            self._write_final_file()
+
+            # Finally report it to MangaDex network
+            self._report(resp, report_total_size, round((t2 - t1) * 1000), True)
+            return True
+
+    def _write_final_file(self):
+        if os.path.exists(self.real_file):
             os.remove(self.real_file)
-        os.rename(self.file, self.real_file)
 
-        # Finally report it to MangaDex network
-        self._report(resp, total_size, round((t2 - t1) * 1000), True)
-        return True
+        chunk_size = 2 ** 16
+
+        w_fp = open(self.real_file, 'wb')
+        r_fp =  open(self.file, 'rb')
+        while True:
+            data = r_fp.read(chunk_size)
+            if not data:
+                break
+            w_fp.write(data)
+
+        w_fp.close()
+        r_fp.close()
+
+        os.remove(self.file)
 
     def _report(self, resp, size, _time, success):
         self.cleanup()
