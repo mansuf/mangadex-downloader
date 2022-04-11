@@ -1,48 +1,19 @@
 import logging
+import queue
 import re
-from typing import Dict, List
 
+from .user import User
 from .language import Language
-from .fetcher import get_chapter_images, get_chapter, get_group
-from .errors import ChapterNotFound
+from .fetcher import (
+    get_bulk_chapters,
+    get_chapter_images,
+    get_chapter,
+    get_all_chapters
+)
+from .errors import ChapterNotFound, MangaDexException
+from .group import Group
 
 log = logging.getLogger(__name__)
-
-# Helper for get group id
-def get_group_ids(chapter_data):
-    chapter = chapter_data['data']['attributes']['chapter']
-
-    group_ids = []
-    rels = chapter_data['data']['relationships']
-    for rel in rels:
-        _id = rel['id']
-        _type = rel['type']
-        if _type == 'scanlation_group':
-            group_ids.append(_id)
-    
-    if not group_ids:
-        raise RuntimeError("Cannot find scanlator group from chapter %s" % chapter)
-    
-    return group_ids
-
-# Fix #11
-# Duplicate scanlation group name
-def get_group_names(group_ids):
-    # Get first group
-    first_group_id = group_ids[0]
-    group_ids.pop(0)
-    
-    # Fetch first group
-    data = get_group(first_group_id)
-    name = data['data']['attributes']['name']
-
-    # Fetch additional groups
-    for group_id in group_ids:
-        data = get_group(group_id)
-        group_name = data['data']['attributes']['name']
-        name += f' & {group_name}'
-    
-    return name
 
 class ChapterImages:
     def __init__(
@@ -111,44 +82,317 @@ class ChapterImages:
 
             page += 1
 
-class _Chapter:
+class AggregateChapter:
     def __init__(self, data) -> None:
         self.id = data.get('id')
         self.chapter = data.get('chapter')
-        self.group = None
-        self.name = None
-        self.lang = None
         self.others_id = data.get('others')
 
-    def get_lang_key(self):
-        return Language(self.lang).name
+class Chapter:
+    def __init__(self, _id=None, data=None, use_group_name=True):
+        if _id and data:
+            raise ValueError("_id and data cannot be together")
+
+        if data is None:
+            data = get_chapter(_id)['data']
+
+        self.id = data['id']
+        self._attr = data['attributes']
+
+        # Get scanlation groups and manga
+        rels = data['relationships']
+
+        groups = []
+        manga_id = None
+        user = None
+        for rel in rels:
+            rel_id = rel['id']
+            rel_type = rel['type']
+            if rel_type == 'scanlation_group':
+                groups.append(Group(data=rel))
+            elif rel_type == 'manga':
+                manga_id = rel_id
+            elif rel_type == 'user':
+                user = User(data=rel)
+        
+        if manga_id is None:
+            raise RuntimeError(f"chapter {_id} has no manga relationship")
+
+        self.user = user
+        self.groups = groups
+        self.groups_id = [group.id for group in groups]
+        self.manga_id = manga_id
+        self._name = None
+        self.oneshot = False
+        self.use_group_name = use_group_name
+
+        self._lang = Language(self._attr['translatedLanguage'])
+
+        self._parse_name()
+
+    @property
+    def volume(self):
+        return self._attr['volume']
+
+    @property
+    def chapter(self):
+        return self._attr['chapter']
+
+    @property
+    def title(self):
+        return self._attr['title']
+
+    @property
+    def pages(self):
+        return self._attr['pages']
+
+    @property
+    def language(self):
+        return self._lang
+
+    def _parse_name(self):
+        name = ""
+
+        if self.title is None:
+            lower_title = ""
+        else:
+            lower_title = self.title.lower()
+
+        if 'oneshot' in lower_title:
+            self.oneshot = True
+            name += 'Oneshot '
+        else:
+            # Get combined volume and chapter
+            if self.volume is not None:
+                name += f'Volume. {self.volume} '
+
+        name += f'Chapter. {self.chapter}' 
+
+        self._name = name
+
+    @property
+    def name(self):
+        """This will return chapter name without group name"""
+        return self._name
 
     def get_name(self):
-        if self.group is not None:
-            return '[%s] %s' % (self.group, self.name)
-        return self.name
+        """This will return chapter name with group name"""
+        name = ""
 
-    def to_dict(self):
-        return {'Chapter %s' % self.chapter: self.id}
+        # Get groups name
+        if self.use_group_name:
+            name += f'[{self.groups_name}] '
 
-class Chapter:
-    def __init__(self, data, title, lang) -> None:
-        self._data = data
-        self._volumes = {} # type: Dict[str, List[_Chapter]]
-        self._chapters = [] # type: List
-        self._lang = lang
-        self._title = title
-        self._parse_volumes()
-    
-    def _parse_volumes(self):
-        data = self._data.get('volumes')
+        return name + self._name
+
+    @property
+    def groups_name(self):
+        if not self.groups:
+            return f'User - {self.user.name}'
+
+        groups = self.groups.copy()
+
+        first_group = groups.pop(0)
+        name = first_group.name
+
+        for group in groups:
+            name += f' & {group.name}'
+
+        return name
+
+class IteratorChapter:
+    def __init__(
+        self,
+        volumes,
+        start_chapter=None,
+        end_chapter=None,
+        start_page=None,
+        end_page=None,
+        no_oneshot=None,
+        data_saver=None,
+        no_group_name=None,
+        group=None,
+        **kwargs
+    ):
+        self.volumes = volumes
+        self.queue = queue.Queue()
+        self.start_chapter = start_chapter
+        self.end_chapter = end_chapter
+        self.start_page = start_page
+        self.end_page = end_page
+        self.no_oneshot = no_oneshot
+        self.data_saver = data_saver
+        self.no_group_name = no_group_name
+        self.group = None
+        self.all_group = False
+        
+        if group and group == "all":
+            self.all_group = True
+        elif group:
+            self.group = Group(group)
+
+        log_cache = kwargs.get('log_cache')
+        self.log_cache = True if log_cache else False
+
+        self._fill_data()
+
+    def _check_chapter(self, chap):
+        num_chap = chap.chapter
+        if num_chap != 'none':
+            try:
+                num_chap = float(num_chap)
+            except ValueError:
+                pass
+
+        is_number = isinstance(num_chap, float)
+
+        # There is a chance that "Chapter 0" is Oneshot or prologue
+        # We need to verify that is valid oneshot chapter
+        # if it's valid oneshot chapter
+        # then we need to skip start_chapter and end_chapter checking
+        if is_number and num_chap > 0.0 and not self.all_group:
+            if self.start_chapter is not None and not (num_chap >= self.start_chapter):
+                log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
+                return False
+
+            if self.end_chapter is not None and not (num_chap <= self.end_chapter):
+                log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
+                return False
+
+        # Some manga has chapters where it has no pages / images inside of it.
+        # We need to verify it, to prevent error when downloading the manga.
+        if chap.pages == 0:
+            log.warning(f"Chapter {0} from group {1} has no images, ignoring...".format(
+                chap.chapter,
+                chap.groups_name
+            ))
+            return False
+
+        if chap.oneshot and self.no_oneshot and not self.all_group:
+            log.info("Ignoring oneshot chapter since it's in ignored list")
+            return False
+        # If chapter 0 is prologue or whatever and not oneshot
+        # Re-check start_chapter
+        elif is_number and not self.all_group:
+            if self.start_chapter is not None and not (num_chap >= self.start_chapter):
+                log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
+                return False
+
+        # Check if it's same group as self.group
+        if not self.all_group and self.group and self.group.id not in chap.groups_id:
+            log.info("Ignoring chapter {0} : \"{1}\", scanlator group \"{2}\" is not match with \"{3}\"".format(
+                num_chap,
+                chap.title,
+                chap.groups_name,
+                self.group.name
+            ))
+            return False
+
+        return True
+
+    def _get_next_chapter(self):
+        # Get chapter
+        try:
+            chap = self.queue.get_nowait()
+        except queue.Empty:
+            raise StopIteration()
+
+        return chap
+
+    def __iter__(self) -> "IteratorChapter":
+        return self
+
+    def __next__(self):
+        while True:
+            chap = self._get_next_chapter()
+
+            if self.log_cache:
+                log.debug(f'Caching Volume. {chap.volume} Chapter. {chap.chapter}')
+
+            valid = self._check_chapter(chap)
+
+            if not valid:
+                continue
+
+            chap_images = ChapterImages(
+                chap.id,
+                self.start_page,
+                self.end_page,
+                self.data_saver
+            )
+
+            return chap, chap_images
+
+    def _fill_data(self):
+        chap_ids = []
+        for volume, chapters in self.volumes.items():
+            for chapter in chapters:
+                chap_ids.append([chapter.id])
+
+        chapters = []
+        while chap_ids:
+            ids = chap_ids[:100]
+            del chap_ids[:100]
+            data = get_bulk_chapters(ids)
+            for chap_data in data['data']:
+                chapters.append(Chapter(data=chap_data, use_group_name=not self.no_group_name))
+
+        sorted_chapters = sorted(chapters, key=lambda x: float(x.chapter))
+
+        for chap in sorted_chapters:
+            self.queue.put(chap)
+
+class MangaChapter:
+    def __init__(self, manga, lang, chapter=None, all_chapters=False):
+        if chapter and all_chapters:
+            raise ValueError("chapter and all_chapters cannot be together")
+        elif chapter is None and not all_chapters:
+            raise ValueError("at least provide chapter or set all_chapters to True")
+
+        self._volumes = {}
+        self._lang = Language(lang)
+        self.manga = manga
+
+        if chapter:
+            self._parse_volumes_from_chapter(chapter)
+        elif all_chapters:
+            self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
+
+    def iter(self, *args, **kwargs):
+        return IteratorChapter(self._volumes, *args, **kwargs)
+
+    def _parse_volumes_from_chapter(self, chapter):
+        if not isinstance(chapter, Chapter):
+            chap = Chapter(chapter)
+        else:
+            chap = chapter
+
+        # "api.mangadex.org/{manga-id}/aggregate" data for self._parse_volumes
+        aggregate_data = {
+            "volumes": {
+                chap.volume: {
+                    "volume": chap.volume,
+                    "chapters": {
+                        chap.chapter: {
+                            "chapter": chap.chapter,
+                            "id": chap.id
+                        }
+                    }
+                }
+            }
+        }
+
+        self._parse_volumes(aggregate_data)
+
+    def _parse_volumes(self, json_data):
+        data = json_data.get('volumes')
 
         # if translated language is not found in selected manga
         # raise error
         if not data:
             raise ChapterNotFound("Manga \"%s\" with %s language has no chapters" % (
-                self._title,
-                Language(self._lang).name
+                self.manga.title,
+                self._lang.name
             ))
 
         # Sorting volumes
@@ -196,9 +440,8 @@ class Chapter:
             c = value.get('chapters')
 
             def append_chapters(value):
-                chap = _Chapter(value)
+                chap = AggregateChapter(value)
                 chapters.append(chap)
-                self._chapters.append(chap.to_dict())
 
             # Sometimes chapters are in list not in dict
             # I don't know why
@@ -212,195 +455,3 @@ class Chapter:
 
             chapters.reverse()
             self._volumes[volume] = chapters
-
-    def iter_chapter_images(
-        self,
-        start_chapter=None,
-        end_chapter=None,
-        start_page=None,
-        end_page=None,
-        no_oneshot=False,
-        data_saver=False,
-        no_group_name=False,
-        group=None,
-        log_cache=False # For internal use only
-    ):
-        for volume, chapters in self._volumes.items():
-            for chapter in chapters:
-                if log_cache:
-                    log.debug("Caching Volume. %s Chapter. %s" % (volume, chapter.chapter))
-
-                num_chap = chapter.chapter
-                if chapter.chapter != "none":
-                    try:
-                        num_chap = float(chapter.chapter)
-                    except ValueError:
-                        # Fix https://github.com/mansuf/mangadex-downloader/issues/7
-                        # Sometimes chapter are in string value not in numbers
-                        pass
-
-                    # There is a chance that "Chapter 0" is Oneshot or prologue
-                    # We need to verify that is valid oneshot chapter
-                    # if it's valid oneshot chapter
-                    # then we need to skip start_chapter and end_chapter checking
-                    if isinstance(num_chap, float) and num_chap > 0.0:
-                        if start_chapter is not None:
-                            # Lifehack
-                            if not (num_chap >= start_chapter):
-                                log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
-                                    num_chap,
-                                    start_chapter
-                                ))
-                                continue
-
-                        if end_chapter is not None:
-                            # Lifehack
-                            if not (num_chap <= end_chapter):
-                                log.info("Ignoring chapter %s as \"end_chapter\" is %s" % (
-                                    num_chap,
-                                    end_chapter
-                                ))
-                                continue
-
-                # Utility for re-use self._parse_vol_chap_imgs
-                def parse(cd, group_name):
-                    return self._parse_vol_chap_imgs(
-                        volume,
-                        chapter,
-                        cd,
-                        group_name,
-                        no_group_name,
-                        num_chap,
-                        no_oneshot,
-                        start_chapter,
-                        start_page,
-                        end_page,
-                        data_saver
-                    )
-
-                if group is not None:
-                    chapter_ids = [chapter.id]
-                    chapter_ids.extend(chapter.others_id)
-                    all_group = group.lower() == "all"
-
-                    if not all_group:
-                        param_group_name = get_group_names([group])
-
-                    # Get chapter from different scanlation group
-                    match = False
-                    for chapter_id in chapter_ids:
-                        cd = get_chapter(chapter_id)
-                        group_ids = get_group_ids(cd)
-                        group_name = get_group_names(group_ids)
-
-                        if all_group:
-                            # One chapter but all different scanlation groups
-                            result = parse(cd, group_name)
-                            if result is None:
-                                continue
-                            yield result
-
-                            match = True
-
-                        elif group not in group_ids:
-                            log.info("Ignoring chapter %s : \"%s\", scanlator group \"%s\" is not match with \"%s\"" % (
-                                num_chap,
-                                cd['data']['attributes']['title'],
-                                group_name,
-                                param_group_name
-                            ))
-                        else:
-                            # "group" is matching with "group_id"
-                            match = True
-                            break
-                    
-                    if not match:
-                        continue
-                    elif not all_group:
-                        result = parse(cd, group_name)
-                        if result is None:
-                            continue
-
-                        yield result
-                else:
-                    chapter_data = get_chapter(chapter.id)
-                    group_ids = get_group_ids(chapter_data)
-                    if no_group_name:
-                        group_name = None
-                    else:
-                        group_name = get_group_names(group_ids)
-
-                    result = parse(chapter_data, group_name)
-                    if result is None:
-                        continue
-
-                    yield result
-
-    def _parse_vol_chap_imgs(
-        self,
-        volume,
-        chapter,
-        chapter_data,
-        group_name,
-        no_group_name,
-        num_chap,
-        no_oneshot,
-        start_chapter,
-        start_page,
-        end_page,
-        data_saver
-    ):
-        # Some manga has chapters where it has no pages / images inside of it.
-        # We need to verify it, to prevent error when downloading the manga.
-        pages = chapter_data['data']['attributes']['pages']
-        if pages == 0:
-            log.warning("Chapter %s has no images, ignoring..." % chapter.chapter)
-            return None
-
-        chapter_title = chapter_data['data']['attributes']['title']
-        if chapter_title is None:
-            lowered_chapter_title = ""
-        else:
-            lowered_chapter_title = chapter_title.lower()
-
-        # Oneshot chapter checking
-        chapter_name = ""
-        if 'oneshot' in lowered_chapter_title and no_oneshot:
-            log.info("Ignoring oneshot chapter since \"no_oneshot\" is True")
-            return None
-        elif 'oneshot' in lowered_chapter_title:
-            chapter_name += "Oneshot"
-        else:
-            # If chapter 0 is prologue or whatever and not oneshot
-            # Re-check start_chapter
-            if start_chapter is not None and isinstance(num_chap, float):
-                # Lifehack
-                if not (num_chap >= start_chapter):
-                    log.info("Ignoring chapter %s as \"start_chapter\" is %s" % (
-                        num_chap,
-                        start_chapter
-                    ))
-                    return None
-
-            if volume != 'none':
-                chapter_name += 'Volume. %s ' % volume
-            chapter_name += 'Chapter. ' + chapter.chapter
-
-        chapter.name = chapter_name
-
-        # Set chapter language
-        chapter.lang = chapter_data['data']['attributes']['translatedLanguage']
-
-        # Get detailed info scanlator group
-        if not no_group_name:
-            chapter.group = group_name                    
-
-        chap_imgs = ChapterImages(
-            chapter.id,
-            start_page,
-            end_page,
-            data_saver
-        )
-
-        return volume, chapter, chap_imgs
-

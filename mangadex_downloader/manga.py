@@ -2,22 +2,9 @@ import logging
 
 from .network import uploads_url
 from .language import get_details_language
+from .utils import get_local_attr
 
 log = logging.getLogger(__name__)
-
-# This is shortcut to extract data from local dict structure
-# in MangaDex JSON data
-# For example: 
-# {
-#     'attributes': {
-#         'en': '...' # This is what we need 
-#     }
-# }
-def _get_attr(data):
-    if not data:
-        return ""
-    for key, val in data.items():
-        return val
 
 class Manga:
     def __init__(self, data, use_alt_details=False):
@@ -29,7 +16,7 @@ class Manga:
         self._use_alt_details = use_alt_details
         self._chapters = None
         self._altTitles = self._attr.get('altTitles')
-        self._orig_title = _get_attr(self._attr.get('title'))
+        self._orig_title = get_local_attr(self._attr.get('title'))
         self._title = self._parse_title()
         self._description = self._parse_description()
 
@@ -43,12 +30,12 @@ class Manga:
         alt_titles = self._altTitles
 
         if not self._use_alt_details:
-            return _get_attr(title)
+            return get_local_attr(title)
 
         # The manga doesn't have alternative titles
         if not alt_titles and self._use_alt_details:
-            log.info("Manga \"%s\" has no alternative titles" % _get_attr(title))
-            return  _get_attr(title)
+            log.info("Manga \"%s\" has no alternative titles" % get_local_attr(title))
+            return  get_local_attr(title)
 
         # Append choices for user input
         choices = {}
@@ -58,9 +45,9 @@ class Manga:
         
         # Append the original title
         count += 1
-        choices[str(count)] = _get_attr(title)
+        choices[str(count)] = get_local_attr(title)
 
-        print("Manga \"%s\" has alternative titles, please choose one" % _get_attr(title))
+        print("Manga \"%s\" has alternative titles, please choose one" % get_local_attr(title))
 
         def print_choices():
             for count, data in enumerate(alt_titles, start=1):
@@ -92,7 +79,7 @@ class Manga:
         description = self._attr.get('description')
 
         if not self._use_alt_details:
-            return _get_attr(description)
+            return get_local_attr(description)
 
         # The manga has no description
         if not description:
@@ -100,7 +87,7 @@ class Manga:
         
         # The manga has only 1 description
         if len(description) <= 1:
-            return _get_attr(description)
+            return get_local_attr(description)
         
         # Append choices for user input
         choices = {}
@@ -139,7 +126,7 @@ class Manga:
     def alternative_titles(self):
         """List[:class:`str`]: List of alternative titles"""
         titles = self._attr.get('altTitles')
-        return [_get_attr(i) for i in titles]
+        return [get_local_attr(i) for i in titles]
     
     @property
     def description(self):
@@ -206,7 +193,7 @@ class Manga:
         tags = self._attr.get('tags')
         for tag in tags:
             attr = tag.get('attributes')
-            name = _get_attr(attr.get('name'))
+            name = get_local_attr(attr.get('name'))
             group = attr.get('group')
 
             # Aim for genre

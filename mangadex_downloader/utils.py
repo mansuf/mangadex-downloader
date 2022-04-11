@@ -111,3 +111,17 @@ def create_chapter_folder(base_path, chapter_title):
         chapter_path.mkdir(exist_ok=True)
 
     return chapter_path
+
+# This is shortcut to extract data from localization dict structure
+# in MangaDex JSON data
+# For example: 
+# {
+#     'attributes': {
+#         'en': '...' # This is what we need 
+#     }
+# }
+def get_local_attr(data):
+    if not data:
+        return ""
+    for key, val in data.items():
+        return val

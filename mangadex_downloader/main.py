@@ -5,16 +5,15 @@ from .utils import (
     validate_group_url,
     validate_legacy_url,
     validate_url, 
-    write_details,
     valid_cover_types,
     default_cover_type
 )
 from .language import Language, get_language
 from .utils import download as download_file
-from .errors import InvalidURL, MangaDexException
+from .errors import InvalidURL
 from .fetcher import *
 from .manga import Manga
-from .chapter import Chapter
+from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
 
@@ -61,6 +60,12 @@ def logout():
     """
     Net.requests.logout()
 
+def _get_manga_from_chapter(chapter_id):
+    chap = Chapter(chapter_id)
+    manga = _fetch_manga(chap.manga_id, chap.language.value, fetch_all_chapters=False)
+    manga._chapters = MangaChapter(manga, chap.language.value, chap)
+    return chap, manga
+
 def _fetch_manga(
     manga_id,
     lang,
@@ -102,7 +107,7 @@ def _fetch_manga(
         # This will check if selected language in manga has chapters inside of it.
         # If the chapters are not available, it will throw error.
         log.info("Fetching all chapters...")
-        chapters = Chapter(get_all_chapters(manga.id, lang), manga.title, lang)
+        chapters = MangaChapter(manga, lang, all_chapters=True)
         manga._chapters = chapters
 
     return manga
@@ -357,46 +362,9 @@ def download_chapter(
         log.error('%s is not valid mangadex url' % url)
         raise e from None
 
-    log.info("Fetching chapter %s" % chap_id)
-    data = get_chapter(chap_id)
-    vol = data['data']['attributes']['volume']
-    if vol is None:
-        vol = "none"
-    chap = data['data']['attributes']['chapter']
-    if chap is None:
-        chap = "none"
-    rels = data['data']['relationships']
-    
-    # Find manga id
-    manga_id = None
-    for rel in rels:
-        _type = rel['type']
-        _id = rel['id']
-        if _type == "manga":
-            manga_id = _id
-
-    if manga_id is None:
-        raise MangaDexException("chapter %s has no manga relationship" % chap_id)
-
-    # For Chapter class
-    parse_data = {
-        "volumes": {
-            vol: {
-                "volume": vol,
-                "chapters": {
-                    chap: {
-                        "chapter": chap,
-                        "id": chap_id
-                    }
-                }
-            }
-        }
-    }
-
     # Fetch manga
-    manga = _fetch_manga(manga_id, "en", fetch_all_chapters=False)
-    manga._chapters = Chapter(parse_data, manga.title, "en")
-    log.info("Found chapter %s from manga \"%s\"" % (chap, manga.title))
+    chap, manga = _get_manga_from_chapter(chap_id)
+    log.info("Found chapter %s from manga \"%s\"" % (chap.chapter, manga.title))
 
     # base path
     base_path = Path('.')
@@ -432,7 +400,7 @@ def download_chapter(
     # Execute main format
     fmt.main()
 
-    log.info("Finished download chapter %s from manga \"%s\"" % (chap, manga.title))
+    log.info("Finished download chapter %s from manga \"%s\"" % (chap.chapter, manga.title))
     return manga
 
 def download_list(

@@ -1,3 +1,4 @@
+from functools import lru_cache
 from requests.exceptions import HTTPError
 from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException
 from .network import Net, base_url, origin_url
@@ -50,6 +51,7 @@ def get_author(author_id):
     r = Net.requests.get(url)
     return r.json()
 
+@lru_cache(maxsize=1048)
 def get_user(user_id):
     url = '{0}/user/{1}'.format(base_url, user_id)
     r = Net.requests.get(url)
@@ -74,6 +76,7 @@ def get_list(list_id):
         raise InvalidMangaDexList("List %s cannot be found" % list_id)
     return r.json()
 
+@lru_cache(maxsize=1048)
 def get_group(group_id):
     url = '{0}/group/{1}'.format(base_url, group_id)
     r = Net.requests.get(url)
@@ -87,4 +90,15 @@ def get_all_chapters(manga_id, lang):
 def get_chapter_images(chapter_id):
     url = '{0}/at-home/server/{1}'.format(base_url, chapter_id)
     r = Net.requests.get(url)
+    return r.json()
+
+def get_bulk_chapters(chap_ids):
+    url = '{0}/chapter'.format(base_url)
+    includes = ['scanlation_group', 'user']
+    params = {
+        'ids[]': chap_ids,
+        'limit': 100,
+        'includes[]': includes
+    }
+    r = Net.requests.get(url, params=params)
     return r.json()

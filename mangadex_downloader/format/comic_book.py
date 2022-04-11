@@ -32,7 +32,7 @@ class ComicBookArchive(BaseFormat):
         worker = self.create_worker()
 
         # Begin downloading
-        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
             chap_name = chap_class.get_name()
 
@@ -142,7 +142,7 @@ class ComicBookArchiveSingle(BaseFormat):
         # Enable log cache
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for vol, chap_class, images in manga.chapters.iter_chapter_images(**self.kwargs_iter):
+        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             # Fix #10
             # Some programs wouldn't display images correctly
             if self.legacy_sorting:
@@ -151,14 +151,14 @@ class ComicBookArchiveSingle(BaseFormat):
                 for _ in images.iter():
                     total += 1
 
-            item = [vol, chap_class, images]
+            item = [chap_class, images]
             cache.append(item)
 
         count = NumberWithLeadingZeros(total)
 
         # Construct .cbz filename from first and last chapter
-        first_chapter = cache[0][1]
-        last_chapter = cache[len(cache) - 1][1]
+        first_chapter = cache[0][0]
+        last_chapter = cache[len(cache) - 1][0]
         manga_zip_path = base_path / sanitize_filename(first_chapter.name + " - " + last_chapter.name + '.cbz')
         manga_zip = zipfile.ZipFile(
             str(manga_zip_path),
@@ -166,7 +166,7 @@ class ComicBookArchiveSingle(BaseFormat):
         )
 
         start = True
-        for index, (vol, chap_class, images) in enumerate(cache):
+        for index, (chap_class, images) in enumerate(cache):
             # Group name will be placed inside the start and end of chapter images
             chap = chap_class.chapter
             chap_name = chap_class.name
