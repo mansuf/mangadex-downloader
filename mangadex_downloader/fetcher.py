@@ -64,7 +64,10 @@ def get_cover_art(cover_id):
 
 def get_chapter(chapter_id):
     url = '{0}/chapter/{1}'.format(base_url, chapter_id)
-    r = Net.requests.get(url)
+    params = {
+        'includes[]': ['scanlation_group', 'user']
+    }
+    r = Net.requests.get(url, params=params)
     if r.status_code == 404:
         raise ChapterNotFound("Chapter %s cannot be found" % chapter_id)
     return r.json()
