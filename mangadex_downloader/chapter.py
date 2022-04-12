@@ -271,9 +271,10 @@ class IteratorChapter:
         if chap.oneshot and self.no_oneshot and not self.all_group:
             log.info("Ignoring oneshot chapter since it's in ignored list")
             return False
+
         # If chapter 0 is prologue or whatever and not oneshot
         # Re-check start_chapter
-        elif is_number and not self.all_group:
+        elif not chap.oneshot and is_number and not self.all_group:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
                 log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
