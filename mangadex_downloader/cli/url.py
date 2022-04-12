@@ -18,11 +18,11 @@ log = logging.getLogger(__name__)
 def _build_re(_type):
     # Legacy support
     if 'legacy-manga' in _type:
-        regex = r'mangadex\.org\/title\/(?P<id>[0-9]{1,})'
+        regex = r'mangadex\.org\/(title|manga)\/(?P<id>[0-9]{1,})'
     elif 'legacy-chapter' in _type:
         regex = r'mangadex\.org\/chapter\/(?P<id>[0-9]{1,})'
     elif _type == 'manga':
-        regex = r'mangadex\.org\/title\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
+        regex = r'mangadex\.org\/(title|manga)\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
     else:
         regex = r"mangadex\.org\/%s\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})" % _type
     return regex
