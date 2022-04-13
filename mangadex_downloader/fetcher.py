@@ -6,7 +6,10 @@ from .utils import validate_url
 
 def get_manga(manga_id):
     url = '{0}/manga/{1}'.format(base_url, manga_id)
-    r = Net.requests.get(url)
+    params = {
+        'includes[]': ['author', 'artist', 'cover_art']
+    }
+    r = Net.requests.get(url, params=params)
     if r.status_code == 404:
         raise InvalidManga('Manga \"%s\" cannot be found' % manga_id)
     return r.json()
@@ -46,6 +49,7 @@ def get_legacy_id(_type, _id):
 
     return url
 
+@lru_cache(maxsize=1048)
 def get_author(author_id):
     url = '{0}/author/{1}'.format(base_url, author_id)
     r = Net.requests.get(url)
@@ -57,6 +61,7 @@ def get_user(user_id):
     r = Net.requests.get(url)
     return r.json()
 
+@lru_cache(maxsize=1048)
 def get_cover_art(cover_id):
     url = '{0}/cover/{1}'.format(base_url, cover_id)
     r = Net.requests.get(url)

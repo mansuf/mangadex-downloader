@@ -136,23 +136,12 @@ class Manga:
     @property
     def authors(self):
         """List[:class:`str`]: Author of the manga"""
-        authors = []
-        for data in self._authors:
-            author = data['data']['attributes']['name']
-            authors.append(author)
-        return authors
-    
+        return [i.name for i in self._authors]
+
     @property
     def artists(self):
         """List[:class:`str`]: Artist of the manga"""
-        artists = []
-        for data in self._artists:
-            artist = data['data']['attributes']['name']
-            artists.append(artist)
-        return artists
-
-    def _parse_cover_art(self):
-        return self._cover['data']['attributes']['fileName']
+        return [i.name for i in self._artists]
 
     @property
     def chapters(self):
@@ -165,7 +154,7 @@ class Manga:
         return '{0}/covers/{1}/{2}'.format(
             uploads_url,
             self.id,
-            self._parse_cover_art()
+            self._cover.file
         )
     
     @property
@@ -174,7 +163,7 @@ class Manga:
         return '{0}/covers/{1}/{2}.512.jpg'.format(
             uploads_url,
             self.id,
-            self._parse_cover_art()
+            self._cover.file
         )
 
     @property
@@ -183,7 +172,7 @@ class Manga:
         return '{0}/covers/{1}/{2}.256.jpg'.format(
             uploads_url,
             self.id,
-            self._parse_cover_art()
+            self._cover.file
         )
 
     @property

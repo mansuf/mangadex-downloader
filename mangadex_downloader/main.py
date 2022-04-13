@@ -16,6 +16,8 @@ from .manga import Manga
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
+from .artist_and_author import Artist, Author
+from .cover import CoverArt
 
 log = logging.getLogger(__name__)
 
@@ -82,19 +84,15 @@ def _fetch_manga(
         artists = []
         for rel in rels:
             _type = rel.get('type')
-            _id = rel.get('id')
 
             if _type == 'author':
-                log.debug('Getting author (%s) manga' % _id)
-                authors.append(get_author(_id))
+                authors.append(Author(data=rel))
 
             elif _type == 'artist':
-                log.debug('Getting artist (%s) manga' % _id)
-                artists.append(get_author(_id))
+                artists.append(Artist(data=rel))
 
             elif _type == 'cover_art':
-                log.debug('Getting cover (%s) manga' % _id)
-                data['cover_art'] = get_cover_art(_id)
+                data['cover_art'] = CoverArt(data=rel)
 
         data['authors'] = authors
         data['artists'] = artists
