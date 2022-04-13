@@ -452,8 +452,9 @@ class PDFSingle(PDF):
         # In case KeyboardInterrupt is called
         _cleanup_jobs.append(lambda: tracker_download.close())
         
-        start = True
         for index, (chap_class, images) in enumerate(cache):
+            start = True
+
             # Group name will be placed inside the start and end of chapter images
             chap = chap_class.chapter
             chap_name = chap_class.name
@@ -515,7 +516,7 @@ class PDFSingle(PDF):
                             imgs.append(
                                 _ChapterMarkImage(
                                     get_mark_image,
-                                    (chap_class, cache, index, start)
+                                    [chap_class]
                                 )
                             )
                             start = False
@@ -526,9 +527,6 @@ class PDFSingle(PDF):
                 
                 if not error:
                     break
-
-            # Insert end of chapter image
-            imgs.append(_ChapterMarkImage(get_mark_image, (chap_class, cache, index, start)))
 
         log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
 

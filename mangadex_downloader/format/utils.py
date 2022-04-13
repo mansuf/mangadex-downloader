@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import textwrap
 
 log = logging.getLogger(__name__)
 
@@ -22,35 +23,28 @@ image_mode = "RGB"
 text_pos = (150, int(450 / 1.25))
 text_align = "center"
 
-def get_mark_image(chap, cache, index, start=False):
+def get_mark_image(chapter):
     text = ""
-    additional_info = True
-    if start:
-        text += "Start: %s\n\n" % chap.name
-        chapter = chap
-    else:
-        text += "Finished: %s\n" % chap.name
-        try:
-            next_chap = cache[index + 1][0]
-        except IndexError:
-            chapter = chap
-            text += '\n'
-            additional_info = False
-        else:
-            text += "Next: %s\n\n" % next_chap.name
-            chapter = next_chap
 
-    if additional_info:
-        # Add chapter language
-        text += "Language: %s\n" % chapter.language.name
+    # Current chapter (Volume. n Chapter. n)
+    text += chapter.name + '\n'
 
-        # Add scanlation group name
-        text += "Translated by: %s" % chapter.groups_name
+    # Title chapter
+    if chapter.title is not None:
+        text += chapter.title
+
+    # an empty line
+    text += "\n\n"
+
+    # Add chapter language
+    text += "Language: %s\n" % chapter.language.name
+
+    text +=  f"Translated by: {chapter.groups_name}"
 
     font = ImageFont.truetype(font_family, font_size)
     img = Image.new(image_mode, image_size, rgb_white)
     draw = ImageDraw.Draw(img, image_mode)
-    draw.text(text_pos, text, rgb_black, font, align='center')
+    draw.multiline_text(text_pos, text, rgb_black, font, align='center')
 
     return img
 

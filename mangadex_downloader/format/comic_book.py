@@ -165,8 +165,9 @@ class ComicBookArchiveSingle(BaseFormat):
             "a" if path_exists(manga_zip_path) else "w"
         )
 
-        start = True
         for index, (chap_class, images) in enumerate(cache):
+            start = True
+
             # Group name will be placed inside the start and end of chapter images
             chap = chap_class.chapter
             chap_name = chap_class.name
@@ -244,7 +245,7 @@ class ComicBookArchiveSingle(BaseFormat):
                             # Insert start of chapter image
                             def wrap():
                                 start_chap_file = count_str + '.png'
-                                start_chap_img = get_mark_image(chap_class, cache, index, start)
+                                start_chap_img = get_mark_image(chap_class)
                                 fp = io.BytesIO()
                                 start_chap_img.save(fp, 'png')
                                 manga_zip.writestr(start_chap_file, fp.getvalue())
@@ -264,22 +265,6 @@ class ComicBookArchiveSingle(BaseFormat):
                 
                 if not error:
                     break            
-
-
-            # get end of chapter image
-            if self.legacy_sorting:
-                mark_img_file = count.get() + '.png'
-            else:
-                mark_img_file = count.get_without_zeros() + '.png'
-            mark_img = get_mark_image(chap_class, cache, index)
-            fp = io.BytesIO()
-            mark_img.save(fp, 'png')
-
-            # Insert end of chapter image
-            wrap = lambda: manga_zip.writestr(mark_img_file, fp.getvalue())
-            worker.submit(wrap)
-
-            count.increase()
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
