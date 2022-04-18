@@ -168,7 +168,8 @@ def download(
     use_alt_details=False,
     no_group_name=False,
     group=None,
-    legacy_sorting=False
+    legacy_sorting=False,
+    use_chapter_title=False
 ):
     """Download a manga
     
@@ -206,6 +207,9 @@ def download(
         Use different scanlation group for each chapter.
     legacy_sorting: :class:`bool` (default: ``False``)
         if ``True``, Enable legacy sorting chapter images for old reader application.
+    use_chapter_title: :class:`bool` (default: ``False``)
+        If ``True``, use chapter title for each chapters.
+        NOTE: This option is useless if used with any single format.
 
     Raises
     -------
@@ -287,7 +291,8 @@ def download(
         "no_oneshot": no_oneshot_chapter,
         "data_saver": compressed_image,
         "no_group_name": no_group_name,
-        "group": group_id
+        "group": group_id,
+        "use_chapter_title": use_chapter_title
     }
 
     log.info("Using %s format" % save_as)
@@ -316,7 +321,8 @@ def download_chapter(
     compressed_image=False,
     save_as=default_save_as_format,
     no_group_name=False,
-    legacy_sorting=False
+    legacy_sorting=False,
+    use_chapter_title=False
 ):
     """Download a chapter
     
@@ -340,6 +346,9 @@ def download_chapter(
         If ``True``, Do not use scanlation group name for each chapter.
     legacy_sorting: :class:`bool` (default: ``False``)
         if ``True``, Enable legacy sorting chapter images for old reader application.
+    use_chapter_title: :class:`bool` (default: ``False``)
+        If ``True``, use chapter title for each chapters.
+        NOTE: This option is useless if used with any single format.
     """
     # Validate start_page and end_page param
     if start_page is not None and not isinstance(start_page, int):
@@ -381,7 +390,8 @@ def download_chapter(
         "end_page": end_page,
         "no_oneshot": False,
         "data_saver": compressed_image,
-        "no_group_name": no_group_name
+        "no_group_name": no_group_name,
+        "use_chapter_title": use_chapter_title
     }
 
     log.info("Using %s format" % save_as)
@@ -412,6 +422,7 @@ def download_list(
     no_group_name=False,
     group=None,
     legacy_sorting=False,
+    use_chapter_title=True
 ):
     log.debug('Validating the url...')
     try:
@@ -445,7 +456,8 @@ def download_list(
             language=language,
             no_group_name=no_group_name,
             group=group,
-            legacy_sorting=legacy_sorting
+            legacy_sorting=legacy_sorting,
+            use_chapter_title=use_chapter_title
         )
 
 def download_legacy_manga(url, *args, **kwargs):

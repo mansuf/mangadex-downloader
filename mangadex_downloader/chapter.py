@@ -2,6 +2,8 @@ import logging
 import queue
 import re
 
+from pathvalidate import sanitize_filename
+
 from .user import User
 from .language import Language
 from .fetcher import (
@@ -89,7 +91,13 @@ class AggregateChapter:
         self.others_id = data.get('others')
 
 class Chapter:
-    def __init__(self, _id=None, data=None, use_group_name=True):
+    def __init__(
+        self,
+        _id=None,
+        data=None,
+        use_group_name=True,
+        use_chapter_title=False
+    ):
         if _id and data:
             raise ValueError("_id and data cannot be together")
 
@@ -125,6 +133,7 @@ class Chapter:
         self._name = None
         self.oneshot = False
         self.use_group_name = use_group_name
+        self.use_chapter_title = use_chapter_title
 
         self._lang = Language(self._attr['translatedLanguage'])
 
@@ -172,18 +181,24 @@ class Chapter:
 
     @property
     def name(self):
-        """This will return chapter name without group name"""
+        """This will return chapter name only"""
         return self._name
 
     def get_name(self):
-        """This will return chapter name with group name"""
+        """This will return chapter name with group name and title"""
         name = ""
 
         # Get groups name
         if self.use_group_name:
-            name += f'[{self.groups_name}] '
+            name += f'[{sanitize_filename(self.groups_name)}] '
 
-        return name + self._name
+        # "Volume. n Chapter.n"
+        name += self._name
+
+        # Chapter title
+        name += f' - {sanitize_filename(self.title)}'
+
+        return name
 
     @property
     def groups_name(self):
@@ -212,6 +227,7 @@ class IteratorChapter:
         data_saver=None,
         no_group_name=None,
         group=None,
+        use_chapter_title=False,
         **kwargs
     ):
         self.volumes = volumes
@@ -223,6 +239,7 @@ class IteratorChapter:
         self.no_oneshot = no_oneshot
         self.data_saver = data_saver
         self.no_group_name = no_group_name
+        self.use_chapter_title = use_chapter_title
         self.group = None
         self.all_group = False
         
@@ -329,7 +346,8 @@ class IteratorChapter:
             if ag_chap.id == data['id']:
                 return Chapter(
                     data=data,
-                    use_group_name=not self.no_group_name
+                    use_group_name=not self.no_group_name,
+                    use_chapter_title=self.use_chapter_title
                 )
 
     def _fill_data(self):
