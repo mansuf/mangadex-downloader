@@ -145,7 +145,7 @@ class Chapter:
 
     @property
     def chapter(self):
-        return self._attr['chapter']
+        return self._attr['chapter'].strip()
 
     @property
     def title(self):
