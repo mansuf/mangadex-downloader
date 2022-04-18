@@ -324,24 +324,33 @@ class IteratorChapter:
 
             return chap, chap_images
 
+    def _get_chapter(self, ag_chap, bulk_data):
+        for data in bulk_data:
+            if ag_chap.id == data['id']:
+                return Chapter(
+                    data=data,
+                    use_group_name=not self.no_group_name
+                )
+
     def _fill_data(self):
         chap_ids = []
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
                 chap_ids.append([chapter.id])
 
-        chapters = []
+        # FIXME: Use better way to iterate chapters
+        chapters_data = []
         while chap_ids:
             ids = chap_ids[:100]
             del chap_ids[:100]
-            data = get_bulk_chapters(ids)
-            for chap_data in data['data']:
-                chapters.append(Chapter(data=chap_data, use_group_name=not self.no_group_name))
+            data = get_bulk_chapters(ids)['data']
+            chapters_data.extend(data)
+            
+        for volume, chapters in self.volumes.items():
+            for chapter in chapters:
+                chap = self._get_chapter(chapter, chapters_data)
+                self.queue.put(chap)
 
-        sorted_chapters = sorted(chapters, key=lambda x: float(x.chapter))
-
-        for chap in sorted_chapters:
-            self.queue.put(chap)
 
 class MangaChapter:
     def __init__(self, manga, lang, chapter=None, all_chapters=False):
