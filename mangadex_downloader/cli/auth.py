@@ -1,10 +1,15 @@
 import logging
+import re
 import sys
 
 from getpass import getpass
 from ..main import login, logout
 from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
 from ..network import Net
+
+# I know this sound stupid
+# But i only know this to check if it's email or username
+email_regex = r'.{1,}@.{1,}\..{1,}'
 
 log = logging.getLogger(__name__)
 
@@ -41,9 +46,12 @@ def logout_with_err_handler(args):
 
 def login_with_err_handler(args):
     if args.login:
+        email = None
+        username = None
+
         if not args.login_username:
             try:
-                username = input("MangaDex username => ")
+                username = input("MangaDex username / email => ")
             except EOFError:
                 sys.exit(0)
         else:
@@ -56,12 +64,18 @@ def login_with_err_handler(args):
         else:
             password = args.login_password
 
+        # Ability to login with email
+        is_email = re.match(email_regex, username)
+        if is_email is not None:
+            email = is_email.group()
+            username = None
+
         # Logging in
         login_success = False
         for _ in range(5):
             attempt = _ + 1
             try:
-                login(password, username)
+                login(password, username, email)
             except LoginFailed as e:
                 sys.exit(1)
             except ValueError as e:
