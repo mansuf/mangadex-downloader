@@ -196,7 +196,8 @@ class Chapter:
         name += self._name
 
         # Chapter title
-        name += f' - {sanitize_filename(self.title)}'
+        if self.title is not None:
+            name += f' - {sanitize_filename(self.title)}'
 
         return name
 
@@ -267,7 +268,7 @@ class IteratorChapter:
         # We need to verify that is valid oneshot chapter
         # if it's valid oneshot chapter
         # then we need to skip start_chapter and end_chapter checking
-        if is_number and num_chap > 0.0 and not self.all_group:
+        if is_number and num_chap > 0.0:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
                 log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
@@ -291,7 +292,7 @@ class IteratorChapter:
 
         # If chapter 0 is prologue or whatever and not oneshot
         # Re-check start_chapter
-        elif not chap.oneshot and is_number and not self.all_group:
+        elif not chap.oneshot and is_number:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
                 log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
@@ -305,6 +306,7 @@ class IteratorChapter:
                 self.group.name
             ))
             return False
+
 
         return True
 
@@ -341,9 +343,9 @@ class IteratorChapter:
 
             return chap, chap_images
 
-    def _get_chapter(self, ag_chap, bulk_data):
+    def _get_chapter(self, _id, bulk_data):
         for data in bulk_data:
-            if ag_chap.id == data['id']:
+            if _id == data['id']:
                 return Chapter(
                     data=data,
                     use_group_name=not self.no_group_name,
@@ -354,21 +356,26 @@ class IteratorChapter:
         chap_ids = []
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
-                chap_ids.append([chapter.id])
+                chaps = [chapter.id]
+                chaps.extend(chapter.others_id)
+                chap_ids.extend(chaps)
 
         # FIXME: Use better way to iterate chapters
+        limit = 100
         chapters_data = []
         while chap_ids:
-            ids = chap_ids[:100]
-            del chap_ids[:100]
+            ids = chap_ids[:limit]
+            del chap_ids[:limit]
             data = get_bulk_chapters(ids)['data']
             chapters_data.extend(data)
             
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
-                chap = self._get_chapter(chapter, chapters_data)
-                self.queue.put(chap)
-
+                chap_others = [chapter.id]
+                chap_others.extend(chapter.others_id)
+                for ag_chap in chap_others:
+                    chap = self._get_chapter(ag_chap, chapters_data)
+                    self.queue.put(chap)
 
 class MangaChapter:
     def __init__(self, manga, lang, chapter=None, all_chapters=False):
