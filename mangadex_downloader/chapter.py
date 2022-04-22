@@ -141,7 +141,18 @@ class Chapter:
 
     @property
     def volume(self):
-        return self._attr['volume']
+        vol = self._attr['volume']
+        if vol is not None:
+            # As far as i know
+            # Volume manga are integer numbers, not float
+            try:
+                return int(vol)
+            except ValueError:
+                # To prevent unexpected error
+                return float(vol)
+
+        # No volume
+        return vol
 
     @property
     def chapter(self):

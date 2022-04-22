@@ -68,6 +68,9 @@ class NumberWithLeadingZeros:
         self._total = total_num
         self._num = 0
 
+    def reset(self):
+        self._num = 0
+
     def increase(self):
         self._num += 1
     
