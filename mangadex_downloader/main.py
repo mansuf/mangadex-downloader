@@ -12,7 +12,7 @@ from .language import Language, get_language
 from .utils import download as download_file
 from .errors import InvalidURL
 from .fetcher import *
-from .manga import Manga
+from .manga import IteratorManga, Manga
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 __all__ = (
     'download', 'download_chapter', 'download_list',
-    'fetch', 'login', 'logout'
+    'fetch', 'login', 'logout', 'search'
 )
 
 def login(*args, **kwargs):
@@ -71,33 +71,10 @@ def _get_manga_from_chapter(chapter_id):
 def _fetch_manga(
     manga_id,
     lang,
-    fetch_relationships=True,
     fetch_all_chapters=True,
     use_alt_details=False
 ):
-    data = get_manga(manga_id)
-
-    if fetch_relationships:
-        # Append some additional informations
-        rels = data['data']['relationships']
-        authors = []
-        artists = []
-        for rel in rels:
-            _type = rel.get('type')
-
-            if _type == 'author':
-                authors.append(Author(data=rel))
-
-            elif _type == 'artist':
-                artists.append(Artist(data=rel))
-
-            elif _type == 'cover_art':
-                data['cover_art'] = CoverArt(data=rel)
-
-        data['authors'] = authors
-        data['artists'] = artists
-
-    manga = Manga(data, use_alt_details)
+    manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
 
     if fetch_all_chapters:
         # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
@@ -109,6 +86,16 @@ def _fetch_manga(
         manga._chapters = chapters
 
     return manga
+
+def search(*args, **kwargs):
+    """Search manga
+
+    Parameters
+    -----------
+    title: :class:`str`
+        Manga title
+    """
+    return IteratorManga(*args, **kwargs)
 
 def fetch(url, language=Language.English, use_alt_details=False):
     """Fetch the manga
@@ -441,7 +428,7 @@ def download_list(
         _id = rel['id']
         _type = rel['type']
         if _type == "manga":
-            manga = _fetch_manga(_id, "en", fetch_all_chapters=False, fetch_relationships=False)
+            manga = _fetch_manga(_id, "en", fetch_all_chapters=False)
             log.info("Found \"%s\" manga from \"%s\" list" % (manga.title, name))
             mangas_id.append(_id)
 

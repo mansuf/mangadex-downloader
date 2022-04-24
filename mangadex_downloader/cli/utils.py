@@ -66,3 +66,41 @@ def close_network_object():
     log.info("Cleaning up...")
     log.debug("Closing netwok object")
     Net.close()
+
+class PaginatorSearchResults:
+    def __init__(self, limit=10):
+        self._pages = {}
+        self._size = 0
+        self._pos = 0
+        self._item_pos = 1
+        self.limit = limit
+
+    def add_page(self, *data):
+        items = []
+        for item in data:
+            items.append({
+                "pos": self._item_pos,
+                "item": item
+            })
+            self._item_pos += 1
+
+        if not items:
+            return
+
+        self._pages[self._size] = items
+
+        self._size += 1
+        
+    def next(self):
+        self._pos += 1
+    
+    def previous(self):
+        if (self._pos - 1) < 0:
+            raise IndexError
+
+        self._pos -= 1
+
+    def print(self):
+        page = self._pages[self._pos]
+        for item in page:
+            print(f"({item['pos']}). {item['item']}")

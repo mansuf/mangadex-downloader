@@ -5,7 +5,8 @@ import threading
 import sys
 
 from .url import build_URL_from_type, smart_select_url, valid_types
-from .utils import setup_logging, sys_argv
+from .utils import PaginatorSearchResults, setup_logging, sys_argv
+from ..main import search
 from ..update import update_app
 from ..utils import (
     valid_cover_types,
@@ -16,6 +17,7 @@ from ..utils import (
 )
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
+from ..format.utils import NumberWithLeadingZeros
 from ..errors import InvalidURL
 from .. import __description__
 
@@ -116,22 +118,122 @@ class InputHandler(argparse.Action):
             pipe = False
             pipe_value = None
 
+        self.search = '--search' in lowered_args
+
         # Manipulate positional arguments
         if pipe:
             sys_argv.append(pipe_value)
 
         self.pipe = pipe
-        try:
-            self.pipe_value = validate_url(pipe_value) if pipe_value is not None else None
-        except argparse.ArgumentTypeError as e:
-            print(str(e), file=sys.stderr)
-            sys.exit(1)
+        self.pipe_value = pipe_value
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if self.pipe:
-            setattr(namespace, self.dest, self.pipe_value)
-        else:
-            setattr(namespace, self.dest, values)
+        urls = self.pipe_value if self.pipe else values
+
+        if self.pipe and self.search:
+            parser.error("search with pipe input are not supported")
+
+        if not self.search:
+            try:
+                setattr(namespace, self.dest, validate_url(urls))
+            except argparse.ArgumentTypeError as e:
+                parser.error(str(e))
+            return
+        
+        def print_err(text):
+            print(f"\n{text}\n")
+
+        # Begin searching
+        iterator = search(urls)
+        count = 1
+        choices = {}
+        paginator = PaginatorSearchResults()
+
+        # For next results
+        choices['next'] = "next"
+
+        # For previous results
+        choices['previous'] = "previous"
+
+        fetch = True
+        while True:
+            if fetch:
+                mangas = []
+                # 10 results displayed at the screen
+                for _ in range(10):
+                    try:
+                        mangas.append(next(iterator))
+                    except StopIteration:
+                        pass
+                
+                if mangas:                    
+                    paginator.add_page(*[manga.title for manga in mangas])
+
+                    # Append choices for user input
+                    for manga in mangas:
+                        choices[str(count)] = manga
+                        count += 1
+                else:
+                    print_err("[ERROR] There are no more results")
+                    paginator.previous()
+
+            def print_choices():
+                text = f"Search results for \"{urls}\""
+
+                # Build dynamic bars
+                dynamic_bar = ""
+                for _ in range(len(text)):
+                    dynamic_bar += "="
+                
+                print(dynamic_bar)
+                print(text)
+                print(dynamic_bar)
+
+                paginator.print()
+                
+                print("")
+
+                print("type \"next\" to show next results")
+                print("type \"previous\" to show previous results")
+
+            print_choices()
+
+            # User input
+            _next = False
+            previous = False
+            while True:
+                choice = input("=> ")
+                try:
+                    manga = choices[choice]
+                except KeyError:
+                    print_err('[ERROR] Invalid choice, try again')
+                    print_choices()
+                    continue
+                else:
+                    if manga == "next":
+                        _next = True
+                    elif manga == "previous":
+                        try:
+                            paginator.previous()
+                        except IndexError:
+                            print_err('[ERROR] Choices are out of range, try again')
+                            print_choices()
+                            continue
+
+                        previous = True
+                    break
+            
+            if _next:
+                paginator.next()
+                fetch = True
+                continue
+            elif previous:
+                fetch = False
+                continue
+            else:
+                break
+        
+        setattr(namespace, self.dest, validate_url(manga.id))        
 
 def get_args(argv):
     parser = argparse.ArgumentParser(description=__description__)
@@ -139,7 +241,7 @@ def get_args(argv):
         'URL',
         action=InputHandler,
         help='MangaDex URL or a file containing MangaDex URLs',
-        type=validate_url,
+        # type=validate_url,
     )
     parser.add_argument(
         '--type',
@@ -149,6 +251,7 @@ def get_args(argv):
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
+    parser.add_argument('--search', action='store_true')
 
     # Manga related
     manga_group = parser.add_argument_group('Manga')

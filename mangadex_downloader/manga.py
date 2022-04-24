@@ -1,17 +1,46 @@
 import logging
+import queue
 
-from .network import uploads_url
+from .fetcher import get_manga
+from .errors import MangaDexException
+from .network import uploads_url, Net, base_url
 from .language import get_details_language
 from .utils import get_local_attr
+from .artist_and_author import Author, Artist
+from .cover import CoverArt
 
 log = logging.getLogger(__name__)
 
 class Manga:
-    def __init__(self, data, use_alt_details=False):
-        self._data = data.get('data')
-        self._artists = data.get('artists')
-        self._authors = data.get('authors')
-        self._cover = data.get('cover_art')
+    def __init__(self, data=None, _id=None, use_alt_details=False):
+        if _id and data:
+            raise ValueError("_id and data cannot be together")
+
+        if _id:
+            self._data = get_manga(_id)['data']
+        else:
+            self._data = data
+
+        # Append some additional informations
+        rels = self._data['relationships']
+        authors = []
+        artists = []
+        cover_art = None
+        for rel in rels:
+            _type = rel.get('type')
+
+            if _type == 'author':
+                authors.append(Author(data=rel))
+
+            elif _type == 'artist':
+                artists.append(Artist(data=rel))
+
+            elif _type == 'cover_art':
+                cover_art = CoverArt(data=rel)
+
+        self._artists = artists
+        self._authors = authors
+        self._cover = cover_art
         self._attr = self._data.get('attributes')
         self._use_alt_details = use_alt_details
         self._chapters = None
@@ -194,3 +223,53 @@ class Manga:
     def status(self):
         """:class:`str`: Status of the manga"""
         return self._attr.get('status').capitalize()
+
+class OverflowResults(MangaDexException):
+    """Raised when offset search is reached maximum number (10000)"""
+    pass
+
+class IteratorManga:
+    def __init__(self, title):
+        self.limit = 100
+        self.title = title
+        self.offset = 0
+
+        self._queue = queue.Queue()
+
+    def __iter__(self) -> "IteratorManga":
+        return self
+
+    def __next__(self) -> Manga:
+        if self._queue.empty():
+            try:
+                self._fill_data()
+            except OverflowResults:
+                raise StopIteration()
+
+        try:
+            return self._queue.get_nowait()
+        except queue.Empty:
+            raise StopIteration()
+
+    def _fill_data(self):
+        # Maximum number of results from MangaDex API
+        if self.offset >= 10000:
+            raise OverflowResults()
+
+        includes = ['author', 'artist', 'cover_art']
+        params = {
+            'includes[]': includes,
+            'title': self.title,
+            'limit': self.limit,
+            'offset': self.offset
+        }
+        url = f'{base_url}/manga'
+        r = Net.requests.get(url, params=params)
+        data = r.json()
+
+        items = data['data']
+        
+        for item in items:
+            self._queue.put(Manga(data=item))
+
+        self.offset += len(items)
