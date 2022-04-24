@@ -218,8 +218,8 @@ class ChapterPageDownloader(FileDownloader):
             # See #14
             # Download is not finished but marked as "finished"
             if current_size != file_sizes:
-                log.warning("File download is incomplete, restarting download...")
                 self.cleanup()
+                log.warning("File download is incomplete, restarting download...")
                 continue
 
             self._write_final_file()
