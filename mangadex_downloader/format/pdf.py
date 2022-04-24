@@ -7,7 +7,7 @@ import shutil
 from pathvalidate import sanitize_filename
 from tqdm import tqdm
 from .base import BaseFormat
-from .utils import get_mark_image, delete_file
+from .utils import FileTracker, NumberWithLeadingZeros, get_mark_image, delete_file
 from ..errors import PillowNotInstalled
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
@@ -557,6 +557,164 @@ class PDFSingle(PDF):
 
         # Save it as pdf
         worker.submit(save_pdf)
+
+        # Shutdown queue-based thread process
+        worker.shutdown()
+
+class PDFVolume(PDF):
+    def main(self):
+        base_path = self.path
+        manga = self.manga
+        compressed_image = self.compress_img
+        replace = self.replace
+        worker = self.create_worker()
+        volume_folders = []
+
+        # Sorting volumes
+        log.info("Preparing to download")
+        cache = {}
+        def append_cache(volume, item):
+            try:
+                data = cache[volume]
+            except KeyError:
+                cache[volume] = [item]
+            else:
+                data.append(item)
+
+        kwargs_iter = self.kwargs_iter.copy()
+        kwargs_iter['log_cache'] = True
+        for chap_class, images in manga.chapters.iter(**kwargs_iter):
+            append_cache(chap_class.volume, [chap_class, images])
+
+        # Begin downloading
+        for volume, chapters in cache.items():
+            count = NumberWithLeadingZeros(0)
+
+            # Build volume folder name
+            if volume is not None:
+                vol_name = f'Volume. {volume}'
+            else:
+                vol_name = 'No Volume'
+
+            pdf_name = vol_name + '.pdf'
+            pdf_file = base_path / pdf_name
+
+            # This file is for tracking downloaded chapter images
+            # if gets deleted, the chapter images will be re-downloaded from zero
+            tracker = FileTracker(pdf_name, base_path)
+
+            if replace:
+                tracker.reset()
+            
+            exists_download = tracker.exists()
+
+            def pdf_file_exists(converting=False):
+                if replace and not converting:
+                    try:
+                        delete_file(pdf_file)
+                    except FileNotFoundError:
+                        pass
+                return os.path.exists(pdf_file)
+
+            if pdf_file_exists() and not exists_download and not replace:
+                log.info("Volume PDF file exist and replace is False, cancelling download...")
+                continue
+
+            imgs = []
+            for chap_class, images in chapters:
+                # Group name will be placed inside the start of the chapter images
+                chap = chap_class.chapter
+                chap_name = chap_class.name
+
+                log.info('Getting %s from chapter %s' % (
+                    'compressed images' if compressed_image else 'images',
+                    chap
+                ))
+                images.fetch()
+
+                # Create volume folder
+                volume_path = create_chapter_folder(base_path, vol_name)
+                volume_folders.append(volume_path)
+
+                # Insert "start of the chapter" image
+                imgs.append(
+                    _ChapterMarkImage(
+                        get_mark_image,
+                        [chap_class]
+                    )
+                )
+                count.increase()
+
+                while True:
+                    error = False
+                    for page, img_url, img_name in images.iter():
+                        img_ext = os.path.splitext(img_name)[1]
+                        img_name = count.get() + img_ext
+                        img_path = volume_path / img_name
+                        
+                        log.info('Downloading %s page %s' % (chap_name, page))
+
+                        if tracker.check(img_name) and not self.replace:
+                            imgs.append(Image.open(img_path))
+                            log.info("File exist and replace is False, cancelling download...")
+                            count.increase()
+                            continue
+
+                        downloader = ChapterPageDownloader(
+                            img_url,
+                            img_path,
+                            replace=replace
+                        )
+                        success = downloader.download()
+
+                        # One of MangaDex network are having problem
+                        # Fetch the new one, and start re-downloading
+                        if not success:
+                            log.error('One of MangaDex network are having problem, re-fetching the images...')
+                            log.info('Getting %s from chapter %s' % (
+                                'compressed images' if compressed_image else 'images',
+                                chap
+                            ))
+                            error = True
+                            images.fetch()
+                            break
+                        else:
+                            count.increase()
+                            imgs.append(Image.open(img_path))
+                            tracker.register(img_name)
+                            continue
+                    
+                    if not error:
+                        break
+
+            log.info(f"{vol_name} has finished download, converting to pdf...")
+
+            pdf_plugin = PDFPlugin(imgs)
+
+            # The first one image always be _ChapterMarkImage object
+            start_img = imgs.pop(0)
+            im = start_img.func(*start_img.args)
+
+            # Convert it to PDF
+            def save_pdf():
+                im.save(
+                    pdf_file,
+                    save_all=True,
+                    append=True if pdf_file_exists(True) else False,
+                    append_images=imgs
+                )
+
+                # Close PDF convert progress bar
+                pdf_plugin.close_progress_bar()
+
+                # Cleaning up
+                tracker.close()
+
+                for folder in volume_folders:
+                    shutil.rmtree(folder, ignore_errors=True)
+
+            # Save it as pdf
+            worker.submit(save_pdf)
 
         # Shutdown queue-based thread process
         worker.shutdown()

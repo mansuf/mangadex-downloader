@@ -1,7 +1,11 @@
+import json
 import logging
 import os
+import threading
 import time
 import textwrap
+
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -105,3 +109,97 @@ def delete_file(file):
             break
     if err is not None:
         raise err
+
+class DuplicateError(Exception):
+    pass
+
+class FileTracker:
+    """An utility to tracking files
+    
+    Will be used for any "single" and "volume" format
+    """
+    def __init__(self, name, base_path=None):
+        self.path = base_path
+        self.name = name
+
+        if self.path is not None:
+            file = base_path
+        else:
+            file = Path('.')
+
+        file /= ('.' + name + '.tracker.json')
+        self.file = file
+
+        self.data = None
+
+        # For thread-safe operations during read & write
+        self._lock = threading.Lock()
+
+    def exists(self):
+        return self.file.exists()
+
+    def _create_file(self):
+        if not self.exists():
+            self.file.write_text(json.dumps(
+                {"files": []}
+            ))
+
+    def close(self):
+        if self.exists():
+            delete_file(self.file)
+
+    def reset(self):
+        if self.exists():
+            delete_file(self.file)
+        
+        self._create_file()
+
+    def _load(self):
+        with self._lock:
+            self._create_file()
+
+            data = None
+            err = None
+            for _ in range(5):
+                try:
+                    data = json.loads(self.file.read_text())
+                except json.JSONDecodeError as e:
+                    err = e
+                    self.reset()
+                else:
+                    break
+
+            if data is None:
+                raise RuntimeError(f"Failed to load tracker file {self.file}, reason: {err}")
+
+            self.data = data
+
+    def check(self, filename):
+        self._load()
+
+        files = self.data['files']
+
+        for file in files:
+            if file['name'] == filename:
+                return True
+        
+        return False
+
+    def _write(self, data):
+        self.file.write_text(json.dumps(data, indent=4))
+
+    def register(self, filename):
+        if self.check(filename):
+            raise DuplicateError(f"Found duplicate object in {self.file} = {filename}")
+        
+        with self._lock:
+            item = {
+                'name': filename
+            }
+
+            self.data['files'].append(item)
+
+            self._write(self.data)
+
+        # Update the data
+        self._load()

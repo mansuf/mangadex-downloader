@@ -229,8 +229,11 @@ class ChapterPageDownloader(FileDownloader):
             return True
 
     def _write_final_file(self):
+        # "Circular imports" problem
+        from .format.utils import delete_file
+
         if os.path.exists(self.real_file):
-            os.remove(self.real_file)
+            delete_file(self.real_file)
 
         chunk_size = 2 ** 16
 
@@ -245,7 +248,7 @@ class ChapterPageDownloader(FileDownloader):
         w_fp.close()
         r_fp.close()
 
-        os.remove(self.file)
+        delete_file(self.file)
 
     def _report(self, resp, size, _time, success):
         self.cleanup()
