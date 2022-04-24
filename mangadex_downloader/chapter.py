@@ -368,7 +368,8 @@ class IteratorChapter:
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
                 chaps = [chapter.id]
-                chaps.extend(chapter.others_id)
+                if chapter.others_id:
+                    chaps.extend(chapter.others_id)
                 chap_ids.extend(chaps)
 
         # FIXME: Use better way to iterate chapters
@@ -383,7 +384,8 @@ class IteratorChapter:
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
                 chap_others = [chapter.id]
-                chap_others.extend(chapter.others_id)
+                if chapter.others_id:
+                    chap_others.extend(chapter.others_id)
                 for ag_chap in chap_others:
                     chap = self._get_chapter(ag_chap, chapters_data)
                     self.queue.put(chap)
@@ -416,7 +418,7 @@ class MangaChapter:
         # "api.mangadex.org/{manga-id}/aggregate" data for self._parse_volumes
         aggregate_data = {
             "volumes": {
-                chap.volume: {
+                str(chap.volume): {
                     "volume": chap.volume,
                     "chapters": {
                         chap.chapter: {
