@@ -207,7 +207,7 @@ class Chapter:
         name += self._name
 
         # Chapter title
-        if not self.title:
+        if self.title:
             name += f' - {sanitize_filename(self.title)}'
 
         return name
