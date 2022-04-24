@@ -1,7 +1,7 @@
 from .raw import Raw, RawSingle, RawVolume
 from .pdf import PDF, PDFSingle
 from .tachiyomi import Tachiyomi, TachiyomiZip
-from .comic_book import ComicBookArchive, ComicBookArchiveSingle
+from .comic_book import ComicBookArchive, ComicBookArchiveSingle, ComicBookArchiveVolume
 from ..errors import InvalidFormat
 
 formats = {
@@ -13,6 +13,7 @@ formats = {
     "pdf": PDF,
     "pdf-single": PDFSingle,
     "cbz": ComicBookArchive,
+    "cbz-volume": ComicBookArchiveVolume,
     "cbz-single": ComicBookArchiveSingle
 }
 
