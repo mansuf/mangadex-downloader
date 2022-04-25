@@ -1,6 +1,5 @@
 bs4
 requests[socks]
 tqdm
-aiohttp
 pathvalidate
 packaging
