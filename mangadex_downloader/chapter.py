@@ -368,7 +368,7 @@ class IteratorChapter:
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
                 chaps = [chapter.id]
-                if chapter.others_id:
+                if chapter.others_id and self.group == "all":
                     chaps.extend(chapter.others_id)
                 chap_ids.extend(chaps)
 
@@ -384,7 +384,7 @@ class IteratorChapter:
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
                 chap_others = [chapter.id]
-                if chapter.others_id:
+                if chapter.others_id and self.group == "all":
                     chap_others.extend(chapter.others_id)
                 for ag_chap in chap_others:
                     chap = self._get_chapter(ag_chap, chapters_data)
