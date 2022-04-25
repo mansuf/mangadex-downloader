@@ -168,8 +168,12 @@ class InputHandler(argparse.Action):
                         choices[str(count)] = manga
                         count += 1
                 else:
-                    print_err("[ERROR] There are no more results")
-                    paginator.previous()
+                    try:
+                        paginator.previous()
+                    except IndexError:
+                        parser.error(f"Search results \"{urls}\" are empty")
+                    else:
+                        print_err("[ERROR] There are no more results")
 
             def print_choices():
                 text = f"Search results for \"{urls}\""
