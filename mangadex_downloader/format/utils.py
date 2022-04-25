@@ -7,6 +7,8 @@ import textwrap
 
 from pathlib import Path
 
+from ..errors import MangaDexException
+
 log = logging.getLogger(__name__)
 
 try:
@@ -20,12 +22,37 @@ except ImportError:
 
 rgb_white = (255, 255, 255)
 rgb_black = (0, 0, 0)
-font_family = "arial.ttf"
+font_family = 'arial.ttf'
 font_size = 30
 image_size = (720, int(1100 / 1.25))
 image_mode = "RGB"
 text_pos = (150, int(450 / 1.25))
 text_align = "center"
+
+# For some reason, filename font are case-sensitive
+list_font_family = [
+    font_family,
+    font_family.capitalize(),
+]
+
+class FontNotFound(MangaDexException):
+    """Raised when loading specified font are not found"""
+    pass
+
+def load_font():
+    for font in list_font_family:
+        try:
+            return ImageFont.truetype(font, font_size)
+        except OSError as e:
+            err_msg = str(e)
+            if 'cannot open resource' in err_msg:
+                # Font not found
+                continue
+            
+            # Other error
+            raise e from None
+
+    raise FontNotFound(f'fonts {list_font_family} are not found')
 
 def get_mark_image(chapter):
     text = ""
@@ -45,7 +72,7 @@ def get_mark_image(chapter):
 
     text +=  f"Translated by: {chapter.groups_name}"
 
-    font = ImageFont.truetype(font_family, font_size)
+    font = load_font()
     img = Image.new(image_mode, image_size, rgb_white)
     draw = ImageDraw.Draw(img, image_mode)
     draw.multiline_text(text_pos, text, rgb_black, font, align='center')
