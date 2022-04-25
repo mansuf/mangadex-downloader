@@ -21,12 +21,6 @@ from ..format.utils import NumberWithLeadingZeros
 from ..errors import InvalidURL
 from .. import __description__
 
-# Dummy class for storing parser object
-class _dummy():
-    pass
-global_parser = _dummy()
-global_parser.parser = None
-
 log = logging.getLogger(__name__)
 
 def _validate(url):
@@ -251,7 +245,7 @@ def get_args(argv):
     parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
-    parser.add_argument('--search', action='store_true')
+    parser.add_argument('--search', help='Search manga and then download it', action='store_true')
 
     # Manga related
     manga_group = parser.add_argument_group('Manga')
