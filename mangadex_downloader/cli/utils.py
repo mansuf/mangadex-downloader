@@ -67,7 +67,7 @@ def close_network_object():
     log.debug("Closing netwok object")
     Net.close()
 
-class PaginatorSearchResults:
+class Paginator:
     def __init__(self, limit=10):
         self._pages = {}
         self._size = 0

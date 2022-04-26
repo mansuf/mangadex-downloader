@@ -5,7 +5,7 @@ import threading
 import sys
 
 from .url import build_URL_from_type, smart_select_url, valid_types
-from .utils import PaginatorSearchResults, setup_logging, sys_argv
+from .utils import Paginator, setup_logging, sys_argv
 from ..main import search
 from ..update import update_app
 from ..utils import (
@@ -141,7 +141,7 @@ class InputHandler(argparse.Action):
         iterator = search(urls)
         count = 1
         choices = {}
-        paginator = PaginatorSearchResults()
+        paginator = Paginator()
 
         # For next results
         choices['next'] = "next"
