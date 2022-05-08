@@ -5,7 +5,7 @@ from .errors import MangaDexException
 class InvalidExpression(MangaDexException):
     pass
 
-def _err_invalid_expr(text, err_expr, char, msg):
+def _err_invalid_expr(text, err_expr, msg):
     copy_text = str(text)
     # Append remaining expression
     expr = ""
@@ -49,7 +49,6 @@ def _parse_expr(text):
                 _err_invalid_expr(
                     text,
                     expr,
-                    char,
                     'Not (!) expression should be followed by numbers'
                 )
             if expr:
@@ -65,6 +64,7 @@ def _parse_expr(text):
                 continue
             # We're looking for not expression (!)
             elif char == '!' and not found_not_expr and not found_number:
+                # breakpoint()
                 expr += char
                 found_not_expr = True
                 text = text[len(char):]
@@ -79,7 +79,6 @@ def _parse_expr(text):
                     _err_invalid_expr(
                         text,
                         expr,
-                        char,
                         'Not (!) expression should be followed by numbers'
                     )
 
@@ -106,6 +105,10 @@ def _parse_expr(text):
                         text = text[len(char):]
                         reset_state()
                         continue
+                    
+                    expr += char
+                    text = text[len(char):]
+                    continue
 
             # We're looking for numbers
             elif not found_number:
@@ -125,20 +128,26 @@ def _parse_expr(text):
                     found_number = True
                     text = text[len(num_match.group()):]
                     continue
+                elif char == '[' or char == ']':
+                    _err_invalid_expr(
+                        text,
+                        expr,
+                        "Square bracket shouldn\'t be used without numbers"
+                    )
                 else:
-                    _err_invalid_expr(text, expr, char, f"Invalid character found = '{char}'")
+                    _err_invalid_expr(text, expr, f"Invalid character found = '{char}'")
             elif found_number:
                 # Once we found the number we're looking for square brackets [] (pages expression)
 
                 # If close square bracket in front, throw error
                 if char == ']' and not open_square_bracket:
-                    _err_invalid_expr(text, expr, char, "closing square bracket shouldn\'t be in front")
+                    _err_invalid_expr(text, expr, "closing square bracket shouldn\'t be in front")
                 
                 # We found the opening square bracket
                 if char == '[':
                     # Duplicate opening square bracket
                     if open_square_bracket:
-                        _err_invalid_expr(text, expr, char, 'Found duplicate opening square bracket')
+                        _err_invalid_expr(text, expr, 'Found duplicate opening square bracket')
 
                     open_square_bracket = True
                     expr += char
@@ -149,7 +158,7 @@ def _parse_expr(text):
                     if char == ']':
                         # Duplicate closing square bracket
                         if close_square_bracket:
-                            _err_invalid_expr(text, expr, char, 'Found duplicate closing square bracket')
+                            _err_invalid_expr(text, expr, 'Found duplicate closing square bracket')
 
                         next_char = text[len(char):]
                         if not next_char:
@@ -168,6 +177,9 @@ def _parse_expr(text):
                     elif char == " ":
                         text = text[len(char):]
                         continue
+                    # Unclosed square bracket, raise error
+                    elif char == ",":
+                        _err_invalid_expr(text, expr, 'Unclosed square bracket')
                     else:
                         # Append additional characters
                         expr += char
@@ -189,7 +201,6 @@ def _parse_expr(text):
                         _err_invalid_expr(
                             text,
                             expr,
-                            char,
                             f'Invalid character found in the end of square bracket = "{char}"'
                         )
 
@@ -213,7 +224,6 @@ def _parse_expr(text):
                         _err_invalid_expr(
                             text,
                             expr,
-                            char,
                             'Not (!) expression should be not placed in the end of numbers'
                         )
 
@@ -284,8 +294,20 @@ class _RangeStarttoEnd(_Base):
         
         return True
 
+re_numbers = r''
 
-class RangeChecker:
+# From start to end
+re_numbers += r'(?P<starttoend>[0-9]{1,}-{1,})'
+
+# End from
+re_numbers += r'(?P<startfrom>[0-9]{0,}-[0-9]{1,})'
+
+# Start from
+re_numbers += r'(?P<endfrom>[0-9]{1,}-[0-9]{0,})'
+
+
+
+class RangeExpression:
     def __init__(self, expr):
         self.expr = _parse_expr(expr)
         self.checkers = {}
@@ -304,7 +326,7 @@ class RangeChecker:
         if match is not None:
             return match.group('chapter'), None
     
-    def _register_chapter_chkr(self, chapter, pages=None):
+    def _register_chkr(self, chapter, pages=None):
 
         pass
 
