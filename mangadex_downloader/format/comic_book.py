@@ -121,6 +121,12 @@ class ComicBookArchive(BaseFormat):
         worker.shutdown()
 
 class ComicBookArchiveVolume(BaseFormat):
+    def __init__(self, *args, **kwargs):
+        if not pillow_ready:
+            raise PillowNotInstalled("pillow is not installed")
+        
+        super().__init__(*args, **kwargs)
+
     def main(self):
         base_path = self.path
         manga = self.manga
