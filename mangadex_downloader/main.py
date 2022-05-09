@@ -94,6 +94,11 @@ def search(*args, **kwargs):
     -----------
     title: :class:`str`
         Manga title
+
+    Returns
+    --------
+    :class:`IteratorManga`
+        An iterator that yield :class:`Manga`
     """
     return IteratorManga(*args, **kwargs)
 
@@ -115,6 +120,11 @@ def fetch(url, language=Language.English, use_alt_details=False):
         Given manga cannot be found
     ChapterNotFound
         Given manga has no chapters
+
+    Returns
+    --------
+    :class:`Manga`
+        An fetched manga
     """
     # Parse language
     if isinstance(language, Language):
@@ -206,6 +216,11 @@ def download(
         Given manga cannot be found
     ChapterNotFound
         Given manga has no chapters
+
+    Returns
+    --------
+    :class:`Manga`
+        An downloaded manga
     """
     # Validate start_chapter and end_chapter param
     if start_chapter is not None and not isinstance(start_chapter, float):
@@ -336,6 +351,11 @@ def download_chapter(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
+
+    Returns
+    --------
+    :class:`Manga`
+        An :class:`Manga` that has this chapter
     """
     # Validate start_page and end_page param
     if start_page is not None and not isinstance(start_page, int):
@@ -411,6 +431,30 @@ def download_list(
     legacy_sorting=False,
     use_chapter_title=True
 ):
+    """Download a list
+
+    Parameters
+    -----------
+    url: :class:`str`
+        A MangaDex URL or chapter id
+    folder: :class:`str` (default: ``None``)
+        Store chapter manga in given folder
+    replace: :class:`bool` (default: ``False``)
+        Replace chapter manga if exist
+    compressed_image: :class:`bool` (default: ``False``)
+        Use compressed images for low size when downloading chapter manga
+    save_as: :class:`str` (default: ``tachiyomi``)
+        Choose save as format
+    no_group_name: :class:`bool` (default: ``False``)
+        If ``True``, Do not use scanlation group name for each chapter.
+    group: :class:`str` (default: ``None``)
+        Use different scanlation group for each chapter.
+    legacy_sorting: :class:`bool` (default: ``False``)
+        if ``True``, Enable legacy sorting chapter images for old reader application.
+    use_chapter_title: :class:`bool` (default: ``False``)
+        If ``True``, use chapter title for each chapters.
+        NOTE: This option is useless if used with any single format.
+    """
     log.debug('Validating the url...')
     try:
         list_id = validate_url(url)
