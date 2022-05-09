@@ -42,14 +42,14 @@ def _parse_expr(text):
 
     while True:
         if not text:
-            # Add some extra checking for not expression
+            # Add some extra checking for not operator
             if expr == "!" and found_not_expr:
-                # ! expr is not followed by the numbers
+                # ! operator is not followed by the numbers
                 # it should be !90, not ! only
                 _err_invalid_expr(
                     text,
                     expr,
-                    'Not (!) expression should be followed by numbers'
+                    'Not (!) operator should be followed by numbers'
                 )
             if expr:
                 # Append final expression
@@ -77,7 +77,7 @@ def _parse_expr(text):
                     # Continue to find other expressions
                     text = text[len(char):]
                     continue
-            # We're looking for not expression (!)
+            # We're looking for not operator (!)
             elif char == '!' and not found_not_expr and not found_number:
                 # breakpoint()
                 expr += char
@@ -94,7 +94,7 @@ def _parse_expr(text):
                     _err_invalid_expr(
                         text,
                         expr,
-                        'Not (!) expression should be followed by numbers'
+                        'Not (!) operator should be followed by numbers'
                     )
 
                 if not found_number:
@@ -120,6 +120,13 @@ def _parse_expr(text):
                         text = text[len(char):]
                         reset_state()
                         continue
+
+                    if char == "-":
+                        _err_invalid_expr(
+                            text,
+                            expr,
+                            "Range operator (-) are not supported when used with not operator (!)"
+                        )
                     
                     expr += char
                     text = text[len(char):]
@@ -242,7 +249,7 @@ def _parse_expr(text):
                         _err_invalid_expr(
                             text,
                             expr,
-                            'Not (!) expression should be not placed in the end of numbers'
+                            'Not (!) operator should be not placed in the end of numbers'
                         )
 
                     expr += char
@@ -335,6 +342,9 @@ re_numbers += r'(?P<startfrom>[0-9]{0,}-[0-9]{1,})|'
 
 # Start from
 re_numbers += r'(?P<endfrom>[0-9]{1,}-[0-9]{0,})|'
+
+# Ignored number
+re_numbers += r'(?P<ignorednum>![0-9]{1,})|'
 
 # Check specified number
 re_numbers += r'(?P<checknum>[0-9]{1,})'
