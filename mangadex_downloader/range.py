@@ -58,10 +58,25 @@ def _parse_expr(text):
             break
 
         for char in text:
-            # Comma or whitespace detected, continue to find other expressions
             if (char == ',' or char == " ") and not found_number and not found_not_expr:
-                text = text[len(char):]
-                continue
+                # Finding oneshot
+                if expr and expr != "oneshot" and char == ",":
+                    # Not a oneshot
+                    _err_invalid_expr(
+                        text,
+                        expr,
+                        "Invalid character found"
+                    )
+                elif expr == "oneshot" and char == ",":
+                    # Add oneshot to list_expr
+                    list_expr.append(expr)
+                    text = text[len(char):]
+                    reset_state()
+                    continue
+                else:
+                    # Continue to find other expressions
+                    text = text[len(char):]
+                    continue
             # We're looking for not expression (!)
             elif char == '!' and not found_not_expr and not found_number:
                 # breakpoint()
@@ -135,7 +150,10 @@ def _parse_expr(text):
                         "Square bracket shouldn\'t be used without numbers"
                     )
                 else:
-                    _err_invalid_expr(text, expr, f"Invalid character found = '{char}'")
+                    expr += char
+                    text = text[len(char):]
+                    continue
+                    # _err_invalid_expr(text, expr, f"Invalid character found = '{char}'")
             elif found_number:
                 # Once we found the number we're looking for square brackets [] (pages expression)
 
@@ -294,18 +312,54 @@ class _RangeStarttoEnd(_Base):
         
         return True
 
+class _CheckNum(_Base):
+    def __init__(self, expr):
+        super().__init__()
+
+        self.num = float(expr)
+    
+    def check(self, num):
+        ignored = super().check()
+        if ignored:
+            return False
+        
+        return self.num == num
+
 re_numbers = r''
 
 # From start to end
-re_numbers += r'(?P<starttoend>[0-9]{1,}-{1,})'
+re_numbers += r'(?P<starttoend>[0-9]{1,}-{1,})|'
 
 # End from
-re_numbers += r'(?P<startfrom>[0-9]{0,}-[0-9]{1,})'
+re_numbers += r'(?P<startfrom>[0-9]{0,}-[0-9]{1,})|'
 
 # Start from
-re_numbers += r'(?P<endfrom>[0-9]{1,}-[0-9]{0,})'
+re_numbers += r'(?P<endfrom>[0-9]{1,}-[0-9]{0,})|'
 
+# Check specified number
+re_numbers += r'(?P<checknum>[0-9]{1,})'
 
+checkers = {
+    'starttoend': _RangeStarttoEnd,
+    'startfrom': _RangeStartFrom,
+    'endfrom': _RangeEndFrom,
+    'checknum': _CheckNum,
+}
+
+class _Checker:
+    def __init__(self, chap_expr, pages_expr):
+        # Chapter expression
+        match = re.match(re_numbers, chap_expr)
+        for key, val in match.groupdict():
+            if val is not None:
+                break
+        
+        check_cls = checkers[key]
+        self.chap = check_cls(val)
+
+        
+
+        pass
 
 class RangeExpression:
     def __init__(self, expr):
