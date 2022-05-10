@@ -49,7 +49,7 @@ mangadex-dl "34"
 ```
 ````
 
-By default, mangadex-downloader will detect MangaDex url type. It it's valid manga url it will download manga, if it's valid chapter url it will download chapter, etc. However, if you want to skip checking url type or having a weird issue (ex: the provided url are manga type, but when downloaded it become chapter or list), you can use `--type` option with valid url type. 
+By default, mangadex-downloader will detect MangaDex url type. If it's valid manga url it will download manga, if it's valid chapter url it will download chapter, etc. However, if you want to skip checking url type or having a weird issue (ex: the provided url are manga type, but when downloaded it become chapter or list), you can use `--type` option with valid url type. 
 
 For example:
 
@@ -106,7 +106,7 @@ $ mangadex-dl "yes-it-exist/exist.txt"
 
 ## Download manga, chapter or list in different format
 
-mangadex-downloader support download manga as different format. For more info about supported formats, you can see it here -> :doc:`formats`
+mangadex-downloader support download manga as different format. For more info about supported formats, you can see it here -> {doc}`formats`
 
 By default, mangadex-downloader will download in `raw` format. Which just a bunch of images stored in each chapter folder. You can use different format by using `--save-as` option.
 
