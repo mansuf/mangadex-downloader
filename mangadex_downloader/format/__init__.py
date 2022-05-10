@@ -18,7 +18,7 @@ formats = {
     "cbz-single": ComicBookArchiveSingle
 }
 
-default_save_as_format = "tachiyomi"
+default_save_as_format = "raw"
 
 def get_format(fmt):
     try:
