@@ -251,7 +251,7 @@ def get_args(argv):
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
     parser.add_argument('--search', help='Search manga and then download it', action='store_true')
-    parser.add_argument('--unsafe', help='Enable unsafe mode', action='store_true')
+    parser.add_argument('--unsafe', help='If set, it will allow you to search and download porn manga', action='store_true')
 
     # Manga related
     manga_group = parser.add_argument_group('Manga')
@@ -306,7 +306,7 @@ def get_args(argv):
     chap_group.add_argument(
         '--use-chapter-title',
         action='store_true',
-        help='Use chapter title for each chapters. NOTE: This option is useless if used with any single format.'
+        help='Use chapter title for each chapters. NOTE: This option is useless if used with any single and volume format.'
     ) 
 
     # Chapter page related
@@ -339,7 +339,7 @@ def get_args(argv):
     auth_group.add_argument('--login', help='Login to MangaDex', action='store_true')
     auth_group.add_argument(
         '--login-username',
-        help='Login to MangaDex with username (you will be prompted to input password if --login-password are not present)',
+        help='Login to MangaDex with username or email (you will be prompted to input password if --login-password are not present)',
         metavar='USERNAME'
     )
     auth_group.add_argument(
