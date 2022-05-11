@@ -148,6 +148,10 @@ mangadex-dl "komi san" --search
 # ...
 ```
 
+```{note}
+By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content [learn more here](#pornographic-content)
+```
+
 ## Pipe input
 
 mangadex-downloader support pipe input. You can use it by adding `-pipe` option.
