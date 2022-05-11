@@ -115,6 +115,7 @@ class InputHandler(argparse.Action):
 
         self.search = '--search' in lowered_args
         self.unsafe = '--unsafe' in lowered_args
+        self.use_alt_details = '--use-alt-details' in lowered_args
 
         # Manipulate positional arguments
         if pipe:
@@ -128,6 +129,8 @@ class InputHandler(argparse.Action):
 
         if self.pipe and self.search:
             parser.error("search with pipe input are not supported")
+        elif self.pipe and self.use_alt_details:
+            parser.error("--use-alt-details with -pipe are not supported")
 
         if not self.search:
             try:
