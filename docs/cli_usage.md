@@ -395,6 +395,17 @@ Example usage:
 mangadex-dl "https://mangadex.org/title/..." --enable-legacy-sorting
 ```
 
+## Pornographic content
+
+By default, mangadex-downloader doesn't allow downloading porn manga. If you're trying to do it, you will get "You are not allowed to see ..." error.
+
+However, IF YOU'RE REALLY WANT TO DOWNLOAD IT (for sake of you degenerate weeb), use `--unsafe` option.
+
+```shell
+mangadex-dl "https://mangadex.org/title/..." --unsafe
+```
+
+Stay in the bright side brothers 👍, don't let the dark side take control of you.
 
 ## Update mangadex-downloader
 
