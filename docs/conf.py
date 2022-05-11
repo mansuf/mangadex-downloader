@@ -56,6 +56,8 @@ myst_enable_extensions = [
 
 myst_linkify_fuzzy_links=False
 
+myst_heading_anchors = 3
+
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
