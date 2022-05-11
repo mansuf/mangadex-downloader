@@ -6,7 +6,7 @@ from .fetcher import get_manga
 from .errors import MangaDexException
 from .network import uploads_url, Net, base_url
 from .language import get_details_language
-from .utils import get_local_attr
+from .utils import get_local_attr, input_handle
 from .artist_and_author import Author, Artist
 from .cover import CoverArt
 
@@ -101,7 +101,7 @@ class Manga:
 
         # User input
         while True:
-            choice = input("=> ")
+            choice = input_handle("=> ")
             try:
                 title = choices[choice]
             except KeyError:
@@ -143,7 +143,7 @@ class Manga:
 
         # User input
         while True:
-            choice = input("=> ")
+            choice = input_handle("=> ")
             try:
                 desc = choices[choice]
             except KeyError:

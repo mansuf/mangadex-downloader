@@ -8,6 +8,7 @@ import sys
 from io import BytesIO
 from pathvalidate import sanitize_filename
 from enum import Enum
+from getpass import getpass
 from .errors import InvalidURL, NotLoggedIn
 from .downloader import FileDownloader, _cleanup_jobs
 from .network import Net
@@ -159,3 +160,16 @@ class File:
         """Change file name to new name, but the extension file will remain same"""
         self.name = new_name
 
+def input_handle(*args, **kwargs):
+    """Same as input(), except when user hit EOFError the function automatically called sys.exit(0)"""
+    try:
+        return input(*args, **kwargs)
+    except EOFError:
+        sys.exit(0)
+
+def getpass_handle(*args, **kwargs):
+    """Same as getpass(), except when user hit EOFError the function automatically called sys.exit(0)"""
+    try:
+        return getpass(*args, **kwargs)
+    except EOFError:
+        sys.exit(0)

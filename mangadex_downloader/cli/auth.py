@@ -2,7 +2,7 @@ import logging
 import re
 import sys
 
-from getpass import getpass
+from ..utils import getpass_handle, input_handle
 from ..main import login, logout
 from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
 from ..network import Net
@@ -50,17 +50,11 @@ def login_with_err_handler(args):
         username = None
 
         if not args.login_username:
-            try:
-                username = input("MangaDex username / email => ")
-            except EOFError:
-                sys.exit(0)
+            username = input_handle("MangaDex username / email => ")
         else:
             username = args.login_username
         if not args.login_password:
-            try:
-                password = getpass("MangaDex password => ")
-            except EOFError:
-                sys.exit(0)
+            password = getpass_handle("MangaDex password => ")
         else:
             password = args.login_password
 

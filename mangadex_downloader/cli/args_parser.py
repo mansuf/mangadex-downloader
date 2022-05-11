@@ -13,7 +13,8 @@ from ..utils import (
     default_cover_type,
     validate_url as __validate,
     validate_legacy_url,
-    validate_group_url as _validate_group_url
+    validate_group_url as _validate_group_url,
+    input_handle
 )
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
@@ -201,7 +202,7 @@ class InputHandler(argparse.Action):
             _next = False
             previous = False
             while True:
-                choice = input("=> ")
+                choice = input_handle("=> ")
                 try:
                     manga = choices[choice]
                 except KeyError:
