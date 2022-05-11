@@ -1,5 +1,6 @@
 import logging
 import queue
+from enum import Enum
 
 from .fetcher import get_manga
 from .errors import MangaDexException
@@ -10,6 +11,12 @@ from .artist_and_author import Author, Artist
 from .cover import CoverArt
 
 log = logging.getLogger(__name__)
+
+class ContentRating(Enum):
+    Safe = 'safe'
+    Suggestive = 'suggestive'
+    Erotica = 'erotica'
+    Pornographic = 'pornographic'
 
 class Manga:
     def __init__(self, data=None, _id=None, use_alt_details=False):
@@ -224,15 +231,21 @@ class Manga:
         """:class:`str`: Status of the manga"""
         return self._attr.get('status').capitalize()
 
+    @property
+    def content_rating(self):
+        """:class:`ContentRating`: Return content rating of the manga"""
+        return ContentRating(self._attr.get('contentRating'))
+
 class OverflowResults(MangaDexException):
     """Raised when offset search is reached maximum number (10000)"""
     pass
 
 class IteratorManga:
-    def __init__(self, title):
+    def __init__(self, title, unsafe=False):
         self.limit = 100
         self.title = title
         self.offset = 0
+        self.unsafe = unsafe
 
         self._queue = queue.Queue()
 
@@ -257,11 +270,22 @@ class IteratorManga:
             raise OverflowResults()
 
         includes = ['author', 'artist', 'cover_art']
+        content_ratings = [
+            'safe',
+            'suggestive',
+            'erotica',
+        ]
+
+        if self.unsafe:
+            # You degenerate weeb
+            content_ratings.append('pornographic')
+
         params = {
             'includes[]': includes,
             'title': self.title,
             'limit': self.limit,
-            'offset': self.offset
+            'offset': self.offset,
+            'contentRating[]': content_ratings
         }
         url = f'{base_url}/manga'
         r = Net.requests.get(url, params=params)

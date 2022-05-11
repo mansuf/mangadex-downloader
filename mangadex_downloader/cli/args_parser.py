@@ -113,6 +113,7 @@ class InputHandler(argparse.Action):
             pipe_value = None
 
         self.search = '--search' in lowered_args
+        self.unsafe = '--unsafe' in lowered_args
 
         # Manipulate positional arguments
         if pipe:
@@ -138,7 +139,7 @@ class InputHandler(argparse.Action):
             print(f"\n{text}\n")
 
         # Begin searching
-        iterator = search(urls)
+        iterator = search(urls, self.unsafe)
         count = 1
         choices = {}
         paginator = Paginator()
@@ -250,6 +251,7 @@ def get_args(argv):
     parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
     parser.add_argument('--search', help='Search manga and then download it', action='store_true')
+    parser.add_argument('--unsafe', help='Enable unsafe mode', action='store_true')
 
     # Manga related
     manga_group = parser.add_argument_group('Manga')

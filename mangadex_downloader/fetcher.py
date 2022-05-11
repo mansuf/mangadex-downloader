@@ -103,10 +103,18 @@ def get_chapter_images(chapter_id):
 def get_bulk_chapters(chap_ids):
     url = '{0}/chapter'.format(base_url)
     includes = ['scanlation_group', 'user']
+    # Validation content rating is on main.py
+    content_ratings = [
+        'safe',
+        'suggestive',
+        'erotica',
+        'pornographic'
+    ]
     params = {
         'ids[]': chap_ids,
         'limit': 100,
-        'includes[]': includes
+        'includes[]': includes,
+        'contentRating[]': content_ratings
     }
     r = Net.requests.get(url, params=params)
     return r.json()

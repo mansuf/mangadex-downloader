@@ -10,9 +10,9 @@ from .utils import (
 )
 from .language import Language, get_language
 from .utils import download as download_file
-from .errors import InvalidURL
+from .errors import InvalidURL, NotAllowed
 from .fetcher import *
-from .manga import IteratorManga, Manga
+from .manga import IteratorManga, Manga, ContentRating
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -94,6 +94,8 @@ def search(*args, **kwargs):
     -----------
     title: :class:`str`
         Manga title
+    unsafe: :class:`bool`
+        If ``True``, it will allow you to search "porn" content
 
     Returns
     --------
@@ -102,7 +104,7 @@ def search(*args, **kwargs):
     """
     return IteratorManga(*args, **kwargs)
 
-def fetch(url, language=Language.English, use_alt_details=False):
+def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
     """Fetch the manga
 
     Parameters
@@ -111,6 +113,10 @@ def fetch(url, language=Language.English, use_alt_details=False):
         A MangaDex URL or manga id
     language: :class:`Language` (default: :class:`Language.English`)
         Select a translated language for manga
+    use_alt_details: :class:`bool` (default: ``False``)
+        Use alternative title and description manga
+    unsafe: :class:`bool`
+        If ``True``, it will allow you to see "porn" content
 
     Raises
     -------
@@ -120,6 +126,8 @@ def fetch(url, language=Language.English, use_alt_details=False):
         Given manga cannot be found
     ChapterNotFound
         Given manga has no chapters
+    NotAllowed
+        ``unsafe`` is not enabled
 
     Returns
     --------
@@ -145,6 +153,10 @@ def fetch(url, language=Language.English, use_alt_details=False):
     # Begin fetching
     log.info('Fetching manga %s' % manga_id)
     manga = _fetch_manga(manga_id, lang, use_alt_details=use_alt_details)
+
+    if manga.content_rating == ContentRating.Pornographic and not unsafe:
+        raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
+
     log.info("Found manga \"%s\"" % manga.title)
 
     return manga
@@ -166,7 +178,8 @@ def download(
     no_group_name=False,
     group=None,
     legacy_sorting=False,
-    use_chapter_title=False
+    use_chapter_title=False,
+    unsafe=False
 ):
     """Download a manga
     
@@ -207,6 +220,8 @@ def download(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
+    unsafe: :class:`bool`
+        If ``True``, it will allow you to download "porn" content
 
     Raises
     -------
@@ -216,6 +231,8 @@ def download(
         Given manga cannot be found
     ChapterNotFound
         Given manga has no chapters
+    NotAllowed
+        ``unsafe`` is not enabled
 
     Returns
     --------
@@ -249,9 +266,11 @@ def download(
     fmt_class = get_format(save_as)
 
     if not isinstance(url, Manga):
-        manga = fetch(url, language, use_alt_details)
+        manga = fetch(url, language, use_alt_details, unsafe)
     else:
         manga = url
+        if manga.content_rating == ContentRating.Pornographic and not unsafe:
+            raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
 
     # base path
     base_path = Path('.')
@@ -324,7 +343,8 @@ def download_chapter(
     save_as=default_save_as_format,
     no_group_name=False,
     legacy_sorting=False,
-    use_chapter_title=False
+    use_chapter_title=False,
+    unsafe=False
 ):
     """Download a chapter
     
@@ -351,6 +371,8 @@ def download_chapter(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
+    unsafe: :class:`bool`
+        If ``True``, it will allow you to download "porn" content
 
     Returns
     --------
@@ -378,6 +400,9 @@ def download_chapter(
 
     # Fetch manga
     chap, manga = _get_manga_from_chapter(chap_id)
+    if manga.content_rating == ContentRating.Pornographic and not unsafe:
+        raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
+
     log.info("Found chapter %s from manga \"%s\"" % (chap.chapter, manga.title))
 
     # base path
@@ -429,7 +454,8 @@ def download_list(
     no_group_name=False,
     group=None,
     legacy_sorting=False,
-    use_chapter_title=True
+    use_chapter_title=True,
+    unsafe=False
 ):
     """Download a list
 
@@ -454,6 +480,8 @@ def download_list(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
+    unsafe: :class:`bool`
+        If ``True``, it will allow you to download "porn" content
     """
     log.debug('Validating the url...')
     try:
@@ -473,6 +501,8 @@ def download_list(
         _type = rel['type']
         if _type == "manga":
             manga = _fetch_manga(_id, "en", fetch_all_chapters=False)
+            if manga.content_rating == ContentRating.Pornographic and not unsafe:
+                raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
             log.info("Found \"%s\" manga from \"%s\" list" % (manga.title, name))
             mangas_id.append(_id)
 
@@ -488,7 +518,8 @@ def download_list(
             no_group_name=no_group_name,
             group=group,
             legacy_sorting=legacy_sorting,
-            use_chapter_title=use_chapter_title
+            use_chapter_title=use_chapter_title,
+            unsafe=unsafe
         )
 
 def download_legacy_manga(url, *args, **kwargs):
