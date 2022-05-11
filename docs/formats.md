@@ -2,12 +2,112 @@
 
 mangadex-downloader can download in different formats, here a list of supported formats.
 
+## raw
+
+This is default format of mangadex-downloader. It's just bunch of images stored in each chapter folders.
+
+### Structure files
+
+`raw` format files look like this
+
+```
+📦Manga title
+ ┣ 📂Volume. 1 Chapter. 1
+ ┃ ┣ 🖼️images
+ ┣ 📂Volume. 1 Chapter. 2
+ ┃ ┣ 🖼️images
+ ┗ 🖼️cover.jpg
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here"
+```
+
+For embedding (API)
+
+```python
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL Here")
+```
+
+## raw-volume
+
+Same as `raw` format, except all chapters wrapped into each volumes.
+
+### Structure files
+
+`raw-volume` format files look like this
+
+```
+📦Manga title
+ ┣ 📂Volume. 1
+ ┃ ┣ 🖼️images
+ ┣ 📂No Volume
+ ┃ ┣ 🖼️images
+ ┗ 🖼️cover.jpg
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as raw-volume
+```
+
+For embedding (API)
+
+```python
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL Here", save_as="raw-volume")
+```
+
+## raw-single
+
+Same as `raw` format, except all chapters wrapped into single folder.
+
+### Structure files
+
+`raw-single` format files look like this
+
+```
+📦Manga title
+ ┣ 📂Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2
+ ┃ ┣ 🖼️images
+ ┗ 🖼️cover.jpg
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as raw-single
+```
+
+For embedding (API)
+
+```python
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL Here", save_as="raw-single")
+```
+
 ## tachiyomi
 
-This is default format of mangadex-downloader, If you don't know tachiyomi, it's android app for reading manga and it's open source !. You can learn more [here](https://tachiyomi.org/)
+Same as `raw` format, except it has additional file "details.json" to provide additional info for manga.
 
+If you don't know tachiyomi, it's android app for reading manga and it's open source !. You can learn more [here](https://tachiyomi.org/)
 
-You can [read here](https://tachiyomi.org/help/guides/local-manga) for instruction how to create local manga in tachiyomi
+You can [read here](https://tachiyomi.org/help/guides/local-manga) for instruction how to create local manga in tachiyomi.
+
+**NOTE: mangadex-downloader are not affliated with tachiyomi, the app only provide custom format for tachiyomi local manga.**
 
 ### Structure files
 
@@ -28,7 +128,7 @@ You can [read here](https://tachiyomi.org/help/guides/local-manga) for instructi
 For CLI
 
 ```shell
-mangadex-dl "insert MangaDex URL here"
+mangadex-dl "insert MangaDex URL here" --save-as "tachiyomi"
 ```
 
 For embedding (API)
@@ -36,7 +136,7 @@ For embedding (API)
 ```python
 from mangadex_downloader import download
 
-manga = download("insert MangaDex URL Here")
+manga = download("insert MangaDex URL Here", save_as="tachiyomi")
 ```
 
 ## tachiyomi-zip
@@ -103,6 +203,38 @@ from mangadex_downloader import download
 manga = download("insert MangaDex URL here", save_as='pdf')
 ```
 
+## pdf-volume
+
+Same as `pdf`, except all chapters wrapped into each volumes PDF file.
+
+### Structure files
+
+`pdf-volume` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┣ 📜Volume. 1.pdf
+ ┗ 📜Volume. 2.pdf
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "pdf-volume"
+```
+
+For embedding (API)
+
+```python
+
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL here", save_as='pdf-volume')
+```
+
 ## pdf-single
 
 same as `pdf` format, except all chapters wrapped into single PDF file
@@ -162,6 +294,38 @@ For embedding (API)
 from mangadex_downloader import download
 
 manga = download("insert MangaDex URL here", save_as="cbz")
+```
+
+## cbz-volume
+
+same as `cbz` format, except all chapters wrapped into each volumes .cbz file
+
+### Structure files
+
+`cbz-volume` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┣ 📜Volume. 1.cbz
+ ┗ 📜Volume. 2.cbz
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "cbz-volume"
+```
+
+For embedding (API)
+
+```python
+
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL here", save_as='cbz-volume')
 ```
 
 ## cbz-single
