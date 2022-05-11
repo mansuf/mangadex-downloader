@@ -9,12 +9,14 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 ## Key Features
 
 - Download manga, chapter, or list directly from MangaDex
+- Old MangaDex url support
+- Scanlation groups filter support
 - Authentication support
 - Control how many chapters and pages you want to download
 - Compressed images support
 - HTTP / SOCKS proxy support
 - Multi languages support
-- Save as PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
+- Save as raw images, PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
 
 ***And ability to not download oneshot chapter***
 
@@ -22,20 +24,25 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 mangadex-downloader can download in different formats, here a list of supported formats.
 
-- tachiyomi (the default)
+- raw
+- raw-volume
+- raw-single
+- tachiyomi
 - tachiyomi-zip
 - pdf
+- pdf-volume
 - pdf-single
 - cbz
+- cbz-volume
 - cbz-single
 
-For more info about supported formats, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/formats.html)
+For more info about supported formats, you can [read here](https://mangadex-dl.mansuf.link/en/latest/formats.html)
 
 ## Installation
 
 What will you need:
 
-- Python 3.8.x or up with Pip (if you are in Windows, you can download standalone executable [here](https://github.com/mansuf/mangadex-downloader/releases))
+- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable [here](https://github.com/mansuf/mangadex-downloader/releases))
 
 That's it.
 
@@ -57,11 +64,11 @@ You can also install optional dependencies
 
 There you go, easy ain't it ?.
 
-### How to (Standalone executable)
+### How to (bundled executable)
 
 **NOTE:** This installation only apply to Windows.
 
-Because this is standalone executable, Python are not required to install.
+Because this is bundled executable, Python are not required to install.
 
 Steps:
 
@@ -97,7 +104,7 @@ py -3 -m mangadex_downloader "insert MangaDex URL here"
 python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
-### Command-Line Interface (Standalone executable version)
+### Command-Line Interface (bundled executable version)
 
 - Navigate to folder where you downloaded mangadex-downloader
 - Open "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
@@ -112,9 +119,9 @@ mangadex-dl.exe "insert MangaDex URL here"
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
 
-For more example usage, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/cli_usage.html)
+For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html)
 
-For more info about CLI options, you can [read here](https://mangadex-downloader.readthedocs.io/en/latest/cli_ref.html)
+For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_ref.html)
 
 ### Embedding (API)
 
@@ -124,4 +131,4 @@ from mangadex_downloader import download
 download("insert MangaDex URL here")
 ```
 
-For more information, you can [read here](https://mangadex-downloader.readthedocs.io/en/stable/usage_api.html)
+For more information, you can [read here](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
