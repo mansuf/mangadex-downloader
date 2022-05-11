@@ -156,7 +156,11 @@ class Chapter:
 
     @property
     def chapter(self):
-        return self._attr['chapter'].strip()
+        try:
+            return self._attr['chapter']
+        except AttributeError:
+            # null value
+            return None
 
     @property
     def title(self):
@@ -186,9 +190,9 @@ class Chapter:
             if self.volume is not None:
                 name += f'Volume. {self.volume} '
 
-        name += f'Chapter. {self.chapter}' 
+            name += f'Chapter. {self.chapter}' 
 
-        self._name = name
+        self._name = name.strip()
 
     @property
     def name(self):
@@ -207,7 +211,7 @@ class Chapter:
         name += self._name
 
         # Chapter title
-        if self.title:
+        if self.title and self.use_chapter_title:
             name += f' - {sanitize_filename(self.title)}'
 
         return name
@@ -271,6 +275,9 @@ class IteratorChapter:
             try:
                 num_chap = float(num_chap)
             except ValueError:
+                pass
+            except TypeError:
+                # null value
                 pass
 
         is_number = isinstance(num_chap, float)
