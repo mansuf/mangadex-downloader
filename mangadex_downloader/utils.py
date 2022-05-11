@@ -40,7 +40,7 @@ def validate_url(url):
 
 def validate_legacy_url(url):
     """Validate old mangadex url and return the id"""
-    re_url = re.compile(r'mangadex\.org\/(title|chapter)\/(?P<id>[0-9]{1,})')
+    re_url = re.compile(r'mangadex\.org\/(title|manga|chapter)\/(?P<id>[0-9]{1,})')
     match = re_url.search(url)
     if match is None:
         raise InvalidURL('\"%s\" is not valid MangaDex URL' % url)
