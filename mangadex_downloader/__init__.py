@@ -12,7 +12,7 @@ import logging
 from .network import *
 from .main import *
 from .errors import *
-from .manga import Manga
+from .manga import Manga, ContentRating
 from .language import Language, get_language
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

@@ -57,6 +57,7 @@ def download_manga(url, args, legacy=False):
         args.group,
         args.enable_legacy_sorting,
         args.use_chapter_title,
+        args.unsafe
     )
 
     if legacy:
@@ -77,6 +78,7 @@ def download_chapter(url, args, legacy=False):
         args.no_group_name,
         args.enable_legacy_sorting,
         args.use_chapter_title,
+        args.unsafe
     )
 
     if legacy:
@@ -112,6 +114,7 @@ def download_list(url, args):
         args.group,
         args.enable_legacy_sorting,
         args.use_chapter_title,
+        args.unsafe
     )
 
 # Legacy support

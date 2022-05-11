@@ -47,3 +47,7 @@ class InvalidFormat(MangaDexException):
 class PillowNotInstalled(MangaDexException):
     """Raised when trying to download in PDF format but Pillow is not installed"""
     pass
+
+class NotAllowed(MangaDexException):
+    """Raised when user trying to download porn manga without `unsafe` enabled"""
+    pass
