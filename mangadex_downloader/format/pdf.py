@@ -404,6 +404,7 @@ class PDFSingle(PDF):
         worker = self.create_worker()
         imgs = []
         chapter_folders = []
+        count = NumberWithLeadingZeros(0)
 
         # In order to add "next chapter" image mark in end of current chapter
         # We need to cache all chapters
@@ -424,16 +425,12 @@ class PDFSingle(PDF):
 
         # This file is for tracking downloaded chapter images
         # if gets deleted, the chapter images will be re-downloaded from zero
-        finished_download_path = base_path / (pdf_name + '.finished_download')
+        tracker = FileTracker(pdf_name, base_path)
 
         if replace:
-            open(finished_download_path, "w").close()
+            tracker.reset()
         
-        exists_download = finished_download_path.exists()
-        if exists_download:
-            finished_download = finished_download_path.read_text().splitlines()
-        else:
-            finished_download = []
+        exists_download = tracker.exists()
 
         def pdf_file_exists(converting=False):
             if replace and not converting:
@@ -447,15 +444,8 @@ class PDFSingle(PDF):
             log.info("Chapter PDF file exist and replace is False, cancelling download...")
             return
 
-        tracker_download = open(finished_download_path, "a" if exists_download else "w")
-
-        # In case KeyboardInterrupt is called
-        _cleanup_jobs.append(lambda: tracker_download.close())
-        
-        for index, (chap_class, images) in enumerate(cache):
-            start = True
-
-            # Group name will be placed inside the start and end of chapter images
+        for chap_class, images in cache:
+            # Group name will be placed inside the start of the chapter images
             chap = chap_class.chapter
             chap_name = chap_class.name
 
@@ -465,38 +455,40 @@ class PDFSingle(PDF):
             ))
             images.fetch()
 
+            # Create volume folder
             chapter_path = create_chapter_folder(base_path, chap_name)
             chapter_folders.append(chapter_path)
+
+            # Insert "start of the chapter" image
+            imgs.append(
+                _ChapterMarkImage(
+                    get_mark_image,
+                    [chap_class]
+                )
+            )
+            count.increase()
 
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
                     img_path = chapter_path / img_name
-
-                    if not start:
-                        img_name_manifest = str(img_path)
-                    else:
-                        img_name_manifest = 'start_%s' % chap_class.name
                     
-                    if not start:
-                        log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (chap_name, page))
 
-                    if img_name_manifest in finished_download and not self.replace:
+                    if tracker.check(img_name) and not self.replace:
                         imgs.append(Image.open(img_path))
-
-                        if not start:
-                            log.info("File exist and replace is False, cancelling download...")
+                        log.info("File exist and replace is False, cancelling download...")
+                        count.increase()
                         continue
 
-                    if not start:
-                        downloader = ChapterPageDownloader(
-                            img_url,
-                            img_path,
-                            replace=replace
-                        )
-                        success = downloader.download()
-                    else:
-                        success = True
+                    downloader = ChapterPageDownloader(
+                        img_url,
+                        img_path,
+                        replace=replace
+                    )
+                    success = downloader.download()
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -510,19 +502,9 @@ class PDFSingle(PDF):
                         images.fetch()
                         break
                     else:
-                        if not start:
-                            imgs.append(Image.open(img_path))
-                        else:
-                            imgs.append(
-                                _ChapterMarkImage(
-                                    get_mark_image,
-                                    [chap_class]
-                                )
-                            )
-                            start = False
-
-                        tracker_download.write(img_name_manifest + "\n")
-                        tracker_download.flush()
+                        count.increase()
+                        imgs.append(Image.open(img_path))
+                        tracker.register(img_name)
                         continue
                 
                 if not error:
@@ -549,8 +531,7 @@ class PDFSingle(PDF):
             pdf_plugin.close_progress_bar()
 
             # Cleaning up
-            tracker_download.close()
-            delete_file(finished_download_path)
+            tracker.close()
 
             for folder in chapter_folders:
                 shutil.rmtree(folder, ignore_errors=True)

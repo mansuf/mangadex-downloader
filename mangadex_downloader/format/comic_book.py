@@ -321,10 +321,30 @@ class ComicBookArchiveSingle(BaseFormat):
             "a" if path_exists(manga_zip_path) else "w"
         )
 
-        for index, (chap_class, images) in enumerate(cache):
-            start = True
+        for chap_class, images in cache:
+            # Insert "start of the chapter" image
+            if self.legacy_sorting:
+                img_name = count.get() + '.png'
+            else:
+                img_name = count.get_without_zeros() + '.png'
 
-            # Group name will be placed inside the start and end of chapter images
+            # Make sure we never duplicated it
+            write_start_image = False
+            try:
+                manga_zip.getinfo(img_name)
+            except KeyError:
+                write_start_image = True
+            
+            if write_start_image:
+                img = get_mark_image(chap_class)
+                fp = io.BytesIO()
+                img.save(fp, 'png')
+                job = lambda: manga_zip.writestr(img_name, fp.getvalue())
+                worker.submit(job)
+
+            count.increase()
+
+            # Group name will be placed inside the start of chapter images
             chap = chap_class.chapter
             chap_name = chap_class.name
 
@@ -339,45 +359,34 @@ class ComicBookArchiveSingle(BaseFormat):
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
-                    if not start:
-                        img_ext = os.path.splitext(img_name)[1]
-                    else:
-                        img_ext = '.png'
-
+                    img_ext = os.path.splitext(img_name)[1]
                     if self.legacy_sorting:
-                        count_str = count.get()
+                        img_name = count.get() + img_ext
                     else:
-                        count_str = count.get_without_zeros()
+                        img_name = count.get_without_zeros() + img_ext
 
                     img_path = chapter_path / img_name
 
-                    file = count_str + img_ext
-
-                    if not start:
-                        log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (chap_name, page))
 
                     try:
-                        manga_zip.getinfo(file)
+                        manga_zip.getinfo(img_name)
                     except KeyError:
                         img_exist = False
                     else:
                         img_exist = True
                     
                     if img_exist and not self.replace:
-                        if not start:
-                            log.info("File exist and replace is False, cancelling download...")
+                        log.info("File exist and replace is False, cancelling download...")
                         count.increase()
                         continue
 
-                    if not start:
-                        downloader = ChapterPageDownloader(
-                            img_url,
-                            img_path,
-                            replace=replace
-                        )
-                        success = downloader.download()
-                    else:
-                        success = True
+                    downloader = ChapterPageDownloader(
+                        img_url,
+                        img_path,
+                        replace=replace
+                    )
+                    success = downloader.download()
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -392,26 +401,13 @@ class ComicBookArchiveSingle(BaseFormat):
                         break
                     else:
                         # Write it to zipfile
-                        if not start:
-                            wrap = lambda: manga_zip.writestr(file, img_path.read_bytes())
-                        else:
-                            # Insert start of chapter image
-                            def wrap():
-                                start_chap_file = count_str + '.png'
-                                start_chap_img = get_mark_image(chap_class)
-                                fp = io.BytesIO()
-                                start_chap_img.save(fp, 'png')
-                                manga_zip.writestr(start_chap_file, fp.getvalue())
+                        wrap = lambda: manga_zip.writestr(img_name, img_path.read_bytes())
                         
                         # KeyboardInterrupt safe
                         worker.submit(wrap)
                         
-                        if not start:
-                            # And then remove it original file
-                            delete_file(img_path)
-
-                        if start:
-                            start = False
+                        # And then remove it original file
+                        delete_file(img_path)
 
                         count.increase()
                         continue
