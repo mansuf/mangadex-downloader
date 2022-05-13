@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 
 __all__ = (
     'download', 'download_chapter', 'download_list',
-    'fetch', 'login', 'logout', 'search'
+    'fetch', 'login', 'logout', 'search',
+    'download_legacy_manga', 'download_legacy_chapter'
 )
 
 def login(*args, **kwargs):
