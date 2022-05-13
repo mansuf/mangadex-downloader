@@ -249,17 +249,27 @@ class ChapterPageDownloader(FileDownloader):
 
     def _report(self, resp, size, _time, success):
         self.cleanup()
-        # Check if cached
-        cached = False
-        if resp.headers.get('x-cache').startswith('HIT'):
-            cached = True
-        
+
         # According to MangaDex devs
         # domain that not from mangadex.network are not allowed to report
         # so skip it
         if 'uploads.mangadex.org' in self.url:
             log.debug('Endpoint are not from mangadex.network, skipping report')
             return
+
+        # Check if cached
+        # If failed to retrieve images, mark cached as "False"
+        cached = False
+        # Fix #18
+        # Random NoneType error while downloading
+        # Whenever downloader get server error, Response headers are not parsed properly
+        if success:
+            cache_header = resp.headers.get('x-cache')
+
+            # Just in case something is happened
+            if cache_header is not None:
+                cached = cache_header.startswith('HIT')
+
 
         data = {
             'url': self.url,
