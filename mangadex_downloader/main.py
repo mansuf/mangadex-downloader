@@ -12,7 +12,8 @@ from .language import Language, get_language
 from .utils import download as download_file
 from .errors import InvalidURL, NotAllowed
 from .fetcher import *
-from .manga import IteratorManga, Manga, ContentRating
+from .manga import Manga, ContentRating
+from .iterator import IteratorManga, IteratorUserLibraryManga
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -24,7 +25,8 @@ log = logging.getLogger(__name__)
 __all__ = (
     'download', 'download_chapter', 'download_list',
     'fetch', 'login', 'logout', 'search',
-    'download_legacy_manga', 'download_legacy_chapter'
+    'download_legacy_manga', 'download_legacy_chapter',
+    'get_manga_from_user_library'
 )
 
 def login(*args, **kwargs):
@@ -104,6 +106,28 @@ def search(*args, **kwargs):
         An iterator that yield :class:`Manga`
     """
     return IteratorManga(*args, **kwargs)
+
+def get_manga_from_user_library(*args, **kwargs):
+    """Get all mangas from user library
+
+    You must login in order to use this function, or you will get error.
+
+    Parameters
+    -----------
+    unsafe: :class:`bool`
+        If ``True``, it will allow you to search "porn" content
+
+    Raises
+    --------
+    NotLoggedIn
+        Retrieving user library require login
+
+    Returns
+    --------
+    :class:`IteratorUserLibraryManga`
+        An iterator that yield :class:`Manga`
+    """
+    return IteratorUserLibraryManga(*args, **kwargs)
 
 def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
     """Fetch the manga

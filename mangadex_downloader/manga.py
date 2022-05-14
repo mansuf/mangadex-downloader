@@ -1,10 +1,8 @@
 import logging
-import queue
 from enum import Enum
 
 from .fetcher import get_manga
-from .errors import MangaDexException
-from .network import uploads_url, Net, base_url
+from .network import uploads_url
 from .language import get_details_language
 from .utils import get_local_attr, input_handle
 from .artist_and_author import Author, Artist
@@ -235,65 +233,3 @@ class Manga:
     def content_rating(self):
         """:class:`ContentRating`: Return content rating of the manga"""
         return ContentRating(self._attr.get('contentRating'))
-
-class OverflowResults(MangaDexException):
-    """Raised when offset search is reached maximum number (10000)"""
-    pass
-
-class IteratorManga:
-    def __init__(self, title, unsafe=False):
-        self.limit = 100
-        self.title = title
-        self.offset = 0
-        self.unsafe = unsafe
-
-        self._queue = queue.Queue()
-
-    def __iter__(self) -> "IteratorManga":
-        return self
-
-    def __next__(self) -> Manga:
-        if self._queue.empty():
-            try:
-                self._fill_data()
-            except OverflowResults:
-                raise StopIteration()
-
-        try:
-            return self._queue.get_nowait()
-        except queue.Empty:
-            raise StopIteration()
-
-    def _fill_data(self):
-        # Maximum number of results from MangaDex API
-        if self.offset >= 10000:
-            raise OverflowResults()
-
-        includes = ['author', 'artist', 'cover_art']
-        content_ratings = [
-            'safe',
-            'suggestive',
-            'erotica',
-        ]
-
-        if self.unsafe:
-            # You degenerate weeb
-            content_ratings.append('pornographic')
-
-        params = {
-            'includes[]': includes,
-            'title': self.title,
-            'limit': self.limit,
-            'offset': self.offset,
-            'contentRating[]': content_ratings
-        }
-        url = f'{base_url}/manga'
-        r = Net.requests.get(url, params=params)
-        data = r.json()
-
-        items = data['data']
-        
-        for item in items:
-            self._queue.put(Manga(data=item))
-
-        self.offset += len(items)
