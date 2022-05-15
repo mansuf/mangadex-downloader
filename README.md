@@ -20,6 +20,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
     - [Embedding (API)](#embedding-api)
 - [Supporting](#supporting)
 - [Links](#links)
+- [Disclaimer](#disclaimer)
 
 ## Key Features <a id="key-features"></a>
 
