@@ -73,16 +73,51 @@ class IteratorManga(BaseIterator):
         self.offset += len(items)
 
 class IteratorUserLibraryManga(BaseIterator):
-    def __init__(self, unsafe=False):
+    statuses = [
+        'reading',
+        'on_hold',
+        'plan_to_read',
+        'dropped',
+        're_reading',
+        'completed'
+    ]
+
+    def __init__(self, status=None, unsafe=False):
         super().__init__()
 
         self.limit = 100
         self.offset = 0
         self.unsafe = unsafe
 
+        if status is not None and status not in self.statuses:
+            raise ValueError(f"{status} are not valid status, choices are {set(self.statuses)}")
+
+        self.status = status
+
+        lib = {}
+        for stat in self.statuses:
+            lib[stat] = []
+        self.library = lib
+
         logged_in = Net.requests.check_login()
         if not logged_in:
             raise NotLoggedIn("Retrieving user library require login")
+
+        self._parse_reading_status()
+
+    def _parse_reading_status(self):
+        r = Net.requests.get(f'{base_url}/manga/status')
+        data = r.json()
+
+        for manga_id, status in data['statuses'].items():
+            self.library[status].append(manga_id)
+
+    def _check_status(self, manga):
+        if self.status is None:
+            return True
+
+        manga_ids = self.library[self.status]
+        return manga.id in manga_ids
 
     def next(self) -> Manga:
         while True:
@@ -90,6 +125,10 @@ class IteratorUserLibraryManga(BaseIterator):
 
             if not self.unsafe and manga.content_rating == ContentRating.Pornographic:
                 # YOU SHALL NOT PASS
+                continue
+
+            if not self._check_status(manga):
+                # Filter is used
                 continue
             
             return manga

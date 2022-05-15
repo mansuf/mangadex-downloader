@@ -114,6 +114,8 @@ def get_manga_from_user_library(*args, **kwargs):
 
     Parameters
     -----------
+    status: :class:`str`
+        Filter retrieved manga based on status
     unsafe: :class:`bool`
         If ``True``, it will allow you to search "porn" content
 
