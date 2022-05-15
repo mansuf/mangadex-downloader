@@ -184,7 +184,10 @@ class Chapter:
 
         if 'oneshot' in lower_title:
             self.oneshot = True
-            name += 'Oneshot '
+            if self.chapter is not None:
+                name += f'Chapter. {self.chapter} '
+
+            name += 'Oneshot'
         else:
             # Get combined volume and chapter
             if self.volume is not None:
