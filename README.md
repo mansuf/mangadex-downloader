@@ -166,3 +166,7 @@ https://saweria.co/mansuf
 
 - [PyPI](https://pypi.org/project/mangadex-downloader/)
 - [Docs](https://mangadex-dl.mansuf.link)
+
+## Disclaimer <a id="disclaimer"></a>
+
+mangadex-downloader are not affiliated with MangaDex. Also, the current maintainer ([@mansuf](https://github.com/mansuf)) is not a MangaDex dev
