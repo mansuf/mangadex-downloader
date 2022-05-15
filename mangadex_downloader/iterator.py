@@ -1,6 +1,6 @@
 import queue
 
-from .errors import NotLoggedIn
+from .errors import MangaDexException, NotLoggedIn
 from .network import Net, base_url
 from .manga import ContentRating, Manga
 
@@ -90,7 +90,7 @@ class IteratorUserLibraryManga(BaseIterator):
         self.unsafe = unsafe
 
         if status is not None and status not in self.statuses:
-            raise ValueError(f"{status} are not valid status, choices are {set(self.statuses)}")
+            raise MangaDexException(f"{status} are not valid status, choices are {set(self.statuses)}")
 
         self.status = status
 

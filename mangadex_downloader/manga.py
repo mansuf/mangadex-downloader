@@ -58,7 +58,13 @@ class Manga:
     def id(self):
         """:class:`str`: ID manga"""
         return self._data.get('id')
-    
+
+    def __str__(self):
+        return self.title
+
+    def __repr__(self):
+        return self.title
+
     def _parse_title(self):
         title = self._attr.get('title')
         alt_titles = self._altTitles

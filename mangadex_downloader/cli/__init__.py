@@ -3,6 +3,7 @@ import sys
 import traceback
 from .update import check_update
 from .args_parser import get_args
+from .validator import build_url
 from .utils import (
     close_network_object,
     setup_logging,
@@ -20,7 +21,7 @@ def _main(argv):
         register_keyboardinterrupt_handler()
 
         # Get command-line arguments
-        args = get_args(argv)
+        parser, args = get_args(argv)
 
         # Setup logging
         log = setup_logging('mangadex_downloader', args.verbose)
@@ -30,6 +31,9 @@ def _main(argv):
 
         # Login
         login_with_err_handler(args)
+
+        # Building url
+        build_url(parser, args)
 
         # Download the manga
         download(args)

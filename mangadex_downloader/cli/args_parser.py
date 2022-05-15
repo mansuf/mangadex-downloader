@@ -1,58 +1,22 @@
 import argparse
-import os
 import logging
-import threading
 import sys
 
-from .url import build_URL_from_type, smart_select_url, valid_types
-from .utils import Paginator, setup_logging, sys_argv
-from ..main import search
+from .url import valid_types
+from .utils import setup_logging, sys_argv
+from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
 from ..utils import (
     valid_cover_types,
     default_cover_type,
-    validate_url as __validate,
-    validate_legacy_url,
     validate_group_url as _validate_group_url,
-    input_handle
 )
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
-from ..format.utils import NumberWithLeadingZeros
 from ..errors import InvalidURL
 from .. import __description__
 
 log = logging.getLogger(__name__)
-
-def _validate(url):
-    try:
-        _url = __validate(url)
-    except InvalidURL:
-        pass
-    else:
-        return _url
-    # Legacy support
-    try:
-        _url = validate_legacy_url(url)
-    except InvalidURL as e:
-        raise argparse.ArgumentTypeError(str(e))
-    return _url
-
-def validate_url(url):
-    if os.path.exists(url):
-        with open(url, 'r') as opener:
-            content = opener.read()
-    else:
-        content = url
-
-    urls = []
-    for _url in content.splitlines():
-        if not _url:
-            continue
-
-        urls.append((_validate(_url), _url))
-    
-    return urls
 
 def validate_group_url(url):
     try:
@@ -76,7 +40,7 @@ class UpdateAppAction(argparse.Action):
     def __call__(self, *args, **kwargs):
         setup_logging('mangadex_downloader')
         update_app()
-        sys.exit(0)
+        sys.exit(0)  
 
 class InputHandler(argparse.Action):
     def __init__(
@@ -105,7 +69,7 @@ class InputHandler(argparse.Action):
             metavar=metavar
         )
         # Get url from pipe input
-        lowered_args = [i.lower() for i in sys.argv]
+        lowered_args = [i.lower() for i in sys_argv]
         if '-pipe' in lowered_args:
             pipe = True
             pipe_value = sys.stdin.read()
@@ -127,116 +91,47 @@ class InputHandler(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         urls = self.pipe_value if self.pipe else values
 
+        fetch_library = urls.startswith('library')
+
+        if fetch_library:
+            result = urls.split(':')
+            
+            # Try to get filter status
+            try:
+                status = result[1]
+            except IndexError:
+                status = None
+            else:
+                status = status.strip()
+            
+            if status == 'help':
+                text = "List of statuses filter for user library manga"
+
+                # Build dynamic bar
+                bars = ""
+                for _ in text:
+                    bars += "="
+
+                print(bars)
+                print(text)
+                print(bars)
+                for item in IteratorUserLibraryManga.statuses:
+                    print(item)
+                sys.exit(0)
+
+            if status is not None and status not in IteratorUserLibraryManga.statuses:
+                err = str(set(IteratorUserLibraryManga.statuses)).replace('\'', '')
+                parser.error(f"{status} are not valid status, choices are {err}")
+
         if self.pipe and self.search:
             parser.error("search with pipe input are not supported")
         elif self.pipe and self.use_alt_details:
             parser.error("--use-alt-details with -pipe are not supported")
+        elif self.search and fetch_library:
+            parser.error("--search are not supported when fetching user library manga")
 
-        if not self.search:
-            try:
-                setattr(namespace, self.dest, validate_url(urls))
-            except argparse.ArgumentTypeError as e:
-                parser.error(str(e))
-            return
-        
-        def print_err(text):
-            print(f"\n{text}\n")
-
-        # Begin searching
-        iterator = search(urls, self.unsafe)
-        count = 1
-        choices = {}
-        paginator = Paginator()
-
-        # For next results
-        choices['next'] = "next"
-
-        # For previous results
-        choices['previous'] = "previous"
-
-        fetch = True
-        while True:
-            if fetch:
-                mangas = []
-                # 10 results displayed at the screen
-                for _ in range(10):
-                    try:
-                        mangas.append(next(iterator))
-                    except StopIteration:
-                        pass
-                
-                if mangas:                    
-                    paginator.add_page(*[manga.title for manga in mangas])
-
-                    # Append choices for user input
-                    for manga in mangas:
-                        choices[str(count)] = manga
-                        count += 1
-                else:
-                    try:
-                        paginator.previous()
-                    except IndexError:
-                        parser.error(f"Search results \"{urls}\" are empty")
-                    else:
-                        print_err("[ERROR] There are no more results")
-
-            def print_choices():
-                text = f"Search results for \"{urls}\""
-
-                # Build dynamic bars
-                dynamic_bar = ""
-                for _ in range(len(text)):
-                    dynamic_bar += "="
-                
-                print(dynamic_bar)
-                print(text)
-                print(dynamic_bar)
-
-                paginator.print()
-                
-                print("")
-
-                print("type \"next\" to show next results")
-                print("type \"previous\" to show previous results")
-
-            print_choices()
-
-            # User input
-            _next = False
-            previous = False
-            while True:
-                choice = input_handle("=> ")
-                try:
-                    manga = choices[choice]
-                except KeyError:
-                    print_err('[ERROR] Invalid choice, try again')
-                    print_choices()
-                    continue
-                else:
-                    if manga == "next":
-                        _next = True
-                    elif manga == "previous":
-                        try:
-                            paginator.previous()
-                        except IndexError:
-                            print_err('[ERROR] Choices are out of range, try again')
-                            print_choices()
-                            continue
-
-                        previous = True
-                    break
-            
-            if _next:
-                paginator.next()
-                fetch = True
-                continue
-            elif previous:
-                fetch = False
-                continue
-            else:
-                break
-        
-        setattr(namespace, self.dest, validate_url(manga.id))        
+        setattr(namespace, self.dest, urls)
+        setattr(namespace, 'fetch_library', fetch_library)
 
 def get_args(argv):
     parser = argparse.ArgumentParser(description=__description__)
@@ -244,7 +139,6 @@ def get_args(argv):
         'URL',
         action=InputHandler,
         help='MangaDex URL or a file containing MangaDex URLs',
-        # type=validate_url,
     )
     parser.add_argument(
         '--type',
@@ -386,17 +280,4 @@ def get_args(argv):
 
     args = parser.parse_args(argv)
 
-    if args.type:
-        urls = []
-        for parsed_url, orig_url in args.URL:
-            url = build_URL_from_type(args.type, parsed_url)
-            urls.append(url)
-        args.URL = urls
-    else:
-        urls = []
-        for parsed_url, orig_url in args.URL:
-            url = smart_select_url(orig_url)
-            urls.append(url)
-        args.URL = urls
-
-    return args
+    return parser, args

@@ -36,6 +36,7 @@ class requestsMangaDexSession(requests.Session):
     def __init__(self, trust_env=True) -> None:
         super().__init__()
         self.trust_env = trust_env
+        self.user = None
         user_agent = 'mangadex-downloader (https://github.com/mansuf/mangadex-downloader {0}) '.format(__version__)
         user_agent += 'Python/{0[0]}.{0[1]} '.format(sys.version_info)
         user_agent += 'requests/{0}'.format(
@@ -187,6 +188,9 @@ class requestsMangaDexSession(requests.Session):
 
     def login(self, password, username=None, email=None):
         """Login to MangaDex"""
+        # "Circular imports" problem
+        from .user import User
+
         # Raise error if already logged in
         if self.check_login():
             raise AlreadyLoggedIn("User already logged in")
@@ -226,6 +230,9 @@ class requestsMangaDexSession(requests.Session):
         
         result = r.json()
         self._update_token(result)
+
+        r = Net.requests.get(f'{base_url}/user/me')
+        self.user = User(data=r.json()['data'])
 
         t = threading.Thread(target=self._wait_login_lock, daemon=True)
         t.start()
