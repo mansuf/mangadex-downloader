@@ -51,7 +51,6 @@ class IteratorManga(BaseIterator):
         ]
 
         if self.unsafe:
-            # You degenerate weeb
             content_ratings.append('pornographic')
 
         params = {
