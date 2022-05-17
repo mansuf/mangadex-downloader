@@ -93,6 +93,13 @@ class InputHandler(argparse.Action):
 
         fetch_library = urls.startswith('library')
 
+        if self.pipe and self.search:
+            parser.error("search with pipe input are not supported")
+        elif self.pipe and self.use_alt_details:
+            parser.error("--use-alt-details with -pipe are not supported")
+        elif self.search and fetch_library:
+            parser.error("--search are not supported when fetching user library manga")
+
         if fetch_library:
             result = urls.split(':')
             
@@ -122,13 +129,6 @@ class InputHandler(argparse.Action):
             if status is not None and status not in IteratorUserLibraryManga.statuses:
                 err = str(set(IteratorUserLibraryManga.statuses)).replace('\'', '')
                 parser.error(f"{status} are not valid status, choices are {err}")
-
-        if self.pipe and self.search:
-            parser.error("search with pipe input are not supported")
-        elif self.pipe and self.use_alt_details:
-            parser.error("--use-alt-details with -pipe are not supported")
-        elif self.search and fetch_library:
-            parser.error("--search are not supported when fetching user library manga")
 
         setattr(namespace, self.dest, urls)
         setattr(namespace, 'fetch_library', fetch_library)
