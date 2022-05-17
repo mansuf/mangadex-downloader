@@ -97,6 +97,8 @@ class InputHandler(argparse.Action):
             parser.error("search with pipe input are not supported")
         elif self.pipe and self.use_alt_details:
             parser.error("--use-alt-details with -pipe are not supported")
+        elif self.pipe and fetch_library:
+            parser.error("-pipe are not supported when fetching user library manga")
         elif self.search and fetch_library:
             parser.error("--search are not supported when fetching user library manga")
 
