@@ -197,7 +197,6 @@ mangadex-dl "insert MangaDex URL here" --save-as "pdf"
 For embedding (API)
 
 ```python
-
 from mangadex_downloader import download
 
 manga = download("insert MangaDex URL here", save_as='pdf')
@@ -229,7 +228,6 @@ mangadex-dl "insert MangaDex URL here" --save-as "pdf-volume"
 For embedding (API)
 
 ```python
-
 from mangadex_downloader import download
 
 manga = download("insert MangaDex URL here", save_as='pdf-volume')
@@ -267,7 +265,9 @@ manga = download("insert MangaDex URL here", save_as="pdf-single")
 
 ## cbz
 
-cbz or Comic Book Archive is a type of archive file for the purpose of sequential viewing of images, commonly for comic books. [wikipedia](https://en.wikipedia.org/wiki/Comic_book_archive)
+This is Comic Book Archive format. Comic Book Archive is a type of archive file for the purpose of sequential viewing of images, commonly for comic books. [wikipedia](https://en.wikipedia.org/wiki/Comic_book_archive)
+
+This format was based of `zip` extension.
 
 ### Structure files
 
@@ -322,7 +322,6 @@ mangadex-dl "insert MangaDex URL here" --save-as "cbz-volume"
 For embedding (API)
 
 ```python
-
 from mangadex_downloader import download
 
 manga = download("insert MangaDex URL here", save_as='cbz-volume')
@@ -356,4 +355,98 @@ For embedding (API)
 from mangadex_downloader import download
 
 manga = download("insert MangaDex URL here", save_as="cbz-single")
+```
+
+## cb7
+
+This is Comic Book Archive format. Comic Book Archive is a type of archive file for the purpose of sequential viewing of images, commonly for comic books. [wikipedia](https://en.wikipedia.org/wiki/Comic_book_archive)
+
+This format was based of `7z` extension.
+
+### Structure files
+
+`cb7` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┣ 📜Volume. 1 Chapter. 1.cb7
+ ┗ 📜Volume. 1 Chapter. 2.cb7
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "cb7"
+```
+
+For embedding (API)
+
+```python
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL here", save_as="cb7")
+```
+
+## cb7-volume
+
+same as `cb7` format, except all chapters wrapped into each volumes .cb7 file
+
+### Structure files
+
+`cb7-volume` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┣ 📜Volume. 1.cb7
+ ┗ 📜Volume. 2.cb7
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "cb7-volume"
+```
+
+For embedding (API)
+
+```python
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL here", save_as='cb7-volume')
+```
+
+## cb7-single
+
+same as `cb7` format, except all chapters wrapped into single .cb7 file
+
+### Structure files
+
+`cb7-single` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┗ 📜Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2.cb7
+```
+
+### Usage
+
+For CLI
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "cb7-single"
+```
+
+For embedding (API)
+
+```python
+from mangadex_downloader import download
+
+manga = download("insert MangaDex URL here", save_as="cb7-single")
 ```

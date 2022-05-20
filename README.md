@@ -39,21 +39,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 ## Supported formats <a id="supported-formats"></a>
 
-mangadex-downloader can download in different formats, here a list of supported formats.
-
-- raw
-- raw-volume
-- raw-single
-- tachiyomi
-- tachiyomi-zip
-- pdf
-- pdf-volume
-- pdf-single
-- cbz
-- cbz-volume
-- cbz-single
-
-For more info about supported formats, you can [read here](https://mangadex-dl.mansuf.link/en/latest/formats.html)
+[Read here](https://mangadex-dl.mansuf.link/en/latest/formats.html) for more info.
 
 ## Installation <a id="installation"></a>
 
