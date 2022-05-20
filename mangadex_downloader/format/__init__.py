@@ -2,6 +2,7 @@ from .raw import Raw, RawSingle, RawVolume
 from .pdf import PDF, PDFSingle, PDFVolume
 from .tachiyomi import Tachiyomi, TachiyomiZip
 from .comic_book import ComicBookArchive, ComicBookArchiveSingle, ComicBookArchiveVolume
+from .sevenzip import SevenZip, SevenZipSingle, SevenZipVolume
 from ..errors import InvalidFormat
 
 formats = {
@@ -15,7 +16,10 @@ formats = {
     "pdf-single": PDFSingle,
     "cbz": ComicBookArchive,
     "cbz-volume": ComicBookArchiveVolume,
-    "cbz-single": ComicBookArchiveSingle
+    "cbz-single": ComicBookArchiveSingle,
+    "cb7": SevenZip,
+    "cb7-volume": SevenZipVolume,
+    "cb7-single": SevenZipSingle,
 }
 
 default_save_as_format = "raw"
