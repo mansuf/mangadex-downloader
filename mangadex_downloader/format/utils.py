@@ -132,6 +132,7 @@ def delete_file(file):
             ))
             err = e
             time.sleep(0.3)
+            continue
         else:
             break
     if err is not None:
