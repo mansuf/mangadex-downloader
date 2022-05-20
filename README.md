@@ -64,6 +64,17 @@ python3 -m pip install mangadex-downloader
 You can also install optional dependencies
 
 - [Pillow](https://pypi.org/project/pillow/), for PDF support
+- [py7zr](https://pypi.org/project/py7zr/) for cb7 support
+
+Or you can install all optional dependencies
+
+```shell
+# For Windows
+py -3 -m pip install mangadex-downloader[optional]
+
+# For Mac OS / Linux
+python3 -m pip install mangadex-downloader[optional]
+```
 
 There you go, easy ain't it ?.
 
