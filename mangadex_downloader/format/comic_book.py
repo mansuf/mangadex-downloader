@@ -46,6 +46,9 @@ class ComicBookArchive(BaseFormat):
             chapter_path = create_chapter_folder(base_path, chap_name)
 
             chapter_zip_path = base_path / (chap_name + '.cbz')
+            if chapter_zip_path.exists() and replace:
+                delete_file(chapter_zip_path)
+
             chapter_zip = zipfile.ZipFile(
                 str(chapter_zip_path),
                 "a" if path_exists(chapter_zip_path) else "w"
