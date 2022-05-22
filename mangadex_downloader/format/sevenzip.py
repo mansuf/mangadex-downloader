@@ -58,15 +58,12 @@ class SevenZip(BaseFormat):
             while True:
                 # Fix #10
                 # Some old programs wouldn't display images correctly
-                count = None
-                if self.legacy_sorting:
-                    count = NumberWithLeadingZeros(images.iter())
+                count = NumberWithLeadingZeros(images.iter())
 
                 error = False
                 for page, img_url, img_name in images.iter():
-                    if self.legacy_sorting:
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
@@ -77,8 +74,7 @@ class SevenZip(BaseFormat):
                             if img_name in chapter_zip.getnames() and not self.replace:
                                 log.info("File exist and replace is False, cancelling download...")
 
-                                if self.legacy_sorting:
-                                    count.increase()
+                                count.increase()
 
                                 continue  
 
@@ -117,8 +113,7 @@ class SevenZip(BaseFormat):
                         # KeyboardInterrupt safe
                         worker.submit(wrap)
 
-                        if self.legacy_sorting:
-                            count.increase()
+                        count.increase()
                         continue
                 
                 if not error:
@@ -195,10 +190,7 @@ class SevenZipVolume(SevenZip):
                 chap_name = chap_class.get_name()
 
                 # Insert "start of the chapter" image
-                if self.legacy_sorting:
-                    img_name = count.get() + '.png'
-                else:
-                    img_name = count.get_without_zeros() + '.png'
+                img_name = count.get() + '.png'
 
                 # Make sure we never duplicated it
                 write_start_image = True
@@ -225,10 +217,7 @@ class SevenZipVolume(SevenZip):
                     error = False
                     for page, img_url, img_name in images.iter():
                         img_ext = os.path.splitext(img_name)[1]
-                        if self.legacy_sorting:
-                            img_name = count.get() + img_ext
-                        else:
-                            img_name = count.get_without_zeros() + img_ext
+                        img_name = count.get() + img_ext
 
                         img_path = volume_path / img_name
 
@@ -298,12 +287,11 @@ class SevenZipSingle(SevenZip):
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             # Fix #10
             # Some programs wouldn't display images correctly
-            if self.legacy_sorting:
-                # Each chapters has one page that has "Chapter n"
-                # This is called "start of the chapter" image
-                total += 1
+            # Each chapters has one page that has "Chapter n"
+            # This is called "start of the chapter" image
+            total += 1
 
-                total += chap_class.pages
+            total += chap_class.pages
 
             item = [chap_class, images]
             cache.append(item)
@@ -336,10 +324,7 @@ class SevenZipSingle(SevenZip):
             chapter_path = create_chapter_folder(base_path, chap_name)
 
             # Insert "start of the chapter" image
-            if self.legacy_sorting:
-                img_name = count.get() + '.png'
-            else:
-                img_name = count.get_without_zeros() + '.png'
+            img_name = count.get() + '.png'
 
             # Make sure we never duplicated it
             write_start_image = True
@@ -365,10 +350,7 @@ class SevenZipSingle(SevenZip):
                 error = False
                 for page, img_url, img_name in images.iter():
                     img_ext = os.path.splitext(img_name)[1]
-                    if self.legacy_sorting:
-                        img_name = count.get() + img_ext
-                    else:
-                        img_name = count.get_without_zeros() + img_ext
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
