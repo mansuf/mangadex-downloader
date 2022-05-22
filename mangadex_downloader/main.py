@@ -468,6 +468,7 @@ def download_chapter(
         compressed_image,
         replace,
         legacy_sorting,
+        no_verify,
         kwargs_iter_chapter_images
     )
 
