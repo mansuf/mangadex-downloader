@@ -206,7 +206,8 @@ def download(
     group=None,
     legacy_sorting=False,
     use_chapter_title=False,
-    unsafe=False
+    unsafe=False,
+    no_verify=False
 ):
     """Download a manga
     
@@ -249,6 +250,8 @@ def download(
         NOTE: This option is useless if used with any single format.
     unsafe: :class:`bool`
         If ``True``, it will allow you to download "porn" content
+    no_verify: :class:`bool`
+        If ``True``, Skip hash checking for each images
 
     Raises
     -------
@@ -351,6 +354,7 @@ def download(
         compressed_image,
         replace,
         legacy_sorting,
+        no_verify,
         kwargs_iter_chapter_images
     )
 
@@ -371,7 +375,8 @@ def download_chapter(
     no_group_name=False,
     legacy_sorting=False,
     use_chapter_title=False,
-    unsafe=False
+    unsafe=False,
+    no_verify=False
 ):
     """Download a chapter
     
@@ -400,6 +405,8 @@ def download_chapter(
         NOTE: This option is useless if used with any single format.
     unsafe: :class:`bool`
         If ``True``, it will allow you to download "porn" content
+    no_verify: :class:`bool`
+        If ``True``, Skip hash checking for each images
 
     Returns
     --------
@@ -482,7 +489,8 @@ def download_list(
     group=None,
     legacy_sorting=False,
     use_chapter_title=True,
-    unsafe=False
+    unsafe=False,
+    no_verify=False
 ):
     """Download a list
 
@@ -509,6 +517,8 @@ def download_list(
         NOTE: This option is useless if used with any single format.
     unsafe: :class:`bool`
         If ``True``, it will allow you to download "porn" content
+    no_verify: :class:`bool`
+        If ``True``, Skip hash checking for each images
     """
     log.debug('Validating the url...')
     try:
@@ -546,7 +556,8 @@ def download_list(
             group=group,
             legacy_sorting=legacy_sorting,
             use_chapter_title=use_chapter_title,
-            unsafe=unsafe
+            unsafe=unsafe,
+            no_verify=no_verify
         )
 
 def download_legacy_manga(url, *args, **kwargs):

@@ -68,6 +68,7 @@ class BaseFormat:
         compress_img,
         replace,
         legacy_sorting,
+        no_verify,
         kwargs_iter_chapter_img
     ):
         self.path = path
@@ -75,6 +76,7 @@ class BaseFormat:
         self.compress_img = compress_img
         self.replace = replace
         self.legacy_sorting = legacy_sorting
+        self.verify = not no_verify
         self.kwargs_iter = kwargs_iter_chapter_img
 
     def create_worker(self):

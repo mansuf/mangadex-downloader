@@ -1,6 +1,8 @@
+import hashlib
 import json
 import logging
 import os
+import re
 import threading
 import time
 import textwrap
@@ -8,6 +10,7 @@ import textwrap
 from pathlib import Path
 
 from ..errors import MangaDexException
+from .. import __repository__
 
 log = logging.getLogger(__name__)
 
@@ -231,3 +234,39 @@ class FileTracker:
 
         # Update the data
         self._load()
+
+class Sha256RegexError(Exception):
+    """Raised when regex_sha256 cannot grab sha256 from server_file object"""
+    pass
+
+def verify_sha256(server_file, path):
+    # Yes this is very cool regex
+    regex_sha256 = r'-(?P<hash>.{1,})\.'
+
+    # Get sha256 hash from server file
+    match = re.search(regex_sha256, server_file)
+    if match is None:
+        raise Sha256RegexError(
+            f'Failed to grab sha256 hash from server_file = {server_file}. ' \
+            f'Please report it to {__repository__}/issues'
+        )
+    
+    server_hash = match.group('hash')
+    
+    local_sha256 = hashlib.sha256()
+
+    # File is not exist
+    if not os.path.exists(path):
+        return None
+
+    # Begin verifying
+    size = 8192
+    with open(path, 'rb') as reader:
+        while True:
+            data = reader.read(size)
+            if not data:
+                break
+
+            local_sha256.update(data)
+    
+    return local_sha256.hexdigest() == server_hash

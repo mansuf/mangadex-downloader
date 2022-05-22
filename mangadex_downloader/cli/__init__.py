@@ -15,6 +15,16 @@ from .auth import login_with_err_handler, logout_with_err_handler
 from .download import download
 from ..errors import UnhandledHTTPError
 
+_deprecated_opts = {
+    'enable_legacy_sorting': '--enable-legacy-sorting is deprecated and will be removed in v1.3.0.',
+}
+
+def _check_deprecations(log, args):
+    for arg, msg in _deprecated_opts.items():
+        deprecated = getattr(args, arg)
+        if deprecated:
+            log.warning(msg)
+
 def _main(argv):
     try:
         # Signal handler
@@ -28,6 +38,9 @@ def _main(argv):
 
         # Setup proxy
         setup_proxy(args.proxy, args.proxy_env)
+
+        # Check deprecation options
+        _check_deprecations(log, args)
 
         # Login
         login_with_err_handler(args)

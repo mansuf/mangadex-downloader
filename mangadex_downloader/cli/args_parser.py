@@ -270,6 +270,11 @@ def get_args(argv):
         action='store_true',
         help='Enable legacy sorting chapter images for old reader application'
     )
+    misc_group.add_argument(
+        '--no-verify',
+        action='store_true',
+        help='Skip hash checking for each images'
+    )
 
     # Update application
     update_group = parser.add_argument_group('Update application')

@@ -4,7 +4,7 @@ import os
 import zipfile
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import NumberWithLeadingZeros, get_mark_image
+from .utils import NumberWithLeadingZeros, get_mark_image, verify_sha256
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
 from ..errors import PillowNotInstalled
@@ -45,25 +45,48 @@ class Raw(BaseFormat):
             while True:
                 # Fix #10
                 # Some old programs wouldn't display images correctly
-                count = None
-                if self.legacy_sorting:
-                    count = NumberWithLeadingZeros(images.iter())
+                count = NumberWithLeadingZeros(images.iter())
 
                 error = False
                 for page, img_url, img_name in images.iter():
-                    if self.legacy_sorting:
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
+                    server_file = img_name
+
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
                     log.info('Downloading %s page %s' % (chap_name, page))
+
+                    # Verify file
+                    if self.verify and not replace:
+                        # Can be True, False, or None
+                        verified = verify_sha256(server_file, img_path)
+                    elif not self.verify:
+                        verified = None
+                    else:
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        count.increase()
+                        continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
+
                     downloader = ChapterPageDownloader(
                         img_url,
                         img_path,
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -77,8 +100,7 @@ class Raw(BaseFormat):
                         images.fetch()
                         break
                     else:
-                        if self.legacy_sorting:
-                            count.increase()
+                        count.increase()
                         continue
                 
                 if not error:
@@ -145,10 +167,7 @@ class RawVolume(BaseFormat):
                 chapter_path = create_chapter_folder(base_path, volume)
 
                 # Insert "start of the chapter" image
-                if self.legacy_sorting:
-                    img_name = count.get() + '.png'
-                else:
-                    img_name = count.get_without_zeros() + '.png'
+                img_name = count.get() + '.png'
                 img_path = chapter_path / img_name
                 img = get_mark_image(chap_class)
                 img.save(img_path, 'png')
@@ -158,21 +177,44 @@ class RawVolume(BaseFormat):
                 while True:
                     error = False
                     for page, img_url, img_name in images.iter():
+                        server_file = img_name
+
                         img_ext = os.path.splitext(img_name)[1]
-                        if self.legacy_sorting:
-                            img_name = count.get() + img_ext
-                        else:
-                            img_name = count.get_without_zeros() + img_ext
+                        img_name = count.get() + img_ext
 
                         img_path = chapter_path / img_name
 
                         log.info('Downloading %s page %s' % (chap_name, page))
+    
+                        # Verify file
+                        if self.verify and not replace:
+                            # Can be True, False, or None
+                            verified = verify_sha256(server_file, img_path)
+                        elif not self.verify:
+                            verified = None
+                        else:
+                            verified = False
+
+                        # If file still in intact and same as the server
+                        # Continue to download the others
+                        if verified:
+                            log.info("File exist and same as file from MangaDex server, cancelling download...")
+                            count.increase()
+                            continue
+                        elif verified == False and not self.replace:
+                            # File is not same server, probably modified
+                            log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                            replace = True
+
                         downloader = ChapterPageDownloader(
                             img_url,
                             img_path,
                             replace=replace
                         )
                         success = downloader.download()
+
+                        if verified == False and not self.replace:
+                            replace = self.replace
 
                         # One of MangaDex network are having problem
                         # Fetch the new one, and start re-downloading
@@ -248,10 +290,7 @@ class RawSingle(BaseFormat):
             images.fetch()
 
             # Insert "start of the chapter" image
-            if self.legacy_sorting:
-                img_name = count.get() + '.png'
-            else:
-                img_name = count.get_without_zeros() + '.png'
+            img_name = count.get() + '.png'
             img_path = path / img_name
             img = get_mark_image(chap_class)
             img.save(img_path, 'png')
@@ -261,21 +300,44 @@ class RawSingle(BaseFormat):
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
-                    if self.legacy_sorting:
-                        img_name = count.get() + img_ext
-                    else:
-                        img_name = count.get_without_zeros() + img_ext
+                    img_name = count.get() + img_ext
 
                     img_path = path / img_name
 
                     log.info('Downloading %s page %s' % (chap_name, page))
+
+                    # Verify file
+                    if self.verify and not replace:
+                        # Can be True, False, or None
+                        verified = verify_sha256(server_file, img_path)
+                    elif not self.verify:
+                        verified = None
+                    else:
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        count.increase()
+                        continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
+
                     downloader = ChapterPageDownloader(
                         img_url,
                         img_path,
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
