@@ -40,15 +40,12 @@ class Tachiyomi(BaseFormat):
             while True:
                 # Fix #10
                 # Some old programs wouldn't display images correctly
-                count = None
-                if self.legacy_sorting:
-                    count = NumberWithLeadingZeros(images.iter())
+                count = NumberWithLeadingZeros(images.iter())
 
                 error = False
                 for page, img_url, img_name in images.iter():
-                    if self.legacy_sorting:
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
@@ -72,8 +69,7 @@ class Tachiyomi(BaseFormat):
                         images.fetch()
                         break
                     else:
-                        if self.legacy_sorting:
-                            count.increase()
+                        count.increase()
                         continue
                 
                 if not error:
@@ -115,15 +111,12 @@ class TachiyomiZip(BaseFormat):
             while True:
                 # Fix #10
                 # Some old programs wouldn't display images correctly
-                count = None
-                if self.legacy_sorting:
-                    count = NumberWithLeadingZeros(images.iter())
+                count = NumberWithLeadingZeros(images.iter())
 
                 error = False
                 for page, img_url, img_name in images.iter():
-                    if self.legacy_sorting:
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
@@ -168,8 +161,7 @@ class TachiyomiZip(BaseFormat):
                         # And then remove it original file
                         delete_file(img_path)
                         
-                        if self.legacy_sorting:
-                            count.increase()
+                        count.increase()
                         continue
                 
                 if not error:
