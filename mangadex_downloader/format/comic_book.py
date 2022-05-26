@@ -6,7 +6,7 @@ import os
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_mark_image, NumberWithLeadingZeros, delete_file
+from .utils import get_mark_image, NumberWithLeadingZeros, delete_file, verify_sha256
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
 from ..errors import PillowNotInstalled
@@ -61,6 +61,8 @@ class ComicBookArchive(BaseFormat):
 
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
 
@@ -68,18 +70,32 @@ class ComicBookArchive(BaseFormat):
 
                     log.info('Downloading %s page %s' % (chap_name, page))
 
-                    try:
-                        chapter_zip.getinfo(img_name)
-                    except KeyError:
-                        img_exist = False
+                    # Verify file
+                    # Make sure zipfile is opened in append mode
+                    if chapter_zip.mode == "a" and self.verify and not replace:
+                        # Can be True, False, or None
+                        try:
+                            content = chapter_zip.read(img_name)
+                        except KeyError:
+                            # File is not exist
+                            verified = None
+                        else:
+                            verified = verify_sha256(server_file, data=content)
+                    elif not self.verify or chapter_zip.mode == "w":
+                        verified = None
                     else:
-                        img_exist = True
-                    
-                    if img_exist and not self.replace:
-                        log.info("File exist and replace is False, cancelling download...")
+                        verified = False
 
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
                         count.increase()
                         continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -87,6 +103,9 @@ class ComicBookArchive(BaseFormat):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -211,6 +230,8 @@ class ComicBookArchiveVolume(BaseFormat):
                 while True:
                     error = False
                     for page, img_url, img_name in images.iter():
+                        server_file = img_name
+
                         img_ext = os.path.splitext(img_name)[1]
                         img_name = count.get() + img_ext
 
@@ -218,17 +239,32 @@ class ComicBookArchiveVolume(BaseFormat):
 
                         log.info('Downloading %s page %s' % (chap_name, page))
 
-                        try:
-                            volume_zip.getinfo(img_name)
-                        except KeyError:
-                            img_exist = False
+                        # Verify file
+                        # Make sure zipfile is opened in append mode
+                        if volume_zip.mode == "a" and self.verify and not replace:
+                            # Can be True, False, or None
+                            try:
+                                content = volume_zip.read(img_name)
+                            except KeyError:
+                                # File is not exist
+                                verified = None
+                            else:
+                                verified = verify_sha256(server_file, data=content)
+                        elif not self.verify or volume_zip.mode == "w":
+                            verified = None
                         else:
-                            img_exist = True
-                        
-                        if img_exist and not self.replace:
-                            log.info("File exist and replace is False, cancelling download...")
+                            verified = False
+
+                        # If file still in intact and same as the server
+                        # Continue to download the others
+                        if verified:
+                            log.info("File exist and same as file from MangaDex server, cancelling download...")
                             count.increase()
                             continue
+                        elif verified == False and not self.replace:
+                            # File is not same server, probably modified
+                            log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                            replace = True
 
                         downloader = ChapterPageDownloader(
                             img_url,
@@ -236,6 +272,9 @@ class ComicBookArchiveVolume(BaseFormat):
                             replace=replace
                         )
                         success = downloader.download()
+
+                        if verified == False and not self.replace:
+                            replace = self.replace
 
                         # One of MangaDex network are having problem
                         # Fetch the new one, and start re-downloading
@@ -350,6 +389,8 @@ class ComicBookArchiveSingle(BaseFormat):
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
 
@@ -357,17 +398,32 @@ class ComicBookArchiveSingle(BaseFormat):
 
                     log.info('Downloading %s page %s' % (chap_name, page))
 
-                    try:
-                        manga_zip.getinfo(img_name)
-                    except KeyError:
-                        img_exist = False
+                    # Verify file
+                    # Make sure zipfile is opened in append mode
+                    if manga_zip.mode == "a" and self.verify and not replace:
+                        # Can be True, False, or None
+                        try:
+                            content = manga_zip.read(img_name)
+                        except KeyError:
+                            # File is not exist
+                            verified = None
+                        else:
+                            verified = verify_sha256(server_file, data=content)
+                    elif not self.verify or manga_zip.mode == "w":
+                        verified = None
                     else:
-                        img_exist = True
-                    
-                    if img_exist and not self.replace:
-                        log.info("File exist and replace is False, cancelling download...")
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
                         count.increase()
                         continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -375,6 +431,9 @@ class ComicBookArchiveSingle(BaseFormat):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
