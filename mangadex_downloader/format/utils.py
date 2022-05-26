@@ -239,7 +239,23 @@ class Sha256RegexError(Exception):
     """Raised when regex_sha256 cannot grab sha256 from server_file object"""
     pass
 
-def verify_sha256(server_file, path):
+def verify_sha256(server_file, path=None, data=None):
+    """Verify MangaDex images file
+
+    Parameters
+    -----------
+    server_file: :class:`str`
+        Original MangaDex image filename containing sha256 hash
+    path: Optional[Union[:class:`str`, :class:`bytes`, :class:`pathlib.Path`]]
+        File want to be verified
+    data: Optional[:class:`bytes`]
+        Image data wants to be verified
+    """
+    if path is None and data is None:
+        raise ValueError("at least provide path or data")
+    elif path and data:
+        raise ValueError("path and data cannot be together")
+
     # Yes this is very cool regex
     regex_sha256 = r'-(?P<hash>.{1,})\.'
 
@@ -255,18 +271,21 @@ def verify_sha256(server_file, path):
     
     local_sha256 = hashlib.sha256()
 
-    # File is not exist
-    if not os.path.exists(path):
-        return None
+    if path:
+        # File is not exist
+        if not os.path.exists(path):
+            return None
 
-    # Begin verifying
-    size = 8192
-    with open(path, 'rb') as reader:
-        while True:
-            data = reader.read(size)
-            if not data:
-                break
+        # Begin verifying
+        size = 8192
+        with open(path, 'rb') as reader:
+            while True:
+                data = reader.read(size)
+                if not data:
+                    break
 
-            local_sha256.update(data)
+                local_sha256.update(data)
+    elif data:
+        local_sha256.update(data)
     
     return local_sha256.hexdigest() == server_hash

@@ -3,7 +3,7 @@ import shutil
 import zipfile
 import os
 from .base import BaseFormat
-from .utils import NumberWithLeadingZeros, delete_file
+from .utils import NumberWithLeadingZeros, delete_file, verify_sha256
 from ..utils import create_chapter_folder, write_details
 from ..downloader import ChapterPageDownloader
 
@@ -44,18 +44,44 @@ class Tachiyomi(BaseFormat):
 
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name                    
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
                     log.info('Downloading %s page %s' % (chap_name, page))
+
+                    # Verify file
+                    if self.verify and not replace:
+                        # Can be True, False, or None
+                        verified = verify_sha256(server_file, img_path)
+                    elif not self.verify:
+                        verified = None
+                    else:
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        count.increase()
+                        continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
+
                     downloader = ChapterPageDownloader(
                         img_url,
                         img_path,
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -103,6 +129,9 @@ class TachiyomiZip(BaseFormat):
             chapter_path = create_chapter_folder(base_path, chap_name)
 
             chapter_zip_path = base_path / (chap_name + '.zip')
+            if chapter_zip_path.exists() and replace:
+                delete_file(chapter_zip_path)
+
             if path_exists(chapter_zip_path):
                 chapter_zip = zipfile.ZipFile(str(chapter_zip_path), "a")
             else:
@@ -115,6 +144,8 @@ class TachiyomiZip(BaseFormat):
 
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
 
@@ -122,16 +153,32 @@ class TachiyomiZip(BaseFormat):
 
                     log.info('Downloading %s page %s' % (chap_name, page))
 
-                    try:
-                        chapter_zip.getinfo(img_name)
-                    except KeyError:
-                        img_exist = False
+                    # Verify file
+                    # Make sure zipfile is opened in append mode
+                    if chapter_zip.mode == "a" and self.verify and not replace:
+                        # Can be True, False, or None
+                        try:
+                            content = chapter_zip.read(img_name)
+                        except KeyError:
+                            # File is not exist
+                            verified = None
+                        else:
+                            verified = verify_sha256(server_file, data=content)
+                    elif not self.verify or chapter_zip.mode == "w":
+                        verified = None
                     else:
-                        img_exist = True
-                    
-                    if img_exist and not self.replace:
-                        log.info("File exist and replace is False, cancelling download...")
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        count.increase()
                         continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -139,6 +186,9 @@ class TachiyomiZip(BaseFormat):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
