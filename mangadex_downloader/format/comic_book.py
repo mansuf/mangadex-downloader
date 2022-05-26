@@ -57,15 +57,12 @@ class ComicBookArchive(BaseFormat):
             while True:
                 # Fix #10
                 # Some old programs wouldn't display images correctly
-                count = None
-                if self.legacy_sorting:
-                    count = NumberWithLeadingZeros(images.iter())
+                count = NumberWithLeadingZeros(images.iter())
 
                 error = False
                 for page, img_url, img_name in images.iter():
-                    if self.legacy_sorting:
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
@@ -81,9 +78,7 @@ class ComicBookArchive(BaseFormat):
                     if img_exist and not self.replace:
                         log.info("File exist and replace is False, cancelling download...")
 
-                        if self.legacy_sorting:
-                            count.increase()
-
+                        count.increase()
                         continue
 
                     downloader = ChapterPageDownloader(
@@ -114,8 +109,7 @@ class ComicBookArchive(BaseFormat):
                         # And then remove it original file
                         delete_file(img_path)
 
-                        if self.legacy_sorting:
-                            count.increase()
+                        count.increase()
                         continue
                 
                 if not error:
@@ -189,10 +183,7 @@ class ComicBookArchiveVolume(BaseFormat):
                 chap_name = chap_class.get_name()
 
                 # Insert "start of the chapter" image
-                if self.legacy_sorting:
-                    img_name = count.get() + '.png'
-                else:
-                    img_name = count.get_without_zeros() + '.png'
+                img_name = count.get() + '.png'
 
                 # Make sure we never duplicated it
                 write_start_image = False
@@ -221,10 +212,7 @@ class ComicBookArchiveVolume(BaseFormat):
                     error = False
                     for page, img_url, img_name in images.iter():
                         img_ext = os.path.splitext(img_name)[1]
-                        if self.legacy_sorting:
-                            img_name = count.get() + img_ext
-                        else:
-                            img_name = count.get_without_zeros() + img_ext
+                        img_name = count.get() + img_ext
 
                         img_path = volume_path / img_name
 
@@ -307,12 +295,11 @@ class ComicBookArchiveSingle(BaseFormat):
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             # Fix #10
             # Some programs wouldn't display images correctly
-            if self.legacy_sorting:
-                # Each chapters has one page that has "Chapter n"
-                # This is called "start of the chapter" image
-                total += 1
+            # Each chapters has one page that has "Chapter n"
+            # This is called "start of the chapter" image
+            total += 1
 
-                total += chap_class.pages
+            total += chap_class.pages
 
             item = [chap_class, images]
             cache.append(item)
@@ -330,10 +317,7 @@ class ComicBookArchiveSingle(BaseFormat):
 
         for chap_class, images in cache:
             # Insert "start of the chapter" image
-            if self.legacy_sorting:
-                img_name = count.get() + '.png'
-            else:
-                img_name = count.get_without_zeros() + '.png'
+            img_name = count.get() + '.png'
 
             # Make sure we never duplicated it
             write_start_image = False
@@ -367,10 +351,7 @@ class ComicBookArchiveSingle(BaseFormat):
                 error = False
                 for page, img_url, img_name in images.iter():
                     img_ext = os.path.splitext(img_name)[1]
-                    if self.legacy_sorting:
-                        img_name = count.get() + img_ext
-                    else:
-                        img_name = count.get_without_zeros() + img_ext
+                    img_name = count.get() + img_ext
 
                     img_path = chapter_path / img_name
 
