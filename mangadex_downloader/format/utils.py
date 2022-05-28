@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+from shutil import ignore_patterns
 import threading
 import time
 import textwrap
@@ -57,7 +58,7 @@ def load_font():
 
     raise FontNotFound(f'fonts {list_font_family} are not found')
 
-def get_mark_image(chapter):
+def get_mark_image(chapter,ignore_font=False):
     text = ""
 
     # Current chapter (Volume. n Chapter. n)
@@ -75,7 +76,13 @@ def get_mark_image(chapter):
 
     text +=  f"Translated by: {chapter.groups_name}"
 
-    font = load_font()
+    font = None # avoid unbounded variable warning
+    try:
+        font = load_font()
+    except FontNotFound as e:
+        if not ignore_font:
+            raise e
+
     img = Image.new(image_mode, image_size, rgb_white)
     draw = ImageDraw.Draw(img, image_mode)
     draw.multiline_text(text_pos, text, rgb_black, font, align='center')

@@ -212,7 +212,7 @@ class ComicBookArchiveVolume(BaseFormat):
                     write_start_image = True
                 
                 if write_start_image:
-                    img = get_mark_image(chap_class)
+                    img = get_mark_image(chap_class, ignore_font=True)
                     fp = io.BytesIO()
                     img.save(fp, 'png')
                     job = lambda: volume_zip.writestr(img_name, fp.getvalue())
@@ -366,7 +366,7 @@ class ComicBookArchiveSingle(BaseFormat):
                 write_start_image = True
             
             if write_start_image:
-                img = get_mark_image(chap_class)
+                img = get_mark_image(chap_class, ignore_font=True)
                 fp = io.BytesIO()
                 img.save(fp, 'png')
                 job = lambda: manga_zip.writestr(img_name, fp.getvalue())
