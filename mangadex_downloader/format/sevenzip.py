@@ -5,7 +5,7 @@ import os
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_mark_image, NumberWithLeadingZeros, delete_file
+from .utils import get_mark_image, NumberWithLeadingZeros, delete_file, verify_sha256
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
 from ..errors import MangaDexException
@@ -62,6 +62,8 @@ class SevenZip(BaseFormat):
 
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
 
@@ -69,14 +71,32 @@ class SevenZip(BaseFormat):
 
                     log.info('Downloading %s page %s' % (chap_name, page))
 
+                    verified = None
                     if chapter_zip_path.exists():
                         with py7zr.SevenZipFile(chapter_zip_path, 'r') as chapter_zip:
-                            if img_name in chapter_zip.getnames() and not self.replace:
-                                log.info("File exist and replace is False, cancelling download...")
+                            fp_files = chapter_zip.read([img_name])
 
-                                count.increase()
+                            for _, fp in fp_files.items():
+                                # Verify file
+                                if self.verify and not replace:
+                                    # Can be True, False, or None
+                                    content = fp.read()
+                                    verified = verify_sha256(server_file, data=content)
+                                elif not self.verify:
+                                    verified = None
+                                else:
+                                    verified = False
 
-                                continue  
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        count.increase()
+                        continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -84,6 +104,9 @@ class SevenZip(BaseFormat):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -216,6 +239,8 @@ class SevenZipVolume(SevenZip):
                 while True:
                     error = False
                     for page, img_url, img_name in images.iter():
+                        server_file = img_name
+
                         img_ext = os.path.splitext(img_name)[1]
                         img_name = count.get() + img_ext
 
@@ -223,13 +248,32 @@ class SevenZipVolume(SevenZip):
 
                         log.info('Downloading %s page %s' % (chap_name, page))
 
+                        verified = None
                         if volume_zip_path.exists():
                             with py7zr.SevenZipFile(volume_zip_path, 'r') as volume_zip:
-                                if img_name in volume_zip.getnames() and not self.replace:
-                                    log.info("File exist and replace is False, cancelling download...")
+                                fp_files = volume_zip.read([img_name])
 
-                                    count.increase()
-                                    continue
+                                for _, fp in fp_files.items():
+                                    # Verify file
+                                    if self.verify and not replace:
+                                        # Can be True, False, or None
+                                        content = fp.read()
+                                        verified = verify_sha256(server_file, data=content)
+                                    elif not self.verify:
+                                        verified = None
+                                    else:
+                                        verified = False
+
+                        # If file still in intact and same as the server
+                        # Continue to download the others
+                        if verified:
+                            log.info("File exist and same as file from MangaDex server, cancelling download...")
+                            count.increase()
+                            continue
+                        elif verified == False and not self.replace:
+                            # File is not same server, probably modified
+                            log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                            replace = True
 
                         downloader = ChapterPageDownloader(
                             img_url,
@@ -237,6 +281,9 @@ class SevenZipVolume(SevenZip):
                             replace=replace
                         )
                         success = downloader.download()
+
+                        if verified == False and not self.replace:
+                            replace = self.replace
 
                         # One of MangaDex network are having problem
                         # Fetch the new one, and start re-downloading
@@ -349,6 +396,8 @@ class SevenZipSingle(SevenZip):
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
 
@@ -356,13 +405,32 @@ class SevenZipSingle(SevenZip):
 
                     log.info('Downloading %s page %s' % (chap_name, page))
 
+                    verified = None
                     if manga_zip_path.exists():
                         with py7zr.SevenZipFile(manga_zip_path, 'r') as manga_zip:
-                            if img_name in manga_zip.getnames() and not self.replace:
-                                log.info("File exist and replace is False, cancelling download...")
+                            fp_files = manga_zip.read([img_name])
 
-                                count.increase()
-                                continue
+                            for _, fp in fp_files.items():
+                                # Verify file
+                                if self.verify and not replace:
+                                    # Can be True, False, or None
+                                    content = fp.read()
+                                    verified = verify_sha256(server_file, data=content)
+                                elif not self.verify:
+                                    verified = None
+                                else:
+                                    verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        count.increase()
+                        continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -370,6 +438,9 @@ class SevenZipSingle(SevenZip):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
