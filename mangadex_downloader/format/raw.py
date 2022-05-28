@@ -169,7 +169,7 @@ class RawVolume(BaseFormat):
                 # Insert "start of the chapter" image
                 img_name = count.get() + '.png'
                 img_path = chapter_path / img_name
-                img = get_mark_image(chap_class, ignore_font=True)
+                img = get_mark_image(chap_class)
                 img.save(img_path, 'png')
 
                 count.increase()
@@ -292,7 +292,7 @@ class RawSingle(BaseFormat):
             # Insert "start of the chapter" image
             img_name = count.get() + '.png'
             img_path = path / img_name
-            img = get_mark_image(chap_class, ignore_font=True)
+            img = get_mark_image(chap_class)
             img.save(img_path, 'png')
 
             count.increase()

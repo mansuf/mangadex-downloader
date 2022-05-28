@@ -4,11 +4,13 @@ import logging
 import os
 import re
 from shutil import ignore_patterns
+import sys
 import threading
 import time
 import textwrap
 
 from pathlib import Path
+import traceback
 
 from ..errors import MangaDexException
 from .. import __repository__
@@ -37,11 +39,8 @@ text_align = "center"
 list_font_family = [
     font_family,
     font_family.capitalize(),
+    "FreeSans.ttf"
 ]
-
-class FontNotFound(MangaDexException):
-    """Raised when loading specified font are not found"""
-    pass
 
 def load_font():
     for font in list_font_family:
@@ -56,9 +55,9 @@ def load_font():
             # Other error
             raise e from None
 
-    raise FontNotFound(f'fonts {list_font_family} are not found')
+    return None
 
-def get_mark_image(chapter,ignore_font=False):
+def get_mark_image(chapter):
     text = ""
 
     # Current chapter (Volume. n Chapter. n)
@@ -76,16 +75,20 @@ def get_mark_image(chapter,ignore_font=False):
 
     text +=  f"Translated by: {chapter.groups_name}"
 
-    font = None # avoid unbounded variable warning
-    try:
-        font = load_font()
-    except FontNotFound as e:
-        if not ignore_font:
-            raise e
+    font = load_font()
 
     img = Image.new(image_mode, image_size, rgb_white)
     draw = ImageDraw.Draw(img, image_mode)
-    draw.multiline_text(text_pos, text, rgb_black, font, align='center')
+
+    try:
+        draw.multiline_text(text_pos, text, rgb_black, font, align='center')
+    except Exception as e:
+        log.error(f"Failed to create chapter {chapter.chapter} info, reason: {e.__class__.__name__}: {str(e)}")
+        traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
+        raise MangaDexException(
+            f"An error occurred during creation chapter {chapter.chapter} info. " \
+            "Please make sure Arial font is available on your OS (or FreeSans font in Linux)"
+        ) from None
 
     return img
 
