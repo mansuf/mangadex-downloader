@@ -6,6 +6,7 @@ import re
 import threading
 import time
 import textwrap
+from itertools import chain
 
 from pathlib import Path
 
@@ -25,7 +26,7 @@ except ImportError:
 
 rgb_white = (255, 255, 255)
 rgb_black = (0, 0, 0)
-font_family = 'arial.ttf'
+font_family = ['arial.ttf', 'calibri.ttf']
 font_size = 30
 image_size = (720, int(1100 / 1.25))
 image_mode = "RGB"
@@ -33,10 +34,7 @@ text_pos = (150, int(450 / 1.25))
 text_align = "center"
 
 # For some reason, filename font are case-sensitive
-list_font_family = [
-    font_family,
-    font_family.capitalize(),
-]
+list_font_family = list(chain.from_iterable([[ f, f.capitalize() ] for f in font_family ]))
 
 class FontNotFound(MangaDexException):
     """Raised when loading specified font are not found"""
@@ -55,7 +53,8 @@ def load_font():
             # Other error
             raise e from None
 
-    raise FontNotFound(f'fonts {list_font_family} are not found')
+    log.warn(f'fonts {list_font_family} are not found, use default')
+    return ImageFont.load_default()
 
 def get_mark_image(chapter):
     text = ""
