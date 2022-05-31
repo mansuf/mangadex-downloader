@@ -92,9 +92,27 @@ class InputHandler(argparse.Action):
             pipe = False
             pipe_value = None
 
-        self.search = '--search' in lowered_args
-        self.unsafe = '--unsafe' in lowered_args
-        self.use_alt_details = '--use-alt-details' in lowered_args
+        self.search = _check_args(
+            (
+                '--search',
+                '-s'
+            ),
+            lowered_args
+        )
+        self.unsafe = _check_args(
+            (
+                '--unsafe',
+                '-u'
+            ),
+            lowered_args
+        )
+        self.use_alt_details = _check_args(
+            (
+                '--use-alt-details',
+                '-uad'
+            ),
+            lowered_args
+        )
 
         # Manipulate positional arguments
         if pipe:
