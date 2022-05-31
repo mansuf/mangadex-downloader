@@ -18,6 +18,21 @@ from .. import __description__
 
 log = logging.getLogger(__name__)
 
+def _check_args(opts, args):
+    """Utility for checking args from original and alias options
+    
+    Used in :class:`InputHandler`
+    """
+    for opt in opts:
+        if opt not in args:
+            continue
+        else:
+            # original or alias options is exist in args
+            return True
+    
+    # not exist
+    return False
+
 def validate_group_url(url):
     try:
         return _validate_group_url(url)
@@ -144,19 +159,42 @@ def get_args(argv):
     )
     parser.add_argument(
         '--type',
+        '-t',
         help='Override type MangaDex url. By default, it auto detect given url',
         choices=valid_types
     )
-    parser.add_argument('--folder', metavar='FOLDER', help='Store manga in given folder')
-    parser.add_argument('--replace', help='Replace manga if exist', action='store_true')
+    parser.add_argument(
+        '--folder',
+        '--path',
+        '-d',
+        metavar='FOLDER',
+        help='Store manga in given folder'
+    )
+    parser.add_argument(
+        '--replace',
+        '-r',
+        help='Replace manga if exist',
+        action='store_true'
+    )
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
-    parser.add_argument('--search', help='Search manga and then download it', action='store_true')
-    parser.add_argument('--unsafe', help='If set, it will allow you to search and download porn manga', action='store_true')
+    parser.add_argument(
+        '--search',
+        '-s',
+        help='Search manga and then download it',
+        action='store_true'
+    )
+    parser.add_argument(
+        '--unsafe',
+        '-u',
+        help='If set, it will allow you to search and download porn manga', 
+        action='store_true'
+    )
 
     # Manga related
     manga_group = parser.add_argument_group('Manga')
     manga_group.add_argument(
         '--use-alt-details',
+        '-uad',
         action='store_true',
         help='Use alternative title and description manga'
     )
@@ -165,6 +203,7 @@ def get_args(argv):
     group_group = parser.add_argument_group('Group') # wtf group_group
     group_group.add_argument(
         '--group',
+        '-g',
         metavar='GROUP_ID',
         help='Use different scanlation group for each chapter',
         type=validate_group_url
@@ -182,6 +221,7 @@ def get_args(argv):
     )
     lang_group.add_argument(
         '--list-languages',
+        '-ll',
         action='version',
         help='List all available languages',
         version=list_languages()
@@ -191,20 +231,33 @@ def get_args(argv):
     chap_group = parser.add_argument_group('Chapter')
     chap_group.add_argument(
         '--start-chapter',
+        '-sc',
         type=float,
         help='Start download chapter from given chapter number',
         metavar='CHAPTER'
     )
     chap_group.add_argument(
         '--end-chapter',
+        '-ec',
         type=float,
         help='Stop download chapter from given chapter number',
         metavar='CHAPTER'
     )
-    chap_group.add_argument('--no-oneshot-chapter', help='If exist, don\'t download oneshot chapter', action='store_true')
-    chap_group.add_argument('--no-group-name', action='store_true', help='Do not use scanlation group name for each chapter')
+    chap_group.add_argument(
+        '--no-oneshot-chapter',
+        '-noc',
+        help='If exist, don\'t download oneshot chapter',
+        action='store_true'
+    )
+    chap_group.add_argument(
+        '--no-group-name',
+        '-ngn',
+        action='store_true',
+        help='Do not use scanlation group name for each chapter'
+    )
     chap_group.add_argument(
         '--use-chapter-title',
+        '-uct',
         action='store_true',
         help='Use chapter title for each chapters. NOTE: This option is useless if used with any single and volume format.'
     ) 
@@ -213,12 +266,14 @@ def get_args(argv):
     chap_page_group = parser.add_argument_group("Chapter Page")
     chap_page_group.add_argument(
         '--start-page',
+        '-sp',
         type=int,
         help='Start download chapter page from given page number',
         metavar='NUM_PAGE'
     )
     chap_page_group.add_argument(
         '--end-page',
+        '-ep',
         type=int,
         help='Stop download chapter page from given page number',
         metavar='NUM_PAGE'
@@ -229,6 +284,7 @@ def get_args(argv):
     img_group.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
     img_group.add_argument(
         '--cover',
+        '-c',
         choices=valid_cover_types,
         help='Choose quality cover, default is \"original\"',
         default=default_cover_type
@@ -236,14 +292,16 @@ def get_args(argv):
 
     # Authentication related
     auth_group = parser.add_argument_group('Authentication')
-    auth_group.add_argument('--login', help='Login to MangaDex', action='store_true')
+    auth_group.add_argument('--login', '-l', help='Login to MangaDex', action='store_true')
     auth_group.add_argument(
         '--login-username',
+        '-lu',
         help='Login to MangaDex with username or email (you will be prompted to input password if --login-password are not present)',
         metavar='USERNAME'
     )
     auth_group.add_argument(
         '--login-password',
+        '-lp',
         help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)',
         metavar='PASSWORD'
     )
@@ -252,6 +310,7 @@ def get_args(argv):
     save_as_group = parser.add_argument_group('Save as format')
     save_as_group.add_argument(
         '--save-as',
+        '-f',
         choices=formats.keys(),
         help='Select save as format, default to \"tachiyomi\"',
         default=default_save_as_format
@@ -259,8 +318,8 @@ def get_args(argv):
 
     # Proxy related
     proxy_group = parser.add_argument_group('Proxy')
-    proxy_group.add_argument('--proxy', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
-    proxy_group.add_argument('--proxy-env', action='store_true', help='use http/socks proxy from environments')
+    proxy_group.add_argument('--proxy', '-p', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
+    proxy_group.add_argument('--proxy-env', '-pe', action='store_true', help='use http/socks proxy from environments')
 
     # Miscellaneous
     misc_group = parser.add_argument_group('Miscellaneous')
@@ -272,6 +331,7 @@ def get_args(argv):
     )
     misc_group.add_argument(
         '--no-verify',
+        '-nv',
         action='store_true',
         help='Skip hash checking for each images'
     )
