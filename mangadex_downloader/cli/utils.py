@@ -2,6 +2,8 @@ import logging
 import signal
 import sys
 
+from .. import __version__, __repository__
+from ..update import architecture, executable
 from ..network import Net
 from ..downloader import _cleanup_jobs
 from ..errors import NotLoggedIn
@@ -104,3 +106,11 @@ class Paginator:
         page = self._pages[self._pos]
         for item in page:
             print(f"({item['pos']}). {item['item']}")
+
+def print_version_info():
+    bundled_executable = 'yes' if executable else 'no'
+
+    print(f"mangadex-downloader v{__version__} ({__repository__})")
+    print("Python: {0[0]}.{0[1]}.{0[2]}".format(sys.version_info))
+    print(f"arch: {architecture}")
+    print(f"bundled executable: {bundled_executable}")

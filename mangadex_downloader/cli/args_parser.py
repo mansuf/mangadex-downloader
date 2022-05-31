@@ -3,7 +3,7 @@ import logging
 import sys
 
 from .url import valid_types
-from .utils import setup_logging, sys_argv
+from .utils import setup_logging, sys_argv, print_version_info
 from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
 from ..utils import (
@@ -14,7 +14,7 @@ from ..utils import (
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
 from ..errors import InvalidURL
-from .. import __description__
+from .. import __description__, __version__
 
 log = logging.getLogger(__name__)
 
@@ -56,6 +56,11 @@ class UpdateAppAction(argparse.Action):
         setup_logging('mangadex_downloader')
         update_app()
         sys.exit(0)  
+
+class PrintVersionAction(argparse.Action):
+    def __call__(self, *args, **kwargs):
+        print_version_info()
+        sys.exit(0)
 
 class InputHandler(argparse.Action):
     def __init__(
@@ -353,6 +358,12 @@ def get_args(argv):
         '-nv',
         action='store_true',
         help='Skip hash checking for each images'
+    )
+    misc_group.add_argument(
+        '-v',
+        '--version',
+        action=PrintVersionAction,
+        nargs=0
     )
 
     # Update application
