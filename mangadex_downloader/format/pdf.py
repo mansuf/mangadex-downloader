@@ -7,7 +7,13 @@ import shutil
 from pathvalidate import sanitize_filename
 from tqdm import tqdm
 from .base import BaseFormat
-from .utils import FileTracker, NumberWithLeadingZeros, get_mark_image, delete_file
+from .utils import (
+    FileTracker,
+    NumberWithLeadingZeros,
+    get_mark_image,
+    delete_file,
+    verify_sha256
+)
 from ..errors import PillowNotInstalled
 from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
@@ -276,11 +282,13 @@ class PDF(BaseFormat):
         compressed_image = self.compress_img
         replace = self.replace
         worker = self.create_worker()
+        imgs = []
 
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
             chap_name = chap_class.get_name()
+            count = NumberWithLeadingZeros(0)
 
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
@@ -288,23 +296,6 @@ class PDF(BaseFormat):
                 chap
             ))
             images.fetch()
-
-            # This file is for keep track finished images chapter converted to pdf
-            # If gets deleted, the chapter will marked as finished download
-            # How it work:
-            # It will check one of chapter image is exist in .unfinished file
-            # if exist, it will ignore it (if replace is False). Otherwise it will download it and put the image name
-            # to .unfinished file.
-            unfinished_chapter_path = base_path / (chap_name + '.unfinished')
-
-            if replace:
-                open(unfinished_chapter_path, 'w').close()
-
-            exists = unfinished_chapter_path.exists()
-            if exists:
-                unfinished_chapter = unfinished_chapter_path.read_text().splitlines()
-            else:
-                unfinished_chapter = []
 
             pdf_file = base_path / (chap_name + '.pdf')
             def pdf_file_exists(converting=False):
@@ -315,27 +306,44 @@ class PDF(BaseFormat):
                         pass
                 return os.path.exists(pdf_file)
 
-            if pdf_file_exists() and not exists and not replace:
+            if pdf_file_exists() and not replace:
                 log.info("Chapter PDF file exist and replace is False, cancelling download...")
                 continue
 
             chapter_path = create_chapter_folder(base_path, chap_name)
 
-            tracker = open(unfinished_chapter_path, "a" if exists else "w")
-
-            # In case KeyboardInterrupt is called
-            _cleanup_jobs.append(lambda: tracker.close())
-
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name                    
+
+                    img_ext = os.path.splitext(img_name)[1]
+                    img_name = count.get() + img_ext
+
                     img_path = chapter_path / img_name
 
                     log.info('Downloading %s page %s' % (chap_name, page))
 
-                    if img_name in unfinished_chapter and not self.replace:
-                        log.info("File exist and replace is False, cancelling download...")
+                    # Verify file
+                    if self.verify and not replace:
+                        # Can be True, False, or None
+                        verified = verify_sha256(server_file, img_path)
+                    elif not self.verify:
+                        verified = None
+                    else:
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
+                        imgs.append(Image.open(img_path))
+                        count.increase()
                         continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -343,6 +351,9 @@ class PDF(BaseFormat):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -356,42 +367,39 @@ class PDF(BaseFormat):
                         images.fetch()
                         break
                     else:
-                        def convert_pdf():
-                            # Begin converting to PDF
-                            img = Image.open(img_path)
-                            converted_img = img.convert('RGB')
-
-                            def cleanup():
-                                img.close()
-                                converted_img.close()
-
-                            _cleanup_jobs.append(cleanup)
-
-                            # Save it to PDF
-                            converted_img.save(pdf_file, save_all=True, append=True if pdf_file_exists(True) else False)                        
-
-                            # Close the image
-                            img.close()
-                            converted_img.close()
-
-                            # And then remove it original file
-                            delete_file(img_path)
-
-                            tracker.write(img_name + '\n')
-                            tracker.flush()
-
-                        worker.submit(convert_pdf)
+                        count.increase()
+                        imgs.append(Image.open(img_path))
                         continue
                 
                 if not error:
-                    # Remove .unfinished file
-                    tracker.close()
-                    delete_file(unfinished_chapter_path)
                     break
+
+            log.info(f"{chap_name} has finished download, converting to pdf...")
+
+            pdf_plugin = PDFPlugin(imgs)
+
+            im = imgs.pop(0)
+
+            # Convert it to PDF
+            def save_pdf():
+                im.save(
+                    pdf_file,
+                    save_all=True,
+                    append=True if pdf_file_exists(True) else False,
+                    append_images=imgs
+                )
+
+                # Close PDF convert progress bar
+                pdf_plugin.close_progress_bar()
+
+            # Save it as pdf
+            worker.submit(save_pdf)
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
-        
+
+            imgs.clear()
+
         # Shutdown queue-based thread process
         worker.shutdown()
 
@@ -406,7 +414,7 @@ class PDFSingle(PDF):
         chapter_folders = []
         count = NumberWithLeadingZeros(0)
 
-        # In order to add "next chapter" image mark in end of current chapter
+        # In order to add chapter info image in start of the chapter
         # We need to cache all chapters
         log.info("Preparing to download...")
         cache = []
@@ -423,15 +431,6 @@ class PDFSingle(PDF):
         pdf_name = sanitize_filename(first_chapter.name + " - " + last_chapter.name + '.pdf')
         pdf_file = base_path / pdf_name
 
-        # This file is for tracking downloaded chapter images
-        # if gets deleted, the chapter images will be re-downloaded from zero
-        tracker = FileTracker(pdf_name, base_path)
-
-        if replace:
-            tracker.reset()
-        
-        exists_download = tracker.exists()
-
         def pdf_file_exists(converting=False):
             if replace and not converting:
                 try:
@@ -440,7 +439,7 @@ class PDFSingle(PDF):
                     pass
             return os.path.exists(pdf_file)
 
-        if pdf_file_exists() and not exists_download and not replace:
+        if pdf_file_exists() and not replace:
             log.info("Chapter PDF file exist and replace is False, cancelling download...")
             return
 
@@ -471,17 +470,34 @@ class PDFSingle(PDF):
             while True:
                 error = False
                 for page, img_url, img_name in images.iter():
+                    server_file = img_name
+
                     img_ext = os.path.splitext(img_name)[1]
                     img_name = count.get() + img_ext
                     img_path = chapter_path / img_name
                     
                     log.info('Downloading %s page %s' % (chap_name, page))
 
-                    if tracker.check(img_name) and not self.replace:
+                    # Verify file
+                    if self.verify and not replace:
+                        # Can be True, False, or None
+                        verified = verify_sha256(server_file, img_path)
+                    elif not self.verify:
+                        verified = None
+                    else:
+                        verified = False
+
+                    # If file still in intact and same as the server
+                    # Continue to download the others
+                    if verified:
+                        log.info("File exist and same as file from MangaDex server, cancelling download...")
                         imgs.append(Image.open(img_path))
-                        log.info("File exist and replace is False, cancelling download...")
                         count.increase()
                         continue
+                    elif verified == False and not self.replace:
+                        # File is not same server, probably modified
+                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                        replace = True
 
                     downloader = ChapterPageDownloader(
                         img_url,
@@ -489,6 +505,9 @@ class PDFSingle(PDF):
                         replace=replace
                     )
                     success = downloader.download()
+
+                    if verified == False and not self.replace:
+                        replace = self.replace
 
                     # One of MangaDex network are having problem
                     # Fetch the new one, and start re-downloading
@@ -504,7 +523,6 @@ class PDFSingle(PDF):
                     else:
                         count.increase()
                         imgs.append(Image.open(img_path))
-                        tracker.register(img_name)
                         continue
                 
                 if not error:
@@ -529,9 +547,6 @@ class PDFSingle(PDF):
 
             # Close PDF convert progress bar
             pdf_plugin.close_progress_bar()
-
-            # Cleaning up
-            tracker.close()
 
             for folder in chapter_folders:
                 shutil.rmtree(folder, ignore_errors=True)
@@ -580,15 +595,6 @@ class PDFVolume(PDF):
             pdf_name = vol_name + '.pdf'
             pdf_file = base_path / pdf_name
 
-            # This file is for tracking downloaded chapter images
-            # if gets deleted, the chapter images will be re-downloaded from zero
-            tracker = FileTracker(pdf_name, base_path)
-
-            if replace:
-                tracker.reset()
-            
-            exists_download = tracker.exists()
-
             def pdf_file_exists(converting=False):
                 if replace and not converting:
                     try:
@@ -597,7 +603,7 @@ class PDFVolume(PDF):
                         pass
                 return os.path.exists(pdf_file)
 
-            if pdf_file_exists() and not exists_download and not replace:
+            if pdf_file_exists() and not replace:
                 log.info("Volume PDF file exist and replace is False, cancelling download...")
                 continue
 
@@ -629,17 +635,34 @@ class PDFVolume(PDF):
                 while True:
                     error = False
                     for page, img_url, img_name in images.iter():
+                        server_file = img_name
+
                         img_ext = os.path.splitext(img_name)[1]
                         img_name = count.get() + img_ext
                         img_path = volume_path / img_name
                         
                         log.info('Downloading %s page %s' % (chap_name, page))
 
-                        if tracker.check(img_name) and not self.replace:
+                        # Verify file
+                        if self.verify and not replace:
+                            # Can be True, False, or None
+                            verified = verify_sha256(server_file, img_path)
+                        elif not self.verify:
+                            verified = None
+                        else:
+                            verified = False
+
+                        # If file still in intact and same as the server
+                        # Continue to download the others
+                        if verified:
+                            log.info("File exist and same as file from MangaDex server, cancelling download...")
                             imgs.append(Image.open(img_path))
-                            log.info("File exist and replace is False, cancelling download...")
                             count.increase()
                             continue
+                        elif verified == False and not self.replace:
+                            # File is not same server, probably modified
+                            log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+                            replace = True
 
                         downloader = ChapterPageDownloader(
                             img_url,
@@ -647,6 +670,9 @@ class PDFVolume(PDF):
                             replace=replace
                         )
                         success = downloader.download()
+
+                        if verified == False and not self.replace:
+                            replace = self.replace
 
                         # One of MangaDex network are having problem
                         # Fetch the new one, and start re-downloading
@@ -662,7 +688,6 @@ class PDFVolume(PDF):
                         else:
                             count.increase()
                             imgs.append(Image.open(img_path))
-                            tracker.register(img_name)
                             continue
                     
                     if not error:
@@ -687,9 +712,6 @@ class PDFVolume(PDF):
 
                 # Close PDF convert progress bar
                 pdf_plugin.close_progress_bar()
-
-                # Cleaning up
-                tracker.close()
 
                 for folder in volume_folders:
                     shutil.rmtree(folder, ignore_errors=True)
