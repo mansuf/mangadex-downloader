@@ -345,7 +345,8 @@ def get_args(argv):
     misc_group.add_argument(
         '--enable-legacy-sorting',
         action='store_true',
-        help='Enable legacy sorting chapter images for old reader application'
+        help='[DEPRECATED] will be removed in v1.3.0. ' \
+             'Enable legacy sorting chapter images for old reader application'
     )
     misc_group.add_argument(
         '--no-verify',
