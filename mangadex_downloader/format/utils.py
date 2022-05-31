@@ -55,6 +55,7 @@ def load_font():
             # Other error
             raise e from None
 
+    log.warning(f"Failed to load {list_font_family} fonts, falling back to default font")
     return None
 
 def get_mark_image(chapter):
