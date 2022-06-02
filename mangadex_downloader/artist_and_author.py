@@ -12,10 +12,10 @@ class _Base:
         attr = self.data['attributes']
 
         # Name
-        self.name = attr.pop('name')
+        self.name = attr.get('name')
 
         # Profile photo
-        self.image = attr.pop('imageUrl')
+        self.image = attr.get('imageUrl')
 
         # The rest of values
         for key, value in attr.items():
