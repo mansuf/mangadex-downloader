@@ -1,9 +1,9 @@
-class UnhandledHTTPError(Exception):
-    """Raised when we unable to handle HTTP errors"""
-    pass
-
 class MangaDexException(Exception):
     """Base exception for MangaDex errors"""
+    pass
+
+class UnhandledHTTPError(MangaDexException):
+    """Raised when we unable to handle HTTP errors"""
     pass
 
 class HTTPException(MangaDexException):
