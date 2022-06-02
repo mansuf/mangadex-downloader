@@ -1,8 +1,13 @@
+import logging
 import queue
 
 from .errors import MangaDexException, NotLoggedIn
 from .network import Net, base_url
 from .manga import ContentRating, Manga
+from .fetcher import get_list
+from .user import User
+
+log = logging.getLogger(__name__)
 
 class BaseIterator:
     def __init__(self):
@@ -151,3 +156,73 @@ class IteratorUserLibraryManga(BaseIterator):
             self.queue.put(Manga(data=item))
         
         self.offset += len(items)
+
+class IteratorMangaFromList(BaseIterator):
+    def __init__(self, _id=None, unsafe=False):
+        super().__init__()
+
+        self.id = _id
+        self.limit = 100
+        self.unsafe = unsafe
+        self.name = None # type: str
+        self.user = None # type: User
+
+        self.manga_ids = []
+
+        self._parse_list()
+
+    def _parse_list(self):
+        data = get_list(self.id)['data']
+
+        self.name = data['attributes']['name']
+        
+        for rel in data['relationships']:
+            _type = rel['type']
+            _id = rel['id']
+            if _type == 'manga':
+                self.manga_ids.append(_id)
+            elif _type == 'user':
+                self.user = User(_id)
+    
+    def next(self) -> Manga:
+        return self.queue.get_nowait()
+    
+    def fill_data(self):
+        ids = self.manga_ids
+        includes = ['author', 'artist', 'cover_art']
+        content_ratings = [
+            'safe',
+            'suggestive',
+            'erotica',
+        ]
+
+        if self.unsafe:
+            content_ratings.append('pornographic')
+
+        limit = self.limit
+        if ids:
+            param_ids = ids[:limit]
+            del ids[:len(param_ids)]
+            params = {
+                'includes[]': includes,
+                'limit': limit,
+                'contentRating[]': content_ratings,
+                'ids[]': param_ids
+            }
+            url = f'{base_url}/manga'
+            r = Net.requests.get(url, params=params)
+            data = r.json()
+
+            notexist_ids = param_ids.copy()
+            copy_data = data.copy()
+            for manga_data in copy_data['data']:
+                manga = Manga(data=manga_data)
+                if manga.id in notexist_ids:
+                    notexist_ids.remove(manga.id)
+            
+            if notexist_ids:
+                for manga_id in notexist_ids:
+                    log.warning(f'There is ghost (not exist) manga = {manga_id} in list {self.name}')
+
+            for manga_data in data['data']:
+                self.queue.put(Manga(data=manga_data))

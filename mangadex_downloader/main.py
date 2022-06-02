@@ -13,7 +13,7 @@ from .utils import download as download_file
 from .errors import InvalidURL, NotAllowed
 from .fetcher import *
 from .manga import Manga, ContentRating
-from .iterator import IteratorManga, IteratorUserLibraryManga
+from .iterator import IteratorManga, IteratorMangaFromList, IteratorUserLibraryManga
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -528,25 +528,11 @@ def download_list(
         log.error('%s is not valid mangadex url' % url)
         raise e from None
 
-    data = get_list(list_id)
-    name = data['data']['attributes']['name']
-    rels = data['data']['relationships']
+    iterator = IteratorMangaFromList(_id=list_id)
 
-    # Get list of mangas
-    mangas_id = []
-    for rel in rels:
-        _id = rel['id']
-        _type = rel['type']
-        if _type == "manga":
-            manga = _fetch_manga(_id, "en", fetch_all_chapters=False)
-            if manga.content_rating == ContentRating.Pornographic and not unsafe:
-                raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
-            log.info("Found \"%s\" manga from \"%s\" list" % (manga.title, name))
-            mangas_id.append(_id)
-
-    for manga_id in mangas_id:
+    for manga in iterator:
         download(
-            manga_id,
+            manga.id,
             folder,
             replace,
             compressed_image,
