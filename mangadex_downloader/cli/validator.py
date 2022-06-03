@@ -2,10 +2,10 @@ import argparse
 import os
 import sys
 
-from .utils import Paginator
+from .utils import Paginator, dynamic_bars
 from .url import build_URL_from_type, smart_select_url
 from ..network import Net
-from ..main import search, get_manga_from_user_library
+from ..main import get_list_from_user, get_list_from_user_library, search, get_manga_from_user_library
 from ..utils import (
     validate_url as __validate,
     validate_legacy_url,
@@ -48,6 +48,7 @@ def _create_prompt_choices(
     iterator,
     text,
     on_empty_err,
+    on_preview
 ):
     def print_err(text):
         print(f"\n{text}\n")
@@ -62,6 +63,10 @@ def _create_prompt_choices(
 
     # For previous results
     choices['previous'] = "previous"
+
+    # To see more details about selected result
+    if on_preview:
+        choices['preview'] = "preview"
 
     fetch = True
     while True:
@@ -106,13 +111,26 @@ def _create_prompt_choices(
             print("type \"next\" to show next results")
             print("type \"previous\" to show previous results")
 
+            if on_preview:
+                print(
+                    "type \"preview NUMBER\" to show more details about selected result. " \
+                    "For example: \"preview 2\""
+                )
+
         print_choices()
 
         # User input
         _next = False
         previous = False
+        preview = False
         while True:
             choice = input_handle("=> ")
+
+            # Parsing on_view
+            if choice.startswith('preview'):
+                choice = choice.split('preview')[1].strip()
+                preview = True
+
             try:
                 item = choices[choice]
             except KeyError:
@@ -140,15 +158,46 @@ def _create_prompt_choices(
         elif previous:
             fetch = False
             continue
+        elif preview:
+            fetch = False
+            on_preview(item)
+            continue
         else:
             break
     
     return item
 
+def preview_list(args, mdlist):
+    cache = []
+    for manga in mdlist.iter_manga(args.unsafe):
+        cache.append(manga)
+
+    len_manga_titles = []
+    # Grab the longest title to determine length bar
+    for manga in cache:
+        len_manga_titles.append(len(manga.title))
+    
+    # List is empty
+    if not len_manga_titles:
+        length_bar = 0
+    else:
+        length_bar = max(len_manga_titles)
+
+    print('\n')
+    print(f'List of mangas from MangaDex list \"{mdlist.name}\"')
+    print(dynamic_bars(length_bar))
+    for manga in cache:
+        print(manga.title)
+    print(f'{dynamic_bars(length_bar)}\n\n')
+
 def validate(parser, args):
     urls = args.URL
 
-    if not args.search and not args.fetch_library:
+    if (
+        not args.search and 
+        not args.fetch_library_manga and
+        not args.fetch_library_list
+    ):
         try:
             args.URL = validate_url(urls)
         except argparse.ArgumentTypeError as e:
@@ -163,7 +212,8 @@ def validate(parser, args):
         iterator = search(urls, args.unsafe)
         text = f"Search results for \"{urls}\""
         on_empty_err = f"Search results \"{urls}\" are empty"
-    elif args.fetch_library:
+        on_preview = None
+    elif args.fetch_library_manga:
         result = urls.split(':')
         
         # Try to get filter status
@@ -180,11 +230,36 @@ def validate(parser, args):
         user = Net.requests.user
         text = f"Manga library from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no saved mangas"
+        on_preview = None
+    elif args.fetch_library_list:
+        # Try to get user (if available)
+        user = "".join(urls.split(':')[1:])
+
+        user_id = None
+        if user:
+            try:
+                user_id = __validate(user)
+            except InvalidURL as e:
+                parser.error(f"\"{user}\" is not a valid user")
+
+        try:
+            if user:
+                iterator = get_list_from_user(user_id)
+            else:
+                iterator = get_list_from_user_library()
+        except MangaDexException as e:
+            parser.error(str(e))
+
+        user = iterator.user if Net.requests.user is None else Net.requests.user
+        text = f"MangaDex List library from user \"{user.name}\""
+        on_empty_err = f"User \"{user.name}\" has no saved lists"
+        on_preview = lambda x: preview_list(args, x)
 
     kwargs.update({
         'iterator': iterator,
         'text': text,
-        'on_empty_err': on_empty_err
+        'on_empty_err': on_empty_err,
+        'on_preview': on_preview
     })
 
     result = _create_prompt_choices(**kwargs)

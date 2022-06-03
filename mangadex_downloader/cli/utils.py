@@ -114,3 +114,10 @@ def print_version_info():
     print("Python: {0[0]}.{0[1]}.{0[2]}".format(sys.version_info))
     print(f"arch: {architecture}")
     print(f"bundled executable: {bundled_executable}")
+
+def dynamic_bars(length):
+    bar = ""
+    for _ in range(length):
+        bar += "="
+    
+    return bar

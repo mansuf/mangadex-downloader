@@ -129,18 +129,23 @@ class InputHandler(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         urls = self.pipe_value if self.pipe else values
 
-        fetch_library = urls.startswith('library')
+        fetch_library_manga = urls.startswith('library')
+        fetch_library_list = urls.startswith('list')
 
         if self.pipe and self.search:
             parser.error("search with pipe input are not supported")
         elif self.pipe and self.use_alt_details:
             parser.error("--use-alt-details with -pipe are not supported")
-        elif self.pipe and fetch_library:
+        elif self.pipe and fetch_library_manga:
             parser.error("-pipe are not supported when fetching user library manga")
-        elif self.search and fetch_library:
+        elif self.search and fetch_library_manga:
             parser.error("--search are not supported when fetching user library manga")
+        elif self.pipe and fetch_library_list:
+            parser.error("-pipe are not supported when fetching user library list")
+        elif self.search and fetch_library_list:
+            parser.error("--search are not supported when fetching user library list")
 
-        if fetch_library:
+        if fetch_library_manga:
             result = urls.split(':')
             
             # Try to get filter status
@@ -171,7 +176,8 @@ class InputHandler(argparse.Action):
                 parser.error(f"{status} are not valid status, choices are {err}")
 
         setattr(namespace, self.dest, urls)
-        setattr(namespace, 'fetch_library', fetch_library)
+        setattr(namespace, 'fetch_library_manga', fetch_library_manga)
+        setattr(namespace, 'fetch_library_list', fetch_library_list)
 
 def get_args(argv):
     parser = argparse.ArgumentParser(description=__description__)

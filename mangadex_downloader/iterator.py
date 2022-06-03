@@ -1,7 +1,8 @@
 import logging
 import queue
 
-from .errors import MangaDexException, NotLoggedIn
+from .mdlist import MangaDexList
+from .errors import HTTPException, MangaDexException, NotLoggedIn
 from .network import Net, base_url
 from .manga import ContentRating, Manga
 from .fetcher import get_list
@@ -241,3 +242,75 @@ class IteratorMangaFromList(BaseIterator):
 
             for manga_data in data['data']:
                 self.queue.put(Manga(data=manga_data))
+
+class IteratorUserLibraryList(BaseIterator):
+    def __init__(self):
+        super().__init__()
+
+        self.limit = 100
+        self.offset = 0
+
+        logged_in = Net.requests.check_login()
+        if not logged_in:
+            raise NotLoggedIn("Retrieving user library require login")
+
+    def next(self) -> MangaDexList:
+        return self.queue.get_nowait()
+
+    def fill_data(self):
+        params = {
+            'limit': self.limit,
+            'offset': self.offset,
+        }
+        url = f'{base_url}/user/list'
+        r = Net.requests.get(url, params=params)
+        data = r.json()
+
+        items = data['data']
+
+        for item in items:
+            self.queue.put(MangaDexList(data=item))
+        
+        self.offset += len(items)
+
+class IteratorUserList(BaseIterator):
+    def __init__(self, _id=None):
+        super().__init__()
+
+        self.limit = 100
+        self.user = User(_id)
+    
+    def next(self) -> MangaDexList:
+        return self.queue.get_nowait()
+
+    def fill_data(self):
+        params = {
+            'limit': self.limit,
+            'offset': self.offset,
+            
+        }
+        url = f'{base_url}/user/{self.user.id}/list'
+        try:
+            r = Net.requests.get(url, params=params)
+        except HTTPException:
+            # Some users are throwing server error (Bad gateway)
+            # MD devs said it was cache and headers issues
+            # Reference: https://api.mangadex.org/user/10dbf775-1935-4f89-87a5-a1f4e64d9d94/list
+            # For now the app will throw error and tell the user cannot be fetched until it's get fixed
+
+            # HTTPException from session only giving "server throwing ... code" message
+            raise HTTPException(
+                f"An error occured when getting mdlists from user \"{self.user.id}\". " \
+                f"The app cannot fetch all MangaDex lists from user \"{self.user.id}\" " \
+                "because of server error. The only solution is to wait until this get fixed " \
+                "from MangaDex itself."
+            ) from None
+
+        data = r.json()
+
+        items = data['data']
+
+        for item in items:
+            self.queue.put(MangaDexList(data=item))
+        
+        self.offset += len(items)

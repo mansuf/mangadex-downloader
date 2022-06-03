@@ -14,7 +14,7 @@ from .errors import InvalidURL, NotAllowed
 from .fetcher import *
 from .mdlist import MangaDexList
 from .manga import Manga, ContentRating
-from .iterator import IteratorManga, IteratorUserLibraryManga
+from .iterator import IteratorManga, IteratorUserLibraryList, IteratorUserLibraryManga, IteratorUserList
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -27,7 +27,9 @@ __all__ = (
     'download', 'download_chapter', 'download_list',
     'fetch', 'login', 'logout', 'search',
     'download_legacy_manga', 'download_legacy_chapter',
-    'get_manga_from_user_library'
+    'get_manga_from_user_library',
+    'get_list_from_user_library',
+    'get_list_from_user'
 )
 
 def login(*args, **kwargs):
@@ -131,6 +133,38 @@ def get_manga_from_user_library(*args, **kwargs):
         An iterator that yield :class:`Manga`
     """
     return IteratorUserLibraryManga(*args, **kwargs)
+
+def get_list_from_user_library():
+    """Get all lists from user library
+
+    You must login in order to use this function, or you will get error.
+
+    Raises
+    -------
+    NotLoggedIn
+        Retrieving user library require login
+
+    Returns
+    --------
+    :class:`IteratorUserLibraryList`
+        An iterator that yield :class:`MangaDexList`
+    """
+    return IteratorUserLibraryList()
+
+def get_list_from_user(user_id):
+    """Get all public lists from given user
+    
+    Raises
+    -------
+    UserNotFound
+        user cannot be found
+    
+    Returns
+    --------
+    :class:`IteratorUserList`
+        An iterator that yield :class:`MangaDexList`
+    """
+    return IteratorUserList(user_id)
 
 def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
     """Fetch the manga
