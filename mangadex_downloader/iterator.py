@@ -158,10 +158,16 @@ class IteratorUserLibraryManga(BaseIterator):
         self.offset += len(items)
 
 class IteratorMangaFromList(BaseIterator):
-    def __init__(self, _id=None, unsafe=False):
+    def __init__(self, _id=None, data=None, unsafe=False):
+        if _id is None and data is None:
+            raise ValueError("atleast provide _id or data")
+        elif _id and data:
+            raise ValueError("_id and data cannot be together")
+
         super().__init__()
 
         self.id = _id
+        self.data = data
         self.limit = 100
         self.unsafe = unsafe
         self.name = None # type: str
@@ -172,7 +178,10 @@ class IteratorMangaFromList(BaseIterator):
         self._parse_list()
 
     def _parse_list(self):
-        data = get_list(self.id)['data']
+        if self.id:
+            data = get_list(self.id)['data']
+        else:
+            data = self.data
 
         self.name = data['attributes']['name']
         
@@ -185,7 +194,15 @@ class IteratorMangaFromList(BaseIterator):
                 self.user = User(_id)
     
     def next(self) -> Manga:
-        return self.queue.get_nowait()
+        while True:
+            manga = self.queue.get_nowait()
+            
+            if not self.unsafe and manga.content_rating == ContentRating.Pornographic:
+                # No unsafe ?
+                # No way
+                continue
+
+            return manga
     
     def fill_data(self):
         ids = self.manga_ids
@@ -194,10 +211,8 @@ class IteratorMangaFromList(BaseIterator):
             'safe',
             'suggestive',
             'erotica',
+            'pornographic' # Filter porn content will be done in next()
         ]
-
-        if self.unsafe:
-            content_ratings.append('pornographic')
 
         limit = self.limit
         if ids:

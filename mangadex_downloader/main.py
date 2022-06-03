@@ -12,8 +12,9 @@ from .language import Language, get_language
 from .utils import download as download_file
 from .errors import InvalidURL, NotAllowed
 from .fetcher import *
+from .mdlist import MangaDexList
 from .manga import Manga, ContentRating
-from .iterator import IteratorManga, IteratorMangaFromList, IteratorUserLibraryManga
+from .iterator import IteratorManga, IteratorUserLibraryManga
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -528,9 +529,9 @@ def download_list(
         log.error('%s is not valid mangadex url' % url)
         raise e from None
 
-    iterator = IteratorMangaFromList(_id=list_id)
+    _list = MangaDexList(_id=list_id)
 
-    for manga in iterator:
+    for manga in _list.iter_manga(unsafe):
         download(
             manga.id,
             folder,
