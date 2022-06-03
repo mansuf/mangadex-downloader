@@ -1,6 +1,6 @@
 from functools import lru_cache
 from requests.exceptions import HTTPError
-from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException
+from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException, UserNotFound
 from .network import Net, base_url, origin_url
 from .utils import validate_url
 
@@ -59,6 +59,8 @@ def get_author(author_id):
 def get_user(user_id):
     url = '{0}/user/{1}'.format(base_url, user_id)
     r = Net.requests.get(url)
+    if r.status_code == 404:
+        raise UserNotFound(f"user {user_id} cannot be found")
     return r.json()
 
 @lru_cache(maxsize=1048)

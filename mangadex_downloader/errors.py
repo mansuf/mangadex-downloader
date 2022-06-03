@@ -51,3 +51,7 @@ class PillowNotInstalled(MangaDexException):
 class NotAllowed(MangaDexException):
     """Raised when user trying to download porn manga without `unsafe` enabled"""
     pass
+
+class UserNotFound(MangaDexException):
+    """Raised when user are not found in MangaDex"""
+    pass
