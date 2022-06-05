@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 
 from .url import valid_types
@@ -129,6 +130,10 @@ class InputHandler(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         urls = self.pipe_value if self.pipe else values
 
+        file_exist = False
+        if os.path.exists(urls):
+            file_exist = True
+
         fetch_library_manga = urls.startswith('library')
         fetch_library_list = urls.startswith('list')
         fetch_library_follows_list = urls.startswith('followed-list')
@@ -149,6 +154,8 @@ class InputHandler(argparse.Action):
             parser.error("-pipe are not supported when fetching user library followed list")
         elif self.search and fetch_library_follows_list:
             parser.error("--search are not supported when fetching user library followed list")
+        elif self.search and file_exist:
+            parser.error("--search are not supported when used for batch downloading")
 
 
         if fetch_library_manga:
