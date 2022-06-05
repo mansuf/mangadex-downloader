@@ -1,6 +1,7 @@
 # Based on https://github.com/mansuf/zippyshare-downloader/blob/main/zippyshare_downloader/network.py
 
 import requests
+import urllib.parse
 import queue
 import time
 import logging
@@ -29,6 +30,12 @@ __all__ = (
 origin_url = 'https://mangadex.org'
 base_url = 'https://api.mangadex.org'
 uploads_url = 'https://uploads.mangadex.org'
+
+# A utility to get shortened url from full URL
+# (scheme, netloc, and path only)
+def _get_netloc(url):
+    result = urllib.parse.urlparse(url)
+    return result.scheme + '://' + result.netloc + result.path
 
 # Modified requests session class with __del__ handler
 # so the session will be closed properly
@@ -64,12 +71,13 @@ class requestsMangaDexSession(requests.Session):
     # Ratelimit handler
     def request(self, *args, **kwargs):
         attempt = 1
+        resp = None
         for _ in range(5):
             try:
                 resp = super().request(*args, **kwargs)
             except requests.exceptions.ConnectionError as e:
                 log.error("Failed to connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
-                    e.request.url,
+                    _get_netloc(e.request.url),
                     str(e),
                     attempt
                 ))
@@ -94,10 +102,21 @@ class requestsMangaDexSession(requests.Session):
 
             # Server error
             elif resp.status_code >= 500:
-                raise HTTPException('Server sending %s code' % resp.status_code, resp=resp)
+                log.info(
+                    f"Failed to connect to \"{_get_netloc(resp.url)}\", " \
+                    f"reason: Server throwing error code {resp.status_code}. "  \
+                    f"Trying... (attempt: {attempt})"
+                )
+                attempt += 1
+                continue
 
             return resp
-        
+
+        if resp is not None and resp.status_code >= 500:
+            # 5 attempts request failed caused by server error
+            # raise error
+            raise HTTPException('Server sending %s code' % resp.status_code, resp=resp)
+
         raise UnhandledHTTPError("Unhandled HTTP error")
 
     def _worker_queue_report_handler(self):
