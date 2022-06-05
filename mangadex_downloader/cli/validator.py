@@ -199,8 +199,37 @@ def validate(parser, args):
         not args.fetch_library_list and
         not args.fetch_library_follows_list
     ):
+        # Parsing file path
+        if args.file:
+            result = urls.split(':')
+            file = result[1:]
+            file_path = ""
+            err_file = False
+
+            try:
+                file_path += file.pop(0)
+            except IndexError:
+                err_file = True
+            
+            if not file_path:
+                err_file = True
+
+            if err_file:
+                parser.error("Syntax error: file path argument is empty")
+
+            # Because ":" was removed during .split()
+            # add it again
+            for f in file:
+                file_path += ':' + f
+            
+            # Because this is specified syntax for batch downloading
+            # If file doesn't exist, raise error
+            if not os.path.exists(file_path):
+                parser.error(f"File \"{file_path}\" is not exist")
+        else:
+            file_path = urls
         try:
-            args.URL = validate_url(urls)
+            args.URL = validate_url(file_path)
         except argparse.ArgumentTypeError as e:
             parser.error(str(e))
         return

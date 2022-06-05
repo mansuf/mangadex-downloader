@@ -137,6 +137,7 @@ class InputHandler(argparse.Action):
         fetch_library_manga = urls.startswith('library')
         fetch_library_list = urls.startswith('list')
         fetch_library_follows_list = urls.startswith('followed-list')
+        file = urls.startswith('file')
 
         if self.pipe and self.search:
             parser.error("search with pipe input are not supported")
@@ -196,6 +197,7 @@ class InputHandler(argparse.Action):
             'fetch_library_follows_list',
             fetch_library_follows_list
         )
+        setattr(namespace, 'file', file)
 
 def get_args(argv):
     parser = argparse.ArgumentParser(description=__description__)
