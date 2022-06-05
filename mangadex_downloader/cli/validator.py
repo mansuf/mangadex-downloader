@@ -5,7 +5,7 @@ import sys
 from .utils import Paginator, dynamic_bars
 from .url import build_URL_from_type, smart_select_url
 from ..network import Net
-from ..main import get_list_from_user, get_list_from_user_library, search, get_manga_from_user_library
+from ..main import get_followed_list_from_user_library, get_list_from_user, get_list_from_user_library, search, get_manga_from_user_library
 from ..utils import (
     validate_url as __validate,
     validate_legacy_url,
@@ -196,7 +196,8 @@ def validate(parser, args):
     if (
         not args.search and 
         not args.fetch_library_manga and
-        not args.fetch_library_list
+        not args.fetch_library_list and
+        not args.fetch_library_follows_list
     ):
         try:
             args.URL = validate_url(urls)
@@ -253,6 +254,16 @@ def validate(parser, args):
         user = iterator.user if Net.requests.user is None else Net.requests.user
         text = f"MangaDex List library from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no saved lists"
+        on_preview = lambda x: preview_list(args, x)
+    elif args.fetch_library_follows_list:
+        try:
+            iterator = get_followed_list_from_user_library()
+        except MangaDexException as e:
+            parser.error(str(e))
+        
+        user = Net.requests.user
+        text = f"MangaDex followed List from user \"{user.name}\""
+        on_empty_err = f"User \"{user.name}\" has no followed lists"
         on_preview = lambda x: preview_list(args, x)
 
     kwargs.update({

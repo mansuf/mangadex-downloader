@@ -14,7 +14,13 @@ from .errors import InvalidURL, NotAllowed
 from .fetcher import *
 from .mdlist import MangaDexList
 from .manga import Manga, ContentRating
-from .iterator import IteratorManga, IteratorUserLibraryList, IteratorUserLibraryManga, IteratorUserList
+from .iterator import (
+    IteratorManga,
+    IteratorUserLibraryFollowsList,
+    IteratorUserLibraryList,
+    IteratorUserLibraryManga,
+    IteratorUserList
+)
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
@@ -165,6 +171,23 @@ def get_list_from_user(user_id):
         An iterator that yield :class:`MangaDexList`
     """
     return IteratorUserList(user_id)
+
+def get_followed_list_from_user_library():
+    """Get all followed lists from user library
+
+    You must login in order to use this function, or you will get error.
+
+    Raises
+    -------
+    NotLoggedIn
+        Retrieving user library require login
+
+    Returns
+    --------
+    :class:`IteratorUserLibraryFollowsList`
+        An iterator that yield :class:`MangaDexList`
+    """
+    return IteratorUserLibraryFollowsList()
 
 def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
     """Fetch the manga

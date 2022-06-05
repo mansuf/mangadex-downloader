@@ -314,3 +314,32 @@ class IteratorUserList(BaseIterator):
             self.queue.put(MangaDexList(data=item))
         
         self.offset += len(items)
+
+class IteratorUserLibraryFollowsList(BaseIterator):
+    def __init__(self):
+        super().__init__()
+
+        self.limit = 100
+
+        logged_in = Net.requests.check_login()
+        if not logged_in:
+            raise NotLoggedIn("Retrieving user library require login")
+
+    def next(self) -> MangaDexList:
+        return self.queue.get_nowait()
+
+    def fill_data(self):
+        params = {
+            'limit': self.limit,
+            'offset': self.offset,
+        }
+        url = f'{base_url}/user/follows/list'
+        r = Net.requests.get(url, params=params)
+        data = r.json()
+
+        items = data['data']
+
+        for item in items:
+            self.queue.put(MangaDexList(data=item))
+        
+        self.offset += len(items)
