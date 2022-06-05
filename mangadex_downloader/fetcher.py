@@ -1,6 +1,6 @@
 from functools import lru_cache
 from requests.exceptions import HTTPError
-from .errors import ChapterNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException, UserNotFound
+from .errors import ChapterNotFound, GroupNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException, UserNotFound
 from .network import Net, base_url, origin_url
 from .utils import validate_url
 
@@ -90,6 +90,8 @@ def get_list(list_id):
 def get_group(group_id):
     url = '{0}/group/{1}'.format(base_url, group_id)
     r = Net.requests.get(url)
+    if r.status_code == 404:
+        raise GroupNotFound(f"Scanlator group {group_id} cannot be found")
     return r.json()
 
 def get_all_chapters(manga_id, lang):

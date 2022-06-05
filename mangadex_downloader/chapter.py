@@ -12,7 +12,7 @@ from .fetcher import (
     get_chapter,
     get_all_chapters
 )
-from .errors import ChapterNotFound, MangaDexException
+from .errors import ChapterNotFound, GroupNotFound, MangaDexException, UserNotFound
 from .group import Group
 
 log = logging.getLogger(__name__)
@@ -265,12 +265,35 @@ class IteratorChapter:
         if group and group == "all":
             self.all_group = True
         elif group:
-            self.group = Group(group)
+            self.group = self._parse_group(group)
 
         log_cache = kwargs.get('log_cache')
         self.log_cache = True if log_cache else False
 
         self._fill_data()
+
+    def _parse_group(self, _id):
+        group = None
+
+        try:
+            group = Group(_id)
+        except GroupNotFound:
+            # It's not a group
+            pass
+
+        # Check if it's a user
+        try:
+            group = User(_id)
+        except UserNotFound:
+            # It's not a user
+            pass
+
+        # It's not a group or user
+        # raise error
+        if group is None:
+            raise GroupNotFound(f"Group or user \"{_id}\" cannot be found")
+        
+        return group
 
     def _check_chapter(self, chap):
         num_chap = chap.chapter
@@ -319,15 +342,25 @@ class IteratorChapter:
                 return False
 
         # Check if it's same group as self.group
-        if not self.all_group and self.group and self.group.id not in chap.groups_id:
-            log.info("Ignoring chapter {0} : \"{1}\", scanlator group \"{2}\" is not match with \"{3}\"".format(
-                num_chap,
-                chap.title,
-                chap.groups_name,
-                self.group.name
-            ))
-            return False
+        if not self.all_group and self.group:
+            group_check = True
 
+            if isinstance(self.group, Group) and self.group.id not in chap.groups_id:
+                group_type = 'scanlator group'
+                group_names = chap.groups_name
+                group_check = False
+            
+            elif isinstance(self.group, User) and self.group.id != chap.user.id:
+                group_type = 'user'
+                group_names = chap.user.name
+                group_check = False
+            
+            if not group_check:
+                log.info(
+                    f"Ignoring chapter {num_chap}, " \
+                    f"{group_type} \"{group_names}\" is not match with \"{self.group.name}\""
+                )
+                return False
 
         return True
 

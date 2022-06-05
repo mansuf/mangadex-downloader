@@ -55,3 +55,7 @@ class NotAllowed(MangaDexException):
 class UserNotFound(MangaDexException):
     """Raised when user are not found in MangaDex"""
     pass
+
+class GroupNotFound(MangaDexException):
+    """Raised when scanlator group are not found in MangaDex"""
+    pass
