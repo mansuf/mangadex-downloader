@@ -49,7 +49,7 @@ mangadex-dl "34"
 ```
 ````
 
-By default, mangadex-downloader will detect MangaDex url type. If it's valid manga url it will download manga, if it's valid chapter url it will download chapter, etc. However, if you want to skip checking url type or having a weird issue (ex: the provided url are manga type, but when downloaded it become chapter or list), you can use `--type` option with valid url type. 
+By default, mangadex-downloader will auto detect MangaDex url type. If it's valid manga url it will download manga, if it's valid chapter url it will download chapter, etc. However, if you want to skip checking url type or having a weird issue (ex: the provided url are manga type, but when downloaded it become chapter or list), you can use `--type` option with valid url type. 
 
 For example:
 
@@ -89,6 +89,16 @@ Example usage:
 mangadex-dl "insert a file here"
 ```
 
+To avoid conflict filenames with reserved names (such as: `list`, `library`, `followed-list`) in `URL` argument, you can use syntax `file:<path_to_file>`.
+
+For example:
+
+```shell
+mangadex-dl "file:/home/manga/urls.txt"
+
+mangadex-dl "file:list"
+```
+
 ````{warning}
 If you specify invalid path to file that containing MangaDex urls, the app will see it as URL. 
 See example below
@@ -104,7 +114,7 @@ $ mangadex-dl "yes-it-exist/exist.txt"
 ```
 ````
 
-## Download manga from user library
+## Download manga from logged in user library
 
 ```{warning}
 This method require authentication
@@ -119,7 +129,7 @@ mangadex-dl "library" --login
 # You will be prompted to input username and password for login to MangaDex
 ```
 
-You can apply filter to it !
+You can also apply filter to it !
 
 ```shell
 # List all mangas with "Reading" status from user library
@@ -134,6 +144,50 @@ To list all available filters type `library:help`
 ```shell
 mangadex-dl "library:help"
 # ...
+```
+
+```{note}
+By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content [learn more here](#pornographic-content)
+```
+
+## Download MangaDex list from logged in user library
+
+```{warning}
+This method require authentication
+```
+
+You can download MangaDex list from logged in user library. Just type `list`, login, and select mdlist you want to download.
+
+For example:
+
+```shell
+mangadex-dl "list" --login
+# You will be prompted to input username and password for login to MangaDex
+```
+
+Also, you can download mdlist from another user. It will only fetch all public list only.
+
+```{note}
+Authentication is not required when download MangaDex list from another user.
+```
+
+For example:
+
+```shell
+mangadex-dl "list:give_the_user_id_here"
+```
+
+## Download MangaDex followed list from logged in user library
+
+```{warning}
+This method require authentication
+```
+
+You can download MangaDex followed list from logged in user library. Just type `followed-list`, login, and select mdlist you want to download.
+
+```shell
+mangadex-dl "followed-list" --login
+# You will be prompted to input username and password for login to MangaDex
 ```
 
 ## Download manga, chapter or list in different format
@@ -205,7 +259,7 @@ type "urls.txt" | mangadex-dl -pipe
 ## Download manga, chapter, or list in different translated language
 
 By default, the app will download in English language.
-To view all available languages, use --list-languages option.
+To view all available languages, use `--list-languages` option.
 
 ```shell
 mangadex-dl --list-languages
