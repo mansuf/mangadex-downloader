@@ -204,7 +204,14 @@ def get_args(argv):
     parser.add_argument(
         'URL',
         action=InputHandler,
-        help='MangaDex URL or a file containing MangaDex URLs',
+        help='MangaDex URL or a file containing MangaDex URLs. ' \
+             'Type `library:<status>` to download manga from logged in user library, ' \
+             'if <status> is provided, it will fetch all mangas with given reading status, ' \
+             'if not, then it will fetch all mangas from logged in user. ' \
+             'Type `list:<user_id>` to download MangaDex list user, ' \
+             'if <user_id> is provided it will download public list, ' \
+             'if not, then it will download from public and private list from logged in user. ' \
+             'Type `followed-list` to download followed MangaDex list from logged in user ' \
     )
     parser.add_argument(
         '--type',
@@ -254,8 +261,9 @@ def get_args(argv):
         '--group',
         '-g',
         metavar='GROUP_ID',
-        help='Use different scanlation group for each chapter',
-        type=validate_group_url
+        type=validate_group_url,
+        help='Filter each chapter with different scanlation group. ' \
+             'Filter with user also supported.'
     )
 
     # Language related
@@ -295,7 +303,7 @@ def get_args(argv):
     chap_group.add_argument(
         '--no-oneshot-chapter',
         '-noc',
-        help='If exist, don\'t download oneshot chapter',
+        help='If manga has oneshot chapter, it will be ignored.',
         action='store_true'
     )
     chap_group.add_argument(
@@ -308,7 +316,8 @@ def get_args(argv):
         '--use-chapter-title',
         '-uct',
         action='store_true',
-        help='Use chapter title for each chapters. NOTE: This option is useless if used with any single and volume format.'
+        help='Use chapter title for each chapters. ' \
+             'NOTE: This option is useless if used with any single and volume format.'
     ) 
 
     # Chapter page related
@@ -330,7 +339,11 @@ def get_args(argv):
 
     # Images related
     img_group = parser.add_argument_group('Images')
-    img_group.add_argument('--use-compressed-image', help='Use low size images manga (compressed quality)', action='store_true')
+    img_group.add_argument(
+        '--use-compressed-image',
+        help='Use low size images manga (compressed quality)',
+        action='store_true'
+    )
     img_group.add_argument(
         '--cover',
         '-c',
@@ -345,14 +358,16 @@ def get_args(argv):
     auth_group.add_argument(
         '--login-username',
         '-lu',
-        help='Login to MangaDex with username or email (you will be prompted to input password if --login-password are not present)',
-        metavar='USERNAME'
+        metavar='USERNAME',
+        help='Login to MangaDex with username or email ' \
+             '(you will be prompted to input password if --login-password are not present)'
     )
     auth_group.add_argument(
         '--login-password',
         '-lp',
-        help='Login to MangaDex with password (you will be prompted to input username if --login-username are not present)',
-        metavar='PASSWORD'
+        metavar='PASSWORD',
+        help='Login to MangaDex with password ' \
+             '(you will be prompted to input username if --login-username are not present)'
     )
 
     # Save as format
@@ -361,14 +376,19 @@ def get_args(argv):
         '--save-as',
         '-f',
         choices=formats.keys(),
-        help='Select save as format, default to \"tachiyomi\"',
+        help='Select save as format, default to `raw`',
         default=default_save_as_format
     )
 
     # Proxy related
     proxy_group = parser.add_argument_group('Proxy')
     proxy_group.add_argument('--proxy', '-p', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
-    proxy_group.add_argument('--proxy-env', '-pe', action='store_true', help='use http/socks proxy from environments')
+    proxy_group.add_argument(
+        '--proxy-env',
+        '-pe',
+        action='store_true',
+        help='use http/socks proxy from environments'
+    )
 
     # Miscellaneous
     misc_group = parser.add_argument_group('Miscellaneous')
@@ -377,7 +397,8 @@ def get_args(argv):
         '--enable-legacy-sorting',
         action='store_true',
         help='[DEPRECATED] will be removed in v1.3.0. ' \
-             'Enable legacy sorting chapter images for old reader application'
+             'Does nothing. In previous version this option is used to enable legacy sorting. ' \
+             'Which rename all images with numbers leading zeros (example: 001.jpg)'
     )
     misc_group.add_argument(
         '--no-verify',
@@ -389,7 +410,8 @@ def get_args(argv):
         '-v',
         '--version',
         action=PrintVersionAction,
-        nargs=0
+        nargs=0,
+        help='Print mangadex-downloader version'
     )
 
     # Update application

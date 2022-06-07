@@ -1,9 +1,9 @@
 """
-A Command-Line tool to download manga from MangaDex, written in Python
+A command-Line tool to download manga from MangaDex, written in Python
 """
 
 __version__ = "1.0.2"
-__description__ = "A Command-Line tool to download manga from MangaDex, written in Python"
+__description__ = "A Command-line tool to download manga from MangaDex, written in Python"
 __author__ = "mansuf"
 __license__ = "MIT"
 __repository__ = "https://github.com/mansuf/mangadex-downloader"
