@@ -35,7 +35,8 @@ __all__ = (
     'download_legacy_manga', 'download_legacy_chapter',
     'get_manga_from_user_library',
     'get_list_from_user_library',
-    'get_list_from_user'
+    'get_list_from_user',
+    'get_followed_list_from_user_library'
 )
 
 def login(*args, **kwargs):
