@@ -16,10 +16,10 @@ python3 -m pip install mangadex-downloader
 
 ```shell
 # For Windows
-py -3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.4.0
+py -3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v1.1.0
 
 # For Linux / Mac OS
-python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v0.4.0
+python3 -m pip install git+https://github.com/mansuf/mangadex-downloader.git@v1.1.0
 ```
 
 ## Compiled app (for Windows only)

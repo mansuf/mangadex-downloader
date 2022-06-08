@@ -25,6 +25,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 ## Key Features <a id="key-features"></a>
 
 - Download manga, chapter, or list directly from MangaDex
+- Download from user library
 - Batch download support
 - Old MangaDex url support
 - Scanlation groups filter support
