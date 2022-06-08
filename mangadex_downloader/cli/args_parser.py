@@ -341,6 +341,7 @@ def get_args(argv):
     img_group = parser.add_argument_group('Images')
     img_group.add_argument(
         '--use-compressed-image',
+        '-uci',
         help='Use low size images manga (compressed quality)',
         action='store_true'
     )
