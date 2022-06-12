@@ -389,6 +389,14 @@ mangadex-dl "https://mangadex.org/title/..." --group "all"
 You cannot use `--group all` and `--no-group-name` together. It will throw error, if you're trying to do it
 ```
 
+Also, you can use user as filter in `--group` option.
+
+For example:
+
+```shell
+mangadex-dl "https://mangadex.org/title/..." --group "https://mangadex.org/user/..."
+```
+
 ## Download a manga with different title
 
 mangadex-downloader also support multi titles manga, which mean you can choose between different titles in different languages !.
