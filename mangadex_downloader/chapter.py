@@ -157,7 +157,7 @@ class Chapter:
     @property
     def chapter(self):
         try:
-            return self._attr['chapter']
+            return self._attr['chapter'].strip()
         except AttributeError:
             # null value
             return None
