@@ -1,85 +1,91 @@
+# The rest of this codes is undocumented.
+# Because there is too much to write
+# especially with _parse_ptrn() and RangeChecker
+# FIXME: give this codes a documentation
+
 import re
 
 from .errors import MangaDexException
 
-class InvalidExpression(MangaDexException):
+__all__ = (
+    'compile', 'purge_cache'
+)
+
+class InvalidPattern(MangaDexException):
     pass
 
-def _err_invalid_expr(text, err_expr, msg):
+def _err_invalid_ptrn(text, err_ptrn, msg):
     copy_text = str(text)
-    # Append remaining expression
-    expr = ""
+    # Append remaining pattern
+    ptrn = ""
     for c in copy_text:
-        if c == " ":
-            continue
-        elif c == ",":
+        if c == ",":
             break
-        expr += c
-    err_msg = f"Invalid expression \"{err_expr + expr}\", "
+        ptrn += c
+    err_msg = f"Invalid pattern \"{err_ptrn + ptrn}\", "
     err_msg += msg
-    raise InvalidExpression(err_msg)
+    raise InvalidPattern(err_msg)
 
-def _parse_expr(_text):
+def _parse_ptrn(_text):
     open_square_bracket = False
     close_square_bracket = False
-    expr = ""
+    ptrn = ""
     text = ""
     base_char = None
-    list_expr = []
+    list_ptrn = []
     pages = []
 
     def reset_state():
         nonlocal open_square_bracket
         nonlocal close_square_bracket
-        nonlocal expr
+        nonlocal ptrn
         nonlocal base_char
         nonlocal pages
 
         open_square_bracket = False
         close_square_bracket = False
-        expr = ""
+        ptrn = ""
         base_char = None
         pages = []
 
-    def reset_expr():
-        nonlocal expr
+    def reset_ptrn():
+        nonlocal ptrn
 
-        expr = ""
+        ptrn = ""
 
     def modify_text(char):
         nonlocal text
 
         text = text[len(char):]
 
-    def append_expr(chap, pages, char=None):
-        nonlocal list_expr
+    def append_ptrn(chap, pages, char=None):
+        nonlocal list_ptrn
 
-        list_expr.append((chap, pages))
+        list_ptrn.append((chap, pages))
         if char is not None:
             modify_text(char)
         reset_state()
 
-    def check_end(text, char):
-        if len(text) == 1:
-            return True
-        elif char == ",":
-            return True
-        else:
-            return False
+    def check_next(text, char):
+        return char == ","
 
-    # Removing spaces in expression
+    # Removing spaces in pattern
     for char in _text:
         if char == " ":
             continue
         
         text += char
-    
+
     while True:
         if not text:
 
-            if expr:
-                append_expr(expr, None)
+            if (ptrn or base_char):
+                append_ptrn(base_char + ptrn, [])
 
+            break
+
+        # Text is reached end of characters
+        elif len(text) == 1 and text == ",":
             break
 
         for char in text:
@@ -88,13 +94,13 @@ def _parse_expr(_text):
                 if base_char is None:
 
                     if char == '[':
-                        _err_invalid_expr(
+                        _err_invalid_ptrn(
                             text,
-                            expr,
+                            ptrn,
                             "There is no characters before square bracket"
                         )
 
-                    if check_end(text, char):
+                    if check_next(text, char):
                         continue
 
                     base_char = char
@@ -102,14 +108,14 @@ def _parse_expr(_text):
                     continue
 
                 elif base_char:
-                    if check_end(text, char):
+                    if check_next(text, char):
 
-                        expr = base_char + expr
+                        ptrn = base_char + ptrn
 
                         if char != ',':
-                            expr += char
+                            ptrn += char
 
-                        append_expr(expr, None, char)
+                        append_ptrn(ptrn, [], char)
 
                     elif char == "[":
                         open_square_bracket = True
@@ -117,323 +123,157 @@ def _parse_expr(_text):
                         continue
 
                     else:
-                        expr += char
+                        ptrn += char
                         modify_text(char)
                         continue
 
             if open_square_bracket and not close_square_bracket:
                 
-                if char == '5':
-                    # breakpoint()
-                    pass
-
                 # Duplicate opening square bracket
                 if char == '[':
-                    _err_invalid_expr(
+                    _err_invalid_ptrn(
                         text,
-                        expr,
+                        ptrn,
                         "Found duplicate opening square bracket"
                     )
 
                 elif char == ']':
-
-                    if expr:
-                        pages.append(expr)
-                        reset_expr()
-
-                    append_expr(base_char, pages, char)
+                    close_square_bracket = True
+                    modify_text(char)
                     continue
 
                 else:
-                    if check_end(text, char):
-                        pages.append(expr)
-                        reset_expr()
+                    if check_next(text, char):
+                        pages.append(ptrn)
+                        reset_ptrn()
                         modify_text(char)
                         continue
-                    
+
                     else:
-                        expr += char
+                        ptrn += char
                         modify_text(char)
                         continue
-
-    return list_expr
-
             
-            
+            if open_square_bracket and close_square_bracket:
 
-                
+                if ptrn:
+                    pages.append(ptrn)
+                    reset_ptrn()
 
+                append_ptrn(base_char, pages, char)
+                continue
 
-    # while True:
-    #     if not text:
-    #         # Add some extra checking for not operator
-    #         if expr == "!" and found_not_expr:
-    #             # ! operator is not followed by the numbers
-    #             # it should be !90, not ! only
-    #             _err_invalid_expr(
-    #                 text,
-    #                 expr,
-    #                 'Not (!) operator should be followed by numbers'
-    #             )
-    #         if expr:
-    #             # Append final expression
-    #             list_expr.append(expr)
-    #             reset_state()
-    #         break
+    return list_ptrn
 
-    #     for char in text:
-    #         if (char == ',' or char == " ") and not found_number and not found_not_expr:
-    #             # Finding oneshot
-    #             if expr and expr != "oneshot" and char == ",":
-    #                 # Not a oneshot
-    #                 _err_invalid_expr(
-    #                     text,
-    #                     expr,
-    #                     "Invalid character found"
-    #                 )
-    #             elif expr == "oneshot" and char == ",":
-    #                 # Add oneshot to list_expr
-    #                 list_expr.append(expr)
-    #                 text = text[len(char):]
-    #                 reset_state()
-    #                 continue
-    #             else:
-    #                 # Continue to find other expressions
-    #                 text = text[len(char):]
-    #                 continue
-    #         # We're looking for not operator (!)
-    #         elif char == '!' and not found_not_expr and not found_number:
-    #             # breakpoint()
-    #             expr += char
-    #             found_not_expr = True
-    #             text = text[len(char):]
-    #             continue
-    #         elif found_not_expr:
-    #             # Whitespace detected, we're just gonna ignore it
-    #             if char == " ":
-    #                 text = text[len(char):]
-    #                 continue
-                
-    #             if not found_number and char == ',':
-    #                 _err_invalid_expr(
-    #                     text,
-    #                     expr,
-    #                     'Not (!) operator should be followed by numbers'
-    #                 )
+class _Checker:
+    ignored_chapters = []
+    ignored_pages = []
 
-    #             if not found_number:
-    #                 num_match = re.search(r'[0-9]{1,}', char)
-    #                 if num_match is not None:
-    #                     next_char = text[len(char):]
-    #                     if not next_char:
-    #                         # There are no more characters in expression
-    #                         expr += num_match.group()
-    #                         list_expr.append(expr)
-    #                         text = next_char
-    #                         reset_state()
-    #                         continue
+    def __init__(self, ptrn):
+        self.ptrn = ptrn.lower()
 
-    #                     # We have found the numbers
-    #                     expr += num_match.group()
-    #                     found_number = True
-    #                     text = text[len(num_match.group()):]
-    #                     continue
-    #             else:
-    #                 if char == ",":
-    #                     list_expr.append(expr)
-    #                     text = text[len(char):]
-    #                     reset_state()
-    #                     continue
+    @classmethod
+    def ignore_chapter(cls, num):
+        if num.startswith('!'):
+            num = num[1:] # Remove "!"
 
-    #                 if char == "-":
-    #                     _err_invalid_expr(
-    #                         text,
-    #                         expr,
-    #                         "Range operator (-) are not supported when used with not operator (!)"
-    #                     )
-                    
-    #                 expr += char
-    #                 text = text[len(char):]
-    #                 continue
+        cls.ignored_chapters.append(num)
+    
+    @classmethod
+    def ignore_page(cls, num):
+        if num.startswith('!'):
+            num = num[1:] # Remove "!"
 
-    #         # We're looking for numbers
-    #         elif not found_number:
-    #             num_match = re.search(r'[0-9-]{1,}', char)
-    #             if num_match is not None:
-    #                 next_char = text[len(char):]
-    #                 if not next_char:
-    #                     # There are no more characters in expression
-    #                     expr += num_match.group()
-    #                     list_expr.append(expr)
-    #                     text = next_char
-    #                     reset_state()
-    #                     continue
+        cls.ignored_pages.append(num)
 
-    #                 # We have found the numbers
-    #                 expr += num_match.group()
-    #                 found_number = True
-    #                 text = text[len(num_match.group()):]
-    #                 continue
-    #             elif char == '[' or char == ']':
-    #                 _err_invalid_expr(
-    #                     text,
-    #                     expr,
-    #                     "Square bracket shouldn\'t be used without numbers"
-    #                 )
-    #             else:
-    #                 expr += char
-    #                 text = text[len(char):]
-    #                 continue
-    #                 # _err_invalid_expr(text, expr, f"Invalid character found = '{char}'")
-    #         elif found_number:
-    #             # Once we found the number we're looking for square brackets [] (pages expression)
-
-    #             # If close square bracket in front, throw error
-    #             if char == ']' and not open_square_bracket:
-    #                 _err_invalid_expr(text, expr, "closing square bracket shouldn\'t be in front")
-                
-    #             # We found the opening square bracket
-    #             if char == '[':
-    #                 # Duplicate opening square bracket
-    #                 if open_square_bracket:
-    #                     _err_invalid_expr(text, expr, 'Found duplicate opening square bracket')
-
-    #                 open_square_bracket = True
-    #                 expr += char
-    #                 text = text[len(char):]
-    #                 continue
-                
-    #             if open_square_bracket and not close_square_bracket:
-    #                 if char == ']':
-    #                     # Duplicate closing square bracket
-    #                     if close_square_bracket:
-    #                         _err_invalid_expr(text, expr, 'Found duplicate closing square bracket')
-
-    #                     next_char = text[len(char):]
-    #                     if not next_char:
-    #                         # There are no more characters in expression
-    #                         expr += char
-    #                         list_expr.append(expr)
-    #                         text = next_char
-    #                         reset_state()
-    #                         continue
-
-    #                     close_square_bracket = True
-    #                     expr += char
-    #                     text = text[len(char):]
-    #                     continue
-    #                 # Whitespace detected, we're just gonna ignore it
-    #                 elif char == " ":
-    #                     text = text[len(char):]
-    #                     continue
-    #                 # Unclosed square bracket, raise error
-    #                 elif char == ",":
-    #                     _err_invalid_expr(text, expr, 'Unclosed square bracket')
-    #                 else:
-    #                     # Append additional characters
-    #                     expr += char
-    #                     text = text[len(char):]
-    #                     continue
-
-    #             # This one has pages specified    
-    #             if open_square_bracket and close_square_bracket:
-    #                 # Comma detected, reset all states and find new expression
-    #                 if char == ',':
-    #                     list_expr.append(expr)
-    #                     text = text[len(char):]
-    #                     reset_state()
-    #                     continue
-    #                 # Whitespace detected, we just ignore it
-    #                 elif char == " ":
-    #                     continue
-    #                 else:
-    #                     _err_invalid_expr(
-    #                         text,
-    #                         expr,
-    #                         f'Invalid character found in the end of square bracket = "{char}"'
-    #                     )
-
-    #             elif char == ',' and not open_square_bracket and not close_square_bracket:
-    #                 list_expr.append(expr)
-    #                 text = text[len(char):]
-    #                 reset_state()
-    #                 continue
-    #             elif open_square_bracket and not close_square_bracket:
-    #                 # We're just ignore it until found closing square bracket
-    #                 continue
-    #             else:
-    #                 # Whitespace detected, we just ignore it
-    #                 if char == " ":
-    #                     text = text[len(char):]
-    #                     continue
-                    
-    #                 # In the end of numbers, there are not expression (!)
-    #                 # And it should be marked as illegal
-    #                 if char == "!":
-    #                     _err_invalid_expr(
-    #                         text,
-    #                         expr,
-    #                         'Not (!) operator should be not placed in the end of numbers'
-    #                     )
-
-    #                 expr += char
-    #                 text = text[len(char):]
-    #                 continue
-
-    return list_expr
-
-class _Base:
-    def __init__(self):
-        self.ignored_nums = []
-
-    def ignore_num(self, expr_num):
-        _, num = expr_num.split('!')
-
-        self.ignored_nums.append(float(num))
-
-    def check(self, num):
-        return num in self.ignored_nums
-
-class _RangeStartFrom(_Base):
-    def __init__(self, expr):
-        super().__init__()
+    def _get_keyword(self, chap):
+        keyword = ""
+        if chap.oneshot:
+            keyword = "oneshot"
+        else:
+            keyword = chap.chapter.lower() if chap.chapter is not None else ""
         
-        start, end = expr.split('-')
+        return keyword
+
+    def check(self, num):
+        raise NotImplementedError
+
+    def check_page(self, num):
+        num = str(num)
+        ignored = num in self.ignored_pages
+        if ignored:
+            return False
+
+        return self.check(num)
+
+    def check_chapter(self, chap):
+        ignored = self._get_keyword(chap) in self.ignored_chapters
+        if ignored:
+            return False
+
+        # oneshot checking
+        if chap.oneshot and self.ptrn == 'oneshot':
+            return True
+
+        return self.check(chap.chapter)
+
+class _RangeStartFrom(_Checker):
+    def __init__(self, ptrn):
+        super().__init__(ptrn)
+
+        start, end = ptrn.split('-')
         self.start = float(start)
 
     def check(self, num):
-        ignored = super().check()
-        if ignored:
-            return False
+        if num is None:
+            # We can't do anything if num is "null"
+            return True
 
-        return num >= self.start
+        try:
+            return float(num) >= self.start
+        except ValueError:
+            # Usually the chapter is non-floating numbers like "EXTRA"
+            # Just return True
+            return True
 
-class _RangeEndFrom(_Base):
-    def __init__(self, expr):
-        super().__init__()
-
-        start, end = expr.split('-')
+class _RangeEndFrom(_Checker):
+    def __init__(self, ptrn):
+        super().__init__(ptrn)
+        
+        start, end = ptrn.split('-')
         self.end = float(end)
     
     def check(self, num):
-        ignored = super().check()
-        if ignored:
-            return False
+        if num is None:
+            # We can't do anything if num is "null"
+            return True
 
-        return num <= self.end
+        try:
+            return float(num) <= self.end
+        except ValueError:
+            # Usually the chapter is non-floating numbers like "EXTRA"
+            # Just return True
+            return True
 
-class _RangeStarttoEnd(_Base):
-    def __init__(self, expr):
-        super().__init__()
+class _RangeStarttoEnd(_Checker):
+    def __init__(self, ptrn):
+        super().__init__(ptrn)
 
-        start, end = expr.split('-')
+        start, end = ptrn.split('-')
         self.start = float(start)
         self.end = float(end)
-    
+
     def check(self, num):
-        ignored = super().check()
-        if ignored:
-            return False
+        if num is None:
+            # We can't do anything if num is "null"
+            return True
+        
+        try:
+            num = float(num)
+        except ValueError:
+            # Usually the chapter is non-floating numbers like "EXTRA"
+            # Just return True
+            return True
 
         if not (num >= self.start):
             return False
@@ -443,81 +283,171 @@ class _RangeStarttoEnd(_Base):
         
         return True
 
-class _CheckNum(_Base):
-    def __init__(self, expr):
-        super().__init__()
-
-        self.num = float(expr)
+class _Check(_Checker):
+    def __init__(self, ptrn):
+        super().__init__(ptrn)
     
     def check(self, num):
-        ignored = super().check()
-        if ignored:
-            return False
-        
-        return self.num == num
+        return num.lower() == self.ptrn
 
 re_numbers = r''
 
-# From start to end
-re_numbers += r'(?P<starttoend>[0-9]{1,}-{1,})|'
+# Start to end
+re_numbers += r'(?P<starttoend>.{1,}-.{1,})|'
 
 # End from
-re_numbers += r'(?P<startfrom>[0-9]{0,}-[0-9]{1,})|'
+re_numbers += r'(?P<endfrom>.{0,}-.{1,})|'
 
 # Start from
-re_numbers += r'(?P<endfrom>[0-9]{1,}-[0-9]{0,})|'
+re_numbers += r'(?P<startfrom>.{1,}-.{0,})|'
 
 # Ignored number
-re_numbers += r'(?P<ignorednum>![0-9]{1,})|'
+re_numbers += r'(?P<ignorednum>!.{1,})|'
 
 # Check specified number
-re_numbers += r'(?P<checknum>[0-9]{1,})'
+re_numbers += r'(?P<checknum>.{1,})'
 
 checkers = {
     'starttoend': _RangeStarttoEnd,
     'startfrom': _RangeStartFrom,
     'endfrom': _RangeEndFrom,
-    'checknum': _CheckNum,
+    'checknum': _Check,
 }
 
-class _Checker:
-    def __init__(self, chap_expr, pages_expr):
-        # Chapter expression
-        match = re.match(re_numbers, chap_expr)
-        for key, val in match.groupdict():
+class _Pattern:
+    range_checkers = [i for i in checkers.values() if i != _Check]
+
+    def __init__(self, string):
+        self.ignored = string.startswith('!')
+
+        if self.ignored:
+            string = string[1:] # Remove "!"
+
+        self.string = string
+
+    def get_type(self):
+        match = re.match(re_numbers, self.string)
+        for _type, val in match.groupdict().items():
             if val is not None:
                 break
-        
-        check_cls = checkers[key]
-        self.chap = check_cls(val)
 
-        
+        return _type
+    
+    def get_cls(self):
+        chk = checkers[self.get_type()]
 
-        pass
+        for cls in self.range_checkers:
+            if chk == cls:
+                # Non-numbers are not allowed to use range pattern
+                start, end = self.string.split('-')
 
-class RangeExpression:
-    def __init__(self, expr):
-        self.expr = _parse_expr(expr)
-        self.checkers = {}
+                is_number = True
+
+                if start:
+                    try:
+                        float(start)
+                    except ValueError:
+                        is_number = False
+
+                if end:
+                    try:
+                        float(end)
+                    except ValueError:
+                        is_number = False
+
+                if not is_number:
+                    raise InvalidPattern(
+                        f"Invalid pattern \"{self.string}\", " \
+                         "Non-numbers are not allowed to use range pattern"
+                    )
+                elif self.ignored:
+                    raise InvalidPattern(
+                        f"Invalid pattern \"{self.string}\", " \
+                        "ignore (!) symbol are not supported when used with range pattern"
+                    )
+
+        return chk
+
+class RangeChecker:
+    """A class to compile range pattern and check if chapters is downloadable from range pattern
+    
+    client should not create this, instead use :meth:`compile()`
+    """
+    def __init__(self, ptrn):
+        self.patterns = _parse_ptrn(ptrn)
+        self.checkers = []
         self._parse()
 
-    def _get_chapter_pages(self, expr):
-        # Chapter with pages
-        re_chapter_with_pages = r'(?P<chapter>[0-9-]{0,}-[0-9-]{0,}|[0-9]{1,})\[(?P<pages>.{0,})\]'
-        match = re.search(re_chapter_with_pages, expr)
-        if match is not None:
-            return match.group('chapter'), match.group('pages')
-        
-        # Chapter only
-        re_chapter = r'(?P<chapter>[0-9-]{0,}-[0-9-]{0,}|[0-9]{1,})'
-        match = re.search(re_chapter, expr)
-        if match is not None:
-            return match.group('chapter'), None
+    def _create_checker(self, num):
+        ptrn = _Pattern(num)
+        cls = ptrn.get_cls()
+        return ptrn, cls(num)
     
-    def _register_chkr(self, chapter, pages=None):
+    def _create_checker_chapter(self, num):
+        ptrn, checker = self._create_checker(num)
+        if ptrn.ignored:
+            _Checker.ignore_chapter(num)
+        
+        return checker
 
-        pass
+    def _create_checker_page(self, num):
+        ptrn, checker = self._create_checker(num)
+        if ptrn.ignored:
+            _Checker.ignore_page(num)
+        
+        return checker
 
     def _parse(self):
-        for expr in self.expr:
-            chapter, pages = self._get_chapter_pages(expr)
+        for chapter, pages in self.patterns:
+            page_checkers = []
+            chapter_checker = self._create_checker_chapter(chapter)
+
+            for page in pages:
+                page_checker = self._create_checker_page(page)
+                page_checkers.append(page_checker)
+            
+            self.checkers.append((chapter_checker, page_checkers))
+
+    def check_page(self, chapter, num):
+        found = False
+        for chap, pages in self.checkers:
+
+            if chap.ptrn == chapter.chapter:
+                for page in pages:
+
+                    found = page.check_page(num)
+                    if found:
+                        break
+
+        return found
+
+    def check_chapter(self, chapter):
+        found = False
+
+        for chap, _ in self.checkers:
+            found = chap.check_chapter(chapter)
+            if found:
+                break
+        
+        return found
+
+_caches = {}
+
+def compile(pattern: str) -> RangeChecker:
+    """Compile a range pattern into :class:`RangeChecker`"""
+    # Check if cached
+    cls = _caches.get(pattern)
+    if cls:
+        return cls
+
+    cls = RangeChecker(pattern)
+    
+    # Store it to cache
+    _caches[pattern] = cls
+
+    return cls
+
+def purge_cache():
+    """Purge :class:`RangeChecker` cache"""
+    _caches.clear()
+
