@@ -2,3 +2,4 @@
 test.py
 mangadex_downloader.egg-info/*
 docs/_build
+*.code-workspace
