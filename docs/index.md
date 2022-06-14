@@ -66,6 +66,15 @@ api
 
 ```{toctree}
 :hidden:
+:glob:
+:caption: Notes
+
+notes/*
+
+```
+
+```{toctree}
+:hidden:
 :caption: Development
 
 Github repository <https://github.com/mansuf/mangadex-downloader>

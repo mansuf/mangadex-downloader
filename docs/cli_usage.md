@@ -147,7 +147,7 @@ mangadex-dl "library:help"
 ```
 
 ```{note}
-By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content [learn more here](#pornographic-content)
+By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content learn more here -> {doc}`notes/pornographic`
 ```
 
 ## Download MangaDex list from logged in user library
@@ -235,7 +235,7 @@ mangadex-dl "komi san" --search
 ```
 
 ```{note}
-By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content [learn more here](#pornographic-content)
+By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content learn more here -> {doc}`notes/pornographic`
 ```
 
 ## Pipe input
@@ -492,18 +492,6 @@ Example usage:
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --enable-legacy-sorting
 ```
-
-## Pornographic content
-
-By default, mangadex-downloader doesn't allow downloading porn manga. If you're trying to do it, you will get "You are not allowed to see ..." error.
-
-However, IF YOU'RE REALLY WANT TO DOWNLOAD IT, use `--unsafe` option.
-
-```shell
-mangadex-dl "https://mangadex.org/title/..." --unsafe
-```
-
-Stay in the bright side brothers 👍, don't let the dark side take control of you.
 
 ## Update mangadex-downloader
 
