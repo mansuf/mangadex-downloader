@@ -156,7 +156,7 @@ For more information, you can [read here](https://mangadex-dl.mansuf.link/en/sta
 
 You may get error `You are not allowed to see ..` when downloading porn manga. This is because mangadex-downloader implement strict rule to porn mangas. However, you can bypass this by using `--unsafe` (or `-u`) option.
 
-For more info you can [see it here](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html#pornographic-content)
+For more info you can [see it here](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
 
 ## Supporting <a id="supporting"></a>
 
