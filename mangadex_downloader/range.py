@@ -174,7 +174,7 @@ def _parse_ptrn(_text):
 
 class _Checker:
     ignored_chapters = []
-    ignored_pages = []
+    ignored_pages = {}
 
     def __init__(self, ptrn):
         self.ptrn = ptrn.lower()
@@ -187,11 +187,16 @@ class _Checker:
         cls.ignored_chapters.append(num)
     
     @classmethod
-    def ignore_page(cls, num):
+    def ignore_page(cls, chap, num):
         if num.startswith('!'):
             num = num[1:] # Remove "!"
 
-        cls.ignored_pages.append(num)
+        try:
+            pages = cls.ignored_pages[chap]
+        except KeyError:
+            cls.ignored_pages[chap] = [num]
+        else:
+            pages.append(num)
 
     def _get_keyword(self, chap):
         keyword = ""
@@ -205,9 +210,9 @@ class _Checker:
     def check(self, num):
         raise NotImplementedError
 
-    def check_page(self, num):
+    def check_page(self, chap, num):
         num = str(num)
-        ignored = num in self.ignored_pages
+        ignored = num in self.ignored_pages[chap]
         if ignored:
             return False
 
@@ -397,10 +402,10 @@ class RangeChecker:
         
         return checker
 
-    def _create_checker_page(self, num):
+    def _create_checker_page(self, chap, num):
         ptrn, checker = self._create_checker(num)
         if ptrn.ignored:
-            _Checker.ignore_page(num)
+            _Checker.ignore_page(chap, num)
         
         return checker
 
@@ -410,11 +415,11 @@ class RangeChecker:
             chapter_checker = self._create_checker_chapter(chapter)
 
             for page in pages:
-                page_checker = self._create_checker_page(page)
+                page_checker = self._create_checker_page(chapter, page)
                 page_checkers.append(page_checker)
             
             self.checkers.append((chapter_checker, page_checkers))
-
+        
     def check_page(self, chapter, num):
         found = False
         for chap, pages in self.checkers:
@@ -422,7 +427,7 @@ class RangeChecker:
             if chap.ptrn == chapter.chapter:
                 for page in pages:
 
-                    found = page.check_page(num)
+                    found = page.check_page(chapter.chapter, num)
                     if found:
                         break
 
