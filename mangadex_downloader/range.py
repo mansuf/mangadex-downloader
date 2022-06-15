@@ -79,7 +79,14 @@ def _parse_ptrn(_text):
     while True:
         if not text:
 
-            if (ptrn or base_char):
+            if pages:
+
+                if ptrn:
+                    pages.append(ptrn)
+                    reset_ptrn()
+
+                append_ptrn(base_char, pages, None)
+            elif (ptrn or base_char):
                 append_ptrn(base_char + ptrn, [])
 
             break
