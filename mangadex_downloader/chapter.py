@@ -14,18 +14,21 @@ from .fetcher import (
 )
 from .errors import ChapterNotFound, GroupNotFound, MangaDexException, UserNotFound
 from .group import Group
+from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
 
 class ChapterImages:
     def __init__(
         self,
-        chapter_id,
+        chapter,
         start_page=None,
         end_page=None,
-        data_saver=False
+        data_saver=False,
+        _range=None
     ) -> None:
-        self.id = chapter_id
+        self.chap = chapter
+        self.id = chapter.id
         self.data_saver = data_saver
         self._images = []
         self._low_images = []
@@ -34,6 +37,9 @@ class ChapterImages:
         self._hash = None
         self.start_page = start_page
         self.end_page = end_page
+        self.range = _range
+
+        self.legacy_range = (start_page or end_page)
     
     def fetch(self):
         data = get_chapter_images(self.id)
@@ -44,7 +50,45 @@ class ChapterImages:
         self._images = data['chapter']['data']
         self._low_images = data['chapter']['dataSaver']
 
-    def iter(self):
+    def _check_range_page_legacy(self, page, log_info):
+        if self.start_page is not None:
+            if not (page >= self.start_page):
+
+                if log_info:
+                    log.info("Ignoring page %s as \"start_page\" is %s" % (
+                        page,
+                        self.start_page
+                    ))
+
+                return False
+
+        if self.end_page is not None:
+            if not (page <= self.end_page):
+
+                if log_info:
+                    log.info("Ignoring page %s as \"end_page\" is %s" % (
+                        page,
+                        self.end_page
+                    ))
+
+                return False
+
+        return True
+
+    def _check_range_page(self, page, log_info):
+        if self.legacy_range:
+            return self._check_range_page_legacy(page, log_info)
+
+        if self.range is not None and not self.range.check_page(self.chap, page):
+
+            if log_info:
+                log.info(f"Ignoring page {page}, because page {page} is in ignored list")
+
+            return False
+        
+        return True
+
+    def iter(self, log_info=False):
         if self._data is None:
             raise Exception("fetch() is not called")
 
@@ -53,25 +97,10 @@ class ChapterImages:
 
         page = 1
         for img in images:
-            if self.start_page is not None:
-                if not (page >= self.start_page):
-                    log.info("Ignoring page %s as \"start_page\" is %s" % (
-                        page,
-                        self.start_page
-                    ))
 
-                    page += 1
-                    continue
-                
-            if self.end_page is not None:
-                if not (page <= self.end_page):
-                    log.info("Ignoring page %s as \"end_page\" is %s" % (
-                        page,
-                        self.end_page
-                    ))
-
-                    page += 1
-                    continue
+            if not self._check_range_page(page, log_info):
+                page += 1
+                continue
 
             url = '{0}/{1}/{2}/{3}'.format(
                 self._base_url,
@@ -247,8 +276,21 @@ class IteratorChapter:
         no_group_name=None,
         group=None,
         use_chapter_title=False,
+        _range=None,
         **kwargs
     ):
+
+        legacy_range = (
+            start_chapter or
+            end_chapter or
+            start_page or
+            end_page or
+            no_oneshot
+        )
+
+        if _range and legacy_range:
+            raise ValueError("_range and (start_* or end_* or no_oneshot) cannot be together")
+
         self.volumes = volumes
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
@@ -261,7 +303,13 @@ class IteratorChapter:
         self.use_chapter_title = use_chapter_title
         self.group = None
         self.all_group = False
+        self.legacy_range = legacy_range
         
+        if _range is not None:
+            self.range = range_mod.compile(_range)
+        else:
+            self.range = _range
+
         if group and group == "all":
             self.all_group = True
         elif group:
@@ -295,7 +343,7 @@ class IteratorChapter:
         
         return group
 
-    def _check_chapter(self, chap):
+    def _check_range_chapter_legacy(self, chap):
         num_chap = chap.chapter
         if num_chap != 'none':
             try:
@@ -321,15 +369,6 @@ class IteratorChapter:
                 log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
 
-        # Some manga has chapters where it has no pages / images inside of it.
-        # We need to verify it, to prevent error when downloading the manga.
-        if chap.pages == 0:
-            log.warning(f"Chapter {0} from group {1} has no images, ignoring...".format(
-                chap.chapter,
-                chap.groups_name
-            ))
-            return False
-
         if chap.oneshot and self.no_oneshot and not self.all_group:
             log.info("Ignoring oneshot chapter since it's in ignored list")
             return False
@@ -340,6 +379,33 @@ class IteratorChapter:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
                 log.info(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
+
+        return True
+
+    def _check_range_chapter(self, chap):
+        if self.legacy_range:
+            return self._check_range_chapter_legacy(chap)
+        
+        if not self.range.check_chapter(chap):
+            log.info(f"Ignoring chapter {chap.chapter}, because chapter {chap.chapter} is in ignored list")
+            return False
+
+        return True
+
+    def _check_chapter(self, chap):
+        num_chap = chap.chapter
+
+        # Some manga has chapters where it has no pages / images inside of it.
+        # We need to verify it, to prevent error when downloading the manga.
+        if chap.pages == 0:
+            log.warning(f"Chapter {0} from group {1} has no images, ignoring...".format(
+                chap.chapter,
+                chap.groups_name
+            ))
+            return False
+
+        if not self._check_range_chapter(chap):
+            return False
 
         # Check if it's same group as self.group
         if not self.all_group and self.group:
@@ -383,16 +449,15 @@ class IteratorChapter:
             if self.log_cache:
                 log.debug(f'Caching Volume. {chap.volume} Chapter. {chap.chapter}')
 
-            valid = self._check_chapter(chap)
-
-            if not valid:
+            if not self._check_chapter(chap):
                 continue
 
             chap_images = ChapterImages(
-                chap.id,
+                chap,
                 self.start_page,
                 self.end_page,
-                self.data_saver
+                self.data_saver,
+                self.range
             )
 
             return chap, chap_images

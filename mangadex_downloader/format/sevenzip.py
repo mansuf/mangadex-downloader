@@ -61,7 +61,7 @@ class SevenZip(BaseFormat):
                 count = NumberWithLeadingZeros(images.iter())
 
                 error = False
-                for page, img_url, img_name in images.iter():
+                for page, img_url, img_name in images.iter(log_info=True):
                     server_file = img_name
 
                     img_ext = os.path.splitext(img_name)[1]
@@ -238,7 +238,7 @@ class SevenZipVolume(SevenZip):
 
                 while True:
                     error = False
-                    for page, img_url, img_name in images.iter():
+                    for page, img_url, img_name in images.iter(log_info=True):
                         server_file = img_name
 
                         img_ext = os.path.splitext(img_name)[1]
@@ -395,7 +395,7 @@ class SevenZipSingle(SevenZip):
 
             while True:
                 error = False
-                for page, img_url, img_name in images.iter():
+                for page, img_url, img_name in images.iter(log_info=True):
                     server_file = img_name
 
                     img_ext = os.path.splitext(img_name)[1]

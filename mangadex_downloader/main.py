@@ -266,7 +266,8 @@ def download(
     legacy_sorting=False,
     use_chapter_title=False,
     unsafe=False,
-    no_verify=False
+    no_verify=False,
+    _range=None
 ):
     """Download a manga
     
@@ -311,6 +312,8 @@ def download(
         If ``True``, it will allow you to download "porn" content
     no_verify: :class:`bool`
         If ``True``, Skip hash checking for each images
+    _range: :class:`str`
+        A range pattern to download specific chapters
 
     Raises
     -------
@@ -402,7 +405,8 @@ def download(
         "data_saver": compressed_image,
         "no_group_name": no_group_name,
         "group": group_id,
-        "use_chapter_title": use_chapter_title
+        "use_chapter_title": use_chapter_title,
+        "_range": _range
     }
 
     log.info("Using %s format" % save_as)
