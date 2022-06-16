@@ -386,7 +386,7 @@ class IteratorChapter:
         if self.legacy_range:
             return self._check_range_chapter_legacy(chap)
         
-        if not self.range.check_chapter(chap):
+        if self.range is not None and not self.range.check_chapter(chap):
             log.info(f"Ignoring chapter {chap.chapter}, because chapter {chap.chapter} is in ignored list")
             return False
 
