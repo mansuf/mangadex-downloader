@@ -425,6 +425,15 @@ class RangeChecker:
         for chap, pages in self.checkers:
 
             if chap.ptrn == chapter.chapter:
+
+                if not pages:
+                    # If inside chapter pattern there is no pages
+                    # We must mark it as found = True
+                    # to avoid all pages getting ignored
+
+                    found = True
+                    break
+
                 for page in pages:
 
                     found = page.check_page(chapter.chapter, num)
