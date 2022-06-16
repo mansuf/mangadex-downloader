@@ -148,6 +148,12 @@ class InputHandler(argparse.Action):
         if pipe:
             sys_argv.append(pipe_value)
 
+        # Allow to search with empty keyword
+        self.empty_search = not pos_arg and self.search
+        if self.empty_search:
+            # to avoid error on parsing arguments
+            sys_argv.append("dummy_empty_search")
+
         self.pipe = pipe
         self.pipe_value = pipe_value
 
@@ -213,7 +219,7 @@ class InputHandler(argparse.Action):
                 err = str(set(IteratorUserLibraryManga.statuses)).replace('\'', '')
                 parser.error(f"{status} are not valid status, choices are {err}")
 
-        setattr(namespace, self.dest, urls)
+        setattr(namespace, self.dest, "" if self.empty_search else urls)
         setattr(namespace, 'fetch_library_manga', fetch_library_manga)
         setattr(namespace, 'fetch_library_list', fetch_library_list)
         setattr(
