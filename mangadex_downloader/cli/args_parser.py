@@ -120,6 +120,30 @@ class InputHandler(argparse.Action):
             lowered_args
         )
 
+        # An monkey patch to determine if positional arguments is empty or not
+        # based on https://stackoverflow.com/questions/12818146/python-argparse-ignore-unrecognised-arguments
+
+        # By default, ArgumentParser are exiting if some arguments are invalid
+        # This function is to raise error instead of exiting whole program
+        def on_error(err):
+            raise argparse.ArgumentError(None, err)
+    
+        pos_arg = True # pos_arg stands for positional argument
+        args = None
+        parser = argparse.ArgumentParser(exit_on_error=False)
+        parser.error = on_error
+        parser.add_argument('URL')
+        try:
+            args, unknown = parser.parse_known_args(sys_argv)
+        except argparse.ArgumentError:
+            pos_arg = False
+
+        # If positional exist and pipe is true
+        # remove it
+        # ONLY if -pipe is exist
+        if pos_arg and pipe:
+            sys_argv.remove(args.URL)
+
         # Manipulate positional arguments
         if pipe:
             sys_argv.append(pipe_value)
