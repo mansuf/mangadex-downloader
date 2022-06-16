@@ -39,6 +39,19 @@ def download_manga(url, args, legacy=False):
         if args.start_page > args.end_page:
             raise MangaDexException("--start-page cannot be more than --end-page")
 
+    # We cannot allow if --range and other range options (such as: --start-chapter) together
+    range_forbidden_args = {
+        'start_chapter': '--start-chapter',
+        'end_chapter': '--end-chapter',
+        'start_page': '--start-page',
+        'end_page': '--end-page',
+        'no_oneshot_chapter': '--no-oneshot-chapter'
+    }
+    for name, arg in range_forbidden_args.items():
+        value = getattr(args, name)
+        if args.range and value:
+            raise MangaDexException(f'--range cannot be used together with {arg}')
+
     args = (
         url,
         args.folder,
@@ -58,7 +71,8 @@ def download_manga(url, args, legacy=False):
         args.enable_legacy_sorting,
         args.use_chapter_title,
         args.unsafe,
-        args.no_verify
+        args.no_verify,
+        args.range
     )
 
     if legacy:
@@ -68,6 +82,10 @@ def download_manga(url, args, legacy=False):
         
 
 def download_chapter(url, args, legacy=False):
+
+    if args.range:
+        raise MangaDexException('--range option is not available for chapter download')
+
     args = (
         url,
         args.folder,
@@ -100,6 +118,8 @@ def download_list(url, args):
         _error_list('--start-page')
     elif args.end_page:
         _error_list('--end-page')
+    elif args.range:
+        _error_list('--range')
 
     if args.group and args.no_group_name:
         raise MangaDexException("--group cannot be used together with --no-group-name")

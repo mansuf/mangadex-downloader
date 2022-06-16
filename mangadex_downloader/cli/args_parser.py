@@ -318,7 +318,12 @@ def get_args(argv):
         action='store_true',
         help='Use chapter title for each chapters. ' \
              'NOTE: This option is useless if used with any single and volume format.'
-    ) 
+    )
+    chap_group.add_argument(
+        '--range',
+        '-rg',
+        help='A range pattern to download specific chapters'
+    )
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")
