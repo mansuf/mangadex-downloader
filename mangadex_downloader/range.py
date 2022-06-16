@@ -212,7 +212,11 @@ class _Checker:
 
     def check_page(self, chap, num):
         num = str(num)
-        ignored = num in self.ignored_pages[chap]
+        try:
+            ignored = num in self.ignored_pages[chap]
+        except KeyError:
+            ignored = False
+
         if ignored:
             return False
 
