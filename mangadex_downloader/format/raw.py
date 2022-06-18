@@ -31,7 +31,8 @@ class Raw(BaseFormat):
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
-            chap_name = chap_class.get_name()
+            chap_name = chap_class.get_simplified_name()
+            chap_extended_name = chap_class.get_name()
 
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
@@ -56,7 +57,10 @@ class Raw(BaseFormat):
 
                     img_path = chapter_path / img_name
 
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (
+                        chap_extended_name,
+                        page
+                    ))
 
                     # Verify file
                     if self.verify and not replace:
@@ -153,7 +157,7 @@ class RawVolume(BaseFormat):
 
                 # Build volume folder name
                 if chap_class.volume is not None:
-                    volume = f'Volume. {chap_class.volume}'
+                    volume = f'Vol. {chap_class.volume}'
                 else:
                     volume = 'No Volume'
 
@@ -273,7 +277,7 @@ class RawSingle(BaseFormat):
         # Construct folder name from first and last chapter
         first_chapter = cache[0][0]
         last_chapter = cache[len(cache) - 1][0]
-        path = base_path / sanitize_filename(first_chapter.name + " - " + last_chapter.name)
+        path = base_path / sanitize_filename(first_chapter.simple_name + " - " + last_chapter.simple_name)
         path.mkdir(exist_ok=True)
 
         for index, (chap_class, images) in enumerate(cache):

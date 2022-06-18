@@ -160,6 +160,7 @@ class Chapter:
         self.groups_id = [group.id for group in groups]
         self.manga_id = manga_id
         self._name = None
+        self._simpl_name = None
         self.oneshot = False
         self.use_group_name = use_group_name
         self.use_chapter_title = use_chapter_title
@@ -205,6 +206,7 @@ class Chapter:
 
     def _parse_name(self):
         name = ""
+        simpl_name = ""
 
         if self.title is None:
             lower_title = ""
@@ -215,38 +217,53 @@ class Chapter:
             self.oneshot = True
             if self.chapter is not None:
                 name += f'Chapter. {self.chapter} '
+                simpl_name += f"Ch. {self.chapter} "
 
             name += 'Oneshot'
+            simpl_name += 'Oneshot'
         else:
             # Get combined volume and chapter
             if self.volume is not None:
                 name += f'Volume. {self.volume} '
+                simpl_name += f"Vol. {self.volume} "
 
-            name += f'Chapter. {self.chapter}' 
+            name += f'Chapter. {self.chapter}'
+            simpl_name += f"Ch. {self.chapter}"
 
         self._name = name.strip()
+        self._simpl_name = simpl_name.strip()
 
     @property
     def name(self):
         """This will return chapter name only"""
         return self._name
 
-    def get_name(self):
-        """This will return chapter name with group name and title"""
+    @property
+    def simple_name(self):
+        """Return simplified chapter name"""
+        return self._simpl_name
+
+    def _make_name(self, chap_name):
         name = ""
 
-        # Get groups name
         if self.use_group_name:
             name += f'[{sanitize_filename(self.groups_name)}] '
 
-        # "Volume. n Chapter.n"
-        name += self._name
+        name += chap_name
 
         # Chapter title
         if self.title and self.use_chapter_title:
             name += f' - {sanitize_filename(self.title)}'
-
+        
         return name
+
+    def get_name(self):
+        """This will return chapter name with group name and title"""
+        return self._make_name(self._name)
+
+    def get_simplified_name(self):
+        """Return simplified name of :meth:`Chapter.get_name()`"""
+        return self._make_name(self._simpl_name)
 
     @property
     def groups_name(self):
