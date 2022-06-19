@@ -34,7 +34,8 @@ class ComicBookArchive(BaseFormat):
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
-            chap_name = chap_class.get_name()
+            chap_name = chap_class.get_simplified_name()
+            chap_extended_name = chap_class.get_name()
 
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
@@ -68,7 +69,7 @@ class ComicBookArchive(BaseFormat):
 
                     img_path = chapter_path / img_name
 
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (chap_extended_name, page))
 
                     # Verify file
                     # Make sure zipfile is opened in append mode
@@ -184,7 +185,7 @@ class ComicBookArchiveVolume(BaseFormat):
 
             # Build volume folder name
             if chap_class.volume is not None:
-                volume = f'Volume. {chap_class.volume}'
+                volume = f'Vol. {chap_class.volume}'
             else:
                 volume = 'No Volume'
 
@@ -348,7 +349,9 @@ class ComicBookArchiveSingle(BaseFormat):
         # Construct .cbz filename from first and last chapter
         first_chapter = cache[0][0]
         last_chapter = cache[len(cache) - 1][0]
-        manga_zip_path = base_path / sanitize_filename(first_chapter.name + " - " + last_chapter.name + '.cbz')
+        manga_zip_path = base_path / sanitize_filename(
+            first_chapter.simple_name + " - " + last_chapter.simple_name + '.cbz'
+        )
         manga_zip = zipfile.ZipFile(
             str(manga_zip_path),
             "a" if path_exists(manga_zip_path) else "w"
