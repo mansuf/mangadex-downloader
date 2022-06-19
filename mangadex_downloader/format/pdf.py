@@ -287,7 +287,8 @@ class PDF(BaseFormat):
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
-            chap_name = chap_class.get_name()
+            chap_name = chap_class.get_simplified_name()
+            chap_extended_name = chap_class.get_name()
             count = NumberWithLeadingZeros(0)
 
             # Fetching chapter images
@@ -322,7 +323,9 @@ class PDF(BaseFormat):
 
                     img_path = chapter_path / img_name
 
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (
+                        chap_extended_name, page
+                    ))
 
                     # Verify file
                     if self.verify and not replace:
@@ -428,7 +431,9 @@ class PDFSingle(PDF):
         # Construct pdf filename from first and last chapter
         first_chapter = cache[0][0]
         last_chapter = cache[len(cache) - 1][0]
-        pdf_name = sanitize_filename(first_chapter.name + " - " + last_chapter.name + '.pdf')
+        pdf_name = sanitize_filename(
+            first_chapter.simple_name + " - " + last_chapter.simple_name + '.pdf'
+        )
         pdf_file = base_path / pdf_name
 
         def pdf_file_exists(converting=False):
@@ -588,7 +593,7 @@ class PDFVolume(PDF):
 
             # Build volume folder name
             if volume is not None:
-                vol_name = f'Volume. {volume}'
+                vol_name = f'Vol. {volume}'
             else:
                 vol_name = 'No Volume'
 
