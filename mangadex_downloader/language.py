@@ -48,6 +48,7 @@ class Language(Enum):
     Hindi = 'hi' #:
     Norwegian = 'no' #:
     Nepali = 'ne' #:
+    Other = None
 
 class RomanizedLanguage(Enum):
     RomanizedJapanese = 'ja-ro'
