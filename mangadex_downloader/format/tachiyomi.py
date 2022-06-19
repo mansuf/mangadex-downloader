@@ -26,7 +26,8 @@ class Tachiyomi(BaseFormat):
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
-            chap_name = chap_class.get_name()
+            chap_name = chap_class.get_simplified_name()
+            chap_extended_name = chap_class.get_name()
 
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
@@ -51,7 +52,9 @@ class Tachiyomi(BaseFormat):
 
                     img_path = chapter_path / img_name
 
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (
+                        chap_extended_name, page
+                    ))
 
                     # Verify file
                     if self.verify and not replace:
@@ -117,7 +120,8 @@ class TachiyomiZip(BaseFormat):
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap = chap_class.chapter
-            chap_name = chap_class.get_name()
+            chap_name = chap_class.get_simplified_name()
+            chap_extended_name = chap_class.get_name()
 
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
@@ -151,7 +155,9 @@ class TachiyomiZip(BaseFormat):
 
                     img_path = chapter_path / img_name
 
-                    log.info('Downloading %s page %s' % (chap_name, page))
+                    log.info('Downloading %s page %s' % (
+                        chap_extended_name, page
+                    ))
 
                     # Verify file
                     # Make sure zipfile is opened in append mode
