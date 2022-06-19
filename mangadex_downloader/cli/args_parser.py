@@ -130,7 +130,7 @@ class InputHandler(argparse.Action):
     
         pos_arg = True # pos_arg stands for positional argument
         args = None
-        parser = argparse.ArgumentParser(exit_on_error=False)
+        parser = argparse.ArgumentParser(exit_on_error=False, add_help=False)
         parser.error = on_error
         parser.add_argument('URL')
         try:
