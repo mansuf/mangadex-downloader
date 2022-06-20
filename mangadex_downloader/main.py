@@ -6,7 +6,8 @@ from .utils import (
     validate_legacy_url,
     validate_url, 
     valid_cover_types,
-    default_cover_type
+    default_cover_type,
+    comma_separated_text
 )
 from .language import Language, get_language
 from .utils import download as download_file
@@ -351,6 +352,23 @@ def download(
     if group and group.lower().strip() == "all" and no_group_name:
         raise ValueError("no_group_name cannot be True while group is used")
 
+    # Parse language
+    if isinstance(language, Language):
+        lang = language
+    elif isinstance(language, str):
+        lang = get_language(language)
+    else:
+        raise ValueError("language must be Language or str, not %s" % language.__class__.__name__)
+
+    log.info(f"Using {lang.name} language")
+
+    log.debug('Validating the url...')
+    try:
+        manga_id = validate_url(url)
+    except InvalidURL as e:
+        log.error('%s is not valid mangadex url' % url)
+        raise e from None
+
     # Validate group
     group_id = validate_group_url(group)
 
@@ -358,11 +376,12 @@ def download(
     fmt_class = get_format(save_as)
 
     if not isinstance(url, Manga):
-        manga = fetch(url, language, use_alt_details, unsafe)
+        manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
     else:
         manga = url
-        if manga.content_rating == ContentRating.Pornographic and not unsafe:
-            raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
+
+    if manga.content_rating == ContentRating.Pornographic and not unsafe:
+        raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
 
     # base path
     base_path = Path('.')
@@ -396,33 +415,69 @@ def download(
     else:
         download_file(cover_url, str(cover_path), replace=True)
 
-    kwargs_iter_chapter_images = {
-        "start_chapter": start_chapter,
-        "end_chapter": end_chapter,
-        "start_page": start_page,
-        "end_page": end_page,
-        "no_oneshot": no_oneshot_chapter,
-        "data_saver": compressed_image,
-        "no_group_name": no_group_name,
-        "group": group_id,
-        "use_chapter_title": use_chapter_title,
-        "_range": _range
-    }
+    # Reuse is good
+    def download_manga(m, path):
+        kwargs_iter_chapter_images = {
+            "start_chapter": start_chapter,
+            "end_chapter": end_chapter,
+            "start_page": start_page,
+            "end_page": end_page,
+            "no_oneshot": no_oneshot_chapter,
+            "data_saver": compressed_image,
+            "no_group_name": no_group_name,
+            "group": group_id,
+            "use_chapter_title": use_chapter_title,
+            "_range": _range
+        }
 
-    log.info("Using %s format" % save_as)
+        log.info("Using %s format" % save_as)
 
-    fmt = fmt_class(
-        base_path,
-        manga,
-        compressed_image,
-        replace,
-        legacy_sorting,
-        no_verify,
-        kwargs_iter_chapter_images
-    )
+        fmt = fmt_class(
+            path,
+            m,
+            compressed_image,
+            replace,
+            legacy_sorting,
+            no_verify,
+            kwargs_iter_chapter_images
+        )
 
-    # Execute main format
-    fmt.main()
+        # Execute main format
+        fmt.main()
+
+    all_languages = lang == Language.All
+
+    if all_languages:
+        # Print info to users
+        # Let the users know how many translated languages available
+        # in given manga
+        translated_langs = [i.name for i in manga.translated_languages]
+        log.info(f"Available translated languages = {comma_separated_text(translated_langs)}")
+
+        for translated_lang in manga.translated_languages:
+            log.info(f"Downloading {manga.title} in {translated_lang.name} language")
+
+            fetched_manga = _fetch_manga(manga.id, translated_lang.value)
+
+            new_path = base_path / translated_lang.name
+            new_path.mkdir(exist_ok=True)
+
+            # Copy description and manga
+            fetched_manga._title = manga.title
+            fetched_manga._description = manga.description
+
+            download_manga(fetched_manga, new_path)
+
+            log.info(f"Download finished for manga {manga.title} in {translated_lang.name} language")
+        
+    else:
+        # I really want to use _fetch_manga()
+        # but it would waste 1 http request
+        # and can cause slow performance
+        log.info("Fetching all chapters...")
+        manga._chapters = MangaChapter(manga, lang.value, all_chapters=True)
+
+        download_manga(manga, base_path)
                 
     log.info("Download finished for manga \"%s\"" % manga.title)
     return manga

@@ -1,9 +1,10 @@
 import logging
 from enum import Enum
+from typing import List
 
 from .fetcher import get_manga
 from .network import uploads_url
-from .language import get_details_language
+from .language import Language, get_details_language
 from .utils import get_local_attr, input_handle
 from .artist_and_author import Author, Artist
 from .cover import CoverArt
@@ -239,3 +240,8 @@ class Manga:
     def content_rating(self):
         """:class:`ContentRating`: Return content rating of the manga"""
         return ContentRating(self._attr.get('contentRating'))
+
+    @property
+    def translated_languages(self) -> List[Language]:
+        """List[:class:`Language`]: Return available translated languages of the manga"""
+        return [Language(i) for i in self._attr.get('availableTranslatedLanguages')]

@@ -173,3 +173,19 @@ def getpass_handle(*args, **kwargs):
         return getpass(*args, **kwargs)
     except EOFError:
         sys.exit(0)
+
+def comma_separated_text(array):
+    # Opening square bracket
+    text = "["
+
+    # Append first item
+    text += array.pop(0)
+
+    # Add the rest of items
+    for item in array:
+        text += ', ' + item
+
+    # Closing square bracket
+    text += ']'
+    
+    return text

@@ -50,6 +50,11 @@ class Language(Enum):
     Nepali = 'ne' #:
     Other = None
 
+    # While all languages above is valid languages,
+    # this one is not actually a language
+    # it's just alias for all languages
+    All = "all"
+
 class RomanizedLanguage(Enum):
     RomanizedJapanese = 'ja-ro'
     RomanizedKorean = 'ko-ro'
