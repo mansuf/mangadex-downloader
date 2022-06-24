@@ -1,8 +1,11 @@
+import logging
 from functools import lru_cache
 from requests.exceptions import HTTPError
 from .errors import ChapterNotFound, GroupNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException, UserNotFound
 from .network import Net, base_url, origin_url
 from .utils import validate_url
+
+log = logging.getLogger(__name__)
 
 def get_manga(manga_id):
     url = '{0}/manga/{1}'.format(base_url, manga_id)
@@ -15,6 +18,10 @@ def get_manga(manga_id):
     return r.json()
 
 def get_legacy_id(_type, _id):
+    # Mark it as deprecated
+    # bye bye :(
+    log.warning("Old MangaDex URL are deprecated and will be removed in v1.3.0")
+
     supported_types = ['manga', 'chapter', 'title']
 
     # Alias for title
