@@ -49,6 +49,10 @@ def _validate_bool(val):
     else:
         return bool(val)
 
+def _validate_language(val):
+    lang = get_language(val)
+    return lang.value
+
 class _Config:
     path = base_path / 'config.json'
     confs = {
@@ -58,7 +62,7 @@ class _Config:
         ],
         "language": [
             Language.English.value, # Enum object are not JSON serializable
-            get_language,
+            _validate_language,
         ]
     }
     default_conf = {
