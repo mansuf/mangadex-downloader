@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 
-from .language import Language
+from .language import Language, get_language
 from .errors import MangaDexException
 
 log = logging.getLogger(__name__)
@@ -25,11 +25,44 @@ except Exception as e:
          "or you can set MANGADEXDL_CONFIG_DIR to another path"
     ) from None
 
+class ConfigTypeError(MangaDexException):
+    pass
+
+# Utilities
+def _validate_bool(val):
+    if isinstance(val, str):
+        value = val.strip()
+
+        # Is it 1 or 0 ?
+        try:
+            return bool(int(value))
+        except ValueError:
+            pass
+
+        # This is dumb
+        if value == "true":
+            return True
+        elif value == "false":
+            return False
+        else:
+            raise ConfigTypeError("invalid boolean value")
+    else:
+        return bool(val)
+
 class _Config:
     path = base_path / 'config.json'
+    confs = {
+        "auth_cache": [
+            False, # default value
+            _validate_bool, # validator value
+        ],
+        "language": [
+            Language.English.value, # Enum object are not JSON serializable
+            get_language,
+        ]
+    }
     default_conf = {
-        "auth_cache": False,
-        "language": Language.English.value # Enum object are not JSON serializable
+        x: y for x, (y, _) in confs.items()
     }
 
     def __init__(self):
@@ -114,9 +147,13 @@ class ConfigProxy:
     
     def __setattr__(self, name, value):
         try:
-            _conf.write(name, value)
+            _, validator = _conf.confs[name]
         except KeyError:
             raise AttributeError(f"type object '{_Config.__name__}' has no attribute '{name}'") from None
+        
+        val = validator(value)
+
+        _conf.write(name, val)
 
 # Allow to library to use _Config objects easily
 config = ConfigProxy()
