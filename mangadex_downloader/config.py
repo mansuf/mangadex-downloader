@@ -150,8 +150,14 @@ class ConfigProxy:
             _, validator = _conf.confs[name]
         except KeyError:
             raise AttributeError(f"type object '{_Config.__name__}' has no attribute '{name}'") from None
-        
-        val = validator(value)
+
+        try:
+            val = validator(value)
+        except ConfigTypeError as e:
+            # Provide more details about error
+            # Which config triggered this
+            err = f"{name}: " + str(e)
+            raise ConfigTypeError(err) from None
 
         _conf.write(name, val)
 
