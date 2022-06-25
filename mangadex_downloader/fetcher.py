@@ -20,7 +20,10 @@ def get_manga(manga_id):
 def get_legacy_id(_type, _id):
     # Mark it as deprecated
     # bye bye :(
-    log.warning("Old MangaDex URL are deprecated and will be removed in v1.3.0")
+    log.warning(
+        'Old MangaDex URL are deprecated and will be removed any time soon. ' \
+        'Please use the new MangaDex URL'
+    )
 
     supported_types = ['manga', 'chapter', 'title']
 
