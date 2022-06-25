@@ -153,7 +153,7 @@ class ConfigProxy:
 
         try:
             val = validator(value)
-        except ConfigTypeError as e:
+        except Exception as e:
             # Provide more details about error
             # Which config triggered this
             err = f"{name}: " + str(e)
