@@ -378,14 +378,15 @@ def get_args(argv):
         '--use-compressed-image',
         '-uci',
         help='Use low size images manga (compressed quality)',
-        action='store_true'
+        action='store_true',
+        default=config.use_compressed_image
     )
     img_group.add_argument(
         '--cover',
         '-c',
         choices=valid_cover_types,
         help='Choose quality cover, default is \"original\"',
-        default=default_cover_type
+        default=config.cover
     )
 
     # Authentication related
@@ -414,7 +415,8 @@ def get_args(argv):
             'You must set MANGADEXDL_CONFIG_ENABLED=1 in your environment variables before doing this, ' \
             'otherwise the app will throwing error. ' \
             'NOTE: Using this option can cause an attacker in your computer may grab your authentication cache ' \
-            'and using it for malicious actions. USE IT WITH CAUTION !!!'
+            'and using it for malicious actions. USE IT WITH CAUTION !!!',
+        default=config.login_cache
     )
 
     # Save as format
