@@ -5,15 +5,14 @@ import sys
 
 from .url import valid_types
 from .utils import setup_logging, sys_argv, print_version_info
+from .config import build_config_from_url_arg
+from ..cover import valid_cover_types, default_cover_type
 from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
-from ..utils import (
-    valid_cover_types,
-    default_cover_type,
-    validate_group_url as _validate_group_url,
-)
+from ..utils import validate_group_url as _validate_group_url
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
+from ..config import config
 from ..errors import InvalidURL
 from .. import __description__, __version__
 
@@ -188,7 +187,6 @@ class InputHandler(argparse.Action):
         elif self.search and file_exist:
             parser.error("--search are not supported when used for batch downloading")
 
-
         if fetch_library_manga:
             result = urls.split(':')
             
@@ -273,7 +271,8 @@ def get_args(argv):
         '--unsafe',
         '-u',
         help='If set, it will allow you to search and download porn manga', 
-        action='store_true'
+        action='store_true',
+        default=config.unsafe
     )
 
     # Manga related
@@ -304,7 +303,7 @@ def get_args(argv):
         metavar='LANGUAGE',
         help='Download manga in given language, to see all languages, use --list-languages option',
         type=validate_language,
-        default=Language.English
+        default=config.language
     )
     lang_group.add_argument(
         '--list-languages',
@@ -347,7 +346,8 @@ def get_args(argv):
         '-uct',
         action='store_true',
         help='Use chapter title for each chapters. ' \
-             'NOTE: This option is useless if used with any single and volume format.'
+             'NOTE: This option is useless if used with any single and volume format.',
+        default=config.use_chapter_title
     )
     chap_group.add_argument(
         '--range',
@@ -405,6 +405,17 @@ def get_args(argv):
         help='Login to MangaDex with password ' \
              '(you will be prompted to input username if --login-username are not present)'
     )
+    auth_group.add_argument(
+        '--login-cache',
+        '-lc',
+        action='store_true',
+        help='Cache authentication token. ' \
+            'You don\'t have to re-login with this option. ' \
+            'You must set MANGADEXDL_CONFIG_ENABLED=1 in your environment variables before doing this, ' \
+            'otherwise the app will throwing error. ' \
+            'NOTE: Using this option can cause an attacker in your computer may grab your authentication cache ' \
+            'and using it for malicious actions. USE IT WITH CAUTION !!!'
+    )
 
     # Save as format
     save_as_group = parser.add_argument_group('Save as format')
@@ -413,7 +424,7 @@ def get_args(argv):
         '-f',
         choices=formats.keys(),
         help='Select save as format, default to `raw`',
-        default=default_save_as_format
+        default=config.save_as
     )
 
     # Proxy related

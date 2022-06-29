@@ -4,9 +4,7 @@ from pathlib import Path
 from .utils import (
     validate_group_url,
     validate_legacy_url,
-    validate_url, 
-    valid_cover_types,
-    default_cover_type,
+    validate_url,
     comma_separated_text
 )
 from .language import Language, get_language
@@ -25,8 +23,7 @@ from .iterator import (
 from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
-from .artist_and_author import Artist, Author
-from .cover import CoverArt
+from .cover import default_cover_type, valid_cover_types
 
 log = logging.getLogger(__name__)
 

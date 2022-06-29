@@ -11,6 +11,7 @@ from .utils import (
     register_keyboardinterrupt_handler,
     sys_argv
 )
+from .config import build_config
 from .auth import login_with_err_handler, logout_with_err_handler
 from .download import download
 from ..errors import MangaDexException
@@ -36,6 +37,9 @@ def _main(argv):
 
         # Setup logging
         log = setup_logging('mangadex_downloader', args.verbose)
+
+        # Parse config
+        build_config(parser, args)
 
         # Setup proxy
         setup_proxy(args.proxy, args.proxy_env)

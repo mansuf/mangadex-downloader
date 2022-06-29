@@ -2,6 +2,15 @@ from .fetcher import get_cover_art
 from .utils import File
 from .language import get_language
 
+valid_cover_types = [
+    'original',
+    '512px',
+    '256px',
+    'none'
+]
+
+default_cover_type = "original"
+
 class CoverArt:
     def __init__(self, cover_id=None, data=None):
         if not data:
