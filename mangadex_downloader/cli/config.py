@@ -6,7 +6,8 @@ from ..config import (
     config, # High-level access config
     _conf, # Low-level access config for debugging
     ConfigTypeError,
-    reset_config
+    reset_config,
+    get_all_configs
 )
 
 log = logging.getLogger(__name__)
@@ -23,12 +24,16 @@ def build_config_from_url_arg(parser, urls):
 
     for url in urls.splitlines():
 
+        val = url.strip()
         # Just ignore it if empty lines
-        if not url.strip():
+        if not val:
+            continue
+        # Invalid config
+        elif not val.startswith('conf'):
             continue
 
         # Initial value splitted into "key_conf=value_conf"
-        value = url.strip().split(':')
+        value = val.split(':')
 
         # Split key and value config into ["key", "value_piece1", "value_piece2"]
         conf = "".join(value[1:]).split('=')
@@ -36,7 +41,9 @@ def build_config_from_url_arg(parser, urls):
         conf_key = conf[0]
 
         if not conf_key:
-            parser.error("There is no config key")
+            for name, value in get_all_configs():
+                print(f"Config '{name}' is set to '{value}'")
+            continue
 
         # Merge value pieces
         conf_value = "".join(conf[1:])

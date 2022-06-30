@@ -251,6 +251,10 @@ def reset_config(name=None):
 
         _conf.write(name, default_value)
 
+def get_all_configs():
+    """Return a generator that will yield ``(config_name, config_value)``"""
+    return _conf._data.items()
+
 class ConfigProxy:
     def __getattr__(self, name: str):
         try:
