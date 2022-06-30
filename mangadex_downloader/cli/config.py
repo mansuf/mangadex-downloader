@@ -23,6 +23,10 @@ def build_config_from_url_arg(parser, urls):
 
     for url in urls.splitlines():
 
+        # Just ignore it if empty lines
+        if not url.strip():
+            continue
+
         # Initial value splitted into "key_conf=value_conf"
         value = url.strip().split(':')
 
@@ -52,13 +56,14 @@ def build_config_from_url_arg(parser, urls):
 
             continue
 
-        if not conf_value:
-            parser.error(f"{conf_key}: There is no config value")
-
         try:
             previous_value = getattr(config, conf_key)
         except AttributeError:
             parser.error(f"Config '{conf_key}' is not exist")
+
+        if not conf_value:
+            print(f"Config '{conf_key}' is set to '{previous_value}'")
+            continue
 
         try:
             setattr(config, conf_key, conf_value)
