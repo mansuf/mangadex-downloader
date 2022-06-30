@@ -237,6 +237,20 @@ def set_config_from_cli_opts(args):
     
     _conf._write(data, write_to_path=False)
 
+def reset_config(name=None):
+    """Reset config. If ``name`` is not given, reset all configs"""
+    if not name:
+        _conf._write(_conf.default_conf)
+    else:
+        try:
+            default_value = _conf.default_conf[name]
+        except KeyError:
+            raise AttributeError(
+                f"type object '{_Config.__name__}' has no attribute '{name}'"
+            ) from None
+
+        _conf.write(name, default_value)
+
 class ConfigProxy:
     def __getattr__(self, name: str):
         try:

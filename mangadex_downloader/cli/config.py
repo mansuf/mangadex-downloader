@@ -6,6 +6,7 @@ from ..config import (
     config, # High-level access config
     _conf, # Low-level access config for debugging
     ConfigTypeError,
+    reset_config
 )
 
 log = logging.getLogger(__name__)
@@ -35,6 +36,21 @@ def build_config_from_url_arg(parser, urls):
 
         # Merge value pieces
         conf_value = "".join(conf[1:])
+
+        # Reset config (if detected)
+        if conf_key.startswith('reset'):
+            try:
+                reset_config(conf_value)
+            except AttributeError:
+                parser.error(f"Config '{conf_key}' is not exist")
+
+            if conf_value:
+                print(f"Successfully reset config '{conf_value}'")
+            else:
+                # Reset all configs
+                print(f"Successfully reset all configs")
+
+            continue
 
         if not conf_value:
             parser.error(f"{conf_key}: There is no config value")
