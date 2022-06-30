@@ -321,3 +321,8 @@ def build_url(parser, args):
             url = smart_select_url(orig_url)
             urls.append(url)
         args.URL = urls
+
+    # Make sure to check if args.URL is empty
+    # if empty exit the program
+    if not args.URL:
+        parser.error("the following arguments are required: URL")
