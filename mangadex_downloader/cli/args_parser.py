@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from pathlib import Path
 import sys
 
 from .url import valid_types
@@ -160,7 +161,8 @@ class InputHandler(argparse.Action):
         urls = self.pipe_value if self.pipe else values
 
         file_exist = False
-        if os.path.exists(urls):
+        file_path = Path(urls)
+        if file_path.exists() and file_path.is_file():
             file_exist = True
 
         fetch_library_manga = urls.startswith('library')
