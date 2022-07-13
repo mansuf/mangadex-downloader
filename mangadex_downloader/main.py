@@ -61,7 +61,7 @@ def login(*args, **kwargs):
     LoginFailed
         Login credential are not valid
     """
-    Net.requests.login(*args, **kwargs)
+    Net.mangadex.login(*args, **kwargs)
 
 def logout():
     """Logout from MangaDex
@@ -71,7 +71,7 @@ def logout():
     NotLoggedIn
         User are not logged in
     """
-    Net.requests.logout()
+    Net.mangadex.logout()
 
 def _get_manga_from_chapter(chapter_id):
     chap = Chapter(chapter_id)

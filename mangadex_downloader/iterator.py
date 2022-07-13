@@ -67,7 +67,7 @@ class IteratorManga(BaseIterator):
             'contentRating[]': content_ratings
         }
         url = f'{base_url}/manga'
-        r = Net.requests.get(url, params=params)
+        r = Net.mangadex.get(url, params=params)
         data = r.json()
 
         items = data['data']
@@ -104,14 +104,14 @@ class IteratorUserLibraryManga(BaseIterator):
             lib[stat] = []
         self.library = lib
 
-        logged_in = Net.requests.check_login()
+        logged_in = Net.mangadex.check_login()
         if not logged_in:
             raise NotLoggedIn("Retrieving user library require login")
 
         self._parse_reading_status()
 
     def _parse_reading_status(self):
-        r = Net.requests.get(f'{base_url}/manga/status')
+        r = Net.mangadex.get(f'{base_url}/manga/status')
         data = r.json()
 
         for manga_id, status in data['statuses'].items():
@@ -148,7 +148,7 @@ class IteratorUserLibraryManga(BaseIterator):
             'offset': self.offset,
         }
         url = f'{base_url}/user/follows/manga'
-        r = Net.requests.get(url, params=params)
+        r = Net.mangadex.get(url, params=params)
         data = r.json()
 
         items = data['data']
@@ -226,7 +226,7 @@ class IteratorMangaFromList(BaseIterator):
                 'ids[]': param_ids
             }
             url = f'{base_url}/manga'
-            r = Net.requests.get(url, params=params)
+            r = Net.mangadex.get(url, params=params)
             data = r.json()
 
             notexist_ids = param_ids.copy()
@@ -250,7 +250,7 @@ class IteratorUserLibraryList(BaseIterator):
         self.limit = 100
         self.offset = 0
 
-        logged_in = Net.requests.check_login()
+        logged_in = Net.mangadex.check_login()
         if not logged_in:
             raise NotLoggedIn("Retrieving user library require login")
 
@@ -263,7 +263,7 @@ class IteratorUserLibraryList(BaseIterator):
             'offset': self.offset,
         }
         url = f'{base_url}/user/list'
-        r = Net.requests.get(url, params=params)
+        r = Net.mangadex.get(url, params=params)
         data = r.json()
 
         items = data['data']
@@ -291,7 +291,7 @@ class IteratorUserList(BaseIterator):
         }
         url = f'{base_url}/user/{self.user.id}/list'
         try:
-            r = Net.requests.get(url, params=params)
+            r = Net.mangadex.get(url, params=params)
         except HTTPException:
             # Some users are throwing server error (Bad gateway)
             # MD devs said it was cache and headers issues
@@ -321,7 +321,7 @@ class IteratorUserLibraryFollowsList(BaseIterator):
 
         self.limit = 100
 
-        logged_in = Net.requests.check_login()
+        logged_in = Net.mangadex.check_login()
         if not logged_in:
             raise NotLoggedIn("Retrieving user library require login")
 
@@ -334,7 +334,7 @@ class IteratorUserLibraryFollowsList(BaseIterator):
             'offset': self.offset,
         }
         url = f'{base_url}/user/follows/list'
-        r = Net.requests.get(url, params=params)
+        r = Net.mangadex.get(url, params=params)
         data = r.json()
 
         items = data['data']

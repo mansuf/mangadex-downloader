@@ -19,7 +19,7 @@ def logout_with_err_handler(args):
         # Make sure that we are really LOGGED IN
         # To prevent error while logging out
         try:
-            logged_in = Net.requests.check_login()
+            logged_in = Net.mangadex.check_login()
         except Exception:
             logged_in = False
         
@@ -47,9 +47,9 @@ def logout_with_err_handler(args):
 
 def login_with_err_handler(args):
     if config.login_cache:
-        Net.requests.login_from_cache()
+        Net.mangadex.login_from_cache()
 
-        if Net.requests.check_login():
+        if Net.mangadex.check_login():
             return
 
     if args.login:

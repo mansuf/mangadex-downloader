@@ -50,7 +50,7 @@ def _keyboard_interrupt_handler(*args):
 
     # Logging out
     try:
-        Net.requests.logout()
+        Net.mangadex.logout()
     except NotLoggedIn:
         pass
 

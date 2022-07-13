@@ -353,6 +353,7 @@ class NetworkObject:
         self._trust_env = trust_env
 
         # This will be disable proxy from environtments
+        self._mangadex = None
         self._requests = None
 
     @property
@@ -372,6 +373,8 @@ class NetworkObject:
     @trust_env.setter
     def trust_env(self, yes):
         self._trust_env = yes
+        if self._mangadex:
+            self._mangadex.trust_env = yes
         if self._requests:
             self._requests.trust_env = yes
 
@@ -386,6 +389,8 @@ class NetworkObject:
         if not proxy:
             self.clear_proxy()
         self._proxy = proxy
+        if self._mangadex:
+            self._update_mangadex_proxy(proxy)
         if self._requests:
             self._update_requests_proxy(proxy)
 
@@ -393,9 +398,35 @@ class NetworkObject:
         """Remove all proxy from requests and disable environments proxy"""
         self._proxy = None
         self._trust_env = False
+        if self._mangadex:
+            self._mangadex.proxies.clear()
+            self._mangadex.trust_env = False
         if self._requests:
             self._requests.proxies.clear()
             self._requests.trust_env = False
+
+    def _update_mangadex_proxy(self, proxy):
+        if self._mangadex:
+            pr = {
+                'http': proxy,
+                'https': proxy
+            }
+            self._mangadex.proxies.update(pr)
+            self._mangadex.trust_env = self._trust_env
+
+    def _create_mangadex(self):
+        if self._mangadex is None:
+            self._mangadex = requestsMangaDexSession(self._trust_env)
+            self._update_mangadex_proxy(self.proxy)
+
+    @property
+    def mangadex(self):
+        """Return proxied requests for MangaDex (if configured)
+        
+        This session only for MangaDex, sending http requests to other sites will break the session.
+        """
+        self._create_mangadex()
+        return self._mangadex
 
     def _update_requests_proxy(self, proxy):
         if self._requests:
@@ -405,12 +436,12 @@ class NetworkObject:
             }
             self._requests.proxies.update(pr)
             self._requests.trust_env = self._trust_env
-
+    
     def _create_requests(self):
         if self._requests is None:
-            self._requests = requestsMangaDexSession(self._trust_env)
+            self._requests = requests.Session()
             self._update_requests_proxy(self.proxy)
-
+    
     @property
     def requests(self):
         """Return proxied requests (if configured)"""
@@ -418,7 +449,9 @@ class NetworkObject:
         return self._requests
 
     def close(self):
-        """Close requests session only"""
+        self._mangadex.close()
+        self._mangadex = None
+
         self._requests.close()
         self._requests = None
 

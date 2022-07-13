@@ -257,7 +257,7 @@ def validate(parser, args):
         except MangaDexException as e:
             parser.error(str(e))
         
-        user = Net.requests.user
+        user = Net.mangadex.user
         text = f"Manga library from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no saved mangas"
         on_preview = None
@@ -280,7 +280,7 @@ def validate(parser, args):
         except MangaDexException as e:
             parser.error(str(e))
 
-        user = iterator.user if Net.requests.user is None else Net.requests.user
+        user = iterator.user if Net.mangadex.user is None else Net.mangadex.user
         text = f"MangaDex List library from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no saved lists"
         on_preview = lambda x: preview_list(args, x)
@@ -290,7 +290,7 @@ def validate(parser, args):
         except MangaDexException as e:
             parser.error(str(e))
         
-        user = Net.requests.user
+        user = Net.mangadex.user
         text = f"MangaDex followed List from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no followed lists"
         on_preview = lambda x: preview_list(args, x)

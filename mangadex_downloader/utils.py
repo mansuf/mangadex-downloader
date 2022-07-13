@@ -11,7 +11,6 @@ from enum import Enum
 from getpass import getpass
 from .errors import InvalidURL, NotLoggedIn
 from .downloader import FileDownloader, _cleanup_jobs
-from .network import Net
 
 log = logging.getLogger(__name__)
 
