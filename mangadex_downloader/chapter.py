@@ -285,6 +285,7 @@ class IteratorChapter:
         self,
         volumes,
         manga,
+        lang,
         start_chapter=None,
         end_chapter=None,
         start_page=None,
@@ -311,6 +312,7 @@ class IteratorChapter:
 
         self.volumes = volumes
         self.manga = manga
+        self.language = lang
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
         self.end_chapter = end_chapter
@@ -491,20 +493,15 @@ class IteratorChapter:
                 )
 
     def _fill_data(self):
-        chap_ids = []
-        for volume, chapters in self.volumes.items():
-            for chapter in chapters:
-                chaps = [chapter.id]
-                if chapter.others_id and (self.all_group or self.group):
-                    chaps.extend(chapter.others_id)
-                chap_ids.extend(chaps)
+        def get_bulk_chapters(manga_id, lang):
+            # To prevent "Circular imports" error
+            from .iterator import IteratorBulkChapters
 
-        limit = 500
+            return IteratorBulkChapters(manga_id, lang)
+
         chapters_data = []
-        while chap_ids:
-            del chap_ids[:limit]
-            data = get_bulk_chapters(self.manga.id)['data']
-            chapters_data.extend(data)
+        for data in get_bulk_chapters(self.manga.id, self.language.value):
+            chapters_data.append(data)
             
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
@@ -532,7 +529,13 @@ class MangaChapter:
             self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
 
     def iter(self, *args, **kwargs):
-        return IteratorChapter(self._volumes, self.manga, *args, **kwargs)
+        return IteratorChapter(
+            self._volumes,
+            self.manga,
+            self._lang,
+            *args,
+            **kwargs
+        )
 
     def _parse_volumes_from_chapter(self, chapter):
         if not isinstance(chapter, Chapter):

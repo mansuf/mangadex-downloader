@@ -37,6 +37,50 @@ class BaseIterator:
     def next(self):
         raise NotImplementedError
 
+class IteratorBulkChapters(BaseIterator):
+    """This class is returning 500 chapters in single yield
+    and will be used for IteratorChapter internally
+
+    Each of returned chapters from this class
+    are raw data (dict type) and should not be used directly.
+    """
+    def __init__(self, manga_id, lang):
+        super().__init__()
+
+        self.limit = 500
+        self.id = manga_id
+        self.language = lang
+
+    def next(self) -> dict:
+        return self.queue.get_nowait()
+    
+    def fill_data(self):
+        url = f'{base_url}/manga/{self.id}/feed'
+        includes = ['scanlation_group', 'user']
+        content_ratings = [
+            'safe',
+            'suggestive',
+            'erotica',
+            'pornographic'
+        ]
+        params = {
+            'limit': self.limit,
+            'offset': self.offset,
+            'includes[]': includes,
+            'contentRating[]': content_ratings,
+            'translatedLanguage[]': [self.language],
+        }
+
+        r = Net.mangadex.get(url, params=params)
+        data = r.json()
+
+        items = data['data']
+
+        for item in items:
+            self.queue.put(item)
+
+        self.offset += len(items)
+
 class IteratorManga(BaseIterator):
     def __init__(self, title, unsafe=False):
         super().__init__()
