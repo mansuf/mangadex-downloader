@@ -2,6 +2,7 @@ import logging
 import re
 import sys
 
+from ..config import config
 from ..utils import getpass_handle, input_handle
 from ..main import login, logout
 from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
@@ -45,6 +46,12 @@ def logout_with_err_handler(args):
             log.error("5 attempts logout failed, ignoring...")
 
 def login_with_err_handler(args):
+    if config.login_cache:
+        Net.requests.login_from_cache()
+
+        if Net.requests.check_login():
+            return
+
     if args.login:
         email = None
         username = None

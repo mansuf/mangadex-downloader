@@ -41,6 +41,9 @@ def _get_netloc(url):
 # so the session will be closed properly
 class requestsMangaDexSession(requests.Session):
     def __init__(self, trust_env=True) -> None:
+        # "Circular imports" problem
+        from .config import login_cache
+
         super().__init__()
         self.trust_env = trust_env
         self.user = None
@@ -55,6 +58,8 @@ class requestsMangaDexSession(requests.Session):
         self._session_token = None
         self._refresh_token = None
 
+        self._login_cache = login_cache
+
         # For login
         self._login_lock = Future()
 
@@ -67,6 +72,48 @@ class requestsMangaDexSession(requests.Session):
         # Run mainthread shutdown handler for queue worker
         t = threading.Thread(target=self._worker_queue_report_handler)
         t.start()
+
+    def login_from_cache(self):
+        if self.check_login():
+            raise AlreadyLoggedIn("User already logged in")
+        
+        session_token = self._login_cache.get_session_token()
+        refresh_token = self._login_cache.get_refresh_token()
+
+        if session_token and refresh_token is None:
+            # We assume this as invalid
+            # Because we can login to MangaDex with session token
+            # But, we cannot renew the session because refresh token is missing
+            return
+
+        elif session_token is None and refresh_token is None:
+            # No cached token
+            return
+
+        log.info("Logging in to MangaDex from cache")
+
+        if session_token is None and refresh_token:
+            log.debug("Session token in cache is expired, renewing...")
+
+            # Session token is expired and refresh token is exist
+            # Renew login with refresh token
+            self._refresh_token = refresh_token
+            self.refresh_login()
+
+            # Start "auto-renew session token" process
+            self._start_timer_thread()
+        else:
+            # Session and refresh token are still valid in cache
+            # Login with this
+            self._update_token(
+                {"token": {
+                    "refresh": refresh_token,
+                    "session": session_token
+                }}
+            )
+            self._start_timer_thread()
+        
+        log.info("Logged in to MangaDex")
 
     # Ratelimit handler
     def request(self, *args, **kwargs):
@@ -158,6 +205,18 @@ class requestsMangaDexSession(requests.Session):
         self._session_token = session_token
         self.headers['Authorization'] = 'Bearer %s' % session_token
 
+        self._login_cache.set_refresh_token(refresh_token)
+        self._login_cache.set_session_token(session_token)
+
+    def _is_token_cached(self):
+        if self._login_cache.get_session_token():
+            return True
+
+        if self._login_cache.get_refresh_token():
+            return True
+        
+        return False
+
     def _reset_token(self):
         self._refresh_token = None
         self._session_token = None
@@ -169,8 +228,13 @@ class requestsMangaDexSession(requests.Session):
     def _wait_login_lock(self):
         """Wait until time is running out and then re-login with refresh token or logout() is called"""
         while True:
+            exp_time = (
+                self._login_cache.get_expiration_time(self._session_token) -
+                self._login_cache._get_datetime_now()
+            ).total_seconds()
+            delay = exp_time - self._login_cache.delay_login_time
             try:
-                logout = self._login_lock.result(EXP_LOGIN_SESSION)
+                logout = self._login_lock.result(delay)
             except TimeoutError:
                 logout = False
 
@@ -250,19 +314,26 @@ class requestsMangaDexSession(requests.Session):
         result = r.json()
         self._update_token(result)
 
+        self._start_timer_thread()
+
         r = Net.requests.get(f'{base_url}/user/me')
         self.user = User(data=r.json()['data'])
 
+        log.info("Logged in to MangaDex")
+
+    def _start_timer_thread(self):
         t = threading.Thread(target=self._wait_login_lock, daemon=True)
         t.start()
-
-        log.info("Logged in to MangaDex")
 
     def logout(self):
         """Logout from MangaDex"""
         if not self.check_login():
             raise NotLoggedIn("User are not logged in")
-        
+
+        if self._is_token_cached():
+            # To prevent error "Missing session" when renewing session token
+            return
+
         log.info("Logging out from MangaDex")
 
         self.post("{0}/auth/logout".format(base_url))
