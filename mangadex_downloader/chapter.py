@@ -284,6 +284,7 @@ class IteratorChapter:
     def __init__(
         self,
         volumes,
+        manga,
         start_chapter=None,
         end_chapter=None,
         start_page=None,
@@ -309,6 +310,7 @@ class IteratorChapter:
             raise ValueError("_range and (start_* or end_* or no_oneshot) cannot be together")
 
         self.volumes = volumes
+        self.manga = manga
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
         self.end_chapter = end_chapter
@@ -497,13 +499,11 @@ class IteratorChapter:
                     chaps.extend(chapter.others_id)
                 chap_ids.extend(chaps)
 
-        # FIXME: Use better way to iterate chapters
-        limit = 100
+        limit = 500
         chapters_data = []
         while chap_ids:
-            ids = chap_ids[:limit]
             del chap_ids[:limit]
-            data = get_bulk_chapters(ids)['data']
+            data = get_bulk_chapters(self.manga.id)['data']
             chapters_data.extend(data)
             
         for volume, chapters in self.volumes.items():
@@ -532,7 +532,7 @@ class MangaChapter:
             self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
 
     def iter(self, *args, **kwargs):
-        return IteratorChapter(self._volumes, *args, **kwargs)
+        return IteratorChapter(self._volumes, self.manga, *args, **kwargs)
 
     def _parse_volumes_from_chapter(self, chapter):
         if not isinstance(chapter, Chapter):
