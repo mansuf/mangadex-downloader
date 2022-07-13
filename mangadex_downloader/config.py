@@ -371,6 +371,7 @@ class AuthCacheManager:
     def _load(self):
         if not config_enabled or not config.login_cache:
             self._data = self.default.copy()
+            return
 
         success = False
         err = None
