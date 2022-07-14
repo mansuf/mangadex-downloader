@@ -177,7 +177,7 @@ def build_URL_from_type(_type, _id):
 
 def smart_select_url(url):
     """Wisely determine type url. The process is checking given url one by one"""
-    log.info("Checking url...")
+    log.info(f"Checking url = {url}")
     found = False
     func = None
     _id = None
@@ -236,6 +236,6 @@ def smart_select_url(url):
         # None of them is found in MangaDex
         # raise error
         if func is None:
-            raise InvalidURL("Invalid MangaDex url")
+            raise InvalidURL(f"'{url}' is not valid MangaDex URL")
     
     return URL(func, _id)
