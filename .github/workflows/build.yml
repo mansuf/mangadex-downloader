@@ -15,7 +15,9 @@ jobs:
         python-version: [ '3.8', '3.9', '3.10' ]
 
     steps:
+      # Make sure cancels CI only apply when release
       - name: Cancel previous runs
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
