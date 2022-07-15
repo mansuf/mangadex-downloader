@@ -316,7 +316,7 @@ class requestsMangaDexSession(requests.Session):
 
         self._start_timer_thread()
 
-        r = Net.requests.get(f'{base_url}/user/me')
+        r = self.get(f'{base_url}/user/me')
         self.user = User(data=r.json()['data'])
 
         log.info("Logged in to MangaDex")
