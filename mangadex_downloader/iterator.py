@@ -97,10 +97,10 @@ class IteratorManga(BaseIterator):
         content_ratings = [
             'safe',
             'suggestive',
-            'erotica',
         ]
 
         if self.unsafe:
+            content_ratings.append('erotica')
             content_ratings.append('pornographic')
 
         params = {
@@ -172,7 +172,10 @@ class IteratorUserLibraryManga(BaseIterator):
         while True:
             manga = self.queue.get_nowait()
 
-            if not self.unsafe and manga.content_rating == ContentRating.Pornographic:
+            if not self.unsafe and (
+                manga.content_rating == ContentRating.Pornographic or
+                manga.content_rating == ContentRating.Erotica
+            ):
                 # YOU SHALL NOT PASS
                 continue
 
@@ -242,7 +245,10 @@ class IteratorMangaFromList(BaseIterator):
         while True:
             manga = self.queue.get_nowait()
             
-            if not self.unsafe and manga.content_rating == ContentRating.Pornographic:
+            if not self.unsafe and (
+                manga.content_rating == ContentRating.Pornographic or
+                manga.content_rating == ContentRating.Erotica
+            ):
                 # No unsafe ?
                 # No way
                 continue

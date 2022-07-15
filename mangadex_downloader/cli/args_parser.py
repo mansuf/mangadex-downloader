@@ -272,7 +272,7 @@ def get_args(argv):
     parser.add_argument(
         '--unsafe',
         '-u',
-        help='If set, it will allow you to search and download porn manga', 
+        help='If set, it will allow you to search and download porn and erotica manga', 
         action='store_true',
         default=config.unsafe
     )

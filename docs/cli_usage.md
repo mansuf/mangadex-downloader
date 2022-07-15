@@ -49,7 +49,11 @@ mangadex-dl "34"
 ```
 ````
 
-By default, mangadex-downloader will auto detect MangaDex url type. If it's valid manga url it will download manga, if it's valid chapter url it will download chapter, etc. However, if you want to skip checking url type or having a weird issue (ex: the provided url are manga type, but when downloaded it become chapter or list), you can use `--type` option with valid url type. 
+By default, mangadex-downloader will auto detect MangaDex url type. 
+If it's valid manga url it will download manga, if it's valid chapter url it will download chapter, etc. 
+However, if you want to skip checking url type or having a weird issue 
+(ex: the provided url are manga type, but when downloaded it become chapter or list), 
+you can use `--type` option with valid url type. 
 
 For example:
 
@@ -89,7 +93,8 @@ Example usage:
 mangadex-dl "insert a file here"
 ```
 
-To avoid conflict filenames with reserved names (such as: `list`, `library`, `followed-list`) in `URL` argument, you can use syntax `file:<path_to_file>`.
+To avoid conflict filenames with reserved names (such as: `list`, `library`, `followed-list`) in `URL` argument, 
+you can use syntax `file:<path_to_file>`.
 
 For example:
 
@@ -147,7 +152,8 @@ mangadex-dl "library:help"
 ```
 
 ```{note}
-By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content learn more here -> {doc}`notes/pornographic`
+By default, mangadex-downloader is not showing any of porn manga results. 
+You have to enable "unsafe" feature in order to access porn and erotica content learn more here -> {doc}`notes/pornographic`
 ```
 
 ## Download MangaDex list from logged in user library
@@ -192,9 +198,11 @@ mangadex-dl "followed-list" --login
 
 ## Download manga, chapter or list in different format
 
-mangadex-downloader support download manga as different format. For more info about supported formats, you can see it here -> {doc}`formats`
+mangadex-downloader support download manga as different format. 
+For more info about supported formats, you can see it here -> {doc}`formats`
 
-By default, mangadex-downloader will download in `raw` format. Which just a bunch of images stored in each chapter folder. You can use different format by using `--save-as` option.
+By default, mangadex-downloader will download in `raw` format. 
+Which just a bunch of images stored in each chapter folder. You can use different format by using `--save-as` option.
 
 ```shell
 # Save as .pdf
@@ -235,7 +243,8 @@ mangadex-dl "komi san" --search
 ```
 
 ```{note}
-By default, mangadex-downloader is not showing any of porn manga results. You have to enable "unsafe" feature in order to access porn content learn more here -> {doc}`notes/pornographic`
+By default, mangadex-downloader is not showing any of porn manga results. 
+You have to enable "unsafe" feature in order to access porn and erotica content learn more here -> {doc}`notes/pornographic`
 ```
 
 ## Pipe input
@@ -293,7 +302,8 @@ Also, you can add chapter title for each folder.
 mangadex-dl "https://mangadex.org/title/..." --use-chapter-title
 ```
 
-By default, mangadex-downloader will add scanlator group name for each chapter folder. If you don't want this, use `--no-group-name` option
+By default, mangadex-downloader will add scanlator group name for each chapter folder. 
+If you don't want this, use `--no-group-name` option
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --no-group-name
@@ -342,7 +352,10 @@ mangadex-dl "https://mangadex.org/title/..." --no-oneshot-chapter
 
 ## Scanlator group filtering
 
-By default, mangadex-downloader will download chapters provided by MangaDex API (https://api.mangadex.org/manga/{manga_id}/aggregate). To prevent conflict, only chapters selected by MangaDex API are downloaded, other same chapters but different groups are not downloaded.
+By default, 
+mangadex-downloader will download chapters provided by MangaDex API (https://api.mangadex.org/manga/{manga_id}/aggregate). 
+To prevent conflict, only chapters selected by MangaDex API are downloaded, 
+other same chapters but different groups are not downloaded.
 
 How it works:
 
@@ -446,7 +459,8 @@ mangadex-dl "https://mangadex.org/list/..." --login
 # ...
 ```
 
-You can specify (username or email) and password without be prompted (less secure) ! using `--login-username` and `--login-password`
+You can specify (username or email) and password without be prompted (less secure) ! 
+using `--login-username` and `--login-password`
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --login --login-username "..." --login-password "..."
@@ -481,16 +495,6 @@ mangadex-dl "insert mangadex url here" --proxy-env
 
 ```{warning}
 If you specify ``--proxy`` with ``--proxy-env``, ``--proxy`` option will be ignored
-```
-
-## Old sorting images technique
-
-If you have problems like [this](https://github.com/mansuf/mangadex-downloader/issues/10), you might want to enable optional feature called "legacy sorting". This will rename chapter images to numbers with leading zeros.
-
-Example usage:
-
-```shell
-mangadex-dl "https://mangadex.org/title/..." --enable-legacy-sorting
 ```
 
 ## Update mangadex-downloader
