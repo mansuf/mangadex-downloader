@@ -46,7 +46,7 @@ def logout_with_err_handler(args):
             log.error("5 attempts logout failed, ignoring...")
 
 def login_with_err_handler(args):
-    if config.login_cache:
+    if not args.login and config.login_cache:
         Net.mangadex.login_from_cache()
 
         if Net.mangadex.check_login():
