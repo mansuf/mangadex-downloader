@@ -134,6 +134,9 @@ class NumberWithLeadingZeros:
 def delete_file(file):
     # If 5 attempts is failed to delete file (ex: PermissionError, or etc.)
     # raise error
+    if not os.path.exists(file):
+        return
+
     err = None
     for attempt in range(5):
         try:
