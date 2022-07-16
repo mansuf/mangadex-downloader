@@ -7,7 +7,7 @@ import logging
 import tempfile
 import zipfile
 from packaging.version import parse as parse_version
-from importlib import import_module
+from importlib.util import find_spec
 from pathlib import Path
 
 from .network import Net
@@ -19,12 +19,7 @@ current_version = parse_version(__version__)
 log = logging.getLogger(__name__)
 
 # A trick for checking if this in independent executable or not
-try:
-    import_module("pip")
-except ImportError:
-    executable = True
-else:
-    executable = False
+executable = bool(find_spec('pip'))
 
 is_64bits = sys.maxsize > 2**32
 
