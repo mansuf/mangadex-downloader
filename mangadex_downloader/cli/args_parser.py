@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 from .url import valid_types
-from .utils import setup_logging, sys_argv, print_version_info
+from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
 from .config import build_config_from_url_arg
 from ..cover import valid_cover_types, default_cover_type
 from ..iterator import IteratorUserLibraryManga
@@ -46,11 +46,25 @@ def validate_language(lang):
     except Exception as e:
         raise argparse.ArgumentTypeError(str(e))
 
-def list_languages():
-    text = ""
-    for lang in Language:
-        text += "%s = %s; " % (lang.name, lang.value)
-    return text
+class ListLanguagesAction(argparse.Action):
+    def __call__(self, *args, **kwargs):
+        text = "List of available languages"
+        print(text)
+        print(dynamic_bars(len(text)))
+        
+        for lang in Language:
+            if lang == Language.Other:
+                # Need special treatment
+                continue
+            
+            print(f"{lang.name} / {lang.value}")
+        
+        # Value of Language.Other is None
+        # And we don't want that to showed up in screen
+        print(f"{Language.Other.name}")
+        
+        sys.exit(0)
+
 
 class UpdateAppAction(argparse.Action):
     def __call__(self, *args, **kwargs):
@@ -310,9 +324,9 @@ def get_args(argv):
     lang_group.add_argument(
         '--list-languages',
         '-ll',
-        action='version',
+        action=ListLanguagesAction,
         help='List all available languages',
-        version=list_languages()
+        nargs=0
     )
 
     # Chapter related
