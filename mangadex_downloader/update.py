@@ -92,7 +92,7 @@ def update_app():
             log.info("Downloading update v%s" % latest_version)
             # Download update
             try:
-                download(url_update, update_file_path)
+                download(url_update, update_file_path, use_requests=True)
             except Exception as e:
                 log.error("Failed to download update, reason: %s" % e)
                 sys.exit(1)

@@ -47,13 +47,14 @@ def validate_group_url(url):
     else:
         return "all"
 
-def download(url, file, progress_bar=True, replace=False, **headers):
+def download(url, file, progress_bar=True, replace=False, use_requests=False, **headers):
     """Shortcut for :class:`FileDownloader`"""
     downloader = FileDownloader(
         url,
         file,
         progress_bar,
         replace,
+        use_requests,
         **headers
     )
     downloader.download()

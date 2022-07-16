@@ -24,13 +24,21 @@ class BaseDownloader:
         raise NotImplementedError
 
 class FileDownloader(BaseDownloader):
-    def __init__(self, url, file, progress_bar=True, replace=False, **headers) -> None:
+    def __init__(self, url, file, progress_bar=True, replace=False, use_requests=False, **headers) -> None:
         self.url = url
         self.file = str(file) + '.temp'
         self.real_file = file
         self.progress_bar = progress_bar
         self.replace = replace
         self.headers_request = headers
+
+        # If somehow this is used to sending HTTP requests from another websites (not mangadex)
+        # then use requests.Session instead
+        if use_requests:
+            self.session = Net.requests
+        else:
+            self.session = Net.mangadex
+
         if headers.get('Range') is not None and self._get_file_size(self.file):
             raise ValueError('"Range" header is not supported while in resume state')
 
@@ -89,7 +97,7 @@ class FileDownloader(BaseDownloader):
         headers = self._parse_headers(initial_file_sizes)
 
         # Initiate request
-        resp = Net.mangadex.get(self.url, headers=headers, stream=True)
+        resp = self.session.get(self.url, headers=headers, stream=True)
 
         # Grab the file sizes
         file_sizes = float(resp.headers.get('Content-Length'))
