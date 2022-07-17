@@ -89,10 +89,6 @@ class _Config:
             default_cover_type,
             _validate_cover
         ],
-        "unsafe": [
-            False, # unsafe always False
-            _validate_bool
-        ],
         "save_as": [
             fmt.default_save_as_format,
             _validate_format
