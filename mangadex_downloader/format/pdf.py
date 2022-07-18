@@ -55,7 +55,7 @@ class PDFPlugin:
     def _save_all(self, im, fp, filename):
         self._save(im, fp, filename, save_all=True)
 
-    # This was modified version of Pillow/PdfImagePlugin.py version 9.2.0
+    # This was modified version of Pillow/PdfImagePlugin.py version 9.0.1
     # The images will be automatically converted to RGB and closed when done converting to PDF
     def _save(self, im, fp, filename, save_all=False):
         is_appending = im.encoderinfo.get("append", False)
@@ -249,13 +249,6 @@ class PDFPlugin:
             if not isinstance(orig_img, _ChapterMarkImage):
                 orig_img.close()
             imSequence.close()
-
-        #
-        # trailer
-        existing_pdf.write_xref_and_trailer()
-        if hasattr(fp, "flush"):
-            fp.flush()
-        existing_pdf.close()
 
         #
         # trailer
