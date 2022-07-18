@@ -100,21 +100,21 @@ class PDFPlugin:
                 append_im.encoderinfo = im.encoderinfo.copy()
                 ims.append(append_im)
 
-        number_of_pages = 0
+        numberOfPages = 0
         image_refs = []
         page_refs = []
         contents_refs = []
         for im in ims:
-            im_number_of_pages = 1
+            im_numberOfPages = 1
             if save_all and not isinstance(im, _ChapterMarkImage):
                 try:
-                    im_number_of_pages = im.n_frames
+                    im_numberOfPages = im.n_frames
                 except AttributeError:
                     # Image format does not have n_frames.
                     # It is a single frame image
                     pass
-            number_of_pages += im_number_of_pages
-            for i in range(im_number_of_pages):
+            numberOfPages += im_numberOfPages
+            for i in range(im_numberOfPages):
                 image_refs.append(existing_pdf.next_object_id(0))
                 page_refs.append(existing_pdf.next_object_id(0))
                 contents_refs.append(existing_pdf.next_object_id(0))
@@ -124,20 +124,20 @@ class PDFPlugin:
         # catalog and list of pages
         existing_pdf.write_catalog()
 
-        page_number = 0
+        pageNumber = 0
         for orig_img in ims:
             # This is mark chapter image
             # Retrieve it first and then convert
             if isinstance(orig_img, _ChapterMarkImage):
                 mark_img = orig_img.func(*orig_img.args)
-                im_sequence = mark_img.convert("RGB")
-                im_sequence.encoderinfo = orig_img.encoderinfo.copy()
+                imSequence = mark_img.convert("RGB")
+                imSequence.encoderinfo = orig_img.encoderinfo.copy()
             else:
                 # Convert image to RGB
-                im_sequence = orig_img.convert('RGB')
-                im_sequence.encoderinfo = orig_img.encoderinfo.copy()
+                imSequence = orig_img.convert('RGB')
+                imSequence.encoderinfo = orig_img.encoderinfo.copy()
 
-            im_pages = ImageSequence.Iterator(im_sequence) if save_all else [im_sequence]
+            im_pages = ImageSequence.Iterator(imSequence) if save_all else [imSequence]
             for im in im_pages:
                 # FIXME: Should replace ASCIIHexDecode with RunLengthDecode
                 # (packbits) or LZWDecode (tiff/lzw compression).  Note that
@@ -151,6 +151,7 @@ class PDFPlugin:
                     filter = "DCTDecode"
                     colorspace = PdfParser.PdfName("DeviceGray")
                     procset = "ImageB"  # grayscale
+                    bits = 1
                 elif im.mode == "L":
                     filter = "DCTDecode"
                     # params = f"<< /Predictor 15 /Columns {width-2} >>"
@@ -200,7 +201,7 @@ class PDFPlugin:
                 width, height = im.size
 
                 existing_pdf.write_obj(
-                    image_refs[page_number],
+                    image_refs[pageNumber],
                     stream=op.getvalue(),
                     Type=PdfParser.PdfName("XObject"),
                     Subtype=PdfParser.PdfName("Image"),
@@ -217,10 +218,10 @@ class PDFPlugin:
                 # page
 
                 existing_pdf.write_page(
-                    page_refs[page_number],
+                    page_refs[pageNumber],
                     Resources=PdfParser.PdfDict(
                         ProcSet=[PdfParser.PdfName("PDF"), PdfParser.PdfName(procset)],
-                        XObject=PdfParser.PdfDict(image=image_refs[page_number]),
+                        XObject=PdfParser.PdfDict(image=image_refs[pageNumber]),
                     ),
                     MediaBox=[
                         0,
@@ -228,7 +229,7 @@ class PDFPlugin:
                         width * 72.0 / resolution,
                         height * 72.0 / resolution,
                     ],
-                    Contents=contents_refs[page_number],
+                    Contents=contents_refs[pageNumber],
                 )
 
                 #
@@ -239,15 +240,22 @@ class PDFPlugin:
                     height * 72.0 / resolution,
                 )
 
-                existing_pdf.write_obj(contents_refs[page_number], stream=page_contents)
+                existing_pdf.write_obj(contents_refs[pageNumber], stream=page_contents)
 
                 self.tqdm.update(1)
-                page_number += 1
+                pageNumber += 1
             
             # Close image to save memory
             if not isinstance(orig_img, _ChapterMarkImage):
                 orig_img.close()
-            im_sequence.close()
+            imSequence.close()
+
+        #
+        # trailer
+        existing_pdf.write_xref_and_trailer()
+        if hasattr(fp, "flush"):
+            fp.flush()
+        existing_pdf.close()
 
         #
         # trailer
