@@ -19,7 +19,7 @@ current_version = parse_version(__version__)
 log = logging.getLogger(__name__)
 
 # A trick for checking if this in independent executable or not
-executable = bool(find_spec('pip'))
+executable = hasattr(sys, 'frozen')
 
 is_64bits = sys.maxsize > 2**32
 
