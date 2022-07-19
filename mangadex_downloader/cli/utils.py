@@ -6,7 +6,7 @@ from .. import __version__, __repository__
 from ..update import architecture, executable
 from ..network import Net
 from ..downloader import _cleanup_jobs
-from ..errors import NotLoggedIn
+from ..errors import MangaDexException, NotLoggedIn
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def setup_logging(name_module, verbose=False):
 
 def setup_proxy(proxy=None, from_env=False):
     if proxy and from_env:
-        log.warning('--proxy and --proxy-env options are present, --proxy option will be ignored')
+        raise MangaDexException("--proxy and --proxy-env cannot be together")
 
     if from_env:
         log.debug("Using proxy from environments")
