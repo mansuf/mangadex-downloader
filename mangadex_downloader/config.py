@@ -57,7 +57,14 @@ def _validate_format(val):
 
 _env_dir = os.environ.get('MANGADEXDL_CONFIG_DIR')
 home_path = Path(_env_dir) if _env_dir is not None else Path.home()
-config_enabled = _validate_bool(os.environ.get('MANGADEXDL_CONFIG_ENABLED'))
+
+_env_conf_enabled = os.environ.get('MANGADEXDL_CONFIG_ENABLED')
+try:
+    config_enabled = _validate_bool(_env_conf_enabled)
+except ConfigTypeError:
+    raise MangaDexException(
+        f"Failed to load env MANGADEXDL_CONFIG_ENABLED, value '{_env_conf_enabled}' is not valid boolean value"
+    )
 
 # .mangadex-dl dir in home directory
 base_path = home_path / '.mangadex-dl'
