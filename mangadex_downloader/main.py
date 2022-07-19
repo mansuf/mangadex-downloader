@@ -460,16 +460,18 @@ def download(
         for translated_lang in manga.translated_languages:
             log.info(f"Downloading {manga.title} in {translated_lang.name} language")
 
-            fetched_manga = _fetch_manga(manga.id, translated_lang.value)
+            # Copy title and description manga
+            new_manga = Manga(data=manga._data)
+            new_manga._title = manga.title
+            new_manga._description = manga.description
+
+            # Fetch all chapters
+            new_manga._chapters = MangaChapter(new_manga, translated_lang.value, all_chapters=True)
 
             new_path = base_path / translated_lang.name
             new_path.mkdir(exist_ok=True)
 
-            # Copy description and manga
-            fetched_manga._title = manga.title
-            fetched_manga._description = manga.description
-
-            download_manga(fetched_manga, new_path)
+            download_manga(new_manga, new_path)
 
             log.info(f"Download finished for manga {manga.title} in {translated_lang.name} language")
         
