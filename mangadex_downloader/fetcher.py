@@ -114,8 +114,8 @@ def get_chapter_images(chapter_id):
     r = Net.mangadex.get(url)
     return r.json()
 
-def get_bulk_chapters(manga_id):
-    url = f'{base_url}/manga/{manga_id}/feed'
+def get_bulk_chapters(chap_ids):
+    url = '{0}/chapter'.format(base_url)
     includes = ['scanlation_group', 'user']
     # Validation content rating is on main.py
     content_ratings = [
@@ -125,7 +125,8 @@ def get_bulk_chapters(manga_id):
         'pornographic'
     ]
     params = {
-        'limit': 500,
+        'ids[]': chap_ids,
+        'limit': 100,
         'includes[]': includes,
         'contentRating[]': content_ratings
     }

@@ -284,7 +284,6 @@ class IteratorChapter:
     def __init__(
         self,
         volumes,
-        manga,
         lang,
         start_chapter=None,
         end_chapter=None,
@@ -311,8 +310,6 @@ class IteratorChapter:
             raise ValueError("_range and (start_* or end_* or no_oneshot) cannot be together")
 
         self.volumes = volumes
-        self.manga = manga
-        self.language = lang
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
         self.end_chapter = end_chapter
@@ -325,6 +322,7 @@ class IteratorChapter:
         self.group = None
         self.all_group = False
         self.legacy_range = legacy_range
+        self.lang = lang # type: Language
         
         if _range is not None:
             self.range = range_mod.compile(_range)
@@ -425,6 +423,9 @@ class IteratorChapter:
             ))
             return False
 
+        if self.lang == Language.Other and chap.language != Language.Other:
+            return False
+
         if not self._check_range_chapter(chap):
             return False
 
@@ -493,20 +494,31 @@ class IteratorChapter:
                 )
 
     def _fill_data(self):
-        def get_bulk_chapters(manga_id, lang):
-            # To prevent "Circular imports" error
-            from .iterator import IteratorBulkChapters
+        chap_ids = []
+        for volume, chapters in self.volumes.items():
+            for chapter in chapters:
+                chaps = [chapter.id]
+                if chapter.others_id and (
+                    self.all_group or 
+                    self.group or
+                    self.lang == Language.Other
+                ):
+                    chaps.extend(chapter.others_id)
+                chap_ids.extend(chaps)
 
-            return IteratorBulkChapters(manga_id, lang)
-
+        # FIXME: Use better way to iterate chapters
+        limit = 100
         chapters_data = []
-        for data in get_bulk_chapters(self.manga.id, self.language.value):
-            chapters_data.append(data)
-            
+        while chap_ids:
+            ids = chap_ids[:limit]
+            del chap_ids[:limit]
+            data = get_bulk_chapters(ids)['data']
+            chapters_data.extend(data)
+        
         for volume, chapters in self.volumes.items():
             for chapter in chapters:
                 chap_others = [chapter.id]
-                if chapter.others_id and (self.all_group or self.group):
+                if chapter.others_id and (self.all_group or self.group or self.lang == Language.Other):
                     chap_others.extend(chapter.others_id)
                 for ag_chap in chap_others:
                     chap = self._get_chapter(ag_chap, chapters_data)
@@ -529,13 +541,7 @@ class MangaChapter:
             self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
 
     def iter(self, *args, **kwargs):
-        return IteratorChapter(
-            self._volumes,
-            self.manga,
-            self._lang,
-            *args,
-            **kwargs
-        )
+        return IteratorChapter(self._volumes, self._lang, *args, **kwargs)
 
     def _parse_volumes_from_chapter(self, chapter):
         if not isinstance(chapter, Chapter):
