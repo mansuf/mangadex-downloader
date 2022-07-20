@@ -12,6 +12,7 @@ from .fetcher import (
     get_chapter,
     get_all_chapters
 )
+from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, MangaDexException, UserNotFound
 from .group import Group
 from . import range as range_mod # range_mod stands for "range module"
@@ -284,6 +285,7 @@ class IteratorChapter:
     def __init__(
         self,
         volumes,
+        manga,
         lang,
         start_chapter=None,
         end_chapter=None,
@@ -310,6 +312,8 @@ class IteratorChapter:
             raise ValueError("_range and (start_* or end_* or no_oneshot) cannot be together")
 
         self.volumes = volumes
+        self.manga = manga
+        self.language = lang
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
         self.end_chapter = end_chapter
@@ -322,7 +326,6 @@ class IteratorChapter:
         self.group = None
         self.all_group = False
         self.legacy_range = legacy_range
-        self.lang = lang # type: Language
         
         if _range is not None:
             self.range = range_mod.compile(_range)
@@ -423,7 +426,7 @@ class IteratorChapter:
             ))
             return False
 
-        if self.lang == Language.Other and chap.language != Language.Other:
+        if self.language == Language.Other and chap.language != Language.Other:
             return False
 
         if not self._check_range_chapter(chap):
@@ -494,35 +497,90 @@ class IteratorChapter:
                 )
 
     def _fill_data(self):
-        chap_ids = []
-        for volume, chapters in self.volumes.items():
+        def iter_chapters(manga_id, lang):
+            includes = [
+                'scanlation_group',
+                'user'
+            ]
+            content_ratings = [
+                'safe',
+                'suggestive',
+                'erotica',
+                'pornographic'
+            ]
+            offset = 0
+            limit = 500
+            
+            while True:
+                params = {
+                    'includes[]': includes,
+                    'contentRating[]': content_ratings,
+                    'limit': limit,
+                    'offset': offset,
+                    'order[volume]': 'desc',
+                    'order[chapter]': 'desc',
+                    'translatedLanguage[]': [lang]
+                }
+                r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
+                d = r.json()
+
+                items = d['data']
+
+                if not items:
+                    break
+
+                for item in items:
+                    yield item
+                
+                offset += len(items)
+
+        chapters_data = {}
+        for data in iter_chapters(self.manga.id, self.language.value):
+            chapters_data[data['id']] = data
+        
+        chap_others = []
+        for _, chapters in self.volumes.items():
             for chapter in chapters:
-                chaps = [chapter.id]
+                chap_others.append(chapter.id)
+
                 if chapter.others_id and (
                     self.all_group or 
                     self.group or
-                    self.lang == Language.Other
+                    self.language == Language.Other
                 ):
-                    chaps.extend(chapter.others_id)
-                chap_ids.extend(chaps)
-
-        # FIXME: Use better way to iterate chapters
-        limit = 100
-        chapters_data = []
-        while chap_ids:
-            ids = chap_ids[:limit]
-            del chap_ids[:limit]
-            data = get_bulk_chapters(ids)['data']
-            chapters_data.extend(data)
-        
-        for volume, chapters in self.volumes.items():
-            for chapter in chapters:
-                chap_others = [chapter.id]
-                if chapter.others_id and (self.all_group or self.group or self.lang == Language.Other):
                     chap_others.extend(chapter.others_id)
-                for ag_chap in chap_others:
-                    chap = self._get_chapter(ag_chap, chapters_data)
-                    self.queue.put(chap)
+
+        # Sometimes chapters returned from /manga/{id}/feed are less than
+        # /manga/{id}/aggregate
+        missing_chapters = []
+        for ag_chap in chap_others:
+            try:
+                chapters_data[ag_chap]
+            except KeyError:
+                missing_chapters.append(ag_chap)
+
+        # Get the missing chapters
+        limit = 100
+        while missing_chapters:
+            ids = missing_chapters[:limit]
+            del missing_chapters[:limit]
+            items = get_bulk_chapters(ids)['data']
+
+            for item in items:
+                chapters_data[item['id']] = item
+
+        # Begin parsing
+        for ag_chap in chap_others:
+            data = chapters_data[ag_chap]
+
+            chap = Chapter(
+                data=data,
+                use_group_name=not self.no_group_name,
+                use_chapter_title=self.use_chapter_title
+            )
+
+            self.queue.put(chap)
+        
 
 class MangaChapter:
     def __init__(self, manga, lang, chapter=None, all_chapters=False):
@@ -541,7 +599,13 @@ class MangaChapter:
             self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
 
     def iter(self, *args, **kwargs):
-        return IteratorChapter(self._volumes, self._lang, *args, **kwargs)
+        return IteratorChapter(
+            self._volumes,
+            self.manga,
+            self._lang,
+            *args,
+            **kwargs
+        )
 
     def _parse_volumes_from_chapter(self, chapter):
         if not isinstance(chapter, Chapter):
