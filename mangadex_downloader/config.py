@@ -55,7 +55,7 @@ def _validate_format(val):
     fmt.get_format(val)
     return val
 
-_env_dir = os.environ.get('MANGADEXDL_CONFIG_DIR')
+_env_dir = os.environ.get('MANGADEXDL_CONFIG_PATH')
 home_path = Path(_env_dir) if _env_dir is not None else Path.home()
 
 _env_conf_enabled = os.environ.get('MANGADEXDL_CONFIG_ENABLED')
