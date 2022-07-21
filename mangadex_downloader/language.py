@@ -48,7 +48,11 @@ class Language(Enum):
     Hindi = 'hi' #:
     Norwegian = 'no' #:
     Nepali = 'ne' #:
-    Other = None
+    Kazakh = 'kk' #:
+    Tamil = 'ta' #:
+
+    # Other language
+    Other = None #:
 
     # While all languages above is valid languages,
     # this one is not actually a language
