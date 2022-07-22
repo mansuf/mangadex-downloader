@@ -95,6 +95,11 @@ def build_config(parser, args):
             "in order to enable login caching"
         )
 
+    # Automatically set config.login_cache to True 
+    # if args.login_cache is True and config.login_cache is False
+    if not config.login_cache and args.login_cache:
+        config.login_cache = args.login_cache
+
     # Print all config to debug
     log.debug(f"Loaded config from path '{_conf.path}' = {_conf._data}")
 
