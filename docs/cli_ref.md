@@ -116,6 +116,16 @@ Start download chapter page from given page number
 Stop download chapter page from given page number
 ```
 
+### Chapter and page range
+
+````{option} --range -rg
+```{warning}
+This option can only be used for downloading manga. Downloading a list or chapter while using this option will throw an error.
+```
+
+A range pattern to download specific chapters
+````
+
 ### Images related
 
 ```{option} --use-compressed-image -uci
@@ -144,6 +154,17 @@ Login to MangaDex with username or email (you will be prompted to input password
 You must provide `--login` or `-l` option to login. If you don't, you will not logged in to MangaDex
 ```
 Login to MangaDex with password (you will be prompted to input username if --login-username are not present). 
+````
+
+````{option} --login-cache -lc
+```{note}
+Using this option can cause an attacker in your computer may grab 
+your authentication cache and using it for malicious actions. USE IT WITH CAUTION !!!
+```
+
+Cache authentication token. You don't have to re-login with this option. 
+You must set `MANGADEXDL_CONFIG_ENABLED=1` in your environment variables before doing this, 
+otherwise the app will throwing error.
 ````
 
 ### Save as format

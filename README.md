@@ -26,7 +26,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 ## Key Features <a id="key-features"></a>
 
 - Download manga, chapter, or list directly from MangaDex
-- Download from user library
+- Download manga or list from user library
 - Batch download support
 - Old MangaDex url support
 - Scanlation groups filter support
@@ -47,7 +47,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 What will you need:
 
-- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable [here](https://github.com/mansuf/mangadex-downloader/releases))
+- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#how-to-bundled-executable))
 
 That's it.
 
@@ -57,7 +57,7 @@ Installing mangadex-downloader is easy, as long as you have requirements above.
 
 ```shell
 # For Windows
-py -3 -m install mangadex-downloader
+py -3 -m pip install mangadex-downloader
 
 # For Linux / Mac OS
 python3 -m pip install mangadex-downloader
@@ -65,7 +65,7 @@ python3 -m pip install mangadex-downloader
 
 You can also install optional dependencies
 
-- [Pillow](https://pypi.org/project/pillow/), for PDF support
+- [Pillow](https://pypi.org/project/pillow/) for PDF support and any `single` or `volume` formats
 - [py7zr](https://pypi.org/project/py7zr/) for cb7 support
 
 Or you can install all optional dependencies
@@ -90,7 +90,7 @@ Steps:
 
 - Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
 - Extract it.
-- And, run it !.
+- [See this instructions to run mangadex-downloader](#command-line-interface-bundled-executable-version)
 
 ### How to (Development version) <a id="how-to-development-version"></a>
 
@@ -152,9 +152,10 @@ For more information, you can [read here](https://mangadex-dl.mansuf.link/en/sta
 
 ## Notes <a id="notes"></a>
 
-### Pornographic content <a id="pornographic-content"></a>
+### Pornographic and erotica content <a id="pornographic-and-erotica-content"></a>
 
-You may get error `You are not allowed to see ..` when downloading porn manga. This is because mangadex-downloader implement strict rule to porn mangas.
+You may get error `You are not allowed to see ..` when downloading porn and erotica manga. 
+This is because mangadex-downloader implement strict rule to porn mangas.
 
 For more info, you can [see it here](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
 
