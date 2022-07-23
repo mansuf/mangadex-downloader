@@ -2,7 +2,8 @@ import logging
 import re
 import sys
 
-from ..config import config
+from .utils import dynamic_bars
+from ..config import config, login_cache
 from ..utils import getpass_handle, input_handle
 from ..main import login, logout
 from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
@@ -13,6 +14,100 @@ from ..network import Net
 email_regex = r'.{1,}@.{1,}\..{1,}'
 
 log = logging.getLogger(__name__)
+
+def print_auth_cache_help():
+    text = "Available commands"
+    print(text)
+    print(dynamic_bars(text))
+    print()
+
+    print("purge = 'Purge cached authentication tokens'")
+    print("show = 'Show expiration time cached authentication tokens'")
+    print("show_unsafe = 'Show cached authentication tokens (NOT RECOMMENDED)'")
+
+def print_auth_cache_expire():
+    """Print expiration time auth tokens"""
+    session_token = login_cache.get_session_token()
+    if session_token:
+        exp_session_token = login_cache.get_expiration_time(session_token).isoformat()
+    else:
+        exp_session_token = "Token is not cached or expired"
+
+    print(f"Session token expiration time: {exp_session_token}")
+
+    refresh_token = login_cache.get_refresh_token()
+    if refresh_token:
+        exp_refresh_token = login_cache.get_expiration_time(refresh_token).isoformat()
+    else:
+        exp_refresh_token = "Token is not cached or expired"
+
+    print(f"Refresh token expiration time: {exp_refresh_token}")
+    exit(0)
+
+def print_auth_cache_unsafe():
+    """Print auth cache tokens"""
+    print(
+        "WARNING: You should not use 'login_cache:show_unsafe', " \
+        "because it exposing your auth tokens to terminal screen. " \
+        "Use this if you know what are you doing."
+    )
+
+    result = input("[Yes / Y, No / N]\n=> ")
+    result = result.lower()
+    if not (result.startswith('yes') or result.startswith('y')) or not result:
+        return
+
+    # Show the auth tokens anyway
+    header = f"MangaDex cached authentication tokens, stored in '{login_cache.path}'"
+    print(header)
+    print(dynamic_bars(header))
+    print()
+
+    session_token = login_cache.get_session_token()
+    if session_token:
+        exp_session_token = login_cache.get_expiration_time(session_token).isoformat()
+    else:
+        exp_session_token = "Token is not cached or expired"
+
+    print(f"Session token: {session_token}")
+    print(f"Session token expiration time: {exp_session_token}")
+
+    print()
+
+    refresh_token = login_cache.get_refresh_token()
+    if refresh_token:
+        exp_refresh_token = login_cache.get_expiration_time(refresh_token).isoformat()
+    else:
+        exp_refresh_token = "Token is not cached or expired"
+
+    print(f"Refresh token: {refresh_token}")
+    print(f"Refresh token expiration time: {exp_refresh_token}")
+
+def purge_cache(args):
+    string = args.URL
+
+    if not string.startswith('login_cache'):
+        return
+
+    # Initial value
+    lc = string.split(':')
+
+    value = "".join(lc[1:])
+
+    # Reset authentication cache
+    if value.startswith('purge'):
+        login_cache.purge()
+        print("Succesfully purged authentication cache tokens")
+    elif value.startswith('show_unsafe'):
+        print_auth_cache_unsafe()
+    elif value.startswith('help'):
+        print_auth_cache_help()
+    elif value.startswith('show'):
+        print_auth_cache_expire()
+    else:
+        print_auth_cache_expire()
+
+    sys.exit(0)
 
 def logout_with_err_handler(args):
     if args.login:
@@ -46,6 +141,8 @@ def logout_with_err_handler(args):
             log.error("5 attempts logout failed, ignoring...")
 
 def login_with_err_handler(args):
+    purge_cache(args)
+
     if not args.login and config.login_cache:
         Net.mangadex.login_from_cache()
 

@@ -116,6 +116,9 @@ def print_version_info():
     print(f"bundled executable: {bundled_executable}")
 
 def dynamic_bars(length):
+    if isinstance(length, str):
+        length = len(length)
+
     bar = ""
     for _ in range(length):
         bar += "="
