@@ -312,7 +312,7 @@ export MANGADEXDL_CONFIG_PATH="/etc/mangadex-dl/config"
 
 ### Supported configs
 
-```{option} login_cache
+```{option} login_cache [1 or 0, true or false]
 Same as `--login-cache`
 ```
 
@@ -328,11 +328,11 @@ Same as `--cover` or `-c`
 Same as `--save-as` or `-f`
 ```
 
-```{option} use_chapter_title
+```{option} use_chapter_title [1 or 0, true or false]
 Same as `--use-chapter-title` or `-uct`
 ```
 
-```{option} use_compressed_image
+```{option} use_compressed_image [1 or 0, true or false]
 Same as `--use-compressed-image` or `-uci`
 ```
 
@@ -343,6 +343,9 @@ Set a config
 ```shell
 mangadex-dl "conf:save_as=pdf"
 # Successfully changed config save_as from 'raw' to 'pdf'
+
+mangadex-dl "conf:login_cache=1"
+# Successfully changed config use_chapter_title from 'False' to 'True'
 ```
 
 Print all configs
