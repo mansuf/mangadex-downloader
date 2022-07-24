@@ -4,7 +4,7 @@
 
 ### New features
 
-- Added ability to download all chapters in all languages
+- Added ability to download manga in all languages
 - Added cache authentication
 - Added config
 - Added new languages
@@ -25,7 +25,7 @@
 - Reduced requests fetching all chapters
 - When batch downloading urls and error encountered. Do not stop immediately, instead ignore broken url
 - Now you can search manga with empty keyword (`mangadex-dl -s`)
-- Instead of directly import `pip` package, use `hasattr(sys, 'frozen')` to determine app is compiled or not
+- Reduced startup time mangadex-downloader
 - [`mangadex_downloader.format.utils.delete_file()`] Do not remove files when it doesn't exist
 
 ### Breaking changes
