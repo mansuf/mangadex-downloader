@@ -344,7 +344,7 @@ Set a config
 mangadex-dl "conf:save_as=pdf"
 # Successfully changed config save_as from 'raw' to 'pdf'
 
-mangadex-dl "conf:login_cache=1"
+mangadex-dl "conf:use_chapter_title=1"
 # Successfully changed config use_chapter_title from 'False' to 'True'
 ```
 
