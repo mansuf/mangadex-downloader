@@ -4,7 +4,7 @@
 
 ### Fix bugs
 
-- Fixed failed to get manga, lists, followed lists from user library (The error only happened if user is logged in from cache).
+- Fixed fail to get manga, lists, followed lists from user library (The error only happened if user is logged in from cache).
 
 ## v1.2.0
 
