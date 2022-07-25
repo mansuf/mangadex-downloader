@@ -271,9 +271,6 @@ class requestsMangaDexSession(requests.Session):
 
     def login(self, password, username=None, email=None):
         """Login to MangaDex"""
-        # "Circular imports" problem
-        from .user import User
-
         # Raise error if already logged in
         if self.check_login():
             raise AlreadyLoggedIn("User already logged in")
@@ -316,12 +313,15 @@ class requestsMangaDexSession(requests.Session):
 
         self._start_timer_thread()
 
-        r = self.get(f'{base_url}/user/me')
-        self.user = User(data=r.json()['data'])
-
         log.info("Logged in to MangaDex")
 
     def _start_timer_thread(self):
+        # "Circular imports" problem
+        from .user import User
+
+        r = self.get(f'{base_url}/user/me')
+        self.user = User(data=r.json()['data'])
+
         t = threading.Thread(target=self._wait_login_lock, daemon=True)
         t.start()
 
