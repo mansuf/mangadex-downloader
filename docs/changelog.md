@@ -1,5 +1,12 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed error `NameError: name 'exit' is not defined` in bundled executable 
+when executing command `login_cache` or `login_cache:show`
+
 ## v1.2.1
 
 ### Fix bugs

@@ -42,7 +42,6 @@ def print_auth_cache_expire():
         exp_refresh_token = "Token is not cached or expired"
 
     print(f"Refresh token expiration time: {exp_refresh_token}")
-    exit(0)
 
 def print_auth_cache_unsafe():
     """Print auth cache tokens"""
