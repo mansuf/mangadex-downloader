@@ -2,7 +2,7 @@
 
 ## UNRELEASED
 
-## New features
+### New features
 
 - Added web URL location (`http`, `https`) support for batch download syntax
 
