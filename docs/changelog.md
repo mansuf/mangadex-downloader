@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+## New features
+
+- Added web URL location (`http`, `https`) support for batch download syntax
+
 ### Fix bugs
 
 - Fixed error `NameError: name 'exit' is not defined` in bundled executable 

@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 
+import requests
+
 from .utils import Paginator, dynamic_bars
 from .url import build_URL_from_type, smart_select_url
 from ..network import Net
@@ -221,10 +223,20 @@ def validate(parser, args):
             # add it again
             for f in file:
                 file_path += ':' + f
+
+            # web URL location support for "file:{location}" syntax
+            if file_path.startswith('http://') or file_path.startswith('https://'):
+                r = Net.requests.get(file_path)
+                try:
+                    r.raise_for_status()
+                except requests.HTTPError:
+                    raise MangaDexException(f"Failed to connect '{file_path}', status code = {r.status_code}")
+
+                file_path = r.text
             
             # Because this is specified syntax for batch downloading
             # If file doesn't exist, raise error
-            if not os.path.exists(file_path):
+            elif not os.path.exists(file_path):
                 parser.error(f"File \"{file_path}\" is not exist")
         else:
             file_path = urls
