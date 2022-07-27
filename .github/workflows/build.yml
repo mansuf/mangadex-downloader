@@ -128,6 +128,7 @@ jobs:
           # x86 executable
           copy "LICENSE" "dist_x86\mangadex-dl_x86"
           copy "README.md" "dist_x86\mangadex-dl_x86"
+          copy "docs\changelog.md" "dist_x86\mangadex-dl_x86"
           echo "${{ github.ref_name }}" | Out-File -FilePath "dist_x86\mangadex-dl_x86\version.txt" -NoNewLine
           echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x86\mangadex-dl_x86\update.bat"
           echo "start cmd" | Out-File -FilePath "dist_x86\mangadex-dl_x86\start cmd.bat"
@@ -138,6 +139,7 @@ jobs:
           # x64 executable
           copy "LICENSE" "dist_x64\mangadex-dl_x64"
           copy "README.md" "dist_x64\mangadex-dl_x64"
+          copy "docs\changelog.md" "dist_x64\mangadex-dl_x64"
           echo "${{ github.ref_name }}" | Out-File -FilePath "dist_x64\mangadex-dl_x64\version.txt" -NoNewLine
           echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x64\mangadex-dl_x64\update.bat"
           echo "start cmd" | Out-File -FilePath "dist_x64\mangadex-dl_x64\start cmd.bat"
