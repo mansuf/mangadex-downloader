@@ -17,7 +17,6 @@ from .download import download
 from ..errors import MangaDexException
 
 _deprecated_opts = {
-    'enable_legacy_sorting': '--enable-legacy-sorting is deprecated and will be removed in v1.3.0.',
 }
 
 def _check_deprecations(log, args):

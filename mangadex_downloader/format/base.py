@@ -67,7 +67,6 @@ class BaseFormat:
         manga,
         compress_img,
         replace,
-        legacy_sorting,
         no_verify,
         kwargs_iter_chapter_img
     ):
@@ -75,7 +74,6 @@ class BaseFormat:
         self.manga = manga
         self.compress_img = compress_img
         self.replace = replace
-        self.legacy_sorting = legacy_sorting
         self.verify = not no_verify
         self.kwargs_iter = kwargs_iter_chapter_img
 

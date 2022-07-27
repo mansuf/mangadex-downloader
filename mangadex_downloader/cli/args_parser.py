@@ -459,13 +459,6 @@ def get_args(argv):
     misc_group = parser.add_argument_group('Miscellaneous')
     misc_group.add_argument('-pipe', action='store_true', help="Download from pipe input")
     misc_group.add_argument(
-        '--enable-legacy-sorting',
-        action='store_true',
-        help='[DEPRECATED] will be removed in v1.3.0. ' \
-             'Does nothing. In previous version this option is used to enable legacy sorting. ' \
-             'Which rename all images with numbers leading zeros (example: 001.jpg)'
-    )
-    misc_group.add_argument(
         '--no-verify',
         '-nv',
         action='store_true',

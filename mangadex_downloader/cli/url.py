@@ -68,7 +68,6 @@ def download_manga(url, args, legacy=False):
         args.use_alt_details,
         args.no_group_name,
         args.group,
-        args.enable_legacy_sorting,
         args.use_chapter_title,
         args.unsafe,
         args.no_verify,
@@ -95,7 +94,6 @@ def download_chapter(url, args, legacy=False):
         args.use_compressed_image,
         args.save_as,
         args.no_group_name,
-        args.enable_legacy_sorting,
         args.use_chapter_title,
         args.unsafe,
         args.no_verify
@@ -134,7 +132,6 @@ def download_list(url, args):
         args.save_as,
         args.no_group_name,
         args.group,
-        args.enable_legacy_sorting,
         args.use_chapter_title,
         args.unsafe,
         args.no_verify

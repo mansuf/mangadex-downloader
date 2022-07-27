@@ -7,6 +7,10 @@
 - Fixed error `NameError: name 'exit' is not defined` in bundled executable 
 when executing command `login_cache` or `login_cache:show`
 
+### Breaking changes
+
+- Removed `--enable-legacy-sorting` option as it's deprecated since v1.1.0
+
 ## v1.2.1
 
 ### Fix bugs
