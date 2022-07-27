@@ -407,4 +407,3 @@ python3 -m mangadex_downloader
 ## v0.0.1
 
 [NOT STABLE, USABLE]
-
