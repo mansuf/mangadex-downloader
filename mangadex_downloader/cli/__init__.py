@@ -17,6 +17,7 @@ from .download import download
 from ..errors import MangaDexException
 
 _deprecated_opts = {
+    "unsafe": "--unsafe or -u option is deprecated and will be removed in v1.4.0"
 }
 
 def _check_deprecations(log, args):

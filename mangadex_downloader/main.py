@@ -238,12 +238,6 @@ def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
     log.info('Fetching manga %s' % manga_id)
     manga = _fetch_manga(manga_id, lang, use_alt_details=use_alt_details)
 
-    if (
-        manga.content_rating == ContentRating.Pornographic or
-        manga.content_rating == ContentRating.Erotica
-    ) and not unsafe:
-        raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
-
     log.info("Found manga \"%s\"" % manga.title)
 
     return manga
@@ -376,12 +370,6 @@ def download(
         manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
     else:
         manga = url
-
-    if (
-        manga.content_rating == ContentRating.Pornographic or
-        manga.content_rating == ContentRating.Erotica
-    ) and not unsafe:
-        raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
 
     # base path
     base_path = Path('.')
@@ -550,11 +538,6 @@ def download_chapter(
 
     # Fetch manga
     chap, manga = _get_manga_from_chapter(chap_id)
-    if (
-        manga.content_rating == ContentRating.Pornographic or
-        manga.content_rating == ContentRating.Erotica
-    ) and not unsafe:
-        raise NotAllowed(f"You are not allowed to see \"{manga.title}\"")
 
     log.info("Found chapter %s from manga \"%s\"" % (chap.chapter, manga.title))
 
