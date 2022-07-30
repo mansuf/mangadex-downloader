@@ -88,13 +88,13 @@ Bu paket bundled executable olduğundan, Python'un yüklenmesi gerekmez.
 
 Adımlar:
 
-- Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
-- Extract it.
-- [See this instructions to run mangadex-downloader](#command-line-interface-bundled-executable-version)
+- En son sürümü buradan indirebilirsiniz -> https://github.com/mansuf/mangadex-downloader/releases
+- Dosyayı çıkartın.
+- [Mangadex-downloader'ı çalıştırmak için bu talimatlara bakın](#command-line-interface-bundled-executable-version)
 
-### How to (Development version) <a id="how-to-development-version"></a>
+### Nasıl (Geliştirici versiyonu) <a id="how-to-development-version"></a>
 
-**NOTE:** You must have git installed. If you don't have it, install it from here https://git-scm.com/.
+**NOT:** Git'in yüklü olması gerekir. Eğer yoksa buradan kurabilirsiniz https://git-scm.com/.
 
 ```shell
 git clone https://github.com/mansuf/mangadex-downloader.git
@@ -102,15 +102,15 @@ cd mangadex-downloader
 python setup.py install
 ```
 
-## Usage <a id="usage"></a>
+## Kullanımı <a id="usage"></a>
 
-### Command-Line Interface (PyPI version) <a id="command-line-interface-pypi-version"></a>
+### Komut satırı arayüzü (PyPI sürümü) <a id="command-line-interface-pypi-version"></a>
 
 ```shell
 
-mangadex-dl "insert MangaDex URL here" 
-# or
-mangadex-downloader "insert MangaDex URL here" 
+mangadex-dl "MangDex linkini buraya yapıştırın" 
+# yada
+mangadex-downloader "MangDex linkini buraya yapıştırın" 
 
 # Use this if "mangadex-dl" or "mangadex-downloader" didn't work
 
