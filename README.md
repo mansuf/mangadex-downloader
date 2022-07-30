@@ -63,7 +63,7 @@ py -3 -m pip install mangadex-downloader
 python3 -m pip install mangadex-downloader
 ```
 
-Şu şekilde de üykleyebilirsiniz.
+Şu şekilde de yükleyebilirsiniz.
 
 - [Pillow](https://pypi.org/project/pillow/) PDF desteği ve herhangi bir "single" veya "volume" biçimi için
 - [py7zr](https://pypi.org/project/py7zr/) cb7 desteği için
