@@ -21,7 +21,7 @@
 - [Notlar](#notes)
 - [Bağışta bulunun ](#supporting)
 - [Linkler](#links)
-- [sorumluluk reddi beyanı](#disclaimer)
+- [Sorumluluk reddi beyanı](#disclaimer)
 
 ## Ana Özellikler <a id="key-features"></a>
 
