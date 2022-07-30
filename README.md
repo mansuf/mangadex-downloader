@@ -41,7 +41,7 @@
 
 ## Desteklenen Formatlar <a id="supported-formats"></a>
 
-Daha fazla bilgi için [Read here](https://mangadex-dl.mansuf.link/en/latest/formats.html).
+Daha fazla bilgi için [Burayı okuyun](https://mangadex-dl.mansuf.link/en/latest/formats.html).
 
 ## Kurmak <a id="installation"></a>
 
