@@ -59,7 +59,7 @@ Mangadex-downloader kurmak çok kolay, Gereksinimleriniz yeterli olduğu sürece
 # Windows için
 py -3 -m pip install mangadex-downloader
 
-# Linux / Mac OS iöin
+# Linux / Mac OS için
 python3 -m pip install mangadex-downloader
 ```
 
@@ -68,25 +68,25 @@ python3 -m pip install mangadex-downloader
 - [Pillow](https://pypi.org/project/pillow/) PDF desteği ve herhangi bir "single" veya "volume" biçimi için
 - [py7zr](https://pypi.org/project/py7zr/) cb7 desteği için
 
-Or you can install all optional dependencies
+Yada isteğe bağlı olarak bu şekildede yükleyebilirsiniz
 
 ```shell
-# For Windows
-py -3 -m pip install mangadex-downloader[optional]
+# Windows için
+py -3 -m pip install mangadex-downloader[opsiyonel]
 
-# For Mac OS / Linux
-python3 -m pip install mangadex-downloader[optional]
+# Mac OS / Linux için
+python3 -m pip install mangadex-downloader[opsiyonel]
 ```
 
-There you go, easy ain't it ?.
+Çok kolay, değil mi?
 
-### How to (bundled executable) <a id="how-to-bundled-executable"></a>
+### Nasıl yapılır (bundled executable) <a id="how-to-bundled-executable"></a>
 
-**NOTE:** This installation only apply to Windows.
+**NOT:** Bu indirme yöntemi sadece Windows için.
 
-Because this is bundled executable, Python are not required to install.
+Bu paket bundled executable olduğundan, Python'un yüklenmesi gerekmez.
 
-Steps:
+Adımlar:
 
 - Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
 - Extract it.
