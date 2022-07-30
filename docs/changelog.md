@@ -13,7 +13,7 @@ when executing command `login_cache` or `login_cache:show`
 
 ### Breaking changes
 
-- Removed unsafe feature, `--unsafe` or `-u` option is still exist but it's doing nothing. See [b32dac4](https://github.com/mansuf/mangadex-downloader/commit/b32dac4739369a9a6e94650dab8ff9fe5c7bd143)
+- Removed unsafe feature, `--unsafe` or `-u` option is still exist but it's doing nothing and will be removed in v1.4.0. See [b32dac4](https://github.com/mansuf/mangadex-downloader/commit/b32dac4739369a9a6e94650dab8ff9fe5c7bd143)
 - Removed `--enable-legacy-sorting` option as it's deprecated since v1.1.0
 
 ## v1.2.1
