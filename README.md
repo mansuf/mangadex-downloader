@@ -8,50 +8,50 @@
 
 ## İçindekiler
 
-- [Key Features](#key-features)
-- [Supported formats](#supported-formats)
-- [Installation](#installation)
-    - [How to (PyPI)](#how-to-pypi)
-    - [How to (bundled executable)](#how-to-bundled-executable)
-    - [How to (Development version)](#how-to-development-version)
-- [Usage](#usage)
-    - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
-    - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
-    - [Embedding (API)](#embedding-api)
-- [Notes](#notes)
-- [Supporting](#supporting)
-- [Links](#links)
-- [Disclaimer](#disclaimer)
+- [Ana Özellikler](#key-features)
+- [Desteklenen Formatlar](#supported-formats)
+- [Yükleme](#installation)
+    - [Nasıl (PyPI)](#how-to-pypi)
+    - [Nasıl (bundled executable)](#how-to-bundled-executable)
+    - [Nasıl (Development version)](#how-to-development-version)
+- [Kullanımı](#usage)
+    - [Komut Satırı Arayüzü (PyPI version)](#command-line-interface-pypi-version)
+    - [Komut Satırı Arayüzü (bundled executable version)](#command-line-interface-bundled-executable-version)
+    - [Gömülü (API)](#embedding-api)
+- [Notlar](#notes)
+- [Destekleme](#supporting)
+- [Linkler](#links)
+- [sorumluluk reddi beyanı](#disclaimer)
 
-## Key Features <a id="key-features"></a>
+## Ana Özellikler <a id="key-features"></a>
 
-- Download manga, chapter, or list directly from MangaDex
-- Download manga or list from user library
-- Batch download support
-- Old MangaDex url support
-- Scanlation groups filter support
-- Authentication support
-- Control how many chapters and pages you want to download
-- Compressed images support
-- HTTP / SOCKS proxy support
-- Multi languages support
-- Save as raw images, PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
+- Mangadex'ten direk olarak mangayı yada bölümü direk indirin
+- Manga yada listeyi kullanıcı kütüphanesinden indirin
+- Toplu indirme desteği
+- Eski mangadex bağlantısı desteği
+- Tarama grupları filtresi desteği
+- Doğrulayıcı desteği
+- Kaç sayfa yada bölüm indireceğini yönet
+- Sıkıştırılmış görüntü desteği
+- HTTP / SOCKS proxy desteğği
+- Farklı dil support
+- Farklı formatta kaydedebilme raw götü dosyası, PDF, Çizgi roman arşivi (.cbz) yada [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) lokal manga
 
-***And ability to not download oneshot chapter***
+***Ve oneshot bölümünü indirmeme özelliği***
 
-## Supported formats <a id="supported-formats"></a>
+## Desteklenen Formatlar <a id="supported-formats"></a>
 
-[Read here](https://mangadex-dl.mansuf.link/en/latest/formats.html) for more info.
+Daha fazla bilgi için [Read here](https://mangadex-dl.mansuf.link/en/latest/formats.html).
 
-## Installation <a id="installation"></a>
+## Kurmak <a id="installation"></a>
 
-What will you need:
+Nelere ihtiyacınız var:
 
-- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#how-to-bundled-executable))
+- Pip ile Python 3.8.x veya üzeri (Windows kullanıyorsanız, paket halindeki yürütülebilir dosyayı indirebilirsiniz. [Nasıl yükleyeceğinizi görün](#how-to-bundled-executable))
 
-That's it.
+Hepsi bukadar.
 
-### How to (PyPI) <a id="how-to-pypi"></a>
+### Nasıl (PyPI) <a id="how-to-pypi"></a>
 
 Installing mangadex-downloader is easy, as long as you have requirements above.
 
