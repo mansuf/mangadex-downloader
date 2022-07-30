@@ -112,26 +112,26 @@ mangadex-dl "MangDex linkini buraya yapıştırın"
 # yada
 mangadex-downloader "MangDex linkini buraya yapıştırın" 
 
-# Use this if "mangadex-dl" or "mangadex-downloader" didn't work
+# "mangadex-dl" veya "mangadex-downloader" çalışmadıysa bunu kullanın
 
-# For Windows
-py -3 -m mangadex_downloader "insert MangaDex URL here" 
+# Windows için
+py -3 -m mangadex_downloader "MangDex linkini buraya yapıştırın" 
 
-# For Linux / Mac OS
-python3 -m mangadex_downloader "insert MangaDex URL here" 
+# Linux / Mac OS için
+python3 -m mangadex_downloader "MangDex linkini buraya yapıştırın" 
 ```
 
-### Command-Line Interface (bundled executable version) <a id="command-line-interface-bundled-executable-version"></a>
+### Komut satırı arayüzü (bundled executable versiyonu) <a id="command-line-interface-bundled-executable-version"></a>
 
-- Navigate to folder where you downloaded mangadex-downloader
-- Open "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
+- Mangadex-downloader'ı indirdiğiniz klasöre gidin
+- "start cmd.bat" dosyasını açın (merak etmeyim, bu virüs değil bu sadece klasörden cmd açar)
 
-![example_start_cmd](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_start_cmd.png)
+![örnek başlat cmd](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_start_cmd.png)
 
-- And then start using mangadex-downloader, see example below:
+- Ardından mangadex-downloader'ı kullanmaya başlayın, aşağıdaki örneğe bakın:
 
 ```shell
-mangadex-dl.exe "insert MangaDex URL here" 
+mangadex-dl.exe "MangDex linkini buraya yapıştırın" 
 ```
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
