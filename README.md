@@ -19,7 +19,7 @@
     - [Komut Satırı Arayüzü (bundled executable version)](#command-line-interface-bundled-executable-version)
     - [Gömülü (API)](#embedding-api)
 - [Notlar](#notes)
-- [Destekleme](#supporting)
+- [Bağışta bulunun ](#supporting)
 - [Linkler](#links)
 - [sorumluluk reddi beyanı](#disclaimer)
 
@@ -134,48 +134,48 @@ python3 -m mangadex_downloader "MangDex linkini buraya yapıştırın"
 mangadex-dl.exe "MangDex linkini buraya yapıştırın" 
 ```
 
-![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
+![örnek kullanım_ayıklanabilir dosya](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
 
-For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html)
+Daha fazla örnek kullanım için, [burayı oku](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html)
 
-For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_ref.html)
+CLI seçenekleri hakkında daha fazla bilgi için [burayı oku](https://mangadex-dl.mansuf.link/en/latest/cli_ref.html)
 
-### Embedding (API) <a id="embedding-api"></a>
+### Gömülü (API) <a id="embedding-api"></a>
 
 ```python
-from mangadex_downloader import download
+mangadex indiricisinden içe aktarma indirin
 
-download("insert MangaDex URL here")
+download("MangDex linkini buraya yapıştırın")
 ```
 
-For more information, you can [read here](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
+Daha fazla bilgi için, [burayı okuyun](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
 
-## Notes <a id="notes"></a>
+## Notlar <a id="notes"></a>
 
-### Pornographic and erotica content <a id="pornographic-and-erotica-content"></a>
+### Pornografil ve Erotik içerik <a id="pornographic-and-erotica-content"></a>
 
-You may get error `You are not allowed to see ..` when downloading porn and erotica manga. 
-This is because mangadex-downloader implement strict rule to porn mangas.
+Bu hatayı alıcaksınız `You are not allowed to see ..` pornografik ve erotik manga indirmeye çalışırken. 
+Bunun nedeni, mangadex indiricisinin pornografik ve erotik mangalara katı kurallar uygulamasıdır.
 
-For more info, you can [see it here](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
+Daha fazla bilgi için, [Burayı Kullanın](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
 
-## Supporting <a id="supporting"></a>
+## Bağışta bulunun <a id="supporting"></a>
 
-Like this project ? Considering give this project a star or donate to the current maintainer [@mansuf](https://github.com/mansuf)
+Bu projeyi beğendin mi ? Orijinal projeyi yıldızlayabilirsiniz https://github.com/mansuf/mangadex-downloader veya mevcut ilgileniciye bağış yapın [@mansuf](https://github.com/mansuf)
 
-The maintainer support these types of donation:
+İlgilenici şu tür bağışları destekler:
 
 <a href='https://ko-fi.com/A0A04UDJ1' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
-*If you're in Indonesia you can donate with saweria*
+*Endonezya'daysanız, saweria ile bağış yapabilirsiniz.*
 
 https://saweria.co/mansuf
 
-## Links <a id="links"></a>
+## Linkler <a id="links"></a>
 
 - [PyPI](https://pypi.org/project/mangadex-downloader/)
 - [Docs](https://mangadex-dl.mansuf.link)
 
-## Disclaimer <a id="disclaimer"></a>
+## sorumluluk reddi beyanı <a id="disclaimer"></a>
 
-mangadex-downloader are not affiliated with MangaDex. Also, the current maintainer ([@mansuf](https://github.com/mansuf)) is not a MangaDex dev
+mangadex-downloader MangaDex'e bağlı değildir. Şuan ilgilenen kişi ([@mansuf](https://github.com/mansuf)) mangacix developeri değildir.
