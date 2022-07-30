@@ -4,7 +4,7 @@
 
 # mangadex-yükleyicisi
 
-Mangadex'ten manga yüklemek için komut satırı aracı [MangaDex](https://mangadex.org/), [Python](https://www.python.org/)'la yazılmıştır.
+ [MangaDex](https://mangadex.org/)'ten manga yüklemek için komut satırı aracı, [Python](https://www.python.org/)'la yazılmıştır.
 
 ## İçindekiler
 
