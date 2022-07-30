@@ -2,11 +2,11 @@
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 
-# mangadex-downloader
+# mangadex-yükleyicisi
 
-A command-line tool to download manga from [MangaDex](https://mangadex.org/), written in [Python](https://www.python.org/).
+Mangadex'ten manga yüklemek için komut satırı aracı [MangaDex](https://mangadex.org/), [Python](https://www.python.org/)'la yazılmıştır.
 
-## Table of Contents
+## İçindekiler
 
 - [Key Features](#key-features)
 - [Supported formats](#supported-formats)
