@@ -33,8 +33,8 @@
 - Doğrulayıcı desteği
 - Kaç sayfa yada bölüm indireceğini yönet
 - Sıkıştırılmış görüntü desteği
-- HTTP / SOCKS proxy desteğği
-- Farklı dil support
+- HTTP / SOCKS proxy desteği
+- Farklı dil desteği
 - Farklı formatta kaydedebilme raw götü dosyası, PDF, Çizgi roman arşivi (.cbz) yada [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) lokal manga
 
 ***Ve oneshot bölümünü indirmeme özelliği***
@@ -53,20 +53,20 @@ Hepsi bukadar.
 
 ### Nasıl (PyPI) <a id="how-to-pypi"></a>
 
-Installing mangadex-downloader is easy, as long as you have requirements above.
+Mangadex-downloader kurmak çok kolay, Gereksinimleriniz yeterli olduğu sürece.
 
 ```shell
-# For Windows
+# Windows için
 py -3 -m pip install mangadex-downloader
 
-# For Linux / Mac OS
+# Linux / Mac OS iöin
 python3 -m pip install mangadex-downloader
 ```
 
-You can also install optional dependencies
+Şu şekilde de üykleyebilirsiniz.
 
-- [Pillow](https://pypi.org/project/pillow/) for PDF support and any `single` or `volume` formats
-- [py7zr](https://pypi.org/project/py7zr/) for cb7 support
+- [Pillow](https://pypi.org/project/pillow/) PDF desteği ve herhangi bir "single" veya "volume" biçimi için
+- [py7zr](https://pypi.org/project/py7zr/) cb7 desteği için
 
 Or you can install all optional dependencies
 
