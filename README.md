@@ -4,97 +4,97 @@
 
 # mangadex-downloader
 
- [MangaDex](https://mangadex.org/)'ten manga yüklemek için komut satırı aracı, [Python](https://www.python.org/)'la yazılmıştır.
+A command-line tool to download manga from [MangaDex](https://mangadex.org/), written in [Python](https://www.python.org/).
 
-## İçindekiler
+## Table of Contents
 
-- [Ana Özellikler](#key-features)
-- [Desteklenen Formatlar](#supported-formats)
-- [Kurmak](#installation)
-    - [Nasıl (PyPI)](#how-to-pypi)
-    - [Nasıl (bundled executable)](#how-to-bundled-executable)
-    - [Nasıl (Development version)](#how-to-development-version)
-- [Kullanımı](#usage)
-    - [Komut Satırı Arayüzü (PyPI version)](#command-line-interface-pypi-version)
-    - [Komut Satırı Arayüzü (bundled executable version)](#command-line-interface-bundled-executable-version)
-    - [Gömülü (API)](#embedding-api)
-- [Notlar](#notes)
-- [Bağışta bulunun ](#supporting)
-- [Linkler](#links)
-- [Sorumluluk reddi beyanı](#disclaimer)
+- [Key Features](#key-features)
+- [Supported formats](#supported-formats)
+- [Installation](#installation)
+    - [How to (PyPI)](#how-to-pypi)
+    - [How to (bundled executable)](#how-to-bundled-executable)
+    - [How to (Development version)](#how-to-development-version)
+- [Usage](#usage)
+    - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
+    - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
+    - [Embedding (API)](#embedding-api)
+- [Notes](#notes)
+- [Supporting](#supporting)
+- [Links](#links)
+- [Disclaimer](#disclaimer)
 
-## Ana Özellikler <a id="key-features"></a>
+## Key Features <a id="key-features"></a>
 
-- Mangadex'ten direk olarak mangayı yada bölümü direk indirin
-- Manga yada listeyi kullanıcı kütüphanesinden indirin
-- Toplu indirme desteği
-- Eski mangadex bağlantısı desteği
-- Tarama grupları filtresi desteği
-- Doğrulayıcı desteği
-- Kaç sayfa yada bölüm indireceğini yönet
-- Sıkıştırılmış görüntü desteği
-- HTTP / SOCKS proxy desteği
-- Farklı dil desteği
-- Farklı formatta kaydedebilme raw götü dosyası, PDF, Çizgi roman arşivi (.cbz) yada [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) lokal manga
+- Download manga, chapter, or list directly from MangaDex
+- Download manga or list from user library
+- Batch download support
+- Old MangaDex url support
+- Scanlation groups filter support
+- Authentication support
+- Control how many chapters and pages you want to download
+- Compressed images support
+- HTTP / SOCKS proxy support
+- Multi languages support
+- Save as raw images, PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
 
-***Ve oneshot bölümünü indirmeme özelliği***
+***And ability to not download oneshot chapter***
 
-## Desteklenen Formatlar <a id="supported-formats"></a>
+## Supported formats <a id="supported-formats"></a>
 
-Daha fazla bilgi için [Burayı okuyun](https://mangadex-dl.mansuf.link/en/latest/formats.html).
+[Read here](https://mangadex-dl.mansuf.link/en/latest/formats.html) for more info.
 
-## Kurmak <a id="installation"></a>
+## Installation <a id="installation"></a>
 
-Nelere ihtiyacınız var:
+What will you need:
 
-- Pip ile Python 3.8.x veya üzeri (Windows kullanıyorsanız, paket halindeki yürütülebilir dosyayı indirebilirsiniz. [Nasıl yükleyeceğinizi görün](#how-to-bundled-executable))
+- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#how-to-bundled-executable))
 
-Hepsi bukadar.
+That's it.
 
-### Nasıl (PyPI) <a id="how-to-pypi"></a>
+### How to (PyPI) <a id="how-to-pypi"></a>
 
-Mangadex-downloader kurmak çok kolay, Gereksinimleriniz yeterli olduğu sürece.
+Installing mangadex-downloader is easy, as long as you have requirements above.
 
 ```shell
-# Windows için
+# For Windows
 py -3 -m pip install mangadex-downloader
 
-# Linux / Mac OS için
+# For Linux / Mac OS
 python3 -m pip install mangadex-downloader
 ```
 
-Şu şekilde de yükleyebilirsiniz.
+You can also install optional dependencies
 
-- [Pillow](https://pypi.org/project/pillow/) PDF desteği ve herhangi bir "single" veya "volume" biçimi için
-- [py7zr](https://pypi.org/project/py7zr/) cb7 desteği için
+- [Pillow](https://pypi.org/project/pillow/) for PDF support and any `single` or `volume` formats
+- [py7zr](https://pypi.org/project/py7zr/) for cb7 support
 
-Yada isteğe bağlı olarak bu şekildede yükleyebilirsiniz
+Or you can install all optional dependencies
 
 ```shell
-# Windows için
+# For Windows
 py -3 -m pip install mangadex-downloader[optional]
 
-# Mac OS / Linux için
+# For Mac OS / Linux
 python3 -m pip install mangadex-downloader[optional]
 ```
 
-Çok kolay, değil mi?
+There you go, easy ain't it ?.
 
-### Nasıl yapılır (bundled executable) <a id="how-to-bundled-executable"></a>
+### How to (bundled executable) <a id="how-to-bundled-executable"></a>
 
-**NOT:** Bu indirme yöntemi sadece Windows için.
+**NOTE:** This installation only apply to Windows.
 
-Bu paket bundled executable olduğundan, Python'un yüklenmesi gerekmez.
+Because this is bundled executable, Python are not required to install.
 
-Adımlar:
+Steps:
 
-- En son sürümü buradan indirebilirsiniz -> https://github.com/mansuf/mangadex-downloader/releases
-- Dosyayı çıkartın.
-- [Mangadex-downloader'ı çalıştırmak için bu talimatlara bakın](#command-line-interface-bundled-executable-version)
+- Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
+- Extract it.
+- [See this instructions to run mangadex-downloader](#command-line-interface-bundled-executable-version)
 
-### Nasıl (Geliştirici versiyonu) <a id="how-to-development-version"></a>
+### How to (Development version) <a id="how-to-development-version"></a>
 
-**NOT:** Git'in yüklü olması gerekir. Eğer yoksa buradan kurabilirsiniz https://git-scm.com/.
+**NOTE:** You must have git installed. If you don't have it, install it from here https://git-scm.com/.
 
 ```shell
 git clone https://github.com/mansuf/mangadex-downloader.git
@@ -102,80 +102,80 @@ cd mangadex-downloader
 python setup.py install
 ```
 
-## Kullanımı <a id="usage"></a>
+## Usage <a id="usage"></a>
 
-### Komut satırı arayüzü (PyPI sürümü) <a id="command-line-interface-pypi-version"></a>
-
-```shell
-
-mangadex-dl "MangDex linkini buraya yapıştırın" 
-# yada
-mangadex-downloader "MangDex linkini buraya yapıştırın" 
-
-# "mangadex-dl" veya "mangadex-downloader" çalışmadıysa bunu kullanın
-
-# Windows için
-py -3 -m mangadex_downloader "MangDex linkini buraya yapıştırın" 
-
-# Linux / Mac OS için
-python3 -m mangadex_downloader "MangDex linkini buraya yapıştırın" 
-```
-
-### Komut satırı arayüzü (bundled executable versiyonu) <a id="command-line-interface-bundled-executable-version"></a>
-
-- Mangadex-downloader'ı indirdiğiniz klasöre gidin
-- "start cmd.bat" dosyasını açın (merak etmeyim, bu virüs değil bu sadece klasörden cmd açar)
-
-![örnek başlat cmd](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_start_cmd.png)
-
-- Ardından mangadex-downloader'ı kullanmaya başlayın, aşağıdaki örneğe bakın:
+### Command-Line Interface (PyPI version) <a id="command-line-interface-pypi-version"></a>
 
 ```shell
-mangadex-dl.exe "MangDex linkini buraya yapıştırın" 
+
+mangadex-dl "insert MangaDex URL here" 
+# or
+mangadex-downloader "insert MangaDex URL here" 
+
+# Use this if "mangadex-dl" or "mangadex-downloader" didn't work
+
+# For Windows
+py -3 -m mangadex_downloader "insert MangaDex URL here" 
+
+# For Linux / Mac OS
+python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
-![örnek kullanım_ayıklanabilir dosya](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
+### Command-Line Interface (bundled executable version) <a id="command-line-interface-bundled-executable-version"></a>
 
-Daha fazla örnek kullanım için, [burayı oku](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html)
+- Navigate to folder where you downloaded mangadex-downloader
+- Open "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
 
-CLI seçenekleri hakkında daha fazla bilgi için [burayı oku](https://mangadex-dl.mansuf.link/en/latest/cli_ref.html)
+![example_start_cmd](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_start_cmd.png)
 
-### Gömülü (API) <a id="embedding-api"></a>
+- And then start using mangadex-downloader, see example below:
+
+```shell
+mangadex-dl.exe "insert MangaDex URL here" 
+```
+
+![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
+
+For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html)
+
+For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_ref.html)
+
+### Embedding (API) <a id="embedding-api"></a>
 
 ```python
-mangadex indiricisinden içe aktarma indirin
+from mangadex_downloader import download
 
-download("MangDex linkini buraya yapıştırın")
+download("insert MangaDex URL here")
 ```
 
-Daha fazla bilgi için, [burayı okuyun](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
+For more information, you can [read here](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
 
-## Notlar <a id="notes"></a>
+## Notes <a id="notes"></a>
 
-### Pornografil ve Erotik içerik <a id="pornographic-and-erotica-content"></a>
+### Pornographic and erotica content <a id="pornographic-and-erotica-content"></a>
 
-Bu hatayı alıcaksınız `You are not allowed to see ..` pornografik ve erotik manga indirmeye çalışırken. 
-Bunun nedeni, mangadex indiricisinin pornografik ve erotik mangalara katı kurallar uygulamasıdır.
+You may get error `You are not allowed to see ..` when downloading porn and erotica manga. 
+This is because mangadex-downloader implement strict rule to porn mangas.
 
-Daha fazla bilgi için, [Burayı Kullanın](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
+For more info, you can [see it here](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
 
-## Bağışta bulunun <a id="supporting"></a>
+## Supporting <a id="supporting"></a>
 
-Bu projeyi beğendin mi ? Orijinal projeyi yıldızlayabilirsiniz https://github.com/mansuf/mangadex-downloader veya mevcut ilgileniciye bağış yapın [@mansuf](https://github.com/mansuf)
+Like this project ? Considering give this project a star or donate to the current maintainer [@mansuf](https://github.com/mansuf)
 
-İlgilenici şu tür bağışları destekler:
+The maintainer support these types of donation:
 
 <a href='https://ko-fi.com/A0A04UDJ1' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
-*Endonezya'daysanız, saweria ile bağış yapabilirsiniz.*
+*If you're in Indonesia you can donate with saweria*
 
 https://saweria.co/mansuf
 
-## Linkler <a id="links"></a>
+## Links <a id="links"></a>
 
 - [PyPI](https://pypi.org/project/mangadex-downloader/)
 - [Docs](https://mangadex-dl.mansuf.link)
 
-## sorumluluk reddi beyanı <a id="disclaimer"></a>
+## Disclaimer <a id="disclaimer"></a>
 
-mangadex-downloader MangaDex'e bağlı değildir. Şuan ilgilenen kişi ([@mansuf](https://github.com/mansuf)) mangacix developeri değildir.
+mangadex-downloader are not affiliated with MangaDex. Also, the current maintainer ([@mansuf](https://github.com/mansuf)) is not a MangaDex dev
