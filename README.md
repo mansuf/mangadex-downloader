@@ -10,7 +10,7 @@
 
 - [Ana Özellikler](#key-features)
 - [Desteklenen Formatlar](#supported-formats)
-- [Yükleme](#installation)
+- [Kurmak](#installation)
     - [Nasıl (PyPI)](#how-to-pypi)
     - [Nasıl (bundled executable)](#how-to-bundled-executable)
     - [Nasıl (Development version)](#how-to-development-version)
