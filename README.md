@@ -6,6 +6,8 @@
 
 A command-line tool to download manga from [MangaDex](https://mangadex.org/), written in [Python](https://www.python.org/).
 
+[![tr](https://img.shields.io/badge/lang-tr-yellow.svg)](https://github.com/mansuf/mangadex-downloader/blob/main/README.tr.md)
+
 ## Table of Contents
 
 - [Key Features](#key-features)
