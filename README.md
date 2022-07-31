@@ -2,7 +2,7 @@
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 
-# mangadex-yükleyicisi
+# mangadex-downloader
 
  [MangaDex](https://mangadex.org/)'ten manga yüklemek için komut satırı aracı, [Python](https://www.python.org/)'la yazılmıştır.
 
@@ -72,10 +72,10 @@ Yada isteğe bağlı olarak bu şekildede yükleyebilirsiniz
 
 ```shell
 # Windows için
-py -3 -m pip install mangadex-downloader[opsiyonel]
+py -3 -m pip install mangadex-downloader[optional]
 
 # Mac OS / Linux için
-python3 -m pip install mangadex-downloader[opsiyonel]
+python3 -m pip install mangadex-downloader[optional]
 ```
 
 Çok kolay, değil mi?
