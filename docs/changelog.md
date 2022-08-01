@@ -21,6 +21,21 @@ when executing command `login_cache` or `login_cache:show`
 - Removed unsafe feature, `--unsafe` or `-u` option is still exist but it's doing nothing and will be removed in v2.0.0. See [b32dac4](https://github.com/mansuf/mangadex-downloader/commit/b32dac4739369a9a6e94650dab8ff9fe5c7bd143)
 - Removed `--enable-legacy-sorting` option as it's deprecated since v1.1.0
 
+### Q&A: Unsafe feature removal
+
+**Q:** Why removing a feature that got added 2 months before ?
+<br>
+**A:** Okay that was my mistake, 
+because i was really naive to implement some restriction that makes user have a complicated process when downloading manga from MangaDex. 
+
+**Q:** Then why you added it in the first place ?
+<br> 
+**A:** See [d3470ce](https://github.com/mansuf/mangadex-downloader/commit/d3470ce47e7475f604cdd8b30a12f249a2bbcb38). 
+But here's the thing, it's a downloader tool, 
+not a website that publicly showing a content that may be blocked by some countries because of inappropriate contents. 
+mangadex-downloader is a tool for offline reading that you can read it in your devices. 
+It has nothing to do with content restrictions in downloader tool.
+
 ## v1.2.1
 
 ### Fix bugs
