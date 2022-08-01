@@ -9,6 +9,9 @@
   - Azerbaijani
   - Slovak
 - Added search filters
+- Added `--force-https` and `-fh` option, allowing you to download images standard HTTPS port 443
+- Added new configs
+  - `force_https`
 
 ### Fix bugs
 

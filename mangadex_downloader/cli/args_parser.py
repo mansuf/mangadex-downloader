@@ -163,7 +163,9 @@ class InputHandler(argparse.Action):
             '-nv',
             '--version',
             '-v',
-            '--update'
+            '--update',
+            '--force-https',
+            '-fh'
         ]
 
         # positional arguments
@@ -521,6 +523,13 @@ def get_args(argv):
         action=PrintVersionAction,
         nargs=0,
         help='Print mangadex-downloader version'
+    )
+    misc_group.add_argument(
+        '--force-https',
+        '-fh',
+        action='store_true',
+        help='Force download images in standard HTTPS port 443',
+        default=config.force_https
     )
 
     # Update application

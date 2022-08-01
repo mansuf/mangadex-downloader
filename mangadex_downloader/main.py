@@ -261,7 +261,8 @@ def download(
     use_chapter_title=False,
     unsafe=False,
     no_verify=False,
-    _range=None
+    _range=None,
+    force_https=False
 ):
     """Download a manga
     
@@ -306,6 +307,8 @@ def download(
         If ``True``, Skip hash checking for each images
     _range: :class:`str`
         A range pattern to download specific chapters
+    force_https: :class:`bool`
+        Force download images in standard HTTPS port 443
 
     Raises
     -------
@@ -415,7 +418,8 @@ def download(
             "no_group_name": no_group_name,
             "group": group_id,
             "use_chapter_title": use_chapter_title,
-            "_range": _range
+            "_range": _range,
+            "force_https": force_https
         }
 
         log.info("Using %s format" % save_as)
@@ -482,7 +486,8 @@ def download_chapter(
     no_group_name=False,
     use_chapter_title=False,
     unsafe=False,
-    no_verify=False
+    no_verify=False,
+    force_https=False
 ):
     """Download a chapter
     
@@ -511,6 +516,8 @@ def download_chapter(
         If ``True``, it will allow you to download porn and erotica content
     no_verify: :class:`bool`
         If ``True``, Skip hash checking for each images
+    force_https: :class:`bool`
+        Force download images in standard HTTPS port 443
 
     Returns
     --------
@@ -559,7 +566,8 @@ def download_chapter(
         "no_oneshot": False,
         "data_saver": compressed_image,
         "no_group_name": no_group_name,
-        "use_chapter_title": use_chapter_title
+        "use_chapter_title": use_chapter_title,
+        "force_https": force_https
     }
 
     log.info("Using %s format" % save_as)
@@ -591,7 +599,8 @@ def download_list(
     group=None,
     use_chapter_title=True,
     unsafe=False,
-    no_verify=False
+    no_verify=False,
+    force_https=False
 ):
     """Download a list
 
@@ -618,6 +627,8 @@ def download_list(
         If ``True``, it will allow you to download porn and erotica content
     no_verify: :class:`bool`
         If ``True``, Skip hash checking for each images
+    force_https: :class:`bool`
+        Force download images in standard HTTPS port 443
     """
     log.debug('Validating the url...')
     try:
@@ -641,7 +652,8 @@ def download_list(
             group=group,
             use_chapter_title=use_chapter_title,
             unsafe=unsafe,
-            no_verify=no_verify
+            no_verify=no_verify,
+            force_https=force_https
         )
 
 def download_legacy_manga(url, *args, **kwargs):

@@ -26,7 +26,8 @@ class ChapterImages:
         start_page=None,
         end_page=None,
         data_saver=False,
-        _range=None
+        _range=None,
+        force_https=False
     ) -> None:
         self.chap = chapter
         self.id = chapter.id
@@ -39,11 +40,12 @@ class ChapterImages:
         self.start_page = start_page
         self.end_page = end_page
         self.range = _range
+        self.force_https = force_https
 
         self.legacy_range = (start_page or end_page)
     
     def fetch(self):
-        data = get_chapter_images(self.id)
+        data = get_chapter_images(self.id, force_https=self.force_https)
         # Construct image url
         self._data = data
         self._base_url = data.get('baseUrl')
@@ -297,6 +299,7 @@ class IteratorChapter:
         group=None,
         use_chapter_title=False,
         _range=None,
+        force_https=False,
         **kwargs
     ):
 
@@ -326,6 +329,7 @@ class IteratorChapter:
         self.group = None
         self.all_group = False
         self.legacy_range = legacy_range
+        self.force_https = force_https
         
         if _range is not None:
             self.range = range_mod.compile(_range)
@@ -482,7 +486,8 @@ class IteratorChapter:
                 self.start_page,
                 self.end_page,
                 self.data_saver,
-                self.range
+                self.range,
+                self.force_https
             )
 
             return chap, chap_images

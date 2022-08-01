@@ -109,9 +109,9 @@ def get_all_chapters(manga_id, lang):
     r = Net.mangadex.get(url, params={'translatedLanguage[]': [lang]})
     return r.json()
 
-def get_chapter_images(chapter_id):
+def get_chapter_images(chapter_id, force_https=False):
     url = '{0}/at-home/server/{1}'.format(base_url, chapter_id)
-    r = Net.mangadex.get(url)
+    r = Net.mangadex.get(url, params={'forcePort443': force_https})
     return r.json()
 
 def get_bulk_chapters(chap_ids):

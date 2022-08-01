@@ -105,6 +105,10 @@ class _Config:
             False,
             _validate_bool
         ],
+        "force_https": [
+            False,
+            _validate_bool
+        ]
     }
     default_conf = {
         x: y for x, (y, _) in confs.items()

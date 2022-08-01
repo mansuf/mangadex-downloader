@@ -214,6 +214,10 @@ Skip hash checking for each images
 Print mangadex-downloader version
 ```
 
+```{option} --force-https -fh
+Force download images in standard HTTPS port 443
+```
+
 ### Update application
 
 ```{option} --update

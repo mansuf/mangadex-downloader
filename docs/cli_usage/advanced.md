@@ -346,6 +346,10 @@ Same as `--use-chapter-title` or `-uct`
 Same as `--use-compressed-image` or `-uci`
 ```
 
+```{option} force_https [1 or 0, true or false]
+Same as `--force-https` or `-fh`
+```
+
 ### Example usage
 
 Set a config
@@ -457,4 +461,14 @@ For more information about syntax and available filters, see {doc}`../cli_ref/se
 ```shell
 # Search manhwa with status completed and ongoing, with tags "Comedy" and "Slice of life"
 mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
+```
+
+## Download manga, chapter, or list in forced HTTPS 443 port
+
+To prevent school/office network blocking traffic to non-standard ports. You can use `--force-https` or `-fh` option
+
+For example:
+
+```shell
+mangadex-dl "https://mangadex.org/title/..." --force-https
 ```
