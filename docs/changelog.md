@@ -32,7 +32,7 @@ because i was really naive to implement some restriction that makes user have a 
 <br> 
 **A:** See [d3470ce](https://github.com/mansuf/mangadex-downloader/commit/d3470ce47e7475f604cdd8b30a12f249a2bbcb38). 
 But here's the thing, it's a downloader tool, 
-not a website that publicly showing a content that may be blocked by some countries because of inappropriate contents. 
+not a website that may be blocked by some countries because of inappropriate contents. 
 mangadex-downloader is a tool for offline reading that you can read it in your devices. 
 It has nothing to do with content restrictions in downloader tool.
 
