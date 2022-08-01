@@ -50,6 +50,8 @@ class Language(Enum):
     Nepali = 'ne' #:
     Kazakh = 'kk' #:
     Tamil = 'ta' #:
+    Azerbaijani = 'az' #:
+    Slovak = 'sk' #:
 
     # Other language
     Other = None #:
