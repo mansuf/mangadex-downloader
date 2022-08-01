@@ -4,7 +4,7 @@ import sys
 
 import requests
 
-from .utils import Paginator, dynamic_bars
+from .utils import Paginator, dynamic_bars, get_key_value
 from .url import build_URL_from_type, smart_select_url
 from ..network import Net
 from ..main import get_followed_list_from_user_library, get_list_from_user, get_list_from_user_library, search, get_manga_from_user_library
@@ -251,7 +251,29 @@ def validate(parser, args):
     }
 
     if args.search:
-        iterator = search(urls, args.unsafe)
+        filter_kwargs = {}
+        filters = args.search_filter or []
+        for f in filters:
+            key, value  = get_key_value(f)
+            try:
+                value_filter_kwargs = filter_kwargs[key]
+            except KeyError:
+                filter_kwargs[key] = value.split(',') if ',' in value else value
+            else:
+                # Found duplicate filter with different value
+                if isinstance(value_filter_kwargs, str):
+                    new_values = [value_filter_kwargs]
+                else:
+                    new_values = value_filter_kwargs
+
+                if ',' in value:
+                    new_values.extend(value.split(','))
+                else:
+                    new_values.append(value)
+                
+                filter_kwargs[key] = new_values
+
+        iterator = search(urls, args.unsafe, **filter_kwargs)
         text = f"Search results for \"{urls}\""
         on_empty_err = f"Search results \"{urls}\" are empty"
         on_preview = None

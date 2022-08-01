@@ -1,8 +1,7 @@
 import argparse
 import logging
-import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
@@ -10,7 +9,7 @@ from .config import build_config_from_url_arg
 from ..cover import valid_cover_types, default_cover_type
 from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
-from ..utils import validate_group_url as _validate_group_url
+from ..utils import validate_group_url as _validate_group_url, validate_url
 from ..language import get_language, Language
 from ..format import formats, default_save_as_format
 from ..config import config
@@ -134,29 +133,73 @@ class InputHandler(argparse.Action):
             lowered_args
         )
 
-        # An monkey patch to determine if positional arguments is empty or not
-        # based on https://stackoverflow.com/questions/12818146/python-argparse-ignore-unrecognised-arguments
+        # An monkey patch to determine if positional arguments is empty or no
+        _store_true_args = [
+            '--replace',
+            '-r',
+            '--verbose',
+            '--unsafe',
+            '-u',
+            '--search',
+            '-s',
+            '--use-alt-details',
+            '-uad',
+            '--list-languages',
+            '-ll',
+            '--no-oneshot-chapter',
+            '-noc',
+            '--no-group-name',
+            '-ngn',
+            '--use-chapter-title',
+            '-uct',
+            '--use-compressed-image',
+            '-uci',
+            '--login',
+            '-l',
+            '--login-cache',
+            '-lc',
+            '-pipe',
+            '--no-verify',
+            '-nv',
+            '--version',
+            '-v',
+            '--update'
+        ]
 
-        # By default, ArgumentParser are exiting if some arguments are invalid
-        # This function is to raise error instead of exiting whole program
-        def on_error(err):
-            raise argparse.ArgumentError(None, err)
-    
-        pos_arg = True # pos_arg stands for positional argument
-        args = None
-        parser = argparse.ArgumentParser(exit_on_error=False, add_help=False)
-        parser.error = on_error
-        parser.add_argument('URL')
-        try:
-            args, unknown = parser.parse_known_args(sys_argv)
-        except argparse.ArgumentError:
-            pos_arg = False
+        # positional arguments
+        pos_arg = False
+        pos_value = None
+        pos = 0
+        while True:
+            try:
+                argv = sys_argv[pos]
+            except IndexError:
+                break
+            
+            if argv.startswith('-'):
+                # Try to find value option
+                try:
+                    next_arg = sys_argv[pos + 1]
+                except IndexError:
+                    pass
+                else:
+                    if not next_arg.startswith('-') and argv not in _store_true_args:
+                        # We assume this as value of another option
+                        pos += 1
+                        pass
+                
+                pos += 1
+                continue
+            
+            pos_arg = True
+            pos_value = argv
+            break
 
         # If positional exist and pipe is true
         # remove it
         # ONLY if -pipe is exist
         if pos_arg and pipe:
-            sys_argv.remove(args.URL)
+            sys_argv.remove(pos_value)
 
         # Manipulate positional arguments
         if pipe:
@@ -165,9 +208,8 @@ class InputHandler(argparse.Action):
         # Allow to search with empty keyword
         self.empty_search = not pos_arg and self.search
         if self.empty_search:
-            # to avoid error on parsing arguments
             sys_argv.append("dummy_empty_search")
-
+        
         self.pipe = pipe
         self.pipe_value = pipe_value
 
@@ -278,17 +320,26 @@ def get_args(argv):
     )
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
     parser.add_argument(
-        '--search',
-        '-s',
-        help='Search manga and then download it',
-        action='store_true'
-    )
-    parser.add_argument(
         '--unsafe',
         '-u',
         help='If set, it will allow you to search and download porn and erotica manga', 
         action='store_true',
         default=False
+    )
+
+    # Search related
+    search_group = parser.add_argument_group('Search')
+    search_group.add_argument(
+        '--search',
+        '-s',
+        help='Search manga and then download it',
+        action='store_true'
+    )
+    search_group.add_argument(
+        '--search-filter',
+        '-sf',
+        help='Apply filter when searching manga',
+        action='append'
     )
 
     # Manga related

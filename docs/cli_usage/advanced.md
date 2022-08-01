@@ -445,3 +445,16 @@ mangadex-dl "login_cache:show"
 
 mangadex-dl "login_cache"
 ```
+
+## Search filters
+
+mangadex-downloader support search manga with filters. Which mean you can speed up your searching !
+
+For more information about syntax and available filters, see {doc}`../cli_ref/search_filters`
+
+### Example usage
+
+```shell
+# Search manhwa with status completed and ongoing, with tags "Comedy" and "Slice of life"
+mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
+```

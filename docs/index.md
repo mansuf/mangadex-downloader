@@ -39,7 +39,7 @@ usage_api
 ```{toctree}
 :maxdepth: 2
 
-cli_ref
+cli_ref/index
 ```
 
 ## API reference

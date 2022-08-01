@@ -1,12 +1,17 @@
 import logging
 import queue
+import re
+import uuid
 
 from .mdlist import MangaDexList
-from .errors import HTTPException, MangaDexException, NotLoggedIn
+from .errors import HTTPException, InvalidURL, MangaDexException, NotLoggedIn
 from .network import Net, base_url
 from .manga import ContentRating, Manga
 from .fetcher import get_list
 from .user import User
+from .language import get_language
+from .config import ConfigTypeError, _validate_bool as validate_boolean
+from .utils import validate_url
 
 log = logging.getLogger(__name__)
 
@@ -81,36 +86,206 @@ class IteratorBulkChapters(BaseIterator):
 
         self.offset += len(items)
 
+class SearchFilterError(MangaDexException):
+    def __init__(self, key, msg):
+        text = f"Search filter error '{key}' = {msg}"
+
+        super().__init__(text)
+
 class IteratorManga(BaseIterator):
-    def __init__(self, title, unsafe=False):
+    def __init__(
+        self,
+        title,
+        unsafe=False,
+        authors=None,
+        artists=None,
+        year=None,
+        included_tags=None,
+        included_tags_mode=None,
+        excluded_tags=None,
+        excluded_tags_mode=None,
+        status=None,
+        original_language=None,
+        excluded_original_language=None,
+        available_translated_language=None,
+        publication_demographic=None,
+        content_rating=None,
+        created_at_since=None,
+        updated_at_since=None,
+        has_available_chapters=None
+    ):
         super().__init__()
 
-        self.limit = 100
-        self.title = title
-        self.unsafe = unsafe
-
-    def next(self) -> Manga:
-        return self.queue.get_nowait()
-
-    def fill_data(self):
-        includes = ['author', 'artist', 'cover_art']
-        content_ratings = [
+        _default_content_ratings = [
             'safe',
             'suggestive',
             'erotica',
             'pornographic'
         ]
 
+        self.limit = 100
+        self.title = title
+        self.unsafe = unsafe
+
+        # Validation
+        value_and_or = ['AND', 'OR']
+
+        if year:
+            m = re.match(r'[0-9]{4}')
+            if not m:
+                raise SearchFilterError(
+                    "year",
+                    f"value must be integer and length must be 4"
+                )
+
+        _locals = locals()
+        def validate_tags_mode(key):
+            value = _locals[key]
+            if value and value.upper() not in value_and_or:
+                raise SearchFilterError(
+                    key,
+                    f"value must be 'OR' or 'AND', not '{value}'"
+                )
+
+        validate_tags_mode("included_tags_mode")
+        validate_tags_mode("excluded_tags_mode")
+
+        # At this point includedTags and excludedTags are UUID based
+        # i don't know why
+        def validate_uuid(key):
+            new_values = []
+            values = _locals[key]
+            if values is None:
+                return
+            
+            if isinstance(values, str):
+                values = [values]
+            
+            for value in values:
+                # Get the id
+                try:
+                    _id = validate_url(value)
+                except InvalidURL:
+                    raise SearchFilterError(
+                        key,
+                        f"'{value}' is not valid UUID"
+                    )
+                else:
+                    new_values.append(_id)
+            
+            return new_values
+
+        included_tags = validate_uuid("included_tags")
+        excluded_tags = validate_uuid("excluded_tags")
+
+        def validate_values_from_list(key, array):
+            values = _locals[key]
+            if values is None:
+                return
+            
+            if isinstance(values, str):
+                values = [values]
+
+            for value in values:
+                if value.lower() not in array:
+                    raise SearchFilterError(
+                        key,
+                        f"Value must be one of {array}, not {value}"
+                    )
+
+        _status_values = [
+            'ongoing',
+            'completed',
+            'hiatus',
+            'cancelled'
+        ]
+        validate_values_from_list("status", _status_values)
+
+        def validate_language(key):
+            new_values = []
+            values = _locals[key]
+            if values is None:
+                return
+
+            if isinstance(values, str):
+                values = [values]
+
+            for value in values:
+                try:
+                    lang = get_language(value)
+                except ValueError as e:
+                    raise SearchFilterError(key, e)
+                else:
+                    new_values.append(lang.value)
+        
+            return new_values
+        
+        original_language = validate_language("original_language")
+        excluded_original_language = validate_language("excluded_original_language")
+        available_translated_language = validate_language("available_translated_language")
+
+        _pub_demo_values = [ 
+            'shounen',
+            'shoujo',
+            'josei',
+            'seinen',
+            'none'
+        ]
+        validate_values_from_list("publication_demographic", _pub_demo_values)
+
+        _content_rating_values = [a.value for a in ContentRating]
+        validate_values_from_list("content_rating", _content_rating_values)
+
+        if has_available_chapters:
+            try:
+                validate_boolean(has_available_chapters)
+            except ConfigTypeError as e:
+                raise SearchFilterError("has_available_chapters", e)
+
+        self._param_init = {
+            "authors[]": authors,
+            "artists[]": artists,
+            "year": year,
+            "includedTags[]": included_tags,
+            "includedTagsMode": included_tags_mode,
+            "excludedTags[]": excluded_tags,
+            "excludedTagsMode": excluded_tags_mode,
+            "status[]": status,
+            "originalLanguage[]": original_language,
+            "excludedOriginalLanguage[]": excluded_original_language,
+            "availableTranslatedLanguage[]": available_translated_language,
+            "publicationDemographic[]": publication_demographic,
+            "contentRating[]": content_rating or _default_content_ratings,
+            "createdAtSince": created_at_since,
+            "updatedAtSince": updated_at_since,
+            "hasAvailableChapters": has_available_chapters,
+        }
+
+    def _get_params(self):
+        includes = ['author', 'artist', 'cover_art']
+
         params = {
             'includes[]': includes,
             'title': self.title,
             'limit': self.limit,
             'offset': self.offset,
-            'contentRating[]': content_ratings
         }
+        params.update(self._param_init.copy())
+
+        return params
+
+    def next(self) -> Manga:
+        return self.queue.get_nowait()
+
+    def fill_data(self):
+        params = self._get_params()
         url = f'{base_url}/manga'
         r = Net.mangadex.get(url, params=params)
         data = r.json()
+
+        if r.status_code >= 400:
+            err = data['errors'][0]['detail']
+            raise MangaDexException(err)
 
         items = data['data']
         

@@ -28,7 +28,7 @@ For bundled executable will remain `mangadex-dl`
 ### Global options
 
 ```{option} URL
-MangaDex URL or a file containing MangaDex URLs.
+MangaDex URL or a file containing MangaDex URLs. 
 Type `library:<status>` to download manga from logged in user library,
 if `<status>` is provided, it will fetch all mangas with given reading status,
 if not, then it will fetch all mangas from logged in user.
@@ -54,12 +54,20 @@ Replace manga, chapter, or list (if exist)
 Enable verbose output
 ```
 
+```{option} --unsafe -u
+If set, it will allow you to search and download porn manga
+```
+
+### Search related
+
 ```{option} --search -s
 Search a manga and then download it
 ```
 
-```{option} --unsafe -u
-If set, it will allow you to search and download porn manga
+```{option} --search-filter -sf
+Apply filter when searching manga
+
+For more info about available filters, see {doc}`./search_filters`
 ```
 
 ### Manga related
@@ -210,4 +218,11 @@ Print mangadex-downloader version
 
 ```{option} --update
 Update mangadex-downloader to latest version
+```
+
+<!-- HIDDEN TOC TREE -->
+```{toctree}
+:hidden:
+
+search_filters
 ```
