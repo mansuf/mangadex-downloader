@@ -5,6 +5,9 @@
 ### New features
 
 - Added web URL location (`http`, `https`) support for batch download syntax
+- Added new languages
+  - Azerbaijani
+  - Slovak
 
 ### Fix bugs
 
