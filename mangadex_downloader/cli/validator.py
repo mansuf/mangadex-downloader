@@ -203,7 +203,7 @@ def preview_cover_manga(manga):
 
     print("\nCLOSE THE IMAGE PREVIEW TO CONTINUE\n")
 
-    im.show()
+    im.show(manga.title)
     im.close()
 
 def validate(parser, args):
