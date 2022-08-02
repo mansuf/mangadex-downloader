@@ -170,27 +170,14 @@ def _create_prompt_choices(
     return item
 
 def preview_list(args, mdlist):
-    cache = []
-    for manga in mdlist.iter_manga(args.unsafe):
-        cache.append(manga)
-
-    len_manga_titles = []
-    # Grab the longest title to determine length bar
-    for manga in cache:
-        len_manga_titles.append(len(manga.title))
-    
-    # List is empty
-    if not len_manga_titles:
-        length_bar = 0
-    else:
-        length_bar = max(len_manga_titles)
+    text_init = f'List of mangas from MangaDex list \"{mdlist.name}\"'
 
     print('\n')
-    print(f'List of mangas from MangaDex list \"{mdlist.name}\"')
-    print(dynamic_bars(length_bar))
-    for manga in cache:
+    print(text_init)
+    print(dynamic_bars(text_init))
+    for manga in mdlist.iter_manga(args.unsafe):
         print(manga.title)
-    print(f'{dynamic_bars(length_bar)}\n\n')
+    print('\n\n')
 
 def preview_cover_manga(manga):
     try:

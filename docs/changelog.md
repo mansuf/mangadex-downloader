@@ -14,6 +14,10 @@
   - `force_https`
 - Added ability to preview cover manga when searching manga
 
+## Improvements
+
+- Reduced time to preview list
+
 ### Fix bugs
 
 - Fixed error `NameError: name 'exit' is not defined` in bundled executable 
