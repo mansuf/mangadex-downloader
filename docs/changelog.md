@@ -12,6 +12,7 @@
 - Added `--force-https` and `-fh` option, allowing you to download images in standard HTTPS port 443
 - Added new configs
   - `force_https`
+- Added ability to preview cover manga when searching manga
 
 ### Fix bugs
 

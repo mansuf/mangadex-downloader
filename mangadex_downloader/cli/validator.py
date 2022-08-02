@@ -13,7 +13,7 @@ from ..utils import (
     validate_legacy_url,
     input_handle
 )
-from ..errors import InvalidURL, MangaDexException
+from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
 
 def _validate(url):
     try:
@@ -192,6 +192,20 @@ def preview_list(args, mdlist):
         print(manga.title)
     print(f'{dynamic_bars(length_bar)}\n\n')
 
+def preview_cover_manga(manga):
+    try:
+        from PIL import Image
+    except ImportError:
+        raise PillowNotInstalled("Pillow is not installed") from None
+
+    r = Net.mangadex.get(manga.cover_art, stream=True)
+    im = Image.open(r.raw)
+
+    print("\nCLOSE THE IMAGE PREVIEW TO CONTINUE\n")
+
+    im.show()
+    im.close()
+
 def validate(parser, args):
     urls = args.URL
 
@@ -276,7 +290,7 @@ def validate(parser, args):
         iterator = search(urls, args.unsafe, **filter_kwargs)
         text = f"Search results for \"{urls}\""
         on_empty_err = f"Search results \"{urls}\" are empty"
-        on_preview = None
+        on_preview = preview_cover_manga
     elif args.fetch_library_manga:
         result = urls.split(':')
         
@@ -294,7 +308,7 @@ def validate(parser, args):
         user = Net.mangadex.user
         text = f"Manga library from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no saved mangas"
-        on_preview = None
+        on_preview = preview_cover_manga
     elif args.fetch_library_list:
         # Try to get user (if available)
         user = "".join(urls.split(':')[1:])
