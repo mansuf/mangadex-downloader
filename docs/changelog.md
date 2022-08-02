@@ -14,7 +14,7 @@
   - `force_https`
 - Added ability to preview cover manga when searching manga
 
-## Improvements
+### Improvements
 
 - Reduced time to preview list
 
