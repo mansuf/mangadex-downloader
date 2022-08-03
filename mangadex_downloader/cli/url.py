@@ -54,7 +54,7 @@ def download_manga(url, args, legacy=False):
 
     args = (
         url,
-        args.folder,
+        args.path,
         args.replace,
         args.use_compressed_image,
         args.start_chapter,
@@ -88,7 +88,7 @@ def download_chapter(url, args, legacy=False):
 
     args = (
         url,
-        args.folder,
+        args.path,
         args.replace,
         args.start_page,
         args.end_page,
@@ -126,7 +126,7 @@ def download_list(url, args):
 
     dl_list(
         url,
-        args.folder,
+        args.path,
         args.replace,
         args.use_compressed_image,
         args.language,

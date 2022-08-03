@@ -350,6 +350,10 @@ Same as `--use-compressed-image` or `-uci`
 Same as `--force-https` or `-fh`
 ```
 
+```{option} path
+Same as `--path` or `--folder` or `-d`
+```
+
 ### Example usage
 
 Set a config

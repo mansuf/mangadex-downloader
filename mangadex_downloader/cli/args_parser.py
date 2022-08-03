@@ -308,11 +308,12 @@ def get_args(argv):
         choices=valid_types
     )
     parser.add_argument(
-        '--folder',
         '--path',
+        '--folder',
         '-d',
         metavar='FOLDER',
-        help='Store manga in given folder'
+        help='Store manga in given folder',
+        default=config.path
     )
     parser.add_argument(
         '--replace',

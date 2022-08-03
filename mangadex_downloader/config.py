@@ -55,6 +55,9 @@ def _validate_format(val):
     fmt.get_format(val)
     return val
 
+def _dummy_validator(val):
+    return val
+
 _env_dir = os.environ.get('MANGADEXDL_CONFIG_PATH')
 base_path = Path(_env_dir) if _env_dir is not None else (Path.home() / '.mangadex-dl')
 
@@ -108,6 +111,10 @@ class _Config:
         "force_https": [
             False,
             _validate_bool
+        ],
+        "path": [
+            "./",
+            _dummy_validator
         ]
     }
     default_conf = {
