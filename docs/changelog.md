@@ -24,6 +24,7 @@
 - Fixed error `NameError: name 'exit' is not defined` in bundled executable 
 when executing command `login_cache` or `login_cache:show`
 - Fixed mangadex-downloader won't start in Python 3.8
+- Fixed config is not parsed properly
 
 ### Breaking changes
 

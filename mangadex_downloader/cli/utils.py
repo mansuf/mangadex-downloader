@@ -126,7 +126,7 @@ def dynamic_bars(length):
     return bar
 
 def get_key_value(text, sep='='):
-    splitted = text.split(sep)
+    splitted = text.split(sep, maxsplit=1)
     key = splitted[0]
     value = "".join(splitted[1:])
     return key, value

@@ -1,5 +1,7 @@
 import logging
 import sys
+
+from .utils import get_key_value
 from ..config import (
     set_config_from_cli_opts,
     config_enabled,
@@ -32,21 +34,18 @@ def build_config_from_url_arg(parser, urls):
         elif not val.startswith('conf'):
             continue
 
-        # Initial value splitted into "key_conf=value_conf"
-        value = val.split(':')
+        # Split from "conf:config_key=config_value"
+        # to ["conf", "config_key=config_value"] 
+        value, conf = get_key_value(val, sep=':')
 
-        # Split key and value config into ["key", "value_piece1", "value_piece2"]
-        conf = "".join(value[1:]).split('=')
-
-        conf_key = conf[0]
+        # Split string from "config_key=config_value"
+        # to ["config_key", "config_value"]
+        conf_key, conf_value = get_key_value(conf)
 
         if not conf_key:
             for name, value in get_all_configs():
                 print(f"Config '{name}' is set to '{value}'")
             continue
-
-        # Merge value pieces
-        conf_value = "".join(conf[1:])
 
         # Reset config (if detected)
         if conf_key.startswith('reset'):
