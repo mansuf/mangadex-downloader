@@ -37,11 +37,8 @@ You may be wondering, why remove a feature that got added 2 months before ?
 <br>
 Okay that was my mistake, 
 because i was really naive to implement some restriction that makes user have a complicated process when downloading manga from MangaDex. 
-See [d3470ce](https://github.com/mansuf/mangadex-downloader/commit/d3470ce47e7475f604cdd8b30a12f249a2bbcb38). 
-But here's the thing, it's a downloader tool, 
-not a website that may be blocked by some countries because of inappropriate contents. 
-mangadex-downloader is a tool for offline reading that you can read it in your devices. 
-It has nothing to do with content restrictions in downloader tool.
+See [d3470ce](https://github.com/mansuf/mangadex-downloader/commit/d3470ce47e7475f604cdd8b30a12f249a2bbcb38), 
+but here's the thing, it's a downloader tool and it has nothing to do with content restrictions in a downloader tool.
 
 ## v1.2.1
 
