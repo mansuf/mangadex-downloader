@@ -54,9 +54,12 @@ Replace manga, chapter, or list (if exist)
 Enable verbose output
 ```
 
-```{option} --unsafe -u
-If set, it will allow you to search and download porn manga
+````{option} --unsafe -u
+```{warning}
+Deprecated, will be removed in v2.0.0
 ```
+Do nothing
+````
 
 ### Search related
 
