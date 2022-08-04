@@ -52,15 +52,6 @@ api
 
 ```{toctree}
 :hidden:
-:glob:
-:caption: Notes
-
-notes/*
-
-```
-
-```{toctree}
-:hidden:
 :caption: Development
 
 changelog

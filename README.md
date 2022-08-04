@@ -1,4 +1,4 @@
-[![pypi-total-downloads](https://img.shields.io/pypi/dm/mangadex-downloader?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
+w[![pypi-total-downloads](https://img.shields.io/pypi/dm/mangadex-downloader?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 
@@ -151,15 +151,6 @@ download("insert MangaDex URL here")
 ```
 
 For more information, you can [read here](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
-
-## Notes <a id="notes"></a>
-
-### Pornographic and erotica content <a id="pornographic-and-erotica-content"></a>
-
-You may get error `You are not allowed to see ..` when downloading porn and erotica manga. 
-This is because mangadex-downloader implement strict rule to porn mangas.
-
-For more info, you can [see it here](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
 
 ## Supporting <a id="supporting"></a>
 
