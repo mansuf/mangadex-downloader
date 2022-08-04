@@ -2,7 +2,7 @@ import logging
 import re
 import sys
 
-from .utils import dynamic_bars
+from .utils import dynamic_bars, get_key_value
 from ..config import config, login_cache
 from ..utils import getpass_handle, input_handle
 from ..main import login, logout
@@ -88,10 +88,8 @@ def purge_cache(args):
     if not string.startswith('login_cache'):
         return
 
-    # Initial value
-    lc = string.split(':')
-
-    value = "".join(lc[1:])
+    # Get value from "login_cache:{VALUE}"
+    _, value = get_key_value(string, sep=':')
 
     # Reset authentication cache
     if value.startswith('purge'):

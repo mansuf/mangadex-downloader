@@ -36,7 +36,7 @@ def build_config_from_url_arg(parser, urls):
 
         # Split from "conf:config_key=config_value"
         # to ["conf", "config_key=config_value"] 
-        value, conf = get_key_value(val, sep=':')
+        _, conf = get_key_value(val, sep=':')
 
         # Split string from "config_key=config_value"
         # to ["config_key", "config_value"]
