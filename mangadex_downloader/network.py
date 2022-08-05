@@ -149,8 +149,13 @@ class requestsMangaDexSession(requests.Session):
 
             # Server error
             elif resp.status_code >= 500:
+                url = _get_netloc(resp.url)
+                if 'mangadex.network' in url and 'api.mangadex.network/report' not in url:
+                    # Return here anyway to not wasting time to retry to faulty node
+                    return resp
+
                 log.info(
-                    f"Failed to connect to \"{_get_netloc(resp.url)}\", " \
+                    f"Failed to connect to \"{url}\", " \
                     f"reason: Server throwing error code {resp.status_code}. "  \
                     f"Trying... (attempt: {attempt})"
                 )

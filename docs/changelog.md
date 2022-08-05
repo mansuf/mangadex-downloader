@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+## Fix bugs
+
+- Fixed report system is not working if HTTP response is server error
+
 ## v1.3.0
 
 ### New features
