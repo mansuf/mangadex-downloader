@@ -2,9 +2,10 @@
 
 ## UNRELEASED
 
-## Fix bugs
+### Fix bugs
 
 - Fixed report system is not working if HTTP response is server error
+- Fixed fail to parse authors and artists when fetching manga
 
 ## v1.3.0
 

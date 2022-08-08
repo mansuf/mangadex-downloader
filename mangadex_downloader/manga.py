@@ -17,6 +17,19 @@ class ContentRating(Enum):
     Erotica = 'erotica'
     Pornographic = 'pornographic'
 
+def _append_authors(cls, data, array):
+    try:
+        created = cls(data=data)
+    except KeyError:
+        # Although the manga data should never contain 
+        # ghost authors or artists (showing just the id, the rest of data is not exist)
+        # but at some cases it does
+        # Reference: https://api.mangadex.org/manga/2da3ec2b-870f-4f2b-8d53-3b6481dafc32?includes[]=artist
+        # (look at relationships artist 'e0e534c8-360c-4709-97b5-718f667a7cd5')
+        return
+    
+    array.append(created)
+
 class Manga:
     def __init__(self, data=None, _id=None, use_alt_details=False):
         if _id and data:
@@ -36,10 +49,10 @@ class Manga:
             _type = rel.get('type')
 
             if _type == 'author':
-                authors.append(Author(data=rel))
+                _append_authors(Author, rel, authors)
 
             elif _type == 'artist':
-                artists.append(Artist(data=rel))
+                _append_authors(Artist, rel, artists)
 
             elif _type == 'cover_art':
                 cover_art = CoverArt(data=rel)
