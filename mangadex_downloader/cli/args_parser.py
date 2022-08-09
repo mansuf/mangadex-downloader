@@ -327,7 +327,7 @@ def get_args(argv):
     parser.add_argument(
         '--unsafe',
         '-u',
-        help='If set, it will allow you to search and download porn and erotica manga', 
+        help='[DEPRECATED] Do nothing. In v1.2.1 lower this used to allow download erotica and pornographic manga', 
         action='store_true',
         default=False
     )
