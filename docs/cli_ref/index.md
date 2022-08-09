@@ -221,6 +221,10 @@ Print mangadex-downloader version
 Force download images in standard HTTPS port 443
 ```
 
+```{option} --delay-requests -dr DELAY_TIME
+Set delay for each requests send to MangaDex server
+```
+
 ### Update application
 
 ```{option} --update

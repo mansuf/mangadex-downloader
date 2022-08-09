@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### New features
+
+- Added ability to throttle requests [#24](https://github.com/mansuf/mangadex-downloader/issues/24)
+
 ## v1.4.0
 
 ### New features

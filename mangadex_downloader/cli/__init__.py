@@ -7,7 +7,7 @@ from .validator import build_url
 from .utils import (
     close_network_object,
     setup_logging,
-    setup_proxy,
+    setup_network,
     register_keyboardinterrupt_handler,
     sys_argv
 )
@@ -41,8 +41,8 @@ def _main(argv):
         # Parse config
         build_config(parser, args)
 
-        # Setup proxy
-        setup_proxy(args.proxy, args.proxy_env)
+        # Setup network
+        setup_network(args)
 
         # Check deprecation options
         _check_deprecations(log, args)

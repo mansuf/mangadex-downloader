@@ -47,6 +47,7 @@ class requestsMangaDexSession(requests.Session):
         super().__init__()
         self.trust_env = trust_env
         self.user = None
+        self.delay = None
         user_agent = 'mangadex-downloader (https://github.com/mansuf/mangadex-downloader {0}) '.format(__version__)
         user_agent += 'Python/{0[0]}.{0[1]} '.format(sys.version_info)
         user_agent += 'requests/{0}'.format(
@@ -152,6 +153,8 @@ class requestsMangaDexSession(requests.Session):
                 url = _get_netloc(resp.url)
                 if 'mangadex.network' in url and 'api.mangadex.network/report' not in url:
                     # Return here anyway to not wasting time to retry to faulty node
+                    if self.delay:
+                        time.sleep(self.delay)
                     return resp
 
                 log.info(
@@ -160,8 +163,12 @@ class requestsMangaDexSession(requests.Session):
                     f"Trying... (attempt: {attempt})"
                 )
                 attempt += 1
+                if self.delay:
+                    time.sleep(self.delay)
                 continue
 
+            if self.delay:
+                time.sleep(self.delay)
             return resp
 
         if resp is not None and resp.status_code >= 500:
@@ -452,6 +459,10 @@ class NetworkObject:
         """Return proxied requests (if configured)"""
         self._create_requests()
         return self._requests
+
+    def set_delay(self, delay=None):
+        """Add delay for each requests for MangaDex session"""
+        self.mangadex.delay = delay
 
     def close(self):
         self._mangadex.close()

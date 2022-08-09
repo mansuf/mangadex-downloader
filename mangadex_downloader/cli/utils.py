@@ -36,6 +36,13 @@ def setup_proxy(proxy=None, from_env=False):
         log.debug('Setting up proxy from --proxy option')
         Net.set_proxy(proxy)
 
+def setup_network(args):
+    # Build proxy
+    setup_proxy(args.proxy, args.proxy_env)
+
+    # Setup delay requests (if set)
+    Net.set_delay(args.delay_requests)
+
 def _keyboard_interrupt_handler(*args):
     print("Cleaning up...")
     # Downloader are not cleaned up

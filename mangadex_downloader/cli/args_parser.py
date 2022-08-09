@@ -534,6 +534,12 @@ def get_args(argv):
         help='Force download images in standard HTTPS port 443',
         default=config.force_https
     )
+    misc_group.add_argument(
+        '--delay-requests',
+        '-dr',
+        help='Set delay for each requests send to MangaDex server',
+        type=float
+    )
 
     # Update application
     update_group = parser.add_argument_group('Update application')
