@@ -2,14 +2,14 @@
 
 ## Syntax
 
-```
-FILTER_KEY=FILTER_VALUE
+```shell
+mangadex-dl -s -sf "FILTER_KEY=FILTER_VALUE"
 ```
 
 It also support multiple values separated by commas
 
-```
-FILTER_KEY=FILTER_VALUE1,FILTER_VALUE2,FILTER_VALUE3
+```shell
+mangadex-dl -s -sf "FILTER_KEY=FILTER_VALUE1,FILTER_VALUE2,FILTER_VALUE3"
 ```
 
 ## Available filters
@@ -91,4 +91,12 @@ value must matching format `%Y-%m-%dT%H:%M:%S`
 ```
 
 ```{option} has_available_chapters [1 or 0, true or false]
+```
+
+## Example usage
+
+Search manga with content rating erotica and status completed 
+
+```shell
+mangadex-dl -s -sf "original_language=Japanese" -sf "content_rating=erotica" -sf "status=completed"
 ```

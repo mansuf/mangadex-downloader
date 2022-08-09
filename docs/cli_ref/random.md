@@ -3,7 +3,7 @@
 ## Syntax
 
 ```shell
-random:{CONTENT_RATINGS}
+mangadex-dl "random:{CONTENT_RATINGS}"
 ```
 
 ## Arguments
