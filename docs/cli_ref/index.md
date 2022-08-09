@@ -232,4 +232,5 @@ Update mangadex-downloader to latest version
 :hidden:
 
 search_filters
+random
 ```

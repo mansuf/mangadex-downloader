@@ -130,3 +130,10 @@ def get_key_value(text, sep='='):
     key = splitted[0]
     value = "".join(splitted[1:])
     return key, value
+
+def split_comma_separated(text, single_value_to_list=False):
+    if ',' not in text:
+        return [text] if single_value_to_list else  text
+    
+    return [i.strip() for i in text.split(',')]
+    

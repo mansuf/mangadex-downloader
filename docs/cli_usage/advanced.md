@@ -62,11 +62,6 @@ mangadex-dl "library:help"
 # ...
 ```
 
-```{note}
-By default, mangadex-downloader is not showing any of porn manga results. 
-You have to enable "unsafe" feature in order to access porn and erotica content learn more here -> {doc}`../notes/pornographic`
-```
-
 ## Download MangaDex list from logged in user library
 
 ```{warning}

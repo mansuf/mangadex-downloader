@@ -226,6 +226,7 @@ class InputHandler(argparse.Action):
         fetch_library_manga = urls.startswith('library')
         fetch_library_list = urls.startswith('list')
         fetch_library_follows_list = urls.startswith('followed-list')
+        random = urls.startswith('random')
         file = urls.startswith('file')
 
         if self.pipe and self.search:
@@ -285,6 +286,7 @@ class InputHandler(argparse.Action):
             'fetch_library_follows_list',
             fetch_library_follows_list
         )
+        setattr(namespace, 'random', random)
         setattr(namespace, 'file', file)
 
 def get_args(argv):

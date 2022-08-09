@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+### New features
+
+- Added ability to choose and download random manga
+
 ### Fix bugs
 
 - Fixed report system is not working if HTTP response is server error

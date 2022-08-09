@@ -130,11 +130,6 @@ mangadex-dl "komi san" --search
 # ...
 ```
 
-```{note}
-By default, mangadex-downloader is not showing any of porn manga results. 
-You have to enable "unsafe" feature in order to access porn and erotica content learn more here -> {doc}`../notes/pornographic`
-```
-
 ## Download manga, chapter, or list in different translated language
 
 By default, the app will download in English language.
@@ -264,6 +259,24 @@ mangadex-dl "https://mangadex.org/title/..." --login --login-username "..." --lo
 # [INFO] Logged in to MangaDex
 # ...
 ```
+
+## Choose and download random manga
+
+In case you wanna try something different, this feature is for you !
+
+Example usage:
+
+```shell
+mangadex-dl "random"
+```
+
+it also support content ratings filter
+
+```shell
+mangadex-dl "random:safe, suggestive"
+```
+
+For more information, see {doc}`../cli_ref/random`
 
 ## Update mangadex-downloader
 

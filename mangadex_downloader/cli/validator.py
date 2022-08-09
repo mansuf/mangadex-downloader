@@ -4,15 +4,16 @@ import sys
 
 import requests
 
-from .utils import Paginator, dynamic_bars, get_key_value
+from .utils import Paginator, dynamic_bars, get_key_value, split_comma_separated
 from .url import build_URL_from_type, smart_select_url
-from ..network import Net
+from ..network import Net, base_url
 from ..main import get_followed_list_from_user_library, get_list_from_user, get_list_from_user_library, search, get_manga_from_user_library
 from ..utils import (
     validate_url as __validate,
     validate_legacy_url,
     input_handle
 )
+from ..manga import ContentRating, Manga
 from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
 
 def _validate(url):
@@ -50,7 +51,8 @@ def _create_prompt_choices(
     iterator,
     text,
     on_empty_err,
-    on_preview
+    on_preview,
+    limit=10
 ):
     def print_err(text):
         print(f"\n{text}\n")
@@ -75,7 +77,7 @@ def _create_prompt_choices(
         if fetch:
             items = []
             # 10 results displayed at the screen
-            for _ in range(10):
+            for _ in range(limit):
                 try:
                     items.append(next(iterator))
                 except StopIteration:
@@ -200,7 +202,8 @@ def validate(parser, args):
         not args.search and 
         not args.fetch_library_manga and
         not args.fetch_library_list and
-        not args.fetch_library_follows_list
+        not args.fetch_library_follows_list and
+        not args.random
     ):
         # Parsing file path
         if args.file:
@@ -251,7 +254,44 @@ def validate(parser, args):
         'parser': parser
     }
 
-    if args.search:
+    limit_items = None
+    if args.random:
+        def iter_random_manga():
+            ids = []
+            while True:
+                _, raw_cr = get_key_value(urls, sep=":")
+                content_ratings = split_comma_separated(raw_cr, single_value_to_list=True)
+                if not content_ratings[0]:
+                    # Fallback to default values
+                    content_ratings = [i.value for i in ContentRating]
+                else:
+                    # Verify it
+                    try:
+                        content_ratings = [ContentRating(i).value for i in content_ratings]
+                    except ValueError as e:
+                        raise MangaDexException(e)
+
+                params = {
+                    'includes[]': ['author', 'artist', 'cover_art'],
+                    "contentRating[]": content_ratings
+                }
+                r = Net.mangadex.get(f'{base_url}/manga/random', params=params)
+                data = r.json()['data']
+                manga = Manga(data=data)
+
+                if manga.id not in ids:
+                    # Make sure it's not duplicated manga
+                    ids.append(manga.id)
+                    yield manga
+
+                continue
+
+        iterator = iter_random_manga()
+        text = f"Found random manga"
+        on_empty_err = f"Unknown Error" # This should never happened
+        on_preview = preview_cover_manga
+        limit_items = 5
+    elif args.search:
         filter_kwargs = {}
         filters = args.search_filter or []
         for f in filters:
@@ -259,7 +299,7 @@ def validate(parser, args):
             try:
                 value_filter_kwargs = filter_kwargs[key]
             except KeyError:
-                filter_kwargs[key] = value.split(',') if ',' in value else value
+                filter_kwargs[key] = split_comma_separated(value)
             else:
                 # Found duplicate filter with different value
                 if isinstance(value_filter_kwargs, str):
@@ -267,11 +307,9 @@ def validate(parser, args):
                 else:
                     new_values = value_filter_kwargs
 
-                if ',' in value:
-                    new_values.extend(value.split(','))
-                else:
-                    new_values.append(value)
-                
+                values = split_comma_separated(value, single_value_to_list=True)
+                new_values.extend(values)
+
                 filter_kwargs[key] = new_values
 
         iterator = search(urls, args.unsafe, **filter_kwargs)
@@ -336,6 +374,9 @@ def validate(parser, args):
         'on_empty_err': on_empty_err,
         'on_preview': on_preview
     })
+
+    if limit_items:
+        kwargs.update(limit=limit_items)
 
     result = _create_prompt_choices(**kwargs)
 
