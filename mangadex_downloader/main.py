@@ -404,7 +404,7 @@ def download(
     if cover_url is None:
         log.debug('Not downloading cover manga, since \"cover\" is none')
     else:
-        download_file(cover_url, str(cover_path), replace=True)
+        download_file(cover_url, str(cover_path), replace=replace)
 
     # Reuse is good
     def download_manga(m, path):

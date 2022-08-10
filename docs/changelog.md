@@ -6,6 +6,10 @@
 
 - Added ability to throttle requests [#24](https://github.com/mansuf/mangadex-downloader/issues/24)
 
+### Improvements
+
+- Do not re-download cover manga when it already exist [#23](https://github.com/mansuf/mangadex-downloader/issues/23)
+
 ## v1.4.0
 
 ### New features
