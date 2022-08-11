@@ -353,7 +353,12 @@ def validate(parser, args):
         except MangaDexException as e:
             parser.error(str(e))
 
-        user = iterator.user if Net.mangadex.user is None else Net.mangadex.user
+        try:
+            user = iterator.user
+        except AttributeError:
+            # Logged in user
+            user = Net.mangadex.user
+
         text = f"MangaDex List library from user \"{user.name}\""
         on_empty_err = f"User \"{user.name}\" has no saved lists"
         on_preview = lambda x: preview_list(args, x)
