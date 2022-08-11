@@ -6,6 +6,10 @@
 
 - Added ability to throttle requests [#24](https://github.com/mansuf/mangadex-downloader/issues/24)
 
+### Fix bugs
+
+- Fixed error `Too many open files` in Unix-based systems when downloading manga in any `pdf` format
+
 ### Improvements
 
 - Do not re-download cover manga when it already exist [#23](https://github.com/mansuf/mangadex-downloader/issues/23)

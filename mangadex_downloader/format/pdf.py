@@ -41,6 +41,15 @@ class _ChapterMarkImage:
         self.func = func
         self.args = args
 
+class _PageRef:
+    def __init__(self, func, *args, **kwargs):
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+    
+    def __call__(self):
+        return self._func(*self._args, **self._kwargs)
+
 class PDFPlugin:
     def __init__(self, ims):
         self.tqdm = tqdm(
@@ -93,22 +102,22 @@ class PDFPlugin:
 
         #
         # pages
+        encoderinfo = im.encoderinfo.copy()
         ims = [im]
         if save_all:
             append_images = im.encoderinfo.get("append_images", [])
-            for append_im in append_images:
-                append_im.encoderinfo = im.encoderinfo.copy()
-                ims.append(append_im)
+            ims.extend(append_images)
 
         numberOfPages = 0
         image_refs = []
         page_refs = []
         contents_refs = []
-        for im in ims:
+        for im_ref in ims:
+            img = im_ref() if isinstance(im_ref, _PageRef) else im_ref
             im_numberOfPages = 1
-            if save_all and not isinstance(im, _ChapterMarkImage):
+            if save_all:
                 try:
-                    im_numberOfPages = im.n_frames
+                    im_numberOfPages = img.n_frames
                 except AttributeError:
                     # Image format does not have n_frames.
                     # It is a single frame image
@@ -119,23 +128,33 @@ class PDFPlugin:
                 page_refs.append(existing_pdf.next_object_id(0))
                 contents_refs.append(existing_pdf.next_object_id(0))
                 existing_pdf.pages.append(page_refs[-1])
+            
+            # Reduce Opened files
+            if isinstance(im_ref, _PageRef):
+                img.close()
 
         #
         # catalog and list of pages
         existing_pdf.write_catalog()
 
         pageNumber = 0
-        for orig_img in ims:
-            # This is mark chapter image
-            # Retrieve it first and then convert
-            if isinstance(orig_img, _ChapterMarkImage):
-                mark_img = orig_img.func(*orig_img.args)
-                imSequence = mark_img.convert("RGB")
-                imSequence.encoderinfo = orig_img.encoderinfo.copy()
+        for im_ref in ims:
+            if isinstance(im_ref, _PageRef):
+                im = im_ref()
+                if im.mode != 'RGB':
+                    # Convert to RGB mode
+                    imSequence = im.convert('RGB')
+
+                    # Close image to save memory
+                    im.close()
+                else:
+                    # Already in RGB mode
+                    imSequence = im
+                
+                # Copy necessary encoderinfo to new image
+                imSequence.encoderinfo = encoderinfo.copy()
             else:
-                # Convert image to RGB
-                imSequence = orig_img.convert('RGB')
-                imSequence.encoderinfo = orig_img.encoderinfo.copy()
+                imSequence = im_ref
 
             im_pages = ImageSequence.Iterator(imSequence) if save_all else [imSequence]
             for im in im_pages:
@@ -246,8 +265,6 @@ class PDFPlugin:
                 pageNumber += 1
             
             # Close image to save memory
-            if not isinstance(orig_img, _ChapterMarkImage):
-                orig_img.close()
             imSequence.close()
 
         #
@@ -340,7 +357,7 @@ class PDF(BaseFormat):
                     # Continue to download the others
                     if verified:
                         log.info("File exist and same as file from MangaDex server, cancelling download...")
-                        imgs.append(Image.open(img_path))
+                        imgs.append(_PageRef(Image.open, img_path))
                         count.increase()
                         continue
                     elif verified == False and not self.replace:
@@ -371,7 +388,7 @@ class PDF(BaseFormat):
                         break
                     else:
                         count.increase()
-                        imgs.append(Image.open(img_path))
+                        imgs.append(_PageRef(Image.open, img_path))
                         continue
                 
                 if not error:
@@ -381,7 +398,8 @@ class PDF(BaseFormat):
 
             pdf_plugin = PDFPlugin(imgs)
 
-            im = imgs.pop(0)
+            im_ref = imgs.pop(0)
+            im = im_ref()
 
             # Convert it to PDF
             def save_pdf():
@@ -465,9 +483,9 @@ class PDFSingle(PDF):
 
             # Insert "start of the chapter" image
             imgs.append(
-                _ChapterMarkImage(
+                _PageRef(
                     get_mark_image,
-                    [chap_class]
+                    chap_class
                 )
             )
             count.increase()
@@ -496,7 +514,7 @@ class PDFSingle(PDF):
                     # Continue to download the others
                     if verified:
                         log.info("File exist and same as file from MangaDex server, cancelling download...")
-                        imgs.append(Image.open(img_path))
+                        imgs.append(_PageRef(Image.open, img_path))
                         count.increase()
                         continue
                     elif verified == False and not self.replace:
@@ -527,7 +545,7 @@ class PDFSingle(PDF):
                         break
                     else:
                         count.increase()
-                        imgs.append(Image.open(img_path))
+                        imgs.append(_PageRef(Image.open, img_path))
                         continue
                 
                 if not error:
@@ -537,9 +555,7 @@ class PDFSingle(PDF):
 
         pdf_plugin = PDFPlugin(imgs)
 
-        # The first one image always be _ChapterMarkImage object
-        start_img = imgs.pop(0)
-        im = start_img.func(*start_img.args)
+        im = imgs.pop(0)()
 
         # Convert it to PDF
         def save_pdf():
@@ -630,9 +646,9 @@ class PDFVolume(PDF):
 
                 # Insert "start of the chapter" image
                 imgs.append(
-                    _ChapterMarkImage(
+                    _PageRef(
                         get_mark_image,
-                        [chap_class]
+                        chap_class
                     )
                 )
                 count.increase()
@@ -661,7 +677,7 @@ class PDFVolume(PDF):
                         # Continue to download the others
                         if verified:
                             log.info("File exist and same as file from MangaDex server, cancelling download...")
-                            imgs.append(Image.open(img_path))
+                            imgs.append(_PageRef(Image.open, img_path))
                             count.increase()
                             continue
                         elif verified == False and not self.replace:
@@ -692,7 +708,7 @@ class PDFVolume(PDF):
                             break
                         else:
                             count.increase()
-                            imgs.append(Image.open(img_path))
+                            imgs.append(_PageRef(Image.open, img_path))
                             continue
                     
                     if not error:
@@ -703,8 +719,7 @@ class PDFVolume(PDF):
             pdf_plugin = PDFPlugin(imgs)
 
             # The first one image always be _ChapterMarkImage object
-            start_img = imgs.pop(0)
-            im = start_img.func(*start_img.args)
+            im = imgs.pop(0)()
 
             # Convert it to PDF
             def save_pdf():
