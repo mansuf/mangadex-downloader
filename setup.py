@@ -21,12 +21,12 @@ def get_version():
 def get_value_var(var_name):
     """Get value of `__{var_name}__` from `mangadex_downloader/__init__.py`"""
     var = f'__{var_name}__'
-    regex = f'{var} = "(.{1,})"'
+    regex = '%s = "(.{1,})"' % var
 
     found = re.search(regex, init_file)
 
     if found is None:
-        raise RuntimeError(f'{var} is not set in "{init_file}"')
+        raise RuntimeError(f'{var} is not set in "mangadex_downloader/__init__.py"')
     
     return found.group(1)
 
