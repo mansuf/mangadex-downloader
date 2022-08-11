@@ -10,6 +10,7 @@
 
 - Fixed error `Too many open files` in Unix-based systems when downloading manga in any `pdf` format
 - Fixed false owner list name when executing command `list:<user-id>`
+- Fixed unproperly parsed `list` command
 
 ### Improvements
 

@@ -336,7 +336,7 @@ def validate(parser, args):
         on_preview = preview_cover_manga
     elif args.fetch_library_list:
         # Try to get user (if available)
-        user = "".join(urls.split(':')[1:])
+        _, user = get_key_value(urls, sep=':')
 
         user_id = None
         if user:
