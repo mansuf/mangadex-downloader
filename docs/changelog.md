@@ -16,6 +16,10 @@
 
 - Do not re-download cover manga when it already exist [#23](https://github.com/mansuf/mangadex-downloader/issues/23)
 
+### Dependencies
+
+- Bump py7zr to v0.20.0
+
 ## v1.4.0
 
 ### New features
