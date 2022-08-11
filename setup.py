@@ -18,45 +18,17 @@ def get_version():
 
     return _version.group(1)
 
-def get_description():
-    """Get description of the app"""
-    re_description = r'__description__ = \"(.{1,})\"'
-    _description = re.search(re_description, init_file)
+def get_value_var(var_name):
+    """Get value of `__{var_name}__` from `mangadex_downloader/__init__.py`"""
+    var = f'__{var_name}__'
+    regex = f'{var} = "(.{1,})"'
 
-    if _description is None:
-        raise RuntimeError("Description is not set")
+    found = re.search(regex, init_file)
 
-    return _description.group(1)
-
-def get_license():
-    """Get license of the app"""
-    re_license = r'__license__ = "(.{1,})"'
-    _license = re.search(re_license, init_file)
-
-    if _license is None:
-        raise RuntimeError("License is not set")
+    if found is None:
+        raise RuntimeError(f'{var} is not set in "{init_file}"')
     
-    return _license.group(1)
-
-def get_author():
-    """Get author of the app"""
-    re_author = r'__author__ = "(.{1,})"'
-    _author = re.search(re_author, init_file)
-
-    if _author is None:
-        raise RuntimeError("Author is not set")
-    
-    return _author.group(1)
-
-def get_repository():
-    """get git repository of the app"""
-    re_repo = r'__repository__ = "(.{1,})"' 
-    _repo = re.search(re_repo, init_file)
-
-    if _repo is None:
-        raise RuntimeError("Repository is not set")
-    
-    return _repo.group(1)
+    return found.group(1)
 
 def get_requirements():
     """Return tuple of library needed for app to run"""
@@ -102,19 +74,19 @@ requires_main, extras_require = get_requirements()
 packages = find_packages('.')
 
 # Get repository
-repo = get_repository()
+repo = get_value_var('repository')
 
 # Finally run main setup
 setup(
     name = 'mangadex-downloader',         
     packages = packages,   
     version = get_version(),
-    license=get_license(),
-    description = get_description(),
+    license=get_value_var('license'),
+    description = get_value_var('description'),
     long_description= README,
     long_description_content_type= 'text/markdown',
-    author = get_author(),              
-    author_email = 'danipart4@gmail.com',
+    author = get_value_var('author'),
+    author_email = get_value_var('author_email'),
     url = f'https://github.com/{repo}',
     download_url = f'https://github.com/{repo}/releases',
     keywords = ['mangadex'], 
