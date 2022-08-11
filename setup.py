@@ -71,13 +71,25 @@ def get_requirements():
         raise RuntimeError("requirements.txt have no necessary libraries inside of it")
 
     docs = []
-    with open('./requirements-docs.txt', 'r') as r:
-        docs = r.read().splitlines()
+    try:
+        with open('./requirements-docs.txt', 'r') as r:
+            docs = r.read().splitlines()
+    except FileNotFoundError:
+        # There is no docs requirements
+        # Developers can ignore this error and continue to install without any problem.
+        # However, this is needed if developers want to create documentation in readthedocs.org or local device.
+        pass
 
     optional = []
-    with open('./requirements-optional.txt', 'r') as r:
-        optional = r.read().splitlines()
-    
+    try:
+        with open('./requirements-optional.txt', 'r') as r:
+            optional = r.read().splitlines()
+    except FileNotFoundError:
+        raise RuntimeError("requirements-optional.txt is needed to build mangadex-downloader")
+
+    if not optional:
+        raise RuntimeError("requirements-optional.txt have no necessary libraries inside of it")
+
     return main, {
         "docs": docs,
         "optional": optional
