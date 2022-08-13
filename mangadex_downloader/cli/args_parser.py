@@ -501,14 +501,27 @@ def get_args(argv):
         default=config.save_as
     )
 
-    # Proxy related
-    proxy_group = parser.add_argument_group('Proxy')
-    proxy_group.add_argument('--proxy', '-p', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
-    proxy_group.add_argument(
+    # Network related
+    network_group = parser.add_argument_group('Network')
+    network_group.add_argument('--proxy', '-p', metavar='SOCKS / HTTP Proxy', help='Set http/socks proxy')
+    network_group.add_argument(
         '--proxy-env',
         '-pe',
         action='store_true',
         help='use http/socks proxy from environments'
+    )
+    network_group.add_argument(
+        '--force-https',
+        '-fh',
+        action='store_true',
+        help='Force download images in standard HTTPS port 443',
+        default=config.force_https
+    )
+    network_group.add_argument(
+        '--delay-requests',
+        '-dr',
+        help='Set delay for each requests send to MangaDex server',
+        type=float
     )
 
     # Miscellaneous
@@ -526,19 +539,6 @@ def get_args(argv):
         action=PrintVersionAction,
         nargs=0,
         help='Print mangadex-downloader version'
-    )
-    misc_group.add_argument(
-        '--force-https',
-        '-fh',
-        action='store_true',
-        help='Force download images in standard HTTPS port 443',
-        default=config.force_https
-    )
-    misc_group.add_argument(
-        '--delay-requests',
-        '-dr',
-        help='Set delay for each requests send to MangaDex server',
-        type=float
     )
 
     # Update application
