@@ -12,9 +12,11 @@ from .errors import (
     AlreadyLoggedIn,
     HTTPException,
     LoginFailed,
+    MangaDexException,
     NotLoggedIn,
     UnhandledHTTPError
 )
+from requests_doh import DNSOverHTTPSAdapter
 from concurrent.futures import Future, TimeoutError
 
 EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
@@ -368,6 +370,8 @@ class NetworkObject:
         self._mangadex = None
         self._requests = None
 
+        self._doh = None
+
     @property
     def proxy(self):
         """Return HTTP/SOCKS proxy, return ``None`` if not configured"""
@@ -463,6 +467,19 @@ class NetworkObject:
     def set_delay(self, delay=None):
         """Add delay for each requests for MangaDex session"""
         self.mangadex.delay = delay
+
+    def set_doh(self, provider):
+        """Set DoH (DNS-over-HTTPS) for MangaDex and requests session"""
+        try:
+            doh = DNSOverHTTPSAdapter(provider)
+        except ValueError as e:
+            raise MangaDexException(e)
+
+        self.mangadex.mount('https://', doh)
+        self.mangadex.mount('http://', doh)
+
+        self.requests.mount('https://', doh)
+        self.requests.mount('http://', doh)
 
     def close(self):
         self._mangadex.close()

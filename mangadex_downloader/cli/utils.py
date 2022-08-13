@@ -43,6 +43,9 @@ def setup_network(args):
     # Setup delay requests (if set)
     Net.set_delay(args.delay_requests)
 
+    if args.dns_over_https:
+        Net.set_doh(args.dns_over_https)
+
 def _keyboard_interrupt_handler(*args):
     print("Cleaning up...")
     # Downloader are not cleaned up

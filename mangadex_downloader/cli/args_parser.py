@@ -524,6 +524,12 @@ def get_args(argv):
         type=float,
         metavar='TIME_IN_SECONDS'
     )
+    network_group.add_argument(
+        '--dns-over-https',
+        '-doh',
+        help='Enable DNS-over-HTTPS (DoH), must be one of "cloudflare" or "google"',
+        metavar="PROVIDER"
+    )
 
     # Miscellaneous
     misc_group = parser.add_argument_group('Miscellaneous')

@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### New features
+
+- Added DNS-over-HTTPS support
+
 ## v1.5.0
 
 ### New features

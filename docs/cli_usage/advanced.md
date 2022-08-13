@@ -482,3 +482,15 @@ Example usage:
 # Delay requests for each 1.5 seconds
 mangadex-dl "https://mangadex.org/title/..." --delay-requests 1.5
 ```
+
+## Enable DNS-over-HTTPS
+
+mangadex-downloader support DoH (DNS-over-HTTPS). 
+You can use it in case your router or ISP being not friendly to MangaDex server.
+
+Example usage
+
+```shell
+# You can choose provider between `google` or `cloudflare`
+mangadex-dl "https://mangadex.org/title/..." --dns-over-https cloudflare
+```

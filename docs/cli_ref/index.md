@@ -202,6 +202,10 @@ Force download images in standard HTTPS port 443
 Set delay for each requests send to MangaDex server
 ```
 
+```{option} --dns-over-https -doh PROVIDER
+Enable DNS-over-HTTPS (DoH), must be one of `cloudflare` or `google`
+```
+
 ### Miscellaneous
 
 ```{option} -pipe
