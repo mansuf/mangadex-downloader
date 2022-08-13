@@ -206,6 +206,10 @@ Set delay for each requests send to MangaDex server
 Enable DNS-over-HTTPS (DoH), must be one of `cloudflare` or `google`
 ```
 
+```{option} --timeout TIME_IN_SECONDS
+Set timeout for each HTTPS(s) requests
+```
+
 ### Miscellaneous
 
 ```{option} -pipe

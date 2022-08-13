@@ -530,6 +530,12 @@ def get_args(argv):
         help='Enable DNS-over-HTTPS (DoH), must be one of "cloudflare" or "google"',
         metavar="PROVIDER"
     )
+    network_group.add_argument(
+        '--timeout',
+        help='Set timeout for each HTTPS(s) requests',
+        metavar='TIME_IN_SECONDS',
+        type=float
+    )
 
     # Miscellaneous
     misc_group = parser.add_argument_group('Miscellaneous')

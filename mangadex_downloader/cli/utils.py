@@ -45,6 +45,9 @@ def setup_network(args):
 
     if args.dns_over_https:
         Net.set_doh(args.dns_over_https)
+    
+    if args.timeout:
+        Net.set_timeout(args.timeout)
 
 def _keyboard_interrupt_handler(*args):
     print("Cleaning up...")
