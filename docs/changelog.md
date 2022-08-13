@@ -5,7 +5,7 @@
 ### New features
 
 - Added DNS-over-HTTPS support
-- Added ability to set timeout for each requests
+- Added ability to set timeout for each HTTP(s) requests
 
 ## v1.5.0
 
