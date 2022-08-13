@@ -12,9 +12,11 @@ from .errors import (
     AlreadyLoggedIn,
     HTTPException,
     LoginFailed,
+    MangaDexException,
     NotLoggedIn,
     UnhandledHTTPError
 )
+from requests_doh import DNSOverHTTPSAdapter
 from concurrent.futures import Future, TimeoutError
 
 EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
@@ -37,9 +39,21 @@ def _get_netloc(url):
     result = urllib.parse.urlparse(url)
     return result.scheme + '://' + result.netloc + result.path
 
-# Modified requests session class with __del__ handler
-# so the session will be closed properly
-class requestsMangaDexSession(requests.Session):
+# Modified requests session with ability to set timeout for each requests
+class ModifiedSession(requests.Session):
+    def __init__(self):
+        super().__init__()
+
+        self._timeout = None
+
+    def set_timeout(self, time):
+        self._timeout = time
+
+    def send(self, r, **kwargs):
+        kwargs.update({'timeout': self._timeout})
+        return super().send(r, **kwargs)
+
+class requestsMangaDexSession(ModifiedSession):
     def __init__(self, trust_env=True) -> None:
         # "Circular imports" problem
         from .config import login_cache
@@ -124,9 +138,16 @@ class requestsMangaDexSession(requests.Session):
             try:
                 resp = super().request(*args, **kwargs)
             except requests.exceptions.ConnectionError as e:
-                log.error("Failed to connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
+                log.error("Failed connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
                     _get_netloc(e.request.url),
                     str(e),
+                    attempt
+                ))
+                attempt += 1
+                continue
+            except requests.exceptions.ReadTimeout as e:
+                log.error("Failed connect to '%s', reason: Connection timed out. Trying... (attempt: %s)" % (
+                    _get_netloc(e.request.url),
                     attempt
                 ))
                 attempt += 1
@@ -368,6 +389,8 @@ class NetworkObject:
         self._mangadex = None
         self._requests = None
 
+        self._doh = None
+
     @property
     def proxy(self):
         """Return HTTP/SOCKS proxy, return ``None`` if not configured"""
@@ -451,7 +474,7 @@ class NetworkObject:
     
     def _create_requests(self):
         if self._requests is None:
-            self._requests = requests.Session()
+            self._requests = ModifiedSession()
             self._update_requests_proxy(self.proxy)
     
     @property
@@ -463,6 +486,23 @@ class NetworkObject:
     def set_delay(self, delay=None):
         """Add delay for each requests for MangaDex session"""
         self.mangadex.delay = delay
+
+    def set_doh(self, provider):
+        """Set DoH (DNS-over-HTTPS) for MangaDex and requests session"""
+        try:
+            doh = DNSOverHTTPSAdapter(provider)
+        except ValueError as e:
+            raise MangaDexException(e)
+
+        self.mangadex.mount('https://', doh)
+        self.mangadex.mount('http://', doh)
+
+        self.requests.mount('https://', doh)
+        self.requests.mount('http://', doh)
+    
+    def set_timeout(self, time):
+        self.mangadex.set_timeout(time)
+        self.requests.set_timeout(time)
 
     def close(self):
         self._mangadex.close()

@@ -184,7 +184,7 @@ otherwise the app will throwing error.
 Choose save as format, default to `raw`
 ```
 
-### Proxy related
+### Network related
 
 ```{option} --proxy -p SOCKS / HTTP Proxy
 Set http/socks proxy
@@ -192,6 +192,22 @@ Set http/socks proxy
 
 ```{option} --proxy-env -pe
 use http/socks proxy from environments
+```
+
+```{option} --force-https -fh
+Force download images in standard HTTPS port 443
+```
+
+```{option} --delay-requests -dr DELAY_TIME
+Set delay for each requests send to MangaDex server
+```
+
+```{option} --dns-over-https -doh PROVIDER
+Enable DNS-over-HTTPS (DoH), must be one of `cloudflare` or `google`
+```
+
+```{option} --timeout TIME_IN_SECONDS
+Set timeout for each HTTPS(s) requests
 ```
 
 ### Miscellaneous
@@ -215,14 +231,6 @@ Skip hash checking for each images
 
 ```{option} -v --version
 Print mangadex-downloader version
-```
-
-```{option} --force-https -fh
-Force download images in standard HTTPS port 443
-```
-
-```{option} --delay-requests -dr DELAY_TIME
-Set delay for each requests send to MangaDex server
 ```
 
 ### Update application
