@@ -267,6 +267,8 @@ manga = download("insert MangaDex URL here", save_as="pdf-single")
 
 This is Comic Book Archive format. Comic Book Archive is a type of archive file for the purpose of sequential viewing of images, commonly for comic books. [wikipedia](https://en.wikipedia.org/wiki/Comic_book_archive)
 
+It has additional file (`ComicInfo.xml`) inside of .cbz file, useful for showing details of the manga (if an reader support it).
+
 This format was based of `zip` extension.
 
 ### Structure files

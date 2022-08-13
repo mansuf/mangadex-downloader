@@ -1,5 +1,12 @@
 # Changelog
 
+## UNRELEASED
+
+### Improvements
+
+- Added `ComicInfo.xml` for `cbz` format. 
+This file is useful for showing details of manga (if an reader support `ComicInfo.xml` file).
+
 ## v1.6.0
 
 ### New features
