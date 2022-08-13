@@ -5,7 +5,7 @@
 ### Improvements
 
 - Added `ComicInfo.xml` for `cbz` format. 
-This file is useful for showing details of manga (if an reader support `ComicInfo.xml` file).
+This file is useful for showing details of manga (if an reader support `ComicInfo.xml` file) [#26](https://github.com/mansuf/mangadex-downloader/pull/26).
 
 ## v1.6.0
 
