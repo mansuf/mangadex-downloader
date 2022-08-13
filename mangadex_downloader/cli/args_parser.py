@@ -521,7 +521,8 @@ def get_args(argv):
         '--delay-requests',
         '-dr',
         help='Set delay for each requests send to MangaDex server',
-        type=float
+        type=float,
+        metavar='TIME_IN_SECONDS'
     )
 
     # Miscellaneous
