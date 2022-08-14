@@ -120,9 +120,10 @@ class ComicBookArchive(BaseFormat):
                 "a" if path_exists(chapter_zip_path) else "w"
             )
 
-            wrap = lambda: chapter_zip.writestr('ComicInfo.xml', ET.tostring(xml_data))
-            # KeyboardInterrupt safe
-            worker.submit(wrap)
+            if 'ComicInfo.xml' not in chapter_zip.namelist():
+                wrap = lambda: chapter_zip.writestr('ComicInfo.xml', ET.tostring(xml_data))
+                # KeyboardInterrupt safe
+                worker.submit(wrap)
 
             while True:
                 # Fix #10
