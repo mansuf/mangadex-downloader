@@ -2,7 +2,7 @@
 
 ## v1.6.2
 
-## Fix bugs
+### Fix bugs
 
 - Fixed duplicate `ComicInfo.xml` in `cbz` format when app is in verifying files state [#27](https://github.com/mansuf/mangadex-downloader/pull/27).
 
