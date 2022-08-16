@@ -1,5 +1,13 @@
 # Changelog
 
+## UNRELEASED
+
+### Improvements
+
+- Added delay to each HTTP(s) requests. **NOTE:** Delay will be applied whether HTTP(s) requests are failed or success, 
+also it applied too if `--timeout` is not set (Delay time formula: `attempt * 0.5`). 
+If `--timeout` is set, delay time will be used from `--timeout` instead.
+
 ## v1.6.2
 
 ### Fix bugs
