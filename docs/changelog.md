@@ -8,6 +8,10 @@
 also it applied too if `--timeout` is not set (Delay time formula: `attempt * 0.5`). 
 If `--timeout` is set, delay time will be used from `--timeout` instead.
 
+### Dependencies
+
+- Pinned `requests-doh` library version to 0.2.1
+
 ## v1.6.2
 
 ### Fix bugs
