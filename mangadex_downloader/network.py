@@ -184,7 +184,7 @@ class requestsMangaDexSession(ModifiedSession):
         resp = None
         for _ in range(5):
             resp = self._request(attempt, *args, **kwargs)
-            if resp:
+            if resp is not None:
                 return resp
             
             if self.delay:
