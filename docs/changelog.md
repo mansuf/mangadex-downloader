@@ -2,6 +2,12 @@
 
 ## UNRELEASED
 
+### New features
+
+- Added ability to download manga from scanlator group
+- Added new search filter
+  - `group`
+
 ### Improvements
 
 - Added delay to each HTTP(s) requests. **NOTE:** Delay will be applied if HTTP(s) requests are failed, (Delay time formula: `attempt * 0.5`). 
