@@ -138,9 +138,9 @@ mangadex-dl.exe "insert MangaDex URL here"
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
 
-For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_usage.html)
+For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_usage/index.html)
 
-For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.link/en/latest/cli_ref.html)
+For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_ref/index.html)
 
 ### Embedding (API) <a id="embedding-api"></a>
 
