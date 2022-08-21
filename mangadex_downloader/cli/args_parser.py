@@ -288,7 +288,7 @@ class InputHandler(argparse.Action):
             fetch_library_follows_list
         )
         setattr(namespace, 'random', random)
-        setattr(namespace, 'group', group)
+        setattr(namespace, 'fetch_group', group)
         setattr(namespace, 'file', file)
 
 def get_args(argv):

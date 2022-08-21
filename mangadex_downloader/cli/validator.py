@@ -293,7 +293,7 @@ def validate(parser, args):
         on_empty_err = f"Unknown Error" # This should never happened
         on_preview = preview_cover_manga
         limit_items = 5
-    elif args.group:
+    elif args.fetch_group:
         # Getting group id
         _, group_id = get_key_value(urls, sep=':')
         if not group_id:
