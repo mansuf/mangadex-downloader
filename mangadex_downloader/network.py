@@ -184,15 +184,18 @@ class requestsMangaDexSession(ModifiedSession):
         resp = None
         for _ in range(5):
             resp = self._request(attempt, *args, **kwargs)
-            if resp is not None:
-                return resp
-            
+
             if self.delay:
                 delay = self.delay
             else:
-                delay = attempt * 0.5
+                delay = None if resp is not None else attempt * 0.5
             
-            time.sleep(delay)
+            if delay:
+                time.sleep(delay)
+
+            if resp is not None:
+                return resp
+
             attempt += 1
             continue
 
