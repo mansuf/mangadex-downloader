@@ -16,7 +16,7 @@ If `--timeout` is set, delay time will be used from `--timeout` instead.
 
 ### Dependencies
 
-- Pinned `requests-doh` library version to 0.2.1
+- Pinned `requests-doh` library version to 0.2.2
 
 ### Notes: Simplified error message <a id="notes-simplified-error-message"></a>
 
