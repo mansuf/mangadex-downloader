@@ -205,7 +205,7 @@ def validate(parser, args):
         not args.fetch_library_list and
         not args.fetch_library_follows_list and
         not args.random and
-        not args.group
+        not args.fetch_group
     ):
         # Parsing file path
         if args.file:
