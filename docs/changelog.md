@@ -7,6 +7,8 @@
 - Added ability to download manga from scanlator group
 - Added new search filter
   - `group`
+- Added new config
+  - `dns_over_https`
 
 ### Improvements
 

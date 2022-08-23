@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+from requests_doh import get_all_dns_provider
 from pathlib import Path
 from gettext import gettext
 
@@ -539,8 +540,9 @@ def get_args(argv):
     network_group.add_argument(
         '--dns-over-https',
         '-doh',
-        help='Enable DNS-over-HTTPS (DoH), must be one of "cloudflare" or "google"',
-        metavar="PROVIDER"
+        help='Enable DNS-over-HTTPS (DoH)',
+        metavar="PROVIDER",
+        choices=get_all_dns_provider()
     )
     network_group.add_argument(
         '--timeout',
