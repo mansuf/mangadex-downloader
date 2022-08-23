@@ -10,7 +10,7 @@
 
 ### Improvements
 
-- Added delay to each HTTP(s) requests. **NOTE:** Delay will be applied if HTTP(s) requests are failed, (Delay time formula: `attempt * 0.5`). 
+- Added delay to each failed HTTP(s) requests (Delay time formula: `attempt * 0.5`). 
 If `--timeout` is set, delay time will be used from `--timeout` instead.
 
 ### Dependencies
