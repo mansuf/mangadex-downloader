@@ -11,7 +11,7 @@
 ### Improvements
 
 - Added delay to each failed HTTP(s) requests (Delay time formula: `attempt * 0.5`). 
-If `--timeout` is set, delay time will be used from `--timeout` instead.
+If `--delay-requests` is set, delay time will be used from `--delay-requests` instead.
 - Simplified error message [[notes]](#notes-simplified-error-message)
 
 ### Dependencies
