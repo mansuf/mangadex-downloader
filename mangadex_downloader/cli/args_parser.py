@@ -2,6 +2,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from gettext import gettext
 
 from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
@@ -17,6 +18,15 @@ from ..errors import InvalidURL
 from .. import __description__, __version__
 
 log = logging.getLogger(__name__)
+
+class ModifiedArgumentParser(argparse.ArgumentParser):
+    """Modified :class:`argparse.ArgumentParser`
+    
+    The only thing modified is :meth:`argparse.ArgumentParser.error()` function. 
+    The function should not show whole usage, instead just show the error for simplicity.
+    """
+    def error(self, message):
+        self.exit(2, f'Error: {gettext(message)}\n')
 
 def _check_args(opts, args):
     """Utility for checking args from original and alias options
@@ -292,7 +302,7 @@ class InputHandler(argparse.Action):
         setattr(namespace, 'file', file)
 
 def get_args(argv):
-    parser = argparse.ArgumentParser(description=__description__)
+    parser = ModifiedArgumentParser(description=__description__)
     parser.add_argument(
         'URL',
         action=InputHandler,

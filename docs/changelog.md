@@ -12,10 +12,40 @@
 
 - Added delay to each failed HTTP(s) requests (Delay time formula: `attempt * 0.5`). 
 If `--timeout` is set, delay time will be used from `--timeout` instead.
+- Simplified error message [[notes]](#notes-simplified-error-message)
 
 ### Dependencies
 
 - Pinned `requests-doh` library version to 0.2.1
+
+### Notes: Simplified error message <a id="notes-simplified-error-message"></a>
+
+Error message has been simplified, no more showing usage on every error thrown.
+
+Before
+
+```shell
+$ mangadex-dl "library:ayeeee lmao"
+usage: mangadex-dl [-h] [--type {manga,list,chapter,legacy-manga,legacy-chapter}] [--path FOLDER] [--replace]
+                   [--verbose] [--unsafe] [--search] [--search-filter SEARCH_FILTER] [--use-alt-details]
+                   [--group GROUP_ID] [-lang LANGUAGE] [--list-languages] [--start-chapter CHAPTER]
+                   [--end-chapter CHAPTER] [--no-oneshot-chapter] [--no-group-name] [--use-chapter-title]
+                   [--range RANGE] [--start-page NUM_PAGE] [--end-page NUM_PAGE] [--use-compressed-image]
+                   [--cover {original,512px,256px,none}] [--login] [--login-username USERNAME]
+                   [--login-password PASSWORD] [--login-cache]
+                   [--save-as {raw,raw-volume,raw-single,tachiyomi,tachiyomi-zip,pdf,pdf-volume,pdf-single,cbz,cbz-volume,cbz-single,cb7,cb7-volume,cb7-single}]
+                   [--proxy SOCKS / HTTP Proxy] [--proxy-env] [--force-https] [--delay-requests TIME_IN_SECONDS]
+                   [--dns-over-https PROVIDER] [--timeout TIME_IN_SECONDS] [-pipe] [--no-verify] [-v] [--update]
+                   URL
+mangadex-dl: error: ayeeee lmao are not valid status, choices are {reading, on_hold, plan_to_read, completed, dropped, re_reading}
+```
+
+After
+
+```shell
+$ mangadex-dl "library:ayeeee lmao"
+Error: ayeee lmao are not valid status, choices are {dropped, completed, on_hold, plan_to_read, re_reading, reading}
+```
 
 ## v1.6.2
 
