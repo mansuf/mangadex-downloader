@@ -3,6 +3,7 @@ import logging
 import shutil
 import zipfile
 import os
+import xml.etree.ElementTree as ET
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
@@ -23,6 +24,69 @@ path_exists = lambda x: os.path.exists(x)
 
 log = logging.getLogger(__name__)
 
+
+def generate_Comicinfo(manga, chapter):
+    xml_root = ET.Element('ComicInfo',
+                          {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                           'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema'})
+    xml_series = ET.SubElement(xml_root, 'Series')
+    xml_series.text = manga._title
+
+    if len(manga.authors) > 0:
+        author_str = ""
+        for author in manga.authors:
+            author_str = author_str + ',' + author
+        xml_author = ET.SubElement(xml_root, 'Writer')
+        xml_author.text = author_str[1:]
+
+    if len(manga.artists) > 0:
+        artist_str = ""
+        for artist in manga.artists:
+            artist_str = artist_str + ',' + artist
+        xml_artist = ET.SubElement(xml_root, 'Penciller')
+        xml_artist.text = artist_str[1:]
+
+    if len(manga.genres) > 0:
+        genre_str = ""
+        for genre in manga.genres:
+            genre_str = genre_str + ',' + genre
+        xml_genre = ET.SubElement(xml_root, 'Genre')
+        xml_genre.text = genre_str[1:]
+
+    xml_summary = ET.SubElement(xml_root, 'Summary')
+    xml_summary.text = manga.description
+
+    if len(manga.alternative_titles) > 0:
+        alt_str = ""
+        for alt in manga.alternative_titles:
+            alt_str = alt_str + ',' + alt
+        xml_alt = ET.SubElement(xml_root, 'AlternateSeries')
+        xml_alt.text = alt_str[1:]
+
+    if chapter is not None:
+        if chapter.volume is not None:
+            xml_vol = ET.SubElement(xml_root, 'Volume')
+            xml_vol.text = str(chapter.volume)
+
+        if chapter.chapter is not None:
+            xml_num = ET.SubElement(xml_root, 'Number')
+            xml_num.text = str(chapter.chapter)
+
+        xml_title = ET.SubElement(xml_root, 'Title')
+        xml_title.text = chapter.name
+
+        xml_lang = ET.SubElement(xml_root, 'LanguageISO')
+        xml_lang.text = str(chapter.language.value)
+
+    xml_pc = ET.SubElement(xml_root, 'PageCount')
+    xml_pc.text = str(chapter.pages)
+
+    xml_si = ET.SubElement(xml_root, 'ScanInformation')
+    xml_si.text = chapter.groups_name
+
+    return xml_root
+
+
 class ComicBookArchive(BaseFormat):
     def main(self):
         base_path = self.path
@@ -36,6 +100,7 @@ class ComicBookArchive(BaseFormat):
             chap = chap_class.chapter
             chap_name = chap_class.get_simplified_name()
             chap_extended_name = chap_class.get_name()
+            xml_data = generate_Comicinfo(manga, chap_class)
 
             # Fetching chapter images
             log.info('Getting %s from chapter %s' % (
@@ -54,6 +119,11 @@ class ComicBookArchive(BaseFormat):
                 str(chapter_zip_path),
                 "a" if path_exists(chapter_zip_path) else "w"
             )
+
+            if 'ComicInfo.xml' not in chapter_zip.namelist():
+                wrap = lambda: chapter_zip.writestr('ComicInfo.xml', ET.tostring(xml_data))
+                # KeyboardInterrupt safe
+                worker.submit(wrap)
 
             while True:
                 # Fix #10

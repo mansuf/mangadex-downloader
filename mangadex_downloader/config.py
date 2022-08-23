@@ -9,6 +9,7 @@ import traceback
 import jwt
 from pathlib import Path
 from datetime import datetime
+from requests_doh import get_all_dns_provider
 
 from . import format as fmt
 from .language import Language, get_language
@@ -45,9 +46,10 @@ def _validate_language(val):
     lang = get_language(val)
     return lang.value
 
-def _validate_cover(val):
-    if val not in valid_cover_types:
-        raise ConfigTypeError(f"'{val}' is not valid cover type")
+def _validate_value_from_iterator(val, iterator):
+    values = [i for i in iterator]
+    if val not in values:
+        raise ConfigTypeError(f"'{val}' is not valid value, available values are {values}")
     
     return val
 
@@ -94,7 +96,7 @@ class _Config:
         ],
         "cover": [
             default_cover_type,
-            _validate_cover
+            lambda x: _validate_value_from_iterator(x, valid_cover_types)
         ],
         "save_as": [
             fmt.default_save_as_format,
@@ -115,6 +117,10 @@ class _Config:
         "path": [
             "./",
             _dummy_validator
+        ],
+        "dns_over_https": [
+            None,
+            lambda x: _validate_value_from_iterator(x, get_all_dns_provider())
         ]
     }
     default_conf = {

@@ -130,67 +130,74 @@ class requestsMangaDexSession(ModifiedSession):
         
         log.info("Logged in to MangaDex")
 
+    def _request(self, attempt, *args, **kwargs):
+        try:
+            resp = super().request(*args, **kwargs)
+        except requests.exceptions.ConnectionError as e:
+            log.error("Failed connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
+                _get_netloc(e.request.url),
+                str(e),
+                attempt
+            ))
+            return None
+        except requests.exceptions.ReadTimeout as e:
+            log.error("Failed connect to '%s', reason: Connection timed out. Trying... (attempt: %s)" % (
+                _get_netloc(e.request.url),
+                attempt
+            ))
+            return None
+
+        # We are being rate limited
+        if resp.status_code == 429:
+
+            # x-ratelimit-retry-after is from MangaDex and
+            # Retry-After is from DDoS-Guard
+            if resp.headers.get('x-ratelimit-retry-after'):
+                delay = float(resp.headers.get('x-ratelimit-retry-after')) - time.time()
+            
+            elif resp.headers.get('Retry-After'):
+                delay = float(resp.headers.get('Retry-After'))
+            
+            log.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
+            time.sleep(delay)
+            return None
+
+        # Server error
+        elif resp.status_code >= 500:
+            url = _get_netloc(resp.url)
+            if 'mangadex.network' in url and 'api.mangadex.network/report' not in url:
+                # Return here anyway to not wasting time to retry to faulty node
+                return resp
+
+            log.info(
+                f"Failed to connect to \"{url}\", " \
+                f"reason: Server throwing error code {resp.status_code}. "  \
+                f"Trying... (attempt: {attempt})"
+            )
+            return None
+
+        return resp
+
     # Ratelimit handler
     def request(self, *args, **kwargs):
         attempt = 1
         resp = None
         for _ in range(5):
-            try:
-                resp = super().request(*args, **kwargs)
-            except requests.exceptions.ConnectionError as e:
-                log.error("Failed connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
-                    _get_netloc(e.request.url),
-                    str(e),
-                    attempt
-                ))
-                attempt += 1
-                continue
-            except requests.exceptions.ReadTimeout as e:
-                log.error("Failed connect to '%s', reason: Connection timed out. Trying... (attempt: %s)" % (
-                    _get_netloc(e.request.url),
-                    attempt
-                ))
-                attempt += 1
-                continue
-
-            # We are being rate limited
-            if resp.status_code == 429:
-
-                # x-ratelimit-retry-after is from MangaDex and
-                # Retry-After is from DDoS-Guard
-                if resp.headers.get('x-ratelimit-retry-after'):
-                    delay = float(resp.headers.get('x-ratelimit-retry-after')) - time.time()
-                
-                elif resp.headers.get('Retry-After'):
-                    delay = float(resp.headers.get('Retry-After'))
-                
-                log.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
-                time.sleep(delay)
-                attempt += 1
-                continue
-
-            # Server error
-            elif resp.status_code >= 500:
-                url = _get_netloc(resp.url)
-                if 'mangadex.network' in url and 'api.mangadex.network/report' not in url:
-                    # Return here anyway to not wasting time to retry to faulty node
-                    if self.delay:
-                        time.sleep(self.delay)
-                    return resp
-
-                log.info(
-                    f"Failed to connect to \"{url}\", " \
-                    f"reason: Server throwing error code {resp.status_code}. "  \
-                    f"Trying... (attempt: {attempt})"
-                )
-                attempt += 1
-                if self.delay:
-                    time.sleep(self.delay)
-                continue
+            resp = self._request(attempt, *args, **kwargs)
 
             if self.delay:
-                time.sleep(self.delay)
-            return resp
+                delay = self.delay
+            else:
+                delay = None if resp is not None else attempt * 0.5
+            
+            if delay:
+                time.sleep(delay)
+
+            if resp is not None:
+                return resp
+
+            attempt += 1
+            continue
 
         if resp is not None and resp.status_code >= 500:
             # 5 attempts request failed caused by server error

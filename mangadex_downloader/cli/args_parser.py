@@ -1,7 +1,9 @@
 import argparse
 import logging
 import sys
+from requests_doh import get_all_dns_provider
 from pathlib import Path
+from gettext import gettext
 
 from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
@@ -17,6 +19,15 @@ from ..errors import InvalidURL
 from .. import __description__, __version__
 
 log = logging.getLogger(__name__)
+
+class ModifiedArgumentParser(argparse.ArgumentParser):
+    """Modified :class:`argparse.ArgumentParser`
+    
+    The only thing modified is :meth:`argparse.ArgumentParser.error()` function. 
+    The function should not show whole usage, instead just show the error for simplicity.
+    """
+    def error(self, message):
+        self.exit(2, f'Error: {gettext(message)}\n')
 
 def _check_args(opts, args):
     """Utility for checking args from original and alias options
@@ -227,6 +238,7 @@ class InputHandler(argparse.Action):
         fetch_library_list = urls.startswith('list')
         fetch_library_follows_list = urls.startswith('followed-list')
         random = urls.startswith('random')
+        group = urls.startswith('group')
         file = urls.startswith('file')
 
         if self.pipe and self.search:
@@ -287,10 +299,11 @@ class InputHandler(argparse.Action):
             fetch_library_follows_list
         )
         setattr(namespace, 'random', random)
+        setattr(namespace, 'fetch_group', group)
         setattr(namespace, 'file', file)
 
 def get_args(argv):
-    parser = argparse.ArgumentParser(description=__description__)
+    parser = ModifiedArgumentParser(description=__description__)
     parser.add_argument(
         'URL',
         action=InputHandler,
@@ -527,8 +540,9 @@ def get_args(argv):
     network_group.add_argument(
         '--dns-over-https',
         '-doh',
-        help='Enable DNS-over-HTTPS (DoH), must be one of "cloudflare" or "google"',
-        metavar="PROVIDER"
+        help='Enable DNS-over-HTTPS (DoH)',
+        metavar="PROVIDER",
+        choices=get_all_dns_provider()
     )
     network_group.add_argument(
         '--timeout',

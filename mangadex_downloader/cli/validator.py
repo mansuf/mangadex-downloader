@@ -13,6 +13,7 @@ from ..utils import (
     validate_legacy_url,
     input_handle
 )
+from ..group import Group
 from ..manga import ContentRating, Manga
 from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
 
@@ -203,7 +204,8 @@ def validate(parser, args):
         not args.fetch_library_manga and
         not args.fetch_library_list and
         not args.fetch_library_follows_list and
-        not args.random
+        not args.random and
+        not args.fetch_group
     ):
         # Parsing file path
         if args.file:
@@ -291,6 +293,19 @@ def validate(parser, args):
         on_empty_err = f"Unknown Error" # This should never happened
         on_preview = preview_cover_manga
         limit_items = 5
+    elif args.fetch_group:
+        # Getting group id
+        _, group_id = get_key_value(urls, sep=':')
+        if not group_id:
+            parser.error("group id or url are required")
+        
+        group_id = __validate(group_id)
+        group = Group(group_id)
+
+        iterator = search(None, args.unsafe, group=group.id)
+        text = f'List manga from group "{group.name}"'
+        on_empty_err = f'Group "{group.name}" has no uploaded mangas'
+        on_preview = preview_cover_manga
     elif args.search:
         filter_kwargs = {}
         filters = args.search_filter or []

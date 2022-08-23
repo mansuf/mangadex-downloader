@@ -3,4 +3,4 @@ tqdm
 pathvalidate
 packaging
 pyjwt
-requests-doh
+requests-doh==0.2.2

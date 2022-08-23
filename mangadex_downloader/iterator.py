@@ -112,7 +112,8 @@ class IteratorManga(BaseIterator):
         content_rating=None,
         created_at_since=None,
         updated_at_since=None,
-        has_available_chapters=None
+        has_available_chapters=None,
+        group=None,
     ):
         super().__init__()
 
@@ -177,6 +178,7 @@ class IteratorManga(BaseIterator):
 
         included_tags = validate_uuid("included_tags")
         excluded_tags = validate_uuid("excluded_tags")
+        group = validate_uuid("group")
 
         def validate_values_from_list(key, array):
             values = _locals[key]
@@ -259,6 +261,7 @@ class IteratorManga(BaseIterator):
             "createdAtSince": created_at_since,
             "updatedAtSince": updated_at_since,
             "hasAvailableChapters": has_available_chapters,
+            "group": group,
         }
 
     def _get_params(self):
