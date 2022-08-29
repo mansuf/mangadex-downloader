@@ -20,7 +20,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
     - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
     - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
     - [Embedding (API)](#embedding-api)
-- [Supporting](#supporting)
+- [Contributing](#contributing)
 - [Links](#links)
 - [Disclaimer](#disclaimer)
 
