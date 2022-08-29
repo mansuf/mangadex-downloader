@@ -18,3 +18,20 @@ Want to add new features ? fix a bug ? made changes to help the app better and f
 
 **NOTE:** Before sending a pull request, you have to make sure the code that you're writing are compatible with Python 3.8. 
 Because minimum Python version for developing this app are 3.8
+
+## Donation
+
+Donations are welcome too. Currently [@mansuf](https://github.com/mansuf) support these types of donation.
+
+- [Ko-fi](https://ko-fi.com/rahmanyusuf)
+- [Paypal](https://paypal.me/mansuf)
+- [Github Sponsor](https://github.com/sponsors/mansuf)
+
+For Indonesia-based donation:
+
+- [Saweria](https://saweria.co/mansuf)
+- [Trakteer](https://trakteer.id/mansuf/tip)
+
+## Star the repository
+
+Want to contribute but don't want to do all above ? Don't worry you can star this repository. I will appreciate that 💖.
