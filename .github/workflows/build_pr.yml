@@ -19,18 +19,27 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@v2
 
-      - name: Setup python
+      - name: Setup python (x86)
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x86
+      
+      - name: Setup python (x64)
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
 
       - name: Install required libraries
         run: |
-          pip install -U wheel pyinstaller
-          pip install -r requirements.txt
-          pip install -r requirements-docs.txt
-          pip install -r requirements-optional.txt
+          py -3-64 -m pip install -U wheel pyinstaller setuptools tox
+          py -3-64 -m pip install -r requirements.txt
+          py -3-64 -m pip install -r requirements-optional.txt
+
+          py -3-32 -m pip install -U wheel pyinstaller setuptools tox
+          py -3-32 -m pip install -r requirements.txt
+          py -3-32 -m pip install -r requirements-optional.txt
 
       - name: Test imports
         run: |
