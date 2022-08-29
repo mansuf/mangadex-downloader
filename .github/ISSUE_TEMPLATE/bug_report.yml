@@ -1,0 +1,47 @@
+name: Bug report
+description: File a bug issue
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking time to fill this bug report. Before you continue, make sure you have read [github community guidelines](https://docs.github.com/articles/github-community-guidelines).
+        Please note that this form only for reporting bugs.
+  - type: textarea
+    attributes:
+      label: What happened ? 
+      placeholder: "Explain it (ex: I cannot download these manga)"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What did you expect to happen ?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: App version
+      description: You can get it from `mangadex-dl --version`
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Installation origin
+      description: Where did you install mangadex-downloader ?
+      options:
+        - "PyPI (Python Package Index)"
+        - Github releases
+        - "git clone && python setup.py install"
+        - Other
+    validations: 
+      required: true
+  - type: input
+    attributes: 
+      label: "Installation origin (other sources)"
+      description: Type in here if you install mangadex-downloader from other source.
+  - type: textarea
+    attributes:
+      label: Reproducible command
+      placeholder: "Example: mangadex-dl \"insert mangadex url here\" --format pdf"
+    validations:
+      required: true
