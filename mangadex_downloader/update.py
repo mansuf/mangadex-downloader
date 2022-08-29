@@ -33,7 +33,7 @@ from importlib.util import find_spec
 from pathlib import Path
 
 from .network import Net
-from .utils import download
+from .downloader import FileDownloader
 from . import __version__
 
 current_version = parse_version(__version__)
@@ -114,7 +114,9 @@ def update_app():
             log.info("Downloading update v%s" % latest_version)
             # Download update
             try:
-                download(url_update, update_file_path, use_requests=True)
+                fd = FileDownloader(url_update, update_file_path, use_requests=True)
+                fd.download()
+                fd.cleanup()
             except Exception as e:
                 log.error("Failed to download update, reason: %s" % e)
                 sys.exit(1)

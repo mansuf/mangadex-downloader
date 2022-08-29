@@ -32,7 +32,6 @@ from pathvalidate import sanitize_filename
 from enum import Enum
 from getpass import getpass
 from .errors import InvalidURL, NotLoggedIn
-from .downloader import FileDownloader, _cleanup_jobs
 
 log = logging.getLogger(__name__)
 
@@ -68,19 +67,6 @@ def validate_group_url(url):
         return validate_url(url)
     else:
         return "all"
-
-def download(url, file, progress_bar=True, replace=False, use_requests=False, **headers):
-    """Shortcut for :class:`FileDownloader`"""
-    downloader = FileDownloader(
-        url,
-        file,
-        progress_bar,
-        replace,
-        use_requests,
-        **headers
-    )
-    downloader.download()
-    downloader.cleanup()
 
 def write_details(manga, path):
     data = {}

@@ -30,7 +30,6 @@ from .utils import (
     comma_separated_text
 )
 from .language import Language, get_language
-from .utils import download as download_file
 from .errors import InvalidURL, NotAllowed
 from .fetcher import *
 from .mdlist import MangaDexList
@@ -46,6 +45,7 @@ from .chapter import Chapter, MangaChapter
 from .network import Net
 from .format import default_save_as_format, get_format
 from .cover import default_cover_type, valid_cover_types
+from .downloader import FileDownloader
 
 log = logging.getLogger(__name__)
 
@@ -426,7 +426,9 @@ def download(
     if cover_url is None:
         log.debug('Not downloading cover manga, since \"cover\" is none')
     else:
-        download_file(cover_url, str(cover_path), replace=replace)
+        fd = FileDownloader(cover_url, str(cover_path), replace=replace)
+        fd.download()
+        fd.cleanup()
 
     # Reuse is good
     def download_manga(m, path):
