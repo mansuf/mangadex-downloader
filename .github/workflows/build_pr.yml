@@ -16,12 +16,6 @@ jobs:
         python-version: [ '3.8', '3.9', '3.10' ]
 
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          access_token: ${{ github.token }}
-          all_but_latest: true
-
       - name: Clone repo
         uses: actions/checkout@v2
 
@@ -108,7 +102,15 @@ jobs:
 
       - name: Compile script
         if: ${{ contains(env.python_version, '3.10') }}
-        run: python compile.py
+        run: |
+          py -3-64 -m PyInstaller run.py -n "mangadex-dl_x64" --distpath "./dist_x64"
+          py -3-32 -m PyInstaller run.py -n "mangadex-dl_x86" --distpath "./dist_x86"
+
+      - name: Run compiled script
+        if: ${{ contains(env.python_version, '3.10') }}
+        run: |
+          & ".\dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" --version
+          & ".\dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" --version
 
       # Only build docs in Python 3.10
 
