@@ -35,10 +35,12 @@ jobs:
         run: |
           py -3-64 -m pip install -U wheel pyinstaller setuptools tox
           py -3-64 -m pip install -r requirements.txt
+          py -3-64 -m pip install -r requirements-docs.txt
           py -3-64 -m pip install -r requirements-optional.txt
 
           py -3-32 -m pip install -U wheel pyinstaller setuptools tox
           py -3-32 -m pip install -r requirements.txt
+          py -3-32 -m pip install -r requirements-docs.txt
           py -3-32 -m pip install -r requirements-optional.txt
 
       - name: Test imports
