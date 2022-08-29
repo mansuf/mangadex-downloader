@@ -10,6 +10,6 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: Why this idea should be added to the app ?
+      label: Why this feature should be added to the app ?
     validations:
       required: true
