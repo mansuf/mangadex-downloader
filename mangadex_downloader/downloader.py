@@ -34,18 +34,7 @@ log = logging.getLogger(__name__)
 # For KeyboardInterrupt handler
 _cleanup_jobs = []
 
-# re.compile('bytes=([0-9]{1,}|)-([0-9]{1,}|)', re.IGNORECASE)
-
-class BaseDownloader:
-    def download(self):
-        """Download the file"""
-        raise NotImplementedError
-
-    def cleanup(self):
-        "Do the cleanup, Maybe close the session or the progress bar ? idk."
-        raise NotImplementedError
-
-class FileDownloader(BaseDownloader):
+class FileDownloader:
     def __init__(self, url, file, progress_bar=True, replace=False, use_requests=False, **headers) -> None:
         self.url = url
         self.file = str(file) + '.temp'
