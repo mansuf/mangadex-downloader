@@ -1,0 +1,15 @@
+name: Feature Request
+description: Suggest or add a feature
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      label: The idea
+      placeholder: "ex: Add EPUB format"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Why this feature should be added to the app ?
+    validations:
+      required: true

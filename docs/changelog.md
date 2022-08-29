@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.7.1
+
+### Fix bugs
+
+- Fixed the app won't start [#28](https://github.com/mansuf/mangadex-downloader/issues/28).
+- Fixed `-doh` or `--dns-over-https` option are not working.
+
 ## v1.7.0
 
 ### New features

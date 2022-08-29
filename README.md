@@ -20,7 +20,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
     - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
     - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
     - [Embedding (API)](#embedding-api)
-- [Supporting](#supporting)
+- [Contributing](#contributing)
 - [Links](#links)
 - [Disclaimer](#disclaimer)
 
@@ -152,17 +152,9 @@ download("insert MangaDex URL here")
 
 For more information, you can [read here](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
 
-## Supporting <a id="supporting"></a>
+## Contributing <a id="contributing"></a>
 
-Like this project ? Considering give this project a star or donate to the current maintainer [@mansuf](https://github.com/mansuf)
-
-The maintainer support these types of donation:
-
-<a href='https://ko-fi.com/A0A04UDJ1' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
-
-*If you're in Indonesia you can donate with saweria*
-
-https://saweria.co/mansuf
+See [CONTRIBUTING.md](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
 
 ## Links <a id="links"></a>
 

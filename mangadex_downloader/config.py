@@ -21,6 +21,10 @@ log = logging.getLogger(__name__)
 class ConfigTypeError(MangaDexException):
     pass
 
+# Fix #28
+_doh_providers = [None]
+_doh_providers.extend(get_all_dns_provider())
+
 # Utilities
 def _validate_bool(val):
     if isinstance(val, str):
@@ -120,7 +124,7 @@ class _Config:
         ],
         "dns_over_https": [
             None,
-            lambda x: _validate_value_from_iterator(x, get_all_dns_provider())
+            lambda x: _validate_value_from_iterator(x, _doh_providers)
         ]
     }
     default_conf = {
