@@ -10,7 +10,7 @@ init_file = (HERE / "mangadex_downloader/__init__.py").read_text()
 
 def get_version():
     """Get version of the app"""
-    re_version = r'__version__ = \"([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})\"'
+    re_version = r'__version__ = \"([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.{1,})\"'
     _version = re.search(re_version, init_file)
 
     if _version is None:
