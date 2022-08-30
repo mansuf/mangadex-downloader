@@ -35,13 +35,6 @@ from .errors import InvalidURL, NotLoggedIn
 
 log = logging.getLogger(__name__)
 
-# Compliance with Tachiyomi local JSON format
-class MangaStatus(Enum):
-    Ongoing = "1"
-    Completed = "2"
-    Hiatus = "6"
-    Cancelled = "5"
-
 def validate_url(url):
     """Validate mangadex url and return the uuid"""
     re_url = re.compile(r'([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})')
@@ -67,45 +60,6 @@ def validate_group_url(url):
         return validate_url(url)
     else:
         return "all"
-
-def write_details(manga, path):
-    data = {}
-    data['title'] = manga.title
-
-    # Parse authors
-    authors = ""
-    for index, author in enumerate(manga.authors):
-        if index < (len(manga.authors) - 1):
-            authors += author + ","
-        else:
-            # If this is last index, append author without comma
-            authors += author
-    data['author'] = authors
-
-    # Parse artists
-    artists = ""
-    for index, artist in enumerate(manga.artists):
-        if index < (len(manga.artists) - 1):
-            artists += artist + ","
-        else:
-            # If this is last index, append artist without comma
-            artists += artist
-    data['artist'] = artists
-
-    data['description'] = manga.description
-    data['genre'] = manga.genres
-    data['status'] = MangaStatus[manga.status].value
-    data['_status values'] = [
-        "0 = Unknown",
-        "1 = Ongoing",
-        "2 = Completed",
-        "3 = Licensed",
-        "4 = Publishing finished",
-        "5 = Cancelled",
-        "6 = On hiatus"
-    ]
-    with open(path, 'w') as writer:
-        writer.write(json.dumps(data))
 
 def create_chapter_folder(base_path, chapter_title):
     chapter_path = base_path / sanitize_filename(chapter_title)

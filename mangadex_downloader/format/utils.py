@@ -29,10 +29,11 @@ from shutil import ignore_patterns
 import sys
 import threading
 import time
+import traceback
 import textwrap
 
+from enum import Enum
 from pathlib import Path
-import traceback
 
 from ..errors import MangaDexException
 from .. import __repository__
@@ -325,3 +326,53 @@ def verify_sha256(server_file, path=None, data=None):
         local_sha256.update(data)
     
     return local_sha256.hexdigest() == server_hash
+
+# Compliance with Tachiyomi local JSON format
+class MangaStatus(Enum):
+    Ongoing = "1"
+    Completed = "2"
+    Hiatus = "6"
+    Cancelled = "5"
+
+def write_tachiyomi_details(manga, path):
+    """Write 'details.json' for tachiyomi format
+    
+    See https://tachiyomi.org/help/guides/local-manga/#editing-local-manga-details
+    """
+    data = {}
+    data['title'] = manga.title
+
+    # Parse authors
+    authors = ""
+    for index, author in enumerate(manga.authors):
+        if index < (len(manga.authors) - 1):
+            authors += author + ","
+        else:
+            # If this is last index, append author without comma
+            authors += author
+    data['author'] = authors
+
+    # Parse artists
+    artists = ""
+    for index, artist in enumerate(manga.artists):
+        if index < (len(manga.artists) - 1):
+            artists += artist + ","
+        else:
+            # If this is last index, append artist without comma
+            artists += artist
+    data['artist'] = artists
+
+    data['description'] = manga.description
+    data['genre'] = manga.genres
+    data['status'] = MangaStatus[manga.status].value
+    data['_status values'] = [
+        "0 = Unknown",
+        "1 = Ongoing",
+        "2 = Completed",
+        "3 = Licensed",
+        "4 = Publishing finished",
+        "5 = Cancelled",
+        "6 = On hiatus"
+    ]
+    with open(path, 'w') as writer:
+        writer.write(json.dumps(data))

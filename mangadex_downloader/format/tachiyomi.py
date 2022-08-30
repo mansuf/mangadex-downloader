@@ -25,8 +25,13 @@ import shutil
 import zipfile
 import os
 from .base import BaseFormat
-from .utils import NumberWithLeadingZeros, delete_file, verify_sha256
-from ..utils import create_chapter_folder, write_details
+from .utils import (
+    NumberWithLeadingZeros, 
+    delete_file,
+    verify_sha256,
+    write_tachiyomi_details
+)
+from ..utils import create_chapter_folder
 from ..downloader import ChapterPageDownloader
 
 path_exists = lambda x: os.path.exists(x)
@@ -43,7 +48,7 @@ class Tachiyomi(BaseFormat):
         # Write details.json for tachiyomi local manga
         details_path = base_path / 'details.json'
         log.info('Writing details.json')
-        write_details(manga, details_path)
+        write_tachiyomi_details(manga, details_path)
 
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
@@ -137,7 +142,7 @@ class TachiyomiZip(BaseFormat):
         # Write details.json for tachiyomi local manga
         details_path = base_path / 'details.json'
         log.info('Writing details.json')
-        write_details(manga, details_path)
+        write_tachiyomi_details(manga, details_path)
 
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
