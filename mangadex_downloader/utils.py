@@ -142,3 +142,29 @@ def comma_separated_text(array):
     text += ']'
     
     return text
+
+def delete_file(file):
+    """Helper function to delete file, retry 5 times if error happens"""
+    if not os.path.exists(file):
+        return
+
+    err = None
+    for attempt in range(5):
+        try:
+            os.remove(file)
+        except Exception as e:
+            log.debug("Failed to delete file \"%s\", reason: %s. Trying... (attempt: %s)" % (
+                file,
+                str(e),
+                attempt 
+            ))
+            err = e
+            time.sleep(attempt * 0.5) # Possible value 0.0 (0 * 0.5) lmao
+            continue
+        else:
+            break
+
+    # If 5 attempts is failed to delete file (ex: PermissionError, or etc.)
+    # raise error
+    if err is not None:
+        raise err

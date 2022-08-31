@@ -29,8 +29,8 @@ import xml.etree.ElementTree as ET
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_mark_image, NumberWithLeadingZeros, delete_file, verify_sha256
-from ..utils import create_chapter_folder
+from .utils import get_mark_image, NumberWithLeadingZeros, verify_sha256
+from ..utils import create_chapter_folder, delete_file
 from ..downloader import ChapterPageDownloader
 from ..errors import PillowNotInstalled
 

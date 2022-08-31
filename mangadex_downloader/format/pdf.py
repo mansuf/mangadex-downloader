@@ -33,11 +33,10 @@ from .utils import (
     FileTracker,
     NumberWithLeadingZeros,
     get_mark_image,
-    delete_file,
     verify_sha256
 )
 from ..errors import PillowNotInstalled
-from ..utils import create_chapter_folder
+from ..utils import create_chapter_folder, delete_file
 from ..downloader import ChapterPageDownloader
 
 log = logging.getLogger(__name__)

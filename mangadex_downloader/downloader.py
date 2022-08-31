@@ -24,6 +24,7 @@ import tqdm
 import os
 import time
 import logging
+from .utils import delete_file
 from .network import Net
 from .errors import HTTPException
 
@@ -193,9 +194,6 @@ class FileDownloader:
             return True
 
     def _write_final_file(self):
-        # "Circular imports" problem
-        from .format.utils import delete_file
-
         if os.path.exists(self.real_file):
             delete_file(self.real_file)
 

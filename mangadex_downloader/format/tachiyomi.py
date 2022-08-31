@@ -27,11 +27,10 @@ import os
 from .base import BaseFormat
 from .utils import (
     NumberWithLeadingZeros, 
-    delete_file,
     verify_sha256,
     write_tachiyomi_details
 )
-from ..utils import create_chapter_folder
+from ..utils import create_chapter_folder, delete_file
 from ..downloader import ChapterPageDownloader
 
 path_exists = lambda x: os.path.exists(x)
