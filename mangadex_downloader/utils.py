@@ -27,10 +27,13 @@ import signal
 import json
 import logging
 import sys
+import threading
+import queue
 from io import BytesIO
 from pathvalidate import sanitize_filename
 from enum import Enum
 from getpass import getpass
+from concurrent.futures import Future
 from .errors import InvalidURL, NotLoggedIn
 
 log = logging.getLogger(__name__)
@@ -168,3 +171,64 @@ def delete_file(file):
     # raise error
     if err is not None:
         raise err
+
+class QueueWorker(threading.Thread):
+    """A queue-based worker run in another thread"""
+    def __init__(self) -> None:
+        threading.Thread.__init__(self)
+
+        self._queue = queue.Queue()
+
+        # Thread to check if mainthread is alive or not
+        # if not, then thread queue must be shutted down too
+        self._thread_wait_mainthread = threading.Thread(target=self._wait_mainthread)
+
+    def start(self):
+        super().start()
+        self._thread_wait_mainthread.start()
+
+    def _wait_mainthread(self):
+        """Wait for mainthread to exit and then shutdown :class:`QueueWorker` thread"""
+        main_thread = threading.main_thread()
+        main_thread.join()
+        self._queue.put(None)
+
+    def submit(self, job, blocking=True):
+        """Submit a job and return the result
+        
+        If ``blocking`` is ``True``, the function will wait until job is finished. 
+        If ``blocking`` is ``False``, it will return :class:`concurrent.futures.Future` instead. 
+        The ``job`` parameter must be function without parameters or lambda wrapped.
+        """
+        fut = Future()
+        data = [fut, job]
+        self._queue.put(data)
+
+        if not blocking:
+            return fut
+
+        err = fut.exception()
+        if err:
+            raise err
+        
+        return fut.result()
+
+    def shutdown(self):
+        """Shutdown the thread by passing ``None`` value to queue"""
+        self._queue.put(None)
+
+    def run(self):
+        while True:
+            data = self._queue.get()
+            if data is None:
+                # Shutdown signal is received
+                # begin shutting down
+                return
+
+            fut, job = data
+            try:
+                job()
+            except Exception as err:
+                fut.set_exception(err)
+            else:
+                fut.set_result(None)

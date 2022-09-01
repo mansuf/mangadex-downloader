@@ -38,6 +38,7 @@ from .errors import (
     NotLoggedIn,
     UnhandledHTTPError
 )
+from .utils import QueueWorker
 from requests_doh import DNSOverHTTPSAdapter
 from concurrent.futures import Future, TimeoutError
 
@@ -100,15 +101,9 @@ class requestsMangaDexSession(ModifiedSession):
         # For login
         self._login_lock = Future()
 
-        self._queue_report = queue.Queue()
-
-        # Run the queue worker report
-        t = threading.Thread(target=self._worker_queue_report)
-        t.start()
-
-        # Run mainthread shutdown handler for queue worker
-        t = threading.Thread(target=self._worker_queue_report_handler)
-        t.start()
+        # QueueWorker for MangaDex network report
+        self._worker_report = QueueWorker()
+        self._worker_report.start()
 
     def login_from_cache(self):
         if self.check_login():
@@ -227,37 +222,6 @@ class requestsMangaDexSession(ModifiedSession):
             raise HTTPException('Server sending %s code' % resp.status_code, resp=resp)
 
         raise UnhandledHTTPError("Unhandled HTTP error")
-
-    def _worker_queue_report_handler(self):
-        """If mainthread is shutted down all queue worker must shut down too"""
-        main_thread = threading.main_thread()
-        main_thread.join()
-        self.report(None)
-
-    def _worker_queue_report(self):
-        """Queue worker for reporting MangaDex network
-        
-        This function will run in another thread.
-        """
-        while True:
-            data = self._queue_report.get()
-            if data is None:
-                return
-            else:
-                log.debug('Reporting %s to MangaDex network' % data)
-                r = self.post('https://api.mangadex.network/report', json=data)
-
-                if r.status_code != 200:
-                    log.debug('Failed to report %s to MangaDex network' % data)
-                else:
-                    log.debug('Successfully send report %s to MangaDex network' % data)
-
-    def _shutdown_report_queue_worker(self):
-        """Shutdown queue worker for reporting MangaDex network
-        
-        client should not call this.
-        """
-        self._queue_report.put(None)
 
     def _update_token(self, result):
         session_token = result['token']['session']
@@ -404,10 +368,20 @@ class requestsMangaDexSession(ModifiedSession):
         self._login_lock = Future()
 
         log.info("Logged out from MangaDex")
-    
+
+    def _report(self, data):
+        log.debug('Reporting %s to MangaDex network' % data)
+        r = self.post('https://api.mangadex.network/report', json=data)
+
+        if r.status_code != 200:
+            log.debug('Failed to report %s to MangaDex network' % data)
+        else:
+            log.debug('Successfully send report %s to MangaDex network' % data)
+
     def report(self, data):
         """Report to MangaDex network"""
-        self._queue_report.put(data)
+        job = lambda: self._report(data)
+        self._worker_report.submit(job, blocking=False)
 
 class NetworkObject:
     def __init__(self, proxy=None, trust_env=False) -> None:
