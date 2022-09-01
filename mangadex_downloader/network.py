@@ -39,15 +39,13 @@ from .errors import (
     UnhandledHTTPError
 )
 from .utils import QueueWorker
-from requests_doh import DNSOverHTTPSAdapter
+from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
-
-EXP_LOGIN_SESSION = (15 * 60) - 30 # 14 min 30 seconds timeout, 30 seconds delay for re-login
 
 log = logging.getLogger(__name__)
 
 __all__ = (
-    'Net', 'NetworkObject',
+    'Net', 'NetworkManager',
     'set_proxy', 'clear_proxy',
     'base_url', 'uploads_url'
 )
@@ -62,8 +60,8 @@ def _get_netloc(url):
     result = urllib.parse.urlparse(url)
     return result.scheme + '://' + result.netloc + result.path
 
-# Modified requests session with ability to set timeout for each requests
 class ModifiedSession(requests.Session):
+    """Modified requests session with ability to set timeout for each requests"""
     def __init__(self):
         super().__init__()
 
@@ -77,6 +75,10 @@ class ModifiedSession(requests.Session):
         return super().send(r, **kwargs)
 
 class requestsMangaDexSession(ModifiedSession):
+    """A requests session for MangaDex only. 
+
+    Sending other HTTP(s) requests to other sites will break the session
+    """
     def __init__(self, trust_env=True) -> None:
         # "Circular imports" problem
         from .config import login_cache
@@ -85,7 +87,7 @@ class requestsMangaDexSession(ModifiedSession):
         self.trust_env = trust_env
         self.user = None
         self.delay = None
-        user_agent = 'mangadex-downloader (https://github.com/mansuf/mangadex-downloader {0}) '.format(__version__)
+        user_agent = 'mangadex-downloader {0} (https://github.com/mansuf/mangadex-downloader) '.format(__version__)
         user_agent += 'Python/{0[0]}.{0[1]} '.format(sys.version_info)
         user_agent += 'requests/{0}'.format(
             requests.__version__
@@ -98,8 +100,10 @@ class requestsMangaDexSession(ModifiedSession):
 
         self._login_cache = login_cache
 
-        # For login
-        self._login_lock = Future()
+        # For auto-renew login
+        # i ran out of ideas how to name this
+        # so i name it _login_fut
+        self._login_fut = Future()
 
         # QueueWorker for MangaDex network report
         self._worker_report = QueueWorker()
@@ -131,9 +135,6 @@ class requestsMangaDexSession(ModifiedSession):
             # Renew login with refresh token
             self._refresh_token = refresh_token
             self.refresh_login()
-
-            # Start "auto-renew session token" process
-            self._start_timer_thread()
         else:
             # Session and refresh token are still valid in cache
             # Login with this
@@ -143,8 +144,10 @@ class requestsMangaDexSession(ModifiedSession):
                     "session": session_token
                 }}
             )
-            self._start_timer_thread()
-        
+
+        # Start "auto-renew session token" process
+        self._start_renew_login()
+
         log.info("Logged in to MangaDex")
 
     def _request(self, attempt, *args, **kwargs):
@@ -235,24 +238,25 @@ class requestsMangaDexSession(ModifiedSession):
         self._login_cache.set_session_token(session_token)
 
     def _is_token_cached(self):
-        if self._login_cache.get_session_token():
-            return True
-
-        if self._login_cache.get_refresh_token():
-            return True
-        
-        return False
+        return bool(self._login_cache.get_session_token or self._login_cache.get_refresh_token())
 
     def _reset_token(self):
         self._refresh_token = None
         self._session_token = None
         self.headers.pop('Authorization')
 
-    def _notify_login_lock(self):
-        self._login_lock.set_result(True)
+    def _notify_login_fut(self):
+        """Usually this will be called when :meth:`requestsMangaDexSession.logout()` 
+        is called to stop auto-renew login process
+        """
+        self._login_fut.set_result(True)
     
-    def _wait_login_lock(self):
-        """Wait until time is running out and then re-login with refresh token or logout() is called"""
+    def _renew_login(self):
+        """Renew login process
+
+        Wait session token until 30 seconds expiration time (for re-login)
+        and then renew the session token
+        """
         while True:
             exp_time = (
                 self._login_cache.get_expiration_time(self._session_token) -
@@ -260,7 +264,7 @@ class requestsMangaDexSession(ModifiedSession):
             ).total_seconds()
             delay = exp_time - self._login_cache.delay_login_time
             try:
-                logout = self._login_lock.result(delay)
+                logout = self._login_fut.result(delay)
             except TimeoutError:
                 logout = False
 
@@ -337,18 +341,19 @@ class requestsMangaDexSession(ModifiedSession):
         result = r.json()
         self._update_token(result)
 
-        self._start_timer_thread()
+        self._start_renew_login()
 
         log.info("Logged in to MangaDex")
 
-    def _start_timer_thread(self):
+    def _start_renew_login(self):
+        """Start auto-renew login process in another thread"""
         # "Circular imports" problem
         from .user import User
 
         r = self.get(f'{base_url}/user/me')
         self.user = User(data=r.json()['data'])
 
-        t = threading.Thread(target=self._wait_login_lock, daemon=True)
+        t = threading.Thread(target=self._renew_login, daemon=True)
         t.start()
 
     def logout(self):
@@ -364,8 +369,8 @@ class requestsMangaDexSession(ModifiedSession):
 
         self.post("{0}/auth/logout".format(base_url))
         self._reset_token()
-        self._notify_login_lock()
-        self._login_lock = Future()
+        self._notify_login_fut()
+        self._login_fut = Future()
 
         log.info("Logged out from MangaDex")
 
@@ -383,12 +388,12 @@ class requestsMangaDexSession(ModifiedSession):
         job = lambda: self._report(data)
         self._worker_report.submit(job, blocking=False)
 
-class NetworkObject:
+class NetworkManager:
+    """A requests and MangaDex session manager"""
     def __init__(self, proxy=None, trust_env=False) -> None:
         self._proxy = proxy
         self._trust_env = trust_env
 
-        # This will be disable proxy from environtments
         self._mangadex = None
         self._requests = None
 
@@ -417,13 +422,13 @@ class NetworkObject:
             self._requests.trust_env = yes
 
     def is_proxied(self):
-        """Return ``True`` if requests from :class:`NetworkObject`
+        """Return ``True`` if requests and MangaDex session from :class:`NetworkObject`
         are configured using proxy.
         """
         return self.proxy is not None
 
     def set_proxy(self, proxy):
-        """Setup HTTP/SOCKS proxy for requests"""
+        """Setup HTTP/SOCKS proxy for requests and MangaDex session"""
         if not proxy:
             self.clear_proxy()
         self._proxy = proxy
@@ -433,7 +438,7 @@ class NetworkObject:
             self._update_requests_proxy(proxy)
 
     def clear_proxy(self):
-        """Remove all proxy from requests and disable environments proxy"""
+        """Remove all proxy from requests and MangaDex session and disable environments proxy"""
         self._proxy = None
         self._trust_env = False
         if self._mangadex:
@@ -491,11 +496,20 @@ class NetworkObject:
         self.mangadex.delay = delay
 
     def set_doh(self, provider):
-        """Set DoH (DNS-over-HTTPS) for MangaDex and requests session"""
+        """Set DoH (DNS-over-HTTPS) for MangaDex and requests session
+        
+        See https://requests-doh.mansuf.link/en/stable/doh_providers.html for all available DoH providers
+        """
         try:
+            if self._doh is not None:
+                set_dns_provider(provider)
+                return
+
             doh = DNSOverHTTPSAdapter(provider)
         except ValueError as e:
             raise MangaDexException(e)
+
+        self._doh = doh
 
         self.mangadex.mount('https://', doh)
         self.mangadex.mount('http://', doh)
@@ -504,30 +518,32 @@ class NetworkObject:
         self.requests.mount('http://', doh)
     
     def set_timeout(self, time):
+        """Set timeout for each requests for MangaDex and requests session"""
         self.mangadex.set_timeout(time)
         self.requests.set_timeout(time)
 
     def close(self):
+        """Close requests and MangaDex session"""
         self._mangadex.close()
         self._mangadex = None
 
         self._requests.close()
         self._requests = None
 
-Net = NetworkObject()
+Net = NetworkManager()
 
 def set_proxy(proxy):
-    """Setup HTTP/SOCKS proxy for requests
+    """Setup HTTP/SOCKS proxy for requests and MangaDex session
     
-    This is shortcut for :meth:`NetworkObject.set_proxy`.
+    This is shortcut for :meth:`NetworkManager.set_proxy`.
     This will apply to ``Net`` object globally.
     """
     Net.set_proxy(proxy)
 
 def clear_proxy():
-    """Remove all proxy from requests
+    """Remove all proxy from requests and MangaDex session
     
-    This is shortcut for :meth:`NetworkObject.clear_proxy`. 
+    This is shortcut for :meth:`NetworkManager.clear_proxy`. 
     This will apply to ``Net`` object globally.
     """
     Net.clear_proxy()
