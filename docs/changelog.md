@@ -2,6 +2,10 @@
 
 ## v2.0.0a (in development, not yet released)
 
+### Fix bugs
+
+- Fixed error `cannot save mode xxx` when downloading in any `pdf` format
+
 ### Breaking changes
 
 - Removed `--unsafe` and `-u` option as is deprecated from v1.3.0
