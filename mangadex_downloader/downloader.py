@@ -116,12 +116,18 @@ class FileDownloader:
         """This will be called when download is finished"""
         pass
 
+    def on_error(self, err, resp):
+        """Register event when downloader are having problem"""
+        pass
+
     def on_receive_response(self, resp):
         """Register event when :class:`requests.Response` from given url are arrived"""
         pass
 
     def download(self):
         while True:
+            error = None
+            resp = None
             self.on_prepare()
 
             initial_file_sizes = self._get_file_size(self.file)
@@ -129,12 +135,19 @@ class FileDownloader:
             # Parse headers
             headers = self._parse_headers(initial_file_sizes)
 
-            # Since server error are handled by session (if self.session is requestsMangaDexSession)
-            # We need to catch the error to handle it furthermore
             try:
                 resp = self.session.get(self.url, headers=headers, stream=True)
-            except HTTPException as e:
-                resp = e.response
+            except Exception as e:
+                # Other Exception
+                error = e
+            
+            # Request failed
+            if error is not None or (
+                resp is not None and
+                resp.status_code > 200 and not resp.status_code < 400
+            ):
+                self.on_error(error, resp)
+                return False
 
             # Response are arrived !
             self.on_receive_response(resp)
@@ -144,12 +157,9 @@ class FileDownloader:
             # and fully downloaded
             if resp.status_code == 416:
                 # Mark it as finished
+                self.on_finish()
                 self._write_final_file()
                 return True
-
-            # Failed request
-            if resp.status_code > 200 and not resp.status_code < 400:
-                return False
 
             # Grab the file sizes
             file_sizes = float(resp.headers.get('Content-Length'))
@@ -164,6 +174,7 @@ class FileDownloader:
             if real_file_sizes:
                 if file_sizes == real_file_sizes and not self.replace:
                     log.info('File exist and replace is False, cancelling download...')
+                    self.on_finish()
                     return True
 
             # Build the progress bar
@@ -189,8 +200,8 @@ class FileDownloader:
                 log.warning("File download is incomplete, restarting download...")
                 continue
 
-            self._write_final_file()
             self.on_finish()
+            self._write_final_file()
             return True
 
     def _write_final_file(self):
@@ -229,9 +240,6 @@ class ChapterPageDownloader(FileDownloader):
         self.t1 = time.perf_counter()
         self.report_total_size = 0
 
-        # Value will be changed in on_finish()
-        self.t2 = None
-
         # Value will be changed in on_receive_response()
         self.resp = None
 
@@ -239,26 +247,25 @@ class ChapterPageDownloader(FileDownloader):
         self.report_total_size += len(chunk)
 
     def on_finish(self):
-        self.t2 = time.perf_counter()
+        t2 = time.perf_counter()
+
+        if self.report_total_size != 0:
+            # To prevent "unsupported operand" error
+            # Because if file exist and replace is `False`, on_finish() will be called (success)
+            self._report(self.resp, self.report_total_size, round((t2 - self.t1) * 1000), True)
+
+    def on_error(self, err, resp):
+        if not isinstance(err, HTTPException) and resp is None:
+            return
+
+        response = resp if resp is not None else err.response
+        content = response.content
+        t2 = time.perf_counter()
+
+        self._report(response, len(content), round((t2 - self.t1) * 1000), False)
 
     def on_receive_response(self, resp):
         self.resp = resp
-
-    def download(self):
-        result = super().download()
-
-        if not result:
-            # Failed request, report it to MangaDex Network
-            content = self.resp.content
-
-            if self.t2 is None:
-                self.t2 = time.perf_counter()
-            
-            self._report(self.resp, len(content), round((self.t2 - self.t1) * 1000), False)
-        else:
-            self._report(self.resp, self.report_total_size, round((self.t2 - self.t1) * 1000), True)
-        
-        return result
 
     def _report(self, resp, size, _time, success):
         self.cleanup()
