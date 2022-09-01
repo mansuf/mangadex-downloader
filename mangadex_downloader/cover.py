@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 from .fetcher import get_cover_art
-from .utils import File
 from .language import get_language
 
 valid_cover_types = [
@@ -50,7 +49,7 @@ class CoverArt:
         self.volume = attr['volume']
 
         # File cover
-        self.file = File(attr['fileName'])
+        self.file = attr['fileName']
 
         # Locale
         self.locale = get_language(attr['locale'])

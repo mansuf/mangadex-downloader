@@ -85,37 +85,6 @@ def get_local_attr(data):
     for key, val in data.items():
         return val
 
-class File:
-    """A utility for file naming
-
-    Parameter ``file`` can take IO (must has ``name`` object) or str
-    """
-    def __init__(self, file):
-        if hasattr(file, 'name'):
-            full_name = file.name
-        else:
-            full_name = file
-    
-        name, ext = os.path.splitext(full_name)
-
-        self.name = name
-        self.ext = ext
-
-    def __repr__(self) -> str:
-        return self.full_name
-
-    def __str__(self):
-        return self.full_name
-
-    @property
-    def full_name(self):
-        """Return file name with extension file"""
-        return self.name + self.ext
-
-    def change_name(self, new_name):
-        """Change file name to new name, but the extension file will remain same"""
-        self.name = new_name
-
 def input_handle(*args, **kwargs):
     """Same as input(), except when user hit EOFError the function automatically called sys.exit(0)"""
     try:
