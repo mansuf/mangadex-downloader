@@ -200,7 +200,7 @@ def preview_list(args, mdlist):
     print('\n')
     print(text_init)
     print(dynamic_bars(text_init))
-    for manga in mdlist.iter_manga(args.unsafe):
+    for manga in mdlist.iter_manga():
         print(manga.title)
     print('\n\n')
 
@@ -324,7 +324,7 @@ def validate(parser, args):
         group_id = __validate(group_id)
         group = Group(group_id)
 
-        iterator = search(None, args.unsafe, group=group.id)
+        iterator = search(None, group=group.id)
         text = f'List manga from group "{group.name}"'
         on_empty_err = f'Group "{group.name}" has no uploaded mangas'
         on_preview = preview_cover_manga
@@ -349,7 +349,7 @@ def validate(parser, args):
 
                 filter_kwargs[key] = new_values
 
-        iterator = search(urls, args.unsafe, **filter_kwargs)
+        iterator = search(urls, **filter_kwargs)
         text = f"Search results for \"{urls}\""
         on_empty_err = f"Search results \"{urls}\" are empty"
         on_preview = preview_cover_manga
@@ -363,7 +363,7 @@ def validate(parser, args):
             status = None
 
         try:
-            iterator = get_manga_from_user_library(status, args.unsafe)
+            iterator = get_manga_from_user_library(status)
         except MangaDexException as e:
             parser.error(str(e))
         

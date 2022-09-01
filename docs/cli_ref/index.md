@@ -54,13 +54,6 @@ Replace manga, chapter, or list (if exist)
 Enable verbose output
 ```
 
-````{option} --unsafe -u
-```{warning}
-Deprecated, will be removed in v2.0.0
-```
-Do nothing
-````
-
 ### Search related
 
 ```{option} --search -s

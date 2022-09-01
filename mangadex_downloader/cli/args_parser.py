@@ -151,13 +151,6 @@ class InputHandler(argparse.Action):
             ),
             lowered_args
         )
-        self.unsafe = _check_args(
-            (
-                '--unsafe',
-                '-u'
-            ),
-            lowered_args
-        )
         self.use_alt_details = _check_args(
             (
                 '--use-alt-details',
@@ -171,7 +164,6 @@ class InputHandler(argparse.Action):
             '--replace',
             '-r',
             '--verbose',
-            '--unsafe',
             '-u',
             '--search',
             '-s',
@@ -359,13 +351,6 @@ def get_args(argv):
         action='store_true'
     )
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
-    parser.add_argument(
-        '--unsafe',
-        '-u',
-        help='[DEPRECATED] Do nothing. In v1.2.1 lower this used to allow download erotica and pornographic manga', 
-        action='store_true',
-        default=False
-    )
 
     # Search related
     search_group = parser.add_argument_group('Search')

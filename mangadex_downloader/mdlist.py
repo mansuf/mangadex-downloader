@@ -62,16 +62,10 @@ class MangaDexList:
     def __repr__(self) -> str:
         return f'{self.name} ({self.total()} total)'
 
-    def iter_manga(self, unsafe=False):
-        """Yield :class:`Manga` from a list
-
-        Parameters
-        -----------
-        unsafe: Optional[:class:`bool`]
-            If ``True``, allow users to get porn mangas in the list.
-        """
+    def iter_manga(self):
+        """Yield :class:`Manga` from a list"""
         # "Circular imports" problem
         from .iterator import IteratorMangaFromList
 
-        return IteratorMangaFromList(data=self.data.copy(), unsafe=unsafe)
+        return IteratorMangaFromList(data=self.data.copy())
 

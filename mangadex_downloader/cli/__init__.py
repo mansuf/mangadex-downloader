@@ -16,9 +16,7 @@ from .auth import login_with_err_handler, logout_with_err_handler
 from .download import download
 from ..errors import MangaDexException
 
-_deprecated_opts = {
-    "unsafe": "--unsafe or -u option is deprecated and will be removed in v2.0.0"
-}
+_deprecated_opts = {}
 
 def _check_deprecations(log, args):
     for arg, msg in _deprecated_opts.items():

@@ -118,7 +118,6 @@ class IteratorManga(BaseIterator):
     def __init__(
         self,
         title,
-        unsafe=False,
         authors=None,
         artists=None,
         year=None,
@@ -148,7 +147,6 @@ class IteratorManga(BaseIterator):
 
         self.limit = 100
         self.title = title
-        self.unsafe = unsafe
 
         # Validation
         value_and_or = ['AND', 'OR']
@@ -329,12 +327,11 @@ class IteratorUserLibraryManga(BaseIterator):
         'completed'
     ]
 
-    def __init__(self, status=None, unsafe=False):
+    def __init__(self, status=None):
         super().__init__()
 
         self.limit = 100
         self.offset = 0
-        self.unsafe = unsafe
 
         if status is not None and status not in self.statuses:
             raise MangaDexException(f"{status} are not valid status, choices are {set(self.statuses)}")
@@ -397,7 +394,7 @@ class IteratorUserLibraryManga(BaseIterator):
         self.offset += len(items)
 
 class IteratorMangaFromList(BaseIterator):
-    def __init__(self, _id=None, data=None, unsafe=False):
+    def __init__(self, _id=None, data=None):
         if _id is None and data is None:
             raise ValueError("atleast provide _id or data")
         elif _id and data:
@@ -408,7 +405,6 @@ class IteratorMangaFromList(BaseIterator):
         self.id = _id
         self.data = data
         self.limit = 100
-        self.unsafe = unsafe
         self.name = None # type: str
         self.user = None # type: User
 

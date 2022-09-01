@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.0a (in development, not yet released)
+
+### Breaking changes
+
+- Removed `--unsafe` and `-u` option as is deprecated from v1.3.0
+
 ## v1.7.1
 
 ### Fix bugs

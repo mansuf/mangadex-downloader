@@ -30,7 +30,7 @@ from .utils import (
     comma_separated_text
 )
 from .language import Language, get_language
-from .errors import InvalidURL, NotAllowed
+from .errors import InvalidURL
 from .fetcher import *
 from .mdlist import MangaDexList
 from .manga import Manga, ContentRating
@@ -127,8 +127,6 @@ def search(*args, **kwargs):
     -----------
     title: :class:`str`
         Manga title
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to search "porn" content
 
     Returns
     --------
@@ -146,8 +144,6 @@ def get_manga_from_user_library(*args, **kwargs):
     -----------
     status: :class:`str`
         Filter retrieved manga based on status
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to search "porn" content
 
     Raises
     --------
@@ -210,7 +206,7 @@ def get_followed_list_from_user_library():
     """
     return IteratorUserLibraryFollowsList()
 
-def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
+def fetch(url, language=Language.English, use_alt_details=False):
     """Fetch the manga
 
     Parameters
@@ -221,8 +217,6 @@ def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
         Select a translated language for manga
     use_alt_details: :class:`bool` (default: ``False``)
         Use alternative title and description manga
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to see porn and erotica content
 
     Raises
     -------
@@ -232,8 +226,6 @@ def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
         Given manga cannot be found
     ChapterNotFound
         Given manga has no chapters
-    NotAllowed
-        ``unsafe`` is not enabled
 
     Returns
     --------
@@ -281,7 +273,6 @@ def download(
     no_group_name=False,
     group=None,
     use_chapter_title=False,
-    unsafe=False,
     no_verify=False,
     _range=None,
     force_https=False
@@ -323,8 +314,6 @@ def download(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to download porn and erotica content
     no_verify: :class:`bool`
         If ``True``, Skip hash checking for each images
     _range: :class:`str`
@@ -340,8 +329,6 @@ def download(
         Given manga cannot be found
     ChapterNotFound
         Given manga has no chapters
-    NotAllowed
-        ``unsafe`` is not enabled
 
     Returns
     --------
@@ -509,7 +496,6 @@ def download_chapter(
     save_as=default_save_as_format,
     no_group_name=False,
     use_chapter_title=False,
-    unsafe=False,
     no_verify=False,
     force_https=False
 ):
@@ -536,8 +522,6 @@ def download_chapter(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to download porn and erotica content
     no_verify: :class:`bool`
         If ``True``, Skip hash checking for each images
     force_https: :class:`bool`
@@ -622,7 +606,6 @@ def download_list(
     no_group_name=False,
     group=None,
     use_chapter_title=True,
-    unsafe=False,
     no_verify=False,
     force_https=False
 ):
@@ -647,8 +630,6 @@ def download_list(
     use_chapter_title: :class:`bool` (default: ``False``)
         If ``True``, use chapter title for each chapters.
         NOTE: This option is useless if used with any single format.
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to download porn and erotica content
     no_verify: :class:`bool`
         If ``True``, Skip hash checking for each images
     force_https: :class:`bool`
@@ -663,7 +644,7 @@ def download_list(
 
     _list = MangaDexList(_id=list_id)
 
-    for manga in _list.iter_manga(unsafe):
+    for manga in _list.iter_manga():
         download(
             manga.id,
             folder,
@@ -675,7 +656,6 @@ def download_list(
             no_group_name=no_group_name,
             group=group,
             use_chapter_title=use_chapter_title,
-            unsafe=unsafe,
             no_verify=no_verify,
             force_https=force_https
         )
