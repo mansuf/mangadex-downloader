@@ -31,15 +31,16 @@ def _validate(url):
         raise argparse.ArgumentTypeError(str(e))
     return _url
 
-def validate_url(url):
-    if os.path.exists(url):
-        with open(url, 'r') as opener:
-            content = opener.read()
-    else:
-        content = url
+def _try_read(path):
+    if not os.path.exists(path):
+        return None
+    
+    with open(path, 'r') as o:
+        return o.read()
 
+def validate_url(url):
     urls = []
-    for _url in content.splitlines():
+    for _url in url.splitlines():
         if not _url:
             continue
 
@@ -245,7 +246,8 @@ def validate(parser, args):
             elif not os.path.exists(file_path):
                 parser.error(f"File \"{file_path}\" is not exist")
         else:
-            file_path = urls
+            file_content = _try_read(urls)
+            file_path = file_content if file_content is not None else urls
         try:
             args.URL = validate_url(file_path)
         except argparse.ArgumentTypeError as e:
