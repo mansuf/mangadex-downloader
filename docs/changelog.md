@@ -2,7 +2,7 @@
 
 ## v1.7.2
 
-## Fix bugs
+### Fix bugs
 
 - Fixed improper validation for `file:<location>` command
 - Fixed error `cannot save mode xxx` when downloading in any `pdf` format
