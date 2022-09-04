@@ -139,22 +139,20 @@ class PDFPlugin:
 
         pageNumber = 0
         for im_ref in ims:
-            if isinstance(im_ref, _PageRef):
-                im = im_ref()
-                if im.mode != 'RGB':
-                    # Convert to RGB mode
-                    imSequence = im.convert('RGB')
+            im = im_ref() if isinstance(im_ref, _PageRef) else im_ref
 
-                    # Close image to save memory
-                    im.close()
-                else:
-                    # Already in RGB mode
-                    imSequence = im
-                
-                # Copy necessary encoderinfo to new image
-                imSequence.encoderinfo = encoderinfo.copy()
+            if im.mode != 'RGB':
+                # Convert to RGB mode
+                imSequence = im.convert('RGB')
+
+                # Close image to save memory
+                im.close()
             else:
-                imSequence = im_ref
+                # Already in RGB mode
+                imSequence = im
+
+            # Copy necessary encoderinfo to new image
+            imSequence.encoderinfo = encoderinfo.copy()
 
             im_pages = ImageSequence.Iterator(imSequence) if save_all else [imSequence]
             for im in im_pages:
