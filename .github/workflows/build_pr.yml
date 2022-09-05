@@ -53,7 +53,6 @@ jobs:
           echo "Installing mangadex-downloader"
           & ".\test_imports_x64\Scripts\python.exe" setup.py build
           Move-Item -Path ".\build\lib\mangadex_downloader" -Destination ".\test_imports_x64"
-          Copy-Item -Path ".\test_imports.py" -Destination ".\test_imports_x64"
 
           # Preparing
           $venvbindir_x64 = ".\Scripts"
@@ -83,7 +82,6 @@ jobs:
           echo "Installing mangadex-downloader"
           & ".\test_imports_x86\Scripts\python.exe" setup.py build
           Move-Item -Path ".\build\lib\mangadex_downloader" -Destination ".\test_imports_x86"
-          Copy-Item -Path ".\test_imports.py" -Destination ".\test_imports_x86"
 
           # Preparing
           $venvbindir_x86 = ".\Scripts"
