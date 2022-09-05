@@ -318,8 +318,10 @@ def build_url(parser, args):
             
             # Because this is specified syntax for batch downloading
             # If file doesn't exist, raise error
-            elif not os.path.exists(file):
-                parser.error(f"File '{file}' is not exist")
+            else:
+                urls = _try_read(file)
+                if file is None:
+                    parser.error(f"File '{file}' is not exist")
         else:
             file_content = _try_read(args.URL)
 
