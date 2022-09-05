@@ -22,8 +22,6 @@
 
 import logging
 import queue
-import re
-
 from pathvalidate import sanitize_filename
 
 from .user import User
@@ -35,7 +33,7 @@ from .fetcher import (
     get_all_chapters
 )
 from .network import Net, base_url
-from .errors import ChapterNotFound, GroupNotFound, MangaDexException, UserNotFound
+from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from . import range as range_mod # range_mod stands for "range module"
 

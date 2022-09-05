@@ -24,7 +24,6 @@
 
 import requests
 import urllib.parse
-import queue
 import time
 import logging
 import sys

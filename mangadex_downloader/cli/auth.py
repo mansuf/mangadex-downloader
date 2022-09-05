@@ -27,7 +27,7 @@ import sys
 from .utils import dynamic_bars, get_key_value
 from ..config import config, login_cache
 from ..utils import getpass_handle, input_handle
-from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
+from ..errors import HTTPException, LoginFailed
 from ..network import Net
 
 # I know this sound stupid

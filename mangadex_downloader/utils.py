@@ -21,21 +21,17 @@
 # SOFTWARE.
 
 import os
-from pathlib import Path
 import re
 import time
-import signal
-import json
 import logging
 import sys
 import threading
 import queue
-from io import BytesIO
+from pathlib import Path
 from pathvalidate import sanitize_filename
-from enum import Enum
 from getpass import getpass
 from concurrent.futures import Future
-from .errors import InvalidURL, NotLoggedIn
+from .errors import InvalidURL
 
 log = logging.getLogger(__name__)
 

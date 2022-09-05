@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 import logging
-import sys
 import traceback
 
 from ..errors import MangaDexException

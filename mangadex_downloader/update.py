@@ -29,7 +29,6 @@ import logging
 import tempfile
 import zipfile
 from packaging.version import parse as parse_version
-from importlib.util import find_spec
 from pathlib import Path
 
 from .network import Net

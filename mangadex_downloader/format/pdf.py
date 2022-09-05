@@ -40,9 +40,6 @@ from ..downloader import ChapterPageDownloader
 
 log = logging.getLogger(__name__)
 
-# For keyboardInterrupt handler
-_cleanup_jobs = []
-
 try:
     from PIL import (
         Image,
@@ -55,11 +52,6 @@ except ImportError:
     pillow_ready = False
 else:
     pillow_ready = True
-
-class _ChapterMarkImage:
-    def __init__(self, func, args) -> None:
-        self.func = func
-        self.args = args
 
 class _PageRef:
     def __init__(self, func, *args, **kwargs):

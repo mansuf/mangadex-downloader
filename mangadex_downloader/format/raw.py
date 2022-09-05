@@ -20,10 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import io
 import logging
 import os
-import zipfile
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
 from .utils import NumberWithLeadingZeros, get_mark_image, verify_sha256

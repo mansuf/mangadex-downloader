@@ -22,8 +22,14 @@
 
 import logging
 from functools import lru_cache
-from requests.exceptions import HTTPError
-from .errors import ChapterNotFound, GroupNotFound, HTTPException, InvalidManga, InvalidMangaDexList, MangaDexException, UserNotFound
+from .errors import (
+    ChapterNotFound,
+    GroupNotFound,
+    InvalidManga,
+    InvalidMangaDexList,
+    MangaDexException, 
+    UserNotFound
+)
 from .network import Net, base_url, origin_url
 from .utils import validate_url
 

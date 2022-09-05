@@ -1,4 +1,3 @@
-import logging
 import sys
 import traceback
 from .update import check_update

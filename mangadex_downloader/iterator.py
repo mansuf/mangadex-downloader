@@ -23,7 +23,6 @@
 import logging
 import queue
 import re
-import uuid
 
 from .mdlist import MangaDexList
 from .errors import HTTPException, InvalidURL, MangaDexException, NotLoggedIn

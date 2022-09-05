@@ -29,13 +29,12 @@ from gettext import gettext
 
 from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
-from .config import build_config_from_url_arg
-from ..cover import valid_cover_types, default_cover_type
+from ..cover import valid_cover_types
 from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
-from ..utils import validate_group_url as _validate_group_url, validate_url
+from ..utils import validate_group_url as _validate_group_url
 from ..language import get_language, Language
-from ..format import formats, default_save_as_format
+from ..format import formats
 from ..config import config
 from ..errors import InvalidURL
 from .. import __description__, __version__
