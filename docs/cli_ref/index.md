@@ -1,4 +1,4 @@
-# Command-line Interface (CLI) reference
+# Reference
 
 ## App names
 

@@ -64,50 +64,6 @@ class BaseIterator:
     def next(self):
         raise NotImplementedError
 
-class IteratorBulkChapters(BaseIterator):
-    """This class is returning 500 chapters in single yield
-    and will be used for IteratorChapter internally
-
-    Each of returned chapters from this class
-    are raw data (dict type) and should not be used directly.
-    """
-    def __init__(self, manga_id, lang):
-        super().__init__()
-
-        self.limit = 500
-        self.id = manga_id
-        self.language = lang
-
-    def next(self) -> dict:
-        return self.queue.get_nowait()
-    
-    def fill_data(self):
-        url = f'{base_url}/manga/{self.id}/feed'
-        includes = ['scanlation_group', 'user']
-        content_ratings = [
-            'safe',
-            'suggestive',
-            'erotica',
-            'pornographic'
-        ]
-        params = {
-            'limit': self.limit,
-            'offset': self.offset,
-            'includes[]': includes,
-            'contentRating[]': content_ratings,
-            'translatedLanguage[]': [self.language],
-        }
-
-        r = Net.mangadex.get(url, params=params)
-        data = r.json()
-
-        items = data['data']
-
-        for item in items:
-            self.queue.put(item)
-
-        self.offset += len(items)
-
 class SearchFilterError(MangaDexException):
     def __init__(self, key, msg):
         text = f"Search filter error '{key}' = {msg}"
@@ -572,3 +528,21 @@ class IteratorUserLibraryFollowsList(BaseIterator):
             self.queue.put(MangaDexList(data=item))
         
         self.offset += len(items)
+
+def iter_random_manga(content_ratings):
+    ids = []
+    while True:
+        params = {
+            'includes[]': ['author', 'artist', 'cover_art'],
+            "contentRating[]": content_ratings
+        }
+        r = Net.mangadex.get(f'{base_url}/manga/random', params=params)
+        data = r.json()['data']
+        manga = Manga(data=data)
+
+        if manga.id not in ids:
+            # Make sure it's not duplicated manga
+            ids.append(manga.id)
+            yield manga
+
+        continue

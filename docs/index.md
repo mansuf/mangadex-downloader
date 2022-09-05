@@ -18,36 +18,21 @@ installation
 formats
 ```
 
-## Command-Line Interface (CLI) example usage
+## Example usage
 
 ```{toctree}
 :maxdepth: 2
 
 cli_usage/index
+cli_usage/advanced
 ```
 
-## API usage
-
-```{toctree}
-:maxdepth: 2
-
-usage_api
-```
-
-## Command-Line Interface (CLI) reference
+## Reference
 
 ```{toctree}
 :maxdepth: 2
 
 cli_ref/index
-```
-
-## API reference
-
-```{toctree}
-:maxdepth: 2
-
-api
 ```
 
 ```{toctree}

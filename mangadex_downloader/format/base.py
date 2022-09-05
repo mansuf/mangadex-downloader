@@ -20,11 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import queue
-import sys
-import threading
 import logging
-import traceback
 from ..utils import QueueWorker
 
 log = logging.getLogger(__name__)

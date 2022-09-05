@@ -21,11 +21,17 @@
 # SOFTWARE.
 
 import logging
+import os
 import re
+import requests
 
+from mangadex_downloader.cli.utils import get_key_value
+from mangadex_downloader.network import Net
+
+from .command import registered_commands
 from ..fetcher import get_chapter, get_list, get_manga
 from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
-from ..utils import validate_url
+from ..utils import validate_legacy_url, validate_url as get_uuid
 from ..main import (
     download as dl_manga,
     download_chapter as dl_chapter,
@@ -212,12 +218,6 @@ def smart_select_url(url):
         # Get download function
         func = funcs[_type]
 
-        if 'legacy-' in _type:
-            # Only for legacy url
-            # Because inside `download_legacy_*` has already validator legacy url.
-            # Unlike download function for new id, if it's parsed id, it will throw error.
-            _id = url
-
         found = True
         
         if found:
@@ -226,7 +226,7 @@ def smart_select_url(url):
     # If none of patterns is match, grab UUID instantly and then
     # fetch one by one, starting from manga, list, and then chapter.
     if not found:
-        _id = validate_url(url)
+        _id = get_uuid(url)
 
         # Manga
         try:
@@ -258,3 +258,85 @@ def smart_select_url(url):
             raise InvalidURL(f"'{url}' is not valid MangaDex URL")
     
     return URL(func, _id)
+
+def validate_url_with_legacy_support(url):
+    try:
+        _url = get_uuid(url)
+    except InvalidURL:
+        pass
+    else:
+        return _url
+    # Legacy support
+    return validate_legacy_url(url)
+
+def _try_read(path):
+    if not os.path.exists(path):
+        return None
+    
+    with open(path, 'r') as o:
+        return o.read()
+
+def validate_url(url):
+    urls = []
+    for _url in url.splitlines():
+        if not _url:
+            continue
+
+        urls.append(validate_url_with_legacy_support(_url))
+    
+    return urls
+
+def build_url(parser, args):
+    exec_command = False
+    for arg, command_cls in registered_commands.items():
+        value = getattr(args, arg)
+        if value:
+            command = command_cls(parser, args, args.URL)
+            answer = command.prompt()
+            args.URL = [answer]
+
+            exec_command = True
+            break
+    
+    if not exec_command:
+        # Parsing file path
+        if args.file:
+            _, file = get_key_value(args.URL, sep=':')
+            
+            if not file:
+                parser.error("Syntax error: file path argument is empty")
+
+            # web URL location support for "file:{location}" syntax
+            if file.startswith('http://') or file.startswith('https://'):
+                r = Net.requests.get(file)
+                try:
+                    r.raise_for_status()
+                except requests.HTTPError:
+                    raise MangaDexException(f"Failed to connect '{file}', status code = {r.status_code}")
+
+                urls = r.text
+            
+            # Because this is specified syntax for batch downloading
+            # If file doesn't exist, raise error
+            elif not os.path.exists(file):
+                parser.error(f"File '{file}' is not exist")
+        else:
+            file_content = _try_read(args.URL)
+
+            if file_content is not None:
+                urls = file_content
+            else:
+                urls = args.URL
+
+        args.URL = urls.splitlines(keepends=False)
+
+    # Finally, make :class:`URL` object
+    if args.type:
+        args.URL = [build_URL_from_type(args.type, i) for i in args.URL]
+    else:
+        args.URL = [smart_select_url(i) for i in args.URL]
+
+    # Make sure to check if args.URL is empty
+    # if empty exit the program
+    if not args.URL:
+        parser.error("the following arguments are required: URL")

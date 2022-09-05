@@ -30,7 +30,6 @@ from pathvalidate import sanitize_filename
 from tqdm import tqdm
 from .base import BaseFormat
 from .utils import (
-    FileTracker,
     NumberWithLeadingZeros,
     get_mark_image,
     verify_sha256

@@ -531,19 +531,3 @@ class NetworkManager:
         self._requests = None
 
 Net = NetworkManager()
-
-def set_proxy(proxy):
-    """Setup HTTP/SOCKS proxy for requests and MangaDex session
-    
-    This is shortcut for :meth:`NetworkManager.set_proxy`.
-    This will apply to ``Net`` object globally.
-    """
-    Net.set_proxy(proxy)
-
-def clear_proxy():
-    """Remove all proxy from requests and MangaDex session
-    
-    This is shortcut for :meth:`NetworkManager.clear_proxy`. 
-    This will apply to ``Net`` object globally.
-    """
-    Net.clear_proxy()

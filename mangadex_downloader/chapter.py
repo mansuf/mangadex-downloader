@@ -305,6 +305,43 @@ class Chapter:
 
         return name
 
+def iter_chapters_feed(manga_id, lang):
+    includes = [
+        'scanlation_group',
+        'user'
+    ]
+    content_ratings = [
+        'safe',
+        'suggestive',
+        'erotica',
+        'pornographic'
+    ]
+    offset = 0
+    limit = 500
+    
+    while True:
+        params = {
+            'includes[]': includes,
+            'contentRating[]': content_ratings,
+            'limit': limit,
+            'offset': offset,
+            'order[volume]': 'desc',
+            'order[chapter]': 'desc',
+            'translatedLanguage[]': [lang]
+        }
+        r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
+        d = r.json()
+
+        items = d['data']
+
+        if not items:
+            break
+
+        for item in items:
+            yield item
+        
+        offset += len(items)
+
 class IteratorChapter:
     def __init__(
         self,
@@ -524,45 +561,8 @@ class IteratorChapter:
                 )
 
     def _fill_data(self):
-        def iter_chapters(manga_id, lang):
-            includes = [
-                'scanlation_group',
-                'user'
-            ]
-            content_ratings = [
-                'safe',
-                'suggestive',
-                'erotica',
-                'pornographic'
-            ]
-            offset = 0
-            limit = 500
-            
-            while True:
-                params = {
-                    'includes[]': includes,
-                    'contentRating[]': content_ratings,
-                    'limit': limit,
-                    'offset': offset,
-                    'order[volume]': 'desc',
-                    'order[chapter]': 'desc',
-                    'translatedLanguage[]': [lang]
-                }
-                r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
-                d = r.json()
-
-                items = d['data']
-
-                if not items:
-                    break
-
-                for item in items:
-                    yield item
-                
-                offset += len(items)
-
         chapters_data = {}
-        for data in iter_chapters(self.manga.id, self.language.value):
+        for data in iter_chapters_feed(self.manga.id, self.language.value):
             chapters_data[data['id']] = data
         
         chap_others = []

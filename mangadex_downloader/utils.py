@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import os
+from pathlib import Path
 import re
 import time
 import signal
@@ -70,6 +71,17 @@ def create_chapter_folder(base_path, chapter_title):
         chapter_path.mkdir(exist_ok=True)
 
     return chapter_path
+
+def create_manga_dir(manga, path=None):
+    base_path = Path(".")
+
+    # User defined path
+    if path:
+        base_path /= path
+    
+    base_path /= sanitize_filename(manga.title)
+    base_path.mkdir(parents=True, exist_ok=True)
+    return base_path
 
 # This is shortcut to extract data from localization dict structure
 # in MangaDex JSON data

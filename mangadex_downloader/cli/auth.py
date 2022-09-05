@@ -27,7 +27,6 @@ import sys
 from .utils import dynamic_bars, get_key_value
 from ..config import config, login_cache
 from ..utils import getpass_handle, input_handle
-from ..main import login, logout
 from ..errors import HTTPException, LoginFailed, UnhandledHTTPError
 from ..network import Net
 
@@ -144,7 +143,7 @@ def logout_with_err_handler(args):
         for _ in range(5):
             attempt = _ + 1
             try:
-                logout()
+                Net.mangadex.logout()
             except HTTPException as e:
                 log.info(
                     'Logout failed because of MangaDex server error, status code: %s. ' \
@@ -192,7 +191,7 @@ def login_with_err_handler(args):
         for _ in range(5):
             attempt = _ + 1
             try:
-                login(password, username, email)
+                Net.mangadex.login(password, username, email)
             except LoginFailed as e:
                 sys.exit(1)
             except ValueError as e:

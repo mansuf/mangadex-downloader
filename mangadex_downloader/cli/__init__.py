@@ -3,7 +3,7 @@ import sys
 import traceback
 from .update import check_update
 from .args_parser import get_args
-from .validator import build_url
+from .url import build_url
 from .utils import (
     close_network_object,
     setup_logging,

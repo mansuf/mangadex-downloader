@@ -139,7 +139,6 @@ def get_chapter_images(chapter_id, force_https=False):
 def get_bulk_chapters(chap_ids):
     url = '{0}/chapter'.format(base_url)
     includes = ['scanlation_group', 'user']
-    # Validation content rating is on main.py
     content_ratings = [
         'safe',
         'suggestive',

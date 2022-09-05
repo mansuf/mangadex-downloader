@@ -26,11 +26,6 @@ from .fetcher import get_list
 # to prevent typing.List conflict
 class MangaDexList:
     def __init__(self, _id=None, data=None):
-        if _id is None and data is None:
-            raise ValueError("at least provide _id or data")
-        elif _id and data:
-            raise ValueError("_id and data cannot be together")
-
         if _id is not None:
             data = get_list(_id)['data']
 
