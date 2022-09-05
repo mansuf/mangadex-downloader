@@ -5,6 +5,12 @@
 ### Breaking changes
 
 - Removed `--unsafe` and `-u` option as is deprecated from v1.3.0
+- Removed API references [notes](#notes-api-references-removal)
+
+### Notes: API references removal <a id="notes-api-references-removal"></a>
+
+All public API is now become private API. Please do not use it for your python script. 
+Those can be changed without any notice. 
 
 ## v1.7.2
 
