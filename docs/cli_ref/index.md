@@ -238,4 +238,7 @@ Update mangadex-downloader to latest version
 
 search_filters
 random
+manga_library
+list_library
+follow_list_library
 ```
