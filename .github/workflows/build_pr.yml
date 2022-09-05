@@ -43,7 +43,7 @@ jobs:
           py -3-32 -m pip install -r requirements-docs.txt
           py -3-32 -m pip install -r requirements-optional.txt
 
-      - name: Test imports
+      - name: Test imports (x64)
         run: |
           # Setup for venv python x64
           echo "Creating virtual environment"
@@ -71,10 +71,10 @@ jobs:
 
           # Execute test imports
           echo "Executing test imports"
-          & "${pythonvenv_x64}" "test_imports.py"
+          & "${pythonvenv_x64}" -m mangadex_downloader --version
 
-          cd "..\"
-
+      - name: Test imports (x86)
+        run: |
           # Setup for venv python x86
           echo "Creating virtual environment"
           py -3-32 -m venv test_imports_x86
@@ -101,7 +101,7 @@ jobs:
 
           # Execute test imports
           echo "Executing test imports"
-          & "${pythonvenv_x86}" "test_imports.py"
+          & "${pythonvenv_x86}" -m mangadex_downloader --version
 
       - name: Get python version
         run: |
