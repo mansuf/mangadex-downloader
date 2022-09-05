@@ -77,12 +77,6 @@ def _keyboard_interrupt_handler(*args):
     for job in _cleanup_jobs:
         job()
 
-    # Unfinished jobs in pdf converting
-    from ..format.pdf import _cleanup_jobs as pdf_cleanup
-
-    for job in pdf_cleanup:
-        job()
-
     # Logging out
     try:
         Net.mangadex.logout()
