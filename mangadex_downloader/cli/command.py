@@ -52,9 +52,13 @@ class BaseCommand:
         self.paginator = Paginator(iterator, limit)
         self._text_choices = ""
 
-    def _error(self, message):
+    def _error(self, message, exit=False):
         """Function to print error, yes"""
-        print(f'\nError: {message}\n')
+        msg = f'\nError: {message}\n'
+        if exit:
+            self.args_parser.error(message)
+        else:
+            print(msg)
 
     def _insert_choices(self, choices, action='next'):
         text = ""
@@ -110,9 +114,42 @@ class BaseCommand:
         """
         pass
 
-    def prompt(self):
+    def _return_from(self, pos):
+        choices = {}
+
+        try:
+            self._insert_choices(choices)
+        except IteratorEmpty:
+            self.on_empty_error()
+            return None
+
+        while True:
+
+            try:
+                result = choices[pos]
+            except KeyError:
+                result = None
+            
+            if result is not None:
+                yield result
+                break
+            elif pos == "*":
+                for item in choices.values():
+                    yield item
+
+            try:
+                self._insert_choices(choices)
+            except IteratorEmpty:
+                self._error("There are no more results", exit=True)
+            except IndexError:
+                self._error("Choices are out of range, try again")
+
+    def prompt(self, input_pos=None):
         """Begin ask question to user"""
         choices = {}
+
+        if input_pos:
+            return self._return_from(input_pos)
 
         # Begin inserting choices for question
         try:
@@ -161,9 +198,15 @@ class BaseCommand:
 
 class MangaDexCommand(BaseCommand):
     """Command specialized for MangaDex"""
-    def prompt(self):
-        answer = super().prompt()
-        return answer.id
+    def prompt(self, *args, **kwargs):
+        answer = super().prompt(*args, **kwargs)
+
+        # "input_pos" argument from prompt() is used
+        try:
+            return iter(i.id for i in answer)
+        except TypeError:
+            return [answer.id]
+                
 
 class MangaCommand(MangaDexCommand):
     """Command specialized for manga related"""

@@ -525,3 +525,15 @@ In case if you don't have patience 😁
 # Set timeout for 2 seconds for each HTTP(s) requests
 mangadex-dl "https://mangadex.org/title/..." --timeout 2
 ```
+
+## Auto select choices from selectable prompt command (list, library, followed-list)
+
+In case you didn't want to be prompted, you can use this feature !
+
+```shell
+# Automatically select position 1
+mangadex-dl "insert keyword here" -s --input-pos "1"
+
+# Select all
+mangadex-dl "insert keyword here" -s --input-pos "*"
+```

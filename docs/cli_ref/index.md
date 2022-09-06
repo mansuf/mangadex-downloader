@@ -205,18 +205,13 @@ Set timeout for each HTTPS(s) requests
 
 ### Miscellaneous
 
+```{option} --input-pos
+Automatically select choices in selectable prompt (list, library, followed-list command)
+```
+
 ```{option} -pipe
 If set, the app will accept pipe input
 ```
-
-````{option} --enable-legacy-sorting
-
-```{warning}
-Deprecated, will be removed in v1.3.0.
-```
-Does nothing. In previous version this option is used
-to enable legacy sorting. Which rename all images with numbers leading zeros (example: 001.jpg)
-````
 
 ```{option} --no-verify -nv
 Skip hash checking for each images

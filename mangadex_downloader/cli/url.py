@@ -292,8 +292,7 @@ def build_url(parser, args):
         value = getattr(args, arg)
         if value:
             command = command_cls(parser, args, args.URL)
-            answer = command.prompt()
-            args.URL = [answer]
+            result = command.prompt(args.input_pos)
 
             exec_command = True
             break
@@ -330,13 +329,24 @@ def build_url(parser, args):
             else:
                 urls = args.URL
 
-        args.URL = urls.splitlines(keepends=False)
+        result = urls.splitlines(keepends=False)
+
+    def yeet():
+        """Function to yeet each url with error handling (:class:`InvalidURL`)"""
+        if args.type:
+            func = lambda i: build_URL_from_type(args.type, i)
+        else:
+            func = smart_select_url
+        
+        for i in result:
+            try:
+                yield func(i)
+            except InvalidURL as e:
+                log.error(e)
+                continue
 
     # Finally, make :class:`URL` object
-    if args.type:
-        args.URL = [build_URL_from_type(args.type, i) for i in args.URL]
-    else:
-        args.URL = [smart_select_url(i) for i in args.URL]
+    args.URL = yeet()
 
     # Make sure to check if args.URL is empty
     # if empty exit the program

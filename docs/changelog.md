@@ -2,6 +2,14 @@
 
 ## v2.0.0a (in development, not yet released)
 
+## New features
+
+- Added ability to auto select prompt (list, library, followed-list command) [#29](https://github.com/mansuf/mangadex-downloader/issues/29)
+
+## Fix bugs
+
+- Fixed batch download error handler is not working
+
 ### Breaking changes
 
 - Removed `--unsafe` and `-u` option as is deprecated from v1.3.0
