@@ -141,6 +141,15 @@ class FileDownloader:
                 # Other Exception
                 error = e
             
+            # The downloader are requesting out of range bytes file
+            # Because previous download are cancelled or error and .temp file are exists
+            # and fully downloaded
+            if resp is not None and resp.status_code == 416:
+                # Mark it as finished
+                self.on_finish()
+                self._write_final_file()
+                return True
+
             # Request failed
             if error is not None or (
                 resp is not None and
@@ -151,15 +160,6 @@ class FileDownloader:
 
             # Response are arrived !
             self.on_receive_response(resp)
-
-            # The downloader are requesting out of range bytes file
-            # Because previous download are cancelled or error and .temp file are exists
-            # and fully downloaded
-            if resp.status_code == 416:
-                # Mark it as finished
-                self.on_finish()
-                self._write_final_file()
-                return True
 
             # Grab the file sizes
             file_sizes = float(resp.headers.get('Content-Length'))
@@ -255,6 +255,7 @@ class ChapterPageDownloader(FileDownloader):
             self._report(self.resp, self.report_total_size, round((t2 - self.t1) * 1000), True)
 
     def on_error(self, err, resp):
+        print(err, resp)
         if not isinstance(err, HTTPException) and resp is None:
             return
 
