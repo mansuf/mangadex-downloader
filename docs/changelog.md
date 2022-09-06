@@ -2,7 +2,7 @@
 
 ## v2.0.0a (in development, not yet released)
 
-## New features
+### New features
 
 - Added ability to auto select prompt (list, library, followed-list command) [#29](https://github.com/mansuf/mangadex-downloader/issues/29)
 
