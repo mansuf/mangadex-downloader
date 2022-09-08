@@ -8,6 +8,7 @@
 
 ## Fix bugs
 
+- Fixed message `Chapter ... from group ... has no images` is not showing properly.
 - Fixed batch download error handler is not working
 
 ### Breaking changes

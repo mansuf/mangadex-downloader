@@ -481,7 +481,7 @@ class IteratorChapter:
         # Some manga has chapters where it has no pages / images inside of it.
         # We need to verify it, to prevent error when downloading the manga.
         if chap.pages == 0:
-            log.warning(f"Chapter {0} from group {1} has no images, ignoring...".format(
+            log.warning("Chapter {0} from group {1} has no images, ignoring...".format(
                 chap.chapter,
                 chap.groups_name
             ))
