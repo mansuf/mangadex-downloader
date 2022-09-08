@@ -200,12 +200,25 @@ class MangaDexCommand(BaseCommand):
     """Command specialized for MangaDex"""
     def prompt(self, *args, **kwargs):
         answer = super().prompt(*args, **kwargs)
+        ids = []
+
+        # Make sure results are never duplicated
+        def iter_answer():
+            for item in answer:
+                if item.id not in ids:
+                    ids.append(item.id)
+                    yield item.id
+                else:
+                    continue
 
         # "input_pos" argument from prompt() is used
         try:
-            return iter(i.id for i in answer)
+            iter(answer)
         except TypeError:
             return [answer.id]
+        else:
+            return iter_answer()
+
                 
 
 class MangaCommand(MangaDexCommand):
