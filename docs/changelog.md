@@ -11,6 +11,7 @@
 - Fixed message `Chapter ... from group ... has no images` is not showing properly.
 - Fixed batch download error handler is not working
 - Fixed download is overflowing when `.temp` file is out of range
+- Fixed memory slowly increased during download
 
 ### Breaking changes
 

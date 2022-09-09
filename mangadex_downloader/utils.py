@@ -158,7 +158,10 @@ class QueueWorker(threading.Thread):
 
         # Thread to check if mainthread is alive or not
         # if not, then thread queue must be shutted down too
-        self._thread_wait_mainthread = threading.Thread(target=self._wait_mainthread)
+        self._thread_wait_mainthread = threading.Thread(
+            target=self._wait_mainthread, 
+            name=f'QueueWorker-wait-mainthread, QueueWorker_id={self.ident}'
+        )
 
     def start(self):
         super().start()
@@ -167,8 +170,17 @@ class QueueWorker(threading.Thread):
     def _wait_mainthread(self):
         """Wait for mainthread to exit and then shutdown :class:`QueueWorker` thread"""
         main_thread = threading.main_thread()
-        main_thread.join()
-        self._queue.put(None)
+
+        while True:
+            main_thread.join(timeout=1)
+            if not self.is_alive():
+                # QueueWorker already shutted down
+                # Possibly because of QueueWorker.shutdown() is called
+                return
+            elif not main_thread.is_alive():
+                # Main thread already shutted down
+                # and QueueWorker still alive, terminate it
+                self._queue.put(None)
 
     def submit(self, job, blocking=True):
         """Submit a job and return the result
