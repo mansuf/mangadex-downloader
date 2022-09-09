@@ -56,6 +56,10 @@ class FileDownloader:
         self._tqdm = None
         
         self._register_keyboardinterrupt_handler()
+
+        # If file exist, delete it
+        if self.replace:
+            delete_file(self.file)
     
     def _register_keyboardinterrupt_handler(self):
         _cleanup_jobs.append(lambda: self.cleanup())
