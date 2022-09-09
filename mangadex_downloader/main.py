@@ -23,7 +23,7 @@
 import logging
 from .utils import (
     comma_separated_text,
-    create_manga_dir
+    create_directory
 )
 from .language import Language, get_language
 from .fetcher import *
@@ -68,7 +68,7 @@ def download(
     manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
 
     # Create folder for downloading
-    base_path = create_manga_dir(manga, folder)
+    base_path = create_directory(manga.title, folder)
 
     # Cover path
     cover_path = base_path / 'cover.jpg'
@@ -184,7 +184,7 @@ def download_chapter(
     log.info(f'Found chapter {chap.chapter} from manga "{manga.title}"')
 
     # Create folder for downloading
-    base_path = create_manga_dir(manga, folder)
+    base_path = create_directory(manga.title, folder)
     log.info(f'Download directory is set to "{base_path.resolve()}"')
 
     kwargs_iter_chapter_images = {

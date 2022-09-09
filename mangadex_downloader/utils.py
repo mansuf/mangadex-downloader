@@ -68,14 +68,15 @@ def create_chapter_folder(base_path, chapter_title):
 
     return chapter_path
 
-def create_manga_dir(manga, path=None):
+def create_directory(name, path=None):
+    """Create directory with ability to sanitize name to prevent error"""
     base_path = Path(".")
 
     # User defined path
     if path:
         base_path /= path
     
-    base_path /= sanitize_filename(manga.title)
+    base_path /= sanitize_filename(name)
     base_path.mkdir(parents=True, exist_ok=True)
     return base_path
 
