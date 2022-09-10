@@ -537,3 +537,19 @@ mangadex-dl "insert keyword here" -s --input-pos "1"
 # Select all
 mangadex-dl "insert keyword here" -s --input-pos "*"
 ```
+
+## Disable chapter info creation (or "covers")
+
+In case you didn't want this image appeared in the beginning of every chapters.
+
+![chapter info](../images/chapter_info.png)
+
+You can use `--no-chapter-info` to disable it.
+
+```{note}
+It only works for any `volume` and `single` format
+```
+
+```shell
+mangadex-dl "insert URL here" --no-chapter-info -f pdf-volume
+```

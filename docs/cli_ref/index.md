@@ -110,6 +110,10 @@ Do not use scanlation group name for each chapter
 Use chapter title for each chapters. **NOTE:** This option is useless if used with any single and volume format
 ```
 
+```{option} --no-chapter-info -nci
+Disable creation of chapter info for any `single` and `volume` formats
+```
+
 ### Chapter page related
 
 ```{option} --start-page -sp NUM_PAGE
