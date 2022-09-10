@@ -55,7 +55,8 @@ def download(
     use_chapter_title=False,
     no_verify=False,
     _range=None,
-    force_https=False
+    force_https=False,
+    no_chapter_info=False
 ):
     """Download a manga"""
     lang = get_language(language)
@@ -116,6 +117,7 @@ def download(
             compressed_image,
             replace,
             no_verify,
+            no_chapter_info,
             kwargs_iter_chapter_images
         )
 
@@ -171,7 +173,8 @@ def download_chapter(
     no_group_name=False,
     use_chapter_title=False,
     no_verify=False,
-    force_https=False
+    force_https=False,
+    no_chapter_info=False
 ):
     """Download a chapter"""
     fmt_class = get_format(save_as)
@@ -205,6 +208,7 @@ def download_chapter(
         compressed_image,
         replace,
         no_verify,
+        no_chapter_info,
         kwargs_iter_chapter_images
     )
 
@@ -226,7 +230,8 @@ def download_list(
     group_id=None,
     use_chapter_title=True,
     no_verify=False,
-    force_https=False
+    force_https=False,
+    no_chapter_info=False
 ):
     """Download a list"""
     _list = MangaDexList(_id=list_id)
@@ -244,7 +249,8 @@ def download_list(
             group_id=group_id,
             use_chapter_title=use_chapter_title,
             no_verify=no_verify,
-            force_https=force_https
+            force_https=force_https,
+            no_chapter_info=no_chapter_info
         )
 
 def download_legacy_manga(legacy_id, *args, **kwargs):

@@ -441,6 +441,13 @@ def get_args(argv):
         default=config.use_chapter_title
     )
     chap_group.add_argument(
+        '--no-chapter-info',
+        '-nci',
+        action='store_true',
+        help='Disable creation of chapter info for any `single` and `volume` formats',
+        default=config.no_chapter_info
+    )
+    chap_group.add_argument(
         '--range',
         '-rg',
         help='A range pattern to download specific chapters'

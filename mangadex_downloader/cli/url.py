@@ -99,7 +99,8 @@ def download_manga(url, args, legacy=False):
         args.use_chapter_title,
         args.no_verify,
         args.range,
-        args.force_https
+        args.force_https,
+        args.no_chapter_info
     )
 
     if legacy:
@@ -124,7 +125,8 @@ def download_chapter(url, args, legacy=False):
         args.no_group_name,
         args.use_chapter_title,
         args.no_verify,
-        args.force_https
+        args.force_https,
+        args.no_chapter_info
     )
 
     if legacy:
@@ -162,7 +164,8 @@ def download_list(url, args):
         args.group,
         args.use_chapter_title,
         args.no_verify,
-        args.force_https
+        args.force_https,
+        args.no_chapter_info
     )
 
 # Legacy support

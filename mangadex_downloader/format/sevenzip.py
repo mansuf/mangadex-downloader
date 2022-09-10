@@ -92,7 +92,7 @@ class SevenZip(BaseFormat):
 
             images = self.get_images(chap_class, chap_images, chapter_path, count)
 
-            log.info(f"{chap_name} has finished download, converting to cbz...")
+            log.info(f"{chap_name} has finished download, converting to cb7...")
             worker.submit(lambda: self.convert(images, chapter_zip_path))
             
             # Remove original chapter folder
@@ -166,6 +166,9 @@ class SevenZipVolume(SevenZip):
                 # Make sure we never duplicated it
                 write_start_image = self.check_write_chapter_info(volume_zip_path, img_name)
 
+                if self.no_chapter_info:
+                    write_start_image = False
+
                 if write_start_image:
                     img_path = volume_path / img_name
                     get_chapter_info(chap_class, img_path, self.replace)
@@ -176,7 +179,7 @@ class SevenZipVolume(SevenZip):
                 images.extend(self.get_images(chap_class, chap_images, volume_path, count))
             
             # Begin converting
-            log.info(f"{volume} has finished download, converting to cbz...")
+            log.info(f"{volume} has finished download, converting to cb7...")
             worker.submit(lambda: self.convert(images, volume_zip_path))
                 
             # Remove original chapter folder
@@ -235,6 +238,9 @@ class SevenZipSingle(SevenZipVolume):
             # Make sure we never duplicated it
             write_start_image = self.check_write_chapter_info(manga_zip_path, img_name)
 
+            if self.no_chapter_info:
+                write_start_image = False
+
             if write_start_image:
                 img_path = path / img_name
                 get_chapter_info(chap_class, img_path, self.replace)
@@ -245,7 +251,7 @@ class SevenZipSingle(SevenZipVolume):
             images.extend(self.get_images(chap_class, chap_images, path, count))
         
         # Begin converting
-        log.info(f"Manga '{manga.title}' has finished download, converting to pdf...")
+        log.info(f"Manga '{manga.title}' has finished download, converting to cb7...")
         self.convert(images, manga_zip_path)
 
         # Remove original manga folder

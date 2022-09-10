@@ -5,6 +5,9 @@
 ### New features
 
 - Added ability to auto select prompt (list, library, followed-list command) [#29](https://github.com/mansuf/mangadex-downloader/issues/29)
+- Added ability to disable creation of chapter info for any `single` and `volume` formats [#30](https://github.com/mansuf/mangadex-downloader/issues/30)
+- Added new config
+  - `no_chapter_info`
 
 ### Fix bugs
 

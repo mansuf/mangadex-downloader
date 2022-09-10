@@ -147,6 +147,10 @@ class _Config:
         "dns_over_https": [
             None,
             lambda x: _validate_value_from_iterator(x, _doh_providers)
+        ],
+        "no_chapter_info": [
+            False,
+            _validate_bool
         ]
     }
     default_conf = {

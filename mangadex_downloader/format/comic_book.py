@@ -230,7 +230,10 @@ class ComicBookArchiveVolume(ComicBookArchive):
                     volume_zip.getinfo(img_name)
                 except KeyError:
                     write_start_image = True
-                
+
+                if self.no_chapter_info:
+                    write_start_image = False
+
                 # Insert "start of the chapter" image
                 if write_start_image:
                     get_chapter_info(chap_class, img_path, self.replace)
@@ -283,10 +286,6 @@ class ComicBookArchiveSingle(ComicBookArchive):
         last_chapter = cache[len(cache) - 1][0]
         merged_name = sanitize_filename(first_chapter.simple_name + " - " + last_chapter.simple_name)
         manga_zip_path = self.path / (merged_name + '.cbz')
-        manga_zip = zipfile.ZipFile(
-            str(manga_zip_path),
-            "a" if os.path.exists(manga_zip_path) else "w"
-        )
 
         # Check if exist or not
         if manga_zip_path.exists():
@@ -296,6 +295,10 @@ class ComicBookArchiveSingle(ComicBookArchive):
                 log.info(f"{manga_zip_path.name} is exist and replace is False, cancelling download...")
                 return
 
+        manga_zip = zipfile.ZipFile(
+            str(manga_zip_path),
+            "a" if os.path.exists(manga_zip_path) else "w"
+        )
         path = create_directory(merged_name, self.path)
 
         for chap_class, chap_images in cache:
@@ -308,7 +311,10 @@ class ComicBookArchiveSingle(ComicBookArchive):
                 manga_zip.getinfo(img_name)
             except KeyError:
                 write_start_image = True
-            
+
+            if self.no_chapter_info:
+                write_start_image = False
+
             # Insert "start of the chapter" image
             if write_start_image:
                 get_chapter_info(chap_class, img_path, self.replace)
@@ -320,7 +326,7 @@ class ComicBookArchiveSingle(ComicBookArchive):
             images.extend(self.get_images(chap_class, chap_images, path, count))
 
         # Convert
-        log.info(f"Manga '{manga.title}' has finished download, converting to pdf...")
+        log.info(f"Manga '{manga.title}' has finished download, converting to cbz...")
         worker.submit(lambda: self.convert(manga_zip, images))
 
         # Remove downloaded images

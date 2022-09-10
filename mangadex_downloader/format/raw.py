@@ -87,9 +87,10 @@ class RawVolume(BaseFormat):
                 # Insert "start of the chapter" image
                 img_name = count.get() + '.png'
                 img_path = volume_path / img_name
-                get_chapter_info(chap_class, img_path, self.replace)
 
-                count.increase()
+                if not self.no_chapter_info:
+                    get_chapter_info(chap_class, img_path, self.replace)
+                    count.increase()
 
                 self.get_images(chap_class, images, volume_path, count)
 
@@ -128,8 +129,9 @@ class RawSingle(BaseFormat):
             # Insert "start of the chapter" image
             img_name = count.get() + '.png'
             img_path = path / img_name
-            get_chapter_info(chap_class, img_path, self.replace)
 
-            count.increase()
+            if not self.no_chapter_info:
+                get_chapter_info(chap_class, img_path, self.replace)
+                count.increase()
 
             self.get_images(chap_class, images, path, count)
