@@ -299,7 +299,7 @@ def build_url(parser, args):
             # If file doesn't exist, raise error
             else:
                 urls = _try_read(file)
-                if file is None:
+                if urls is None:
                     parser.error(f"File '{file}' is not exist")
         else:
             file_content = _try_read(args.URL)
