@@ -32,12 +32,9 @@ from .base import BaseFormat
 from .utils import (
     NumberWithLeadingZeros,
     get_chapter_info,
-    get_mark_image,
-    verify_sha256
 )
 from ..errors import PillowNotInstalled
-from ..utils import create_chapter_folder, create_directory, delete_file
-from ..downloader import ChapterPageDownloader
+from ..utils import create_directory, delete_file
 
 log = logging.getLogger(__name__)
 

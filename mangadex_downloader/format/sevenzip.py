@@ -27,9 +27,8 @@ import tqdm
 
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_chapter_info, get_mark_image, NumberWithLeadingZeros, verify_sha256
-from ..utils import create_chapter_folder, create_directory, delete_file
-from ..downloader import ChapterPageDownloader
+from .utils import get_chapter_info, NumberWithLeadingZeros
+from ..utils import create_directory, delete_file
 from ..errors import MangaDexException
 
 try:
