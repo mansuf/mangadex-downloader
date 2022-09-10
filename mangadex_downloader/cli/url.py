@@ -259,32 +259,12 @@ def smart_select_url(url):
     
     return URL(func, _id)
 
-def validate_url_with_legacy_support(url):
-    try:
-        _url = get_uuid(url)
-    except InvalidURL:
-        pass
-    else:
-        return _url
-    # Legacy support
-    return validate_legacy_url(url)
-
 def _try_read(path):
     if not os.path.exists(path):
         return None
     
     with open(path, 'r') as o:
         return o.read()
-
-def validate_url(url):
-    urls = []
-    for _url in url.splitlines():
-        if not _url:
-            continue
-
-        urls.append(validate_url_with_legacy_support(_url))
-    
-    return urls
 
 def build_url(parser, args):
     exec_command = False
