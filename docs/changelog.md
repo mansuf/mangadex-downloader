@@ -12,11 +12,15 @@
 - Fixed batch download error handler is not working
 - Fixed download is overflowing when `.temp` file is out of range
 - Fixed memory slowly increased during download
+- Fixed download with `raw-single` format is not working.
 
 ### Breaking changes
 
-- Removed `--unsafe` and `-u` option as is deprecated from v1.3.0
+- Removed `--unsafe` and `-u` option (deprecated from v1.3.0)
 - Removed API references [notes](#notes-api-references-removal)
+- Changed extension file for `tachiyomi-zip` format (from `.zip` to `.cbz`)
+- [Pillow](https://pypi.org/project/pillow/) is no longer required when downloading in any `single` and `volume` format. 
+- All formats will download and convert in separated time (previously was download and convert in same time).
 
 ### Notes: API references removal <a id="notes-api-references-removal"></a>
 

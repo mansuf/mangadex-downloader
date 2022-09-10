@@ -27,25 +27,14 @@ import zipfile
 import os
 import xml.etree.ElementTree as ET
 
+from tqdm import tqdm
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_mark_image, NumberWithLeadingZeros, verify_sha256
-from ..utils import create_chapter_folder, delete_file
-from ..downloader import ChapterPageDownloader
+from .utils import get_chapter_info, NumberWithLeadingZeros
+from ..utils import create_directory, delete_file
 from ..errors import PillowNotInstalled
 
-# Try to import Pillow module
-try:
-    from PIL import Image
-except ImportError:
-    pillow_ready = False
-else:
-    pillow_ready = True
-
-path_exists = lambda x: os.path.exists(x)
-
 log = logging.getLogger(__name__)
-
 
 def generate_Comicinfo(manga, chapter):
     xml_root = ET.Element('ComicInfo',
@@ -108,143 +97,73 @@ def generate_Comicinfo(manga, chapter):
 
     return xml_root
 
-
 class ComicBookArchive(BaseFormat):
+    def convert(self, zip_obj, images):
+        progress_bar = tqdm(
+            desc='cbz_progress',
+            total=len(images),
+            initial=0,
+            unit='item'
+        )
+
+        for im_path in images:
+            zip_obj.write(im_path, im_path.name)
+            progress_bar.update(1)                
+
+        progress_bar.close()
+
     def main(self):
-        base_path = self.path
         manga = self.manga
-        compressed_image = self.compress_img
-        replace = self.replace
         worker = self.create_worker()
 
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
-            chap = chap_class.chapter
             chap_name = chap_class.get_simplified_name()
-            chap_extended_name = chap_class.get_name()
-            xml_data = generate_Comicinfo(manga, chap_class)
 
-            # Fetching chapter images
-            log.info('Getting %s from chapter %s' % (
-                'compressed images' if compressed_image else 'images',
-                chap
-            ))
-            images.fetch()
+            chapter_path = create_directory(chap_name, self.path)
 
-            chapter_path = create_chapter_folder(base_path, chap_name)
+            # Check if .cbz file is exist or not
+            chapter_zip_path = self.path / (chap_name + '.cbz')
+            if chapter_zip_path.exists():
 
-            chapter_zip_path = base_path / (chap_name + '.cbz')
-            if chapter_zip_path.exists() and replace:
-                delete_file(chapter_zip_path)
+                if self.replace:
+                    delete_file(chapter_zip_path)
+                else:
+                    log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
+                    continue
 
             chapter_zip = zipfile.ZipFile(
                 str(chapter_zip_path),
-                "a" if path_exists(chapter_zip_path) else "w"
+                "a" if os.path.exists(chapter_zip_path) else "w"
             )
 
+            # Generate 'ComicInfo.xml' data
+            xml_data = generate_Comicinfo(manga, chap_class)
+
+            # Write 'ComicInfo.xml' to .cbz file
+            # And make sure that we don't write it twice or more
             if 'ComicInfo.xml' not in chapter_zip.namelist():
                 wrap = lambda: chapter_zip.writestr('ComicInfo.xml', ET.tostring(xml_data))
                 # KeyboardInterrupt safe
                 worker.submit(wrap)
 
-            while True:
-                # Fix #10
-                # Some old programs wouldn't display images correctly
-                count = NumberWithLeadingZeros(images.iter())
+            count = NumberWithLeadingZeros(chap_class.pages)
+            images = self.get_images(chap_class, images, chapter_path, count)
 
-                error = False
-                for page, img_url, img_name in images.iter(log_info=True):
-                    server_file = img_name
+            log.info(f"{chap_name} has finished download, converting to cbz...")
 
-                    img_ext = os.path.splitext(img_name)[1]
-                    img_name = count.get() + img_ext
+            # KeyboardInterrupt safe
+            worker.submit(lambda: self.convert(chapter_zip, images))
 
-                    img_path = chapter_path / img_name
-
-                    log.info('Downloading %s page %s' % (chap_extended_name, page))
-
-                    # Verify file
-                    # Make sure zipfile is opened in append mode
-                    if chapter_zip.mode == "a" and self.verify and not replace:
-                        # Can be True, False, or None
-                        try:
-                            content = chapter_zip.read(img_name)
-                        except KeyError:
-                            # File is not exist
-                            verified = None
-                        else:
-                            verified = verify_sha256(server_file, data=content)
-                    elif not self.verify or chapter_zip.mode == "w":
-                        verified = None
-                    else:
-                        verified = False
-
-                    # If file still in intact and same as the server
-                    # Continue to download the others
-                    if verified:
-                        log.info("File exist and same as file from MangaDex server, cancelling download...")
-                        count.increase()
-                        continue
-                    elif verified == False and not self.replace:
-                        # File is not same server, probably modified
-                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
-                        replace = True
-
-                    downloader = ChapterPageDownloader(
-                        img_url,
-                        img_path,
-                        replace=replace
-                    )
-                    success = downloader.download()
-
-                    if verified == False and not self.replace:
-                        replace = self.replace
-
-                    # One of MangaDex network are having problem
-                    # Fetch the new one, and start re-downloading
-                    if not success:
-                        log.error('One of MangaDex network are having problem, re-fetching the images...')
-                        log.info('Getting %s from chapter %s' % (
-                            'compressed images' if compressed_image else 'images',
-                            chap
-                        ))
-                        error = True
-                        images.fetch()
-                        break
-                    else:
-                        # Write it to zipfile
-                        wrap = lambda: chapter_zip.writestr(img_name, img_path.read_bytes())
-                        
-                        # KeyboardInterrupt safe
-                        worker.submit(wrap)
-                        
-                        # And then remove it original file
-                        delete_file(img_path)
-
-                        count.increase()
-                        continue
-                
-                if not error:
-                    break
-            
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
 
         # Shutdown queue-based thread process
         worker.shutdown()
 
-class ComicBookArchiveVolume(BaseFormat):
-    def __init__(self, *args, **kwargs):
-        if not pillow_ready:
-            raise PillowNotInstalled("pillow is not installed")
-        
-        super().__init__(*args, **kwargs)
-
+class ComicBookArchiveVolume(ComicBookArchive):
     def main(self):
-        base_path = self.path
         manga = self.manga
-        compressed_image = self.compress_img
-        replace = self.replace
         worker = self.create_worker()
 
         # Sorting volumes
@@ -260,13 +179,15 @@ class ComicBookArchiveVolume(BaseFormat):
 
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for chap_class, images in manga.chapters.iter(**kwargs_iter):
-            append_cache(chap_class.volume, [chap_class, images])
+        for chap_class, chap_images in manga.chapters.iter(**kwargs_iter):
+            append_cache(chap_class.volume, [chap_class, chap_images])
 
         # Begin downloading
         for volume, chapters in cache.items():
             num = 0
-            for chap_class, images in chapters:
+            images = []
+
+            for chap_class, _ in chapters:
                 # Each chapters has one page that has "Chapter n"
                 # This is called "start of the chapter" image
                 num += 1
@@ -282,20 +203,26 @@ class ComicBookArchiveVolume(BaseFormat):
                 volume = 'No Volume'
 
             # Create volume folder
-            volume_path = create_chapter_folder(base_path, volume)
+            volume_path = create_directory(volume, self.path)
+            volume_zip_path = self.path / (volume + '.cbz')
 
-            volume_zip_path = base_path / (volume + '.cbz')
+            # Check if exist or not
+            if volume_zip_path.exists():
+                
+                if self.replace:
+                    delete_file(volume_zip_path)
+                else:
+                    log.info(f"{volume_zip_path.name} is exist and replace is False, cancelling download...")
+                    continue
+
             volume_zip = zipfile.ZipFile(
                 str(volume_zip_path),
-                "a" if path_exists(volume_zip_path) else "w"
+                "a" if os.path.exists(volume_zip_path) else "w"
             )
 
-            for chap_class, images in chapters:
-                chap = chap_class.chapter
-                chap_name = chap_class.get_name()
-
-                # Insert "start of the chapter" image
+            for chap_class, chap_images in chapters:
                 img_name = count.get() + '.png'
+                img_path = volume_path / img_name
 
                 # Make sure we never duplicated it
                 write_start_image = False
@@ -304,97 +231,18 @@ class ComicBookArchiveVolume(BaseFormat):
                 except KeyError:
                     write_start_image = True
                 
+                # Insert "start of the chapter" image
                 if write_start_image:
-                    img = get_mark_image(chap_class)
-                    fp = io.BytesIO()
-                    img.save(fp, 'png')
-                    job = lambda: volume_zip.writestr(img_name, fp.getvalue())
-                    worker.submit(job)
+                    get_chapter_info(chap_class, img_path, self.replace)
+                    worker.submit(lambda: volume_zip.write(img_path, img_name))
 
                 count.increase()
 
-                # Fetching chapter images
-                log.info('Getting %s from chapter %s' % (
-                    'compressed images' if compressed_image else 'images',
-                    chap
-                ))
-                images.fetch()
+                images.extend(self.get_images(chap_class, chap_images, volume_path, count))
 
-                while True:
-                    error = False
-                    for page, img_url, img_name in images.iter(log_info=True):
-                        server_file = img_name
+            log.info(f"{volume} has finished download, converting to cbz...")
 
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
-
-                        img_path = volume_path / img_name
-
-                        log.info('Downloading %s page %s' % (chap_name, page))
-
-                        # Verify file
-                        # Make sure zipfile is opened in append mode
-                        if volume_zip.mode == "a" and self.verify and not replace:
-                            # Can be True, False, or None
-                            try:
-                                content = volume_zip.read(img_name)
-                            except KeyError:
-                                # File is not exist
-                                verified = None
-                            else:
-                                verified = verify_sha256(server_file, data=content)
-                        elif not self.verify or volume_zip.mode == "w":
-                            verified = None
-                        else:
-                            verified = False
-
-                        # If file still in intact and same as the server
-                        # Continue to download the others
-                        if verified:
-                            log.info("File exist and same as file from MangaDex server, cancelling download...")
-                            count.increase()
-                            continue
-                        elif verified == False and not self.replace:
-                            # File is not same server, probably modified
-                            log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
-                            replace = True
-
-                        downloader = ChapterPageDownloader(
-                            img_url,
-                            img_path,
-                            replace=replace
-                        )
-                        success = downloader.download()
-
-                        if verified == False and not self.replace:
-                            replace = self.replace
-
-                        # One of MangaDex network are having problem
-                        # Fetch the new one, and start re-downloading
-                        if not success:
-                            log.error('One of MangaDex network are having problem, re-fetching the images...')
-                            log.info('Getting %s from chapter %s' % (
-                                'compressed images' if compressed_image else 'images',
-                                chap
-                            ))
-                            error = True
-                            images.fetch()
-                            break
-                        else:
-                            # Write it to zipfile
-                            wrap = lambda: volume_zip.writestr(img_name, img_path.read_bytes())
-                            
-                            # KeyboardInterrupt safe
-                            worker.submit(wrap)
-                            
-                            # And then remove it original file
-                            delete_file(img_path)
-
-                            count.increase()
-                            continue
-                    
-                    if not error:
-                        break
+            worker.submit(lambda: self.convert(volume_zip, images))
                 
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
@@ -402,18 +250,10 @@ class ComicBookArchiveVolume(BaseFormat):
         # Shutdown queue-based thread process
         worker.shutdown()
 
-class ComicBookArchiveSingle(BaseFormat):
-    def __init__(self, *args, **kwargs):
-        if not pillow_ready:
-            raise PillowNotInstalled("pillow is not installed")
-        
-        super().__init__(*args, **kwargs)
-
+class ComicBookArchiveSingle(ComicBookArchive):
     def main(self):
-        base_path = self.path
+        images = []
         manga = self.manga
-        compressed_image = self.compress_img
-        replace = self.replace
         worker = self.create_worker()
         total = 0
 
@@ -424,7 +264,7 @@ class ComicBookArchiveSingle(BaseFormat):
         # Enable log cache
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
+        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
             # Fix #10
             # Some programs wouldn't display images correctly
             # Each chapters has one page that has "Chapter n"
@@ -433,7 +273,7 @@ class ComicBookArchiveSingle(BaseFormat):
 
             total += chap_class.pages
 
-            item = [chap_class, images]
+            item = [chap_class, chap_images]
             cache.append(item)
 
         count = NumberWithLeadingZeros(total)
@@ -441,17 +281,26 @@ class ComicBookArchiveSingle(BaseFormat):
         # Construct .cbz filename from first and last chapter
         first_chapter = cache[0][0]
         last_chapter = cache[len(cache) - 1][0]
-        manga_zip_path = base_path / sanitize_filename(
-            first_chapter.simple_name + " - " + last_chapter.simple_name + '.cbz'
-        )
+        merged_name = sanitize_filename(first_chapter.simple_name + " - " + last_chapter.simple_name)
+        manga_zip_path = self.path / (merged_name + '.cbz')
         manga_zip = zipfile.ZipFile(
             str(manga_zip_path),
-            "a" if path_exists(manga_zip_path) else "w"
+            "a" if os.path.exists(manga_zip_path) else "w"
         )
 
-        for chap_class, images in cache:
-            # Insert "start of the chapter" image
+        # Check if exist or not
+        if manga_zip_path.exists():
+            if self.replace:
+                delete_file(manga_zip_path)
+            else:
+                log.info(f"{manga_zip_path.name} is exist and replace is False, cancelling download...")
+                return
+
+        path = create_directory(merged_name, self.path)
+
+        for chap_class, chap_images in cache:
             img_name = count.get() + '.png'
+            img_path = path / img_name
 
             # Make sure we never duplicated it
             write_start_image = False
@@ -460,105 +309,22 @@ class ComicBookArchiveSingle(BaseFormat):
             except KeyError:
                 write_start_image = True
             
+            # Insert "start of the chapter" image
             if write_start_image:
-                img = get_mark_image(chap_class)
-                fp = io.BytesIO()
-                img.save(fp, 'png')
-                job = lambda: manga_zip.writestr(img_name, fp.getvalue())
-                worker.submit(job)
+                get_chapter_info(chap_class, img_path, self.replace)
+                worker.submit(lambda: manga_zip.write(img_path, img_name))
 
             count.increase()
 
-            # Group name will be placed inside the start of chapter images
-            chap = chap_class.chapter
-            chap_name = chap_class.name
+            # Begin downloading
+            images.extend(self.get_images(chap_class, chap_images, path, count))
 
-            log.info('Getting %s from chapter %s' % (
-                'compressed images' if compressed_image else 'images',
-                chap
-            ))
-            images.fetch()
+        # Convert
+        log.info(f"Manga '{manga.title}' has finished download, converting to pdf...")
+        worker.submit(lambda: self.convert(manga_zip, images))
 
-            chapter_path = create_chapter_folder(base_path, chap_name)
-
-            while True:
-                error = False
-                for page, img_url, img_name in images.iter(log_info=True):
-                    server_file = img_name
-
-                    img_ext = os.path.splitext(img_name)[1]
-                    img_name = count.get() + img_ext
-
-                    img_path = chapter_path / img_name
-
-                    log.info('Downloading %s page %s' % (chap_name, page))
-
-                    # Verify file
-                    # Make sure zipfile is opened in append mode
-                    if manga_zip.mode == "a" and self.verify and not replace:
-                        # Can be True, False, or None
-                        try:
-                            content = manga_zip.read(img_name)
-                        except KeyError:
-                            # File is not exist
-                            verified = None
-                        else:
-                            verified = verify_sha256(server_file, data=content)
-                    elif not self.verify or manga_zip.mode == "w":
-                        verified = None
-                    else:
-                        verified = False
-
-                    # If file still in intact and same as the server
-                    # Continue to download the others
-                    if verified:
-                        log.info("File exist and same as file from MangaDex server, cancelling download...")
-                        count.increase()
-                        continue
-                    elif verified == False and not self.replace:
-                        # File is not same server, probably modified
-                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
-                        replace = True
-
-                    downloader = ChapterPageDownloader(
-                        img_url,
-                        img_path,
-                        replace=replace
-                    )
-                    success = downloader.download()
-
-                    if verified == False and not self.replace:
-                        replace = self.replace
-
-                    # One of MangaDex network are having problem
-                    # Fetch the new one, and start re-downloading
-                    if not success:
-                        log.error('One of MangaDex network are having problem, re-fetching the images...')
-                        log.info('Getting %s from chapter %s' % (
-                            'compressed images' if compressed_image else 'images',
-                            chap
-                        ))
-                        error = True
-                        images.fetch()
-                        break
-                    else:
-                        # Write it to zipfile
-                        wrap = lambda: manga_zip.writestr(img_name, img_path.read_bytes())
-                        
-                        # KeyboardInterrupt safe
-                        worker.submit(wrap)
-                        
-                        # And then remove it original file
-                        delete_file(img_path)
-
-                        count.increase()
-                        continue
-                
-                if not error:
-                    break            
-
-            # Remove original chapter folder
-            shutil.rmtree(chapter_path, ignore_errors=True)
+        # Remove downloaded images
+        shutil.rmtree(path, ignore_errors=True)
 
         # Shutdown queue-based thread process
         worker.shutdown()

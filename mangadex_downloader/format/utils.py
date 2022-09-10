@@ -25,90 +25,21 @@ import json
 import logging
 import os
 import re
-import sys
-import traceback
 
 from enum import Enum
-from ..errors import MangaDexException
+from ..downloader import FileDownloader
 from .. import __repository__
 
 log = logging.getLogger(__name__)
 
-try:
-    from PIL import (
-        Image,
-        ImageDraw,
-        ImageFont,
-    )
-except ImportError:
-    pass
+def get_chapter_info(chapter, path, replace):
+    log.info(f'Getting chapter info for "{chapter.get_name()}"')
+    url = f'https://og.mangadex.org/og-image/chapter/{chapter.id}'
+    fd = FileDownloader(url, path, replace=replace)
+    fd.download()
+    fd.cleanup()
 
-rgb_white = (255, 255, 255)
-rgb_black = (0, 0, 0)
-font_family = 'arial.ttf'
-font_size = 30
-image_size = (720, int(1100 / 1.25))
-image_mode = "RGB"
-text_pos = (150, int(450 / 1.25))
-text_align = "center"
-
-# For some reason, filename font are case-sensitive
-list_font_family = [
-    font_family,
-    font_family.capitalize(),
-    "FreeSans.ttf"
-]
-
-def load_font():
-    for font in list_font_family:
-        try:
-            return ImageFont.truetype(font, font_size)
-        except OSError as e:
-            err_msg = str(e)
-            if 'cannot open resource' in err_msg:
-                # Font not found
-                continue
-            
-            # Other error
-            raise e from None
-
-    log.warning(f"Failed to load {list_font_family} fonts, falling back to default font")
-    return None
-
-def get_mark_image(chapter):
-    text = ""
-
-    # Current chapter (Volume. n Chapter. n)
-    text += chapter.name + '\n'
-
-    # Title chapter
-    if chapter.title is not None:
-        text += chapter.title
-
-    # an empty line
-    text += "\n\n"
-
-    # Add chapter language
-    text += "Language: %s\n" % chapter.language.name
-
-    text +=  f"Translated by: {chapter.groups_name}"
-
-    font = load_font()
-
-    img = Image.new(image_mode, image_size, rgb_white)
-    draw = ImageDraw.Draw(img, image_mode)
-
-    try:
-        draw.multiline_text(text_pos, text, rgb_black, font, align='center')
-    except Exception as e:
-        log.error(f"Failed to create chapter {chapter.chapter} info, reason: {e.__class__.__name__}: {str(e)}")
-        traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
-        raise MangaDexException(
-            f"An error occurred during creation chapter {chapter.chapter} info. " \
-            "Please make sure Arial font is available on your OS (or FreeSans font in Linux)"
-        ) from None
-
-    return img
+    return path
 
 class NumberWithLeadingZeros:
     """A helper class for parsing numbers with leading zeros

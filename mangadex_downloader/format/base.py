@@ -21,6 +21,9 @@
 # SOFTWARE.
 
 import logging
+import os
+from .utils import verify_sha256
+from ..downloader import ChapterPageDownloader
 from ..utils import QueueWorker
 
 log = logging.getLogger(__name__)
@@ -41,6 +44,82 @@ class BaseFormat:
         self.replace = replace
         self.verify = not no_verify
         self.kwargs_iter = kwargs_iter_chapter_img
+
+    def get_images(self, chap_class, images, path, count):
+        imgs = []
+        chap = chap_class.chapter
+        chap_name = chap_class.get_name()
+
+        # Fetching chapter images
+        log.info('Getting %s from chapter %s' % (
+            'compressed images' if self.compress_img else 'images',
+            chap
+        ))
+        images.fetch()
+
+        error = False
+        while True:
+            for page, img_url, img_name in images.iter(log_info=True):
+                server_file = img_name
+
+                img_ext = os.path.splitext(img_name)[1]
+                img_name = count.get() + img_ext
+
+                img_path = path / img_name
+
+                log.info('Downloading %s page %s' % (
+                    chap_name,
+                    page
+                ))
+
+                # This can be `True`, `False`, or `None`
+                # `True`: Verify success, hash matching
+                # `False`: Verify failed, hash is not matching
+                # `None`: Cannot verify, file is not exist (if `path` argument is given)
+                verified = verify_sha256(server_file, img_path)
+
+                if verified is None:
+                    replace = False
+                else:
+                    replace = True if self.replace else not verified
+                
+                # If file still in intact and same as the server
+                # Continue to download the others
+                if verified and not self.replace:
+                    log.info("File exist and same as file from MangaDex server, cancelling download...")
+                    count.increase()
+                    imgs.append(img_path)
+                    continue
+                elif verified == False and not self.replace:
+                    # File is not same server, probably modified
+                    log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
+
+                downloader = ChapterPageDownloader(
+                    img_url,
+                    img_path,
+                    replace=replace
+                )
+                success = downloader.download()
+                downloader.cleanup()
+
+                # One of MangaDex network are having problem
+                # Fetch the new one, and start re-downloading
+                if not success:
+                    log.error('One of MangaDex network are having problem, re-fetching the images...')
+                    log.info('Getting %s from chapter %s' % (
+                        'compressed images' if self.compress_img else 'images',
+                        chap
+                    ))
+                    error = True
+                    images.fetch()
+                    break
+                else:
+                    imgs.append(img_path)
+                    count.increase()
+                    continue
+            
+            if not error:
+                return imgs
 
     def create_worker(self):
         # If CTRL+C is pressed all process is interrupted, right ?

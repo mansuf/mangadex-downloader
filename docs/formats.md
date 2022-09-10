@@ -151,8 +151,8 @@ Same as `tachiyomi` except, all images in each chapter will stored in ZIP file.
 📦 Manga title
  ┣ 📜cover.jpg
  ┣ 📜details.json
- ┣ 📜Volume. 1 Chapter. 1.zip
- ┗ 📜Volume. 1 Chapter. 2.zip
+ ┣ 📜Volume. 1 Chapter. 1.cbz
+ ┗ 📜Volume. 1 Chapter. 2.cbz
 ```
 
 ### Usage

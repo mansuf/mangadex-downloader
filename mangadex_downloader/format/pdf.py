@@ -31,11 +31,12 @@ from tqdm import tqdm
 from .base import BaseFormat
 from .utils import (
     NumberWithLeadingZeros,
+    get_chapter_info,
     get_mark_image,
     verify_sha256
 )
 from ..errors import PillowNotInstalled
-from ..utils import create_chapter_folder, delete_file
+from ..utils import create_chapter_folder, create_directory, delete_file
 from ..downloader import ChapterPageDownloader
 
 log = logging.getLogger(__name__)
@@ -303,146 +304,63 @@ class PDF(BaseFormat):
 
         super().__init__(*args, **kwargs)
 
+    def convert(self, imgs, target):
+        pdf_plugin = PDFPlugin(imgs)
+
+        # Because images from BaseFormat.get_images() was just bunch of pathlib.Path
+        # objects, we need convert it to _PageRef for be able Modified Pillow can convert it
+        images = []
+        for im in imgs:
+            images.append(_PageRef(Image.open, im))
+        
+        im_ref = images.pop(0)
+        im = im_ref()
+
+        im.save(
+            target,
+            save_all=True,
+            append_images=images
+        )
+
+        pdf_plugin.close_progress_bar()
+
     def main(self):
-        base_path = self.path
         manga = self.manga
-        compressed_image = self.compress_img
-        replace = self.replace
         worker = self.create_worker()
-        imgs = []
 
         # Begin downloading
-        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
-            chap = chap_class.chapter
+        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
             chap_name = chap_class.get_simplified_name()
-            chap_extended_name = chap_class.get_name()
             count = NumberWithLeadingZeros(0)
 
-            # Fetching chapter images
-            log.info('Getting %s from chapter %s' % (
-                'compressed images' if compressed_image else 'images',
-                chap
-            ))
-            images.fetch()
+            pdf_file = self.path / (chap_name + '.pdf')
+            if pdf_file.exists():
 
-            pdf_file = base_path / (chap_name + '.pdf')
-            def pdf_file_exists(converting=False):
-                if replace and not converting:
-                    try:
-                        delete_file(pdf_file)
-                    except FileNotFoundError:
-                        pass
-                return os.path.exists(pdf_file)
+                if self.replace:
+                    delete_file(pdf_file)
+                else:
+                    log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
+                    continue
 
-            if pdf_file_exists() and not replace:
-                log.info("Chapter PDF file exist and replace is False, cancelling download...")
-                continue
+            chapter_path = create_directory(chap_name, self.path)
 
-            chapter_path = create_chapter_folder(base_path, chap_name)
-
-            while True:
-                error = False
-                for page, img_url, img_name in images.iter(log_info=True):
-                    server_file = img_name                    
-
-                    img_ext = os.path.splitext(img_name)[1]
-                    img_name = count.get() + img_ext
-
-                    img_path = chapter_path / img_name
-
-                    log.info('Downloading %s page %s' % (
-                        chap_extended_name, page
-                    ))
-
-                    # Verify file
-                    if self.verify and not replace:
-                        # Can be True, False, or None
-                        verified = verify_sha256(server_file, img_path)
-                    elif not self.verify:
-                        verified = None
-                    else:
-                        verified = False
-
-                    # If file still in intact and same as the server
-                    # Continue to download the others
-                    if verified:
-                        log.info("File exist and same as file from MangaDex server, cancelling download...")
-                        imgs.append(_PageRef(Image.open, img_path))
-                        count.increase()
-                        continue
-                    elif verified == False and not self.replace:
-                        # File is not same server, probably modified
-                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
-                        replace = True
-
-                    downloader = ChapterPageDownloader(
-                        img_url,
-                        img_path,
-                        replace=replace
-                    )
-                    success = downloader.download()
-
-                    if verified == False and not self.replace:
-                        replace = self.replace
-
-                    # One of MangaDex network are having problem
-                    # Fetch the new one, and start re-downloading
-                    if not success:
-                        log.error('One of MangaDex network are having problem, re-fetching the images...')
-                        log.info('Getting %s from chapter %s' % (
-                            'compressed images' if compressed_image else 'images',
-                            chap
-                        ))
-                        error = True
-                        images.fetch()
-                        break
-                    else:
-                        count.increase()
-                        imgs.append(_PageRef(Image.open, img_path))
-                        continue
-                
-                if not error:
-                    break
-
+            images = self.get_images(chap_class, chap_images, chapter_path, count)
             log.info(f"{chap_name} has finished download, converting to pdf...")
 
-            pdf_plugin = PDFPlugin(imgs)
-
-            im_ref = imgs.pop(0)
-            im = im_ref()
-
-            # Convert it to PDF
-            def save_pdf():
-                im.save(
-                    pdf_file,
-                    save_all=True,
-                    append=True if pdf_file_exists(True) else False,
-                    append_images=imgs
-                )
-
-                # Close PDF convert progress bar
-                pdf_plugin.close_progress_bar()
-
             # Save it as pdf
-            worker.submit(save_pdf)
+            worker.submit(lambda: self.convert(images, pdf_file))
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
-
-            imgs.clear()
 
         # Shutdown queue-based thread process
         worker.shutdown()
 
 class PDFSingle(PDF):
     def main(self):
-        base_path = self.path
         manga = self.manga
-        compressed_image = self.compress_img
-        replace = self.replace
         worker = self.create_worker()
-        imgs = []
-        chapter_folders = []
+        images = []
         count = NumberWithLeadingZeros(0)
 
         # In order to add chapter info image in start of the chapter
@@ -452,150 +370,54 @@ class PDFSingle(PDF):
         # Enable log cache
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
-            item = [chap_class, images]
+        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
+            item = [chap_class, chap_images]
             cache.append(item)
         
         # Construct pdf filename from first and last chapter
         first_chapter = cache[0][0]
         last_chapter = cache[len(cache) - 1][0]
-        pdf_name = sanitize_filename(
-            first_chapter.simple_name + " - " + last_chapter.simple_name + '.pdf'
+        merged_name = sanitize_filename(
+            first_chapter.simple_name + " - " + last_chapter.simple_name 
         )
-        pdf_file = base_path / pdf_name
+        pdf_file = self.path / (merged_name + '.pdf')
 
-        def pdf_file_exists(converting=False):
-            if replace and not converting:
-                try:
-                    delete_file(pdf_file)
-                except FileNotFoundError:
-                    pass
-            return os.path.exists(pdf_file)
+        if pdf_file.exists():
+            if self.replace:
+                delete_file(pdf_file)
+            else:
+                log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
+                return
 
-        if pdf_file_exists() and not replace:
-            log.info("Chapter PDF file exist and replace is False, cancelling download...")
-            return
+        path = create_directory(merged_name, self.path)
 
-        for chap_class, images in cache:
-            # Group name will be placed inside the start of the chapter images
-            chap = chap_class.chapter
-            chap_name = chap_class.name
-
-            log.info('Getting %s from chapter %s' % (
-                'compressed images' if compressed_image else 'images',
-                chap
-            ))
-            images.fetch()
-
-            # Create volume folder
-            chapter_path = create_chapter_folder(base_path, chap_name)
-            chapter_folders.append(chapter_path)
-
+        for chap_class, chap_images in cache:
             # Insert "start of the chapter" image
-            imgs.append(
-                _PageRef(
-                    get_mark_image,
-                    chap_class
-                )
-            )
+            img_name = count.get() + '.png'
+            img_path = path / img_name
+
+            get_chapter_info(chap_class, img_path, self.replace)
+            images.append(img_path)
+
             count.increase()
 
-            while True:
-                error = False
-                for page, img_url, img_name in images.iter(log_info=True):
-                    server_file = img_name
-
-                    img_ext = os.path.splitext(img_name)[1]
-                    img_name = count.get() + img_ext
-                    img_path = chapter_path / img_name
-                    
-                    log.info('Downloading %s page %s' % (chap_name, page))
-
-                    # Verify file
-                    if self.verify and not replace:
-                        # Can be True, False, or None
-                        verified = verify_sha256(server_file, img_path)
-                    elif not self.verify:
-                        verified = None
-                    else:
-                        verified = False
-
-                    # If file still in intact and same as the server
-                    # Continue to download the others
-                    if verified:
-                        log.info("File exist and same as file from MangaDex server, cancelling download...")
-                        imgs.append(_PageRef(Image.open, img_path))
-                        count.increase()
-                        continue
-                    elif verified == False and not self.replace:
-                        # File is not same server, probably modified
-                        log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
-                        replace = True
-
-                    downloader = ChapterPageDownloader(
-                        img_url,
-                        img_path,
-                        replace=replace
-                    )
-                    success = downloader.download()
-
-                    if verified == False and not self.replace:
-                        replace = self.replace
-
-                    # One of MangaDex network are having problem
-                    # Fetch the new one, and start re-downloading
-                    if not success:
-                        log.error('One of MangaDex network are having problem, re-fetching the images...')
-                        log.info('Getting %s from chapter %s' % (
-                            'compressed images' if compressed_image else 'images',
-                            chap
-                        ))
-                        error = True
-                        images.fetch()
-                        break
-                    else:
-                        count.increase()
-                        imgs.append(_PageRef(Image.open, img_path))
-                        continue
-                
-                if not error:
-                    break
+            images.extend(self.get_images(chap_class, chap_images, path, count))
 
         log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
 
-        pdf_plugin = PDFPlugin(imgs)
-
-        im = imgs.pop(0)()
-
-        # Convert it to PDF
-        def save_pdf():
-            im.save(
-                pdf_file,
-                save_all=True,
-                append=True if pdf_file_exists(True) else False,
-                append_images=imgs
-            )
-
-            # Close PDF convert progress bar
-            pdf_plugin.close_progress_bar()
-
-            for folder in chapter_folders:
-                shutil.rmtree(folder, ignore_errors=True)
-
         # Save it as pdf
-        worker.submit(save_pdf)
+        worker.submit(lambda: self.convert(images, pdf_file))
+
+        # Remove downloaded images
+        shutil.rmtree(path, ignore_errors=True)
 
         # Shutdown queue-based thread process
         worker.shutdown()
 
 class PDFVolume(PDF):
     def main(self):
-        base_path = self.path
         manga = self.manga
-        compressed_image = self.compress_img
-        replace = self.replace
         worker = self.create_worker()
-        volume_folders = []
 
         # Sorting volumes
         log.info("Preparing to download")
@@ -610,11 +432,12 @@ class PDFVolume(PDF):
 
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
-        for chap_class, images in manga.chapters.iter(**kwargs_iter):
-            append_cache(chap_class.volume, [chap_class, images])
+        for chap_class, chap_images in manga.chapters.iter(**kwargs_iter):
+            append_cache(chap_class.volume, [chap_class, chap_images])
 
         # Begin downloading
         for volume, chapters in cache.items():
+            images = []
             count = NumberWithLeadingZeros(0)
 
             # Build volume folder name
@@ -624,130 +447,37 @@ class PDFVolume(PDF):
                 vol_name = 'No Volume'
 
             pdf_name = vol_name + '.pdf'
-            pdf_file = base_path / pdf_name
+            pdf_file = self.path / pdf_name
 
-            def pdf_file_exists(converting=False):
-                if replace and not converting:
-                    try:
-                        delete_file(pdf_file)
-                    except FileNotFoundError:
-                        pass
-                return os.path.exists(pdf_file)
+            if pdf_file.exists():
+                if self.replace:
+                    delete_file(pdf_file)
+                else:
+                    log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
+                    return
 
-            if pdf_file_exists() and not replace:
-                log.info("Volume PDF file exist and replace is False, cancelling download...")
-                continue
+            # Create volume folder
+            volume_path = create_directory(vol_name, self.path)
 
-            imgs = []
-            for chap_class, images in chapters:
-                # Group name will be placed inside the start of the chapter images
-                chap = chap_class.chapter
-                chap_name = chap_class.name
-
-                log.info('Getting %s from chapter %s' % (
-                    'compressed images' if compressed_image else 'images',
-                    chap
-                ))
-                images.fetch()
-
-                # Create volume folder
-                volume_path = create_chapter_folder(base_path, vol_name)
-                volume_folders.append(volume_path)
+            for chap_class, chap_images in chapters:
 
                 # Insert "start of the chapter" image
-                imgs.append(
-                    _PageRef(
-                        get_mark_image,
-                        chap_class
-                    )
-                )
+                img_name = count.get() + '.png'
+                img_path = volume_path / img_name
+
+                get_chapter_info(chap_class, img_path, self.replace)
+                images.append(img_path)
                 count.increase()
 
-                while True:
-                    error = False
-                    for page, img_url, img_name in images.iter(log_info=True):
-                        server_file = img_name
-
-                        img_ext = os.path.splitext(img_name)[1]
-                        img_name = count.get() + img_ext
-                        img_path = volume_path / img_name
-                        
-                        log.info('Downloading %s page %s' % (chap_name, page))
-
-                        # Verify file
-                        if self.verify and not replace:
-                            # Can be True, False, or None
-                            verified = verify_sha256(server_file, img_path)
-                        elif not self.verify:
-                            verified = None
-                        else:
-                            verified = False
-
-                        # If file still in intact and same as the server
-                        # Continue to download the others
-                        if verified:
-                            log.info("File exist and same as file from MangaDex server, cancelling download...")
-                            imgs.append(_PageRef(Image.open, img_path))
-                            count.increase()
-                            continue
-                        elif verified == False and not self.replace:
-                            # File is not same server, probably modified
-                            log.info("File exist and NOT same as file from MangaDex server, re-downloading...")
-                            replace = True
-
-                        downloader = ChapterPageDownloader(
-                            img_url,
-                            img_path,
-                            replace=replace
-                        )
-                        success = downloader.download()
-
-                        if verified == False and not self.replace:
-                            replace = self.replace
-
-                        # One of MangaDex network are having problem
-                        # Fetch the new one, and start re-downloading
-                        if not success:
-                            log.error('One of MangaDex network are having problem, re-fetching the images...')
-                            log.info('Getting %s from chapter %s' % (
-                                'compressed images' if compressed_image else 'images',
-                                chap
-                            ))
-                            error = True
-                            images.fetch()
-                            break
-                        else:
-                            count.increase()
-                            imgs.append(_PageRef(Image.open, img_path))
-                            continue
-                    
-                    if not error:
-                        break
+                images.extend(self.get_images(chap_class, chap_images, volume_path, count))
 
             log.info(f"{vol_name} has finished download, converting to pdf...")
 
-            pdf_plugin = PDFPlugin(imgs)
-
-            # The first one image always be _ChapterMarkImage object
-            im = imgs.pop(0)()
-
-            # Convert it to PDF
-            def save_pdf():
-                im.save(
-                    pdf_file,
-                    save_all=True,
-                    append=True if pdf_file_exists(True) else False,
-                    append_images=imgs
-                )
-
-                # Close PDF convert progress bar
-                pdf_plugin.close_progress_bar()
-
-                for folder in volume_folders:
-                    shutil.rmtree(folder, ignore_errors=True)
-
             # Save it as pdf
-            worker.submit(save_pdf)
+            worker.submit(lambda: self.convert(images, pdf_file))
+
+            # Remove original chapter folder
+            shutil.rmtree(volume_path, ignore_errors=True)
 
         # Shutdown queue-based thread process
         worker.shutdown()
