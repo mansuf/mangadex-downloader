@@ -151,6 +151,10 @@ class _Config:
         "no_chapter_info": [
             False,
             _validate_bool
+        ],
+        "no_group_name": [
+            False,
+            _validate_bool
         ]
     }
     default_conf = {

@@ -8,6 +8,7 @@
 - Added ability to disable creation of chapter info for any `single` and `volume` formats [#30](https://github.com/mansuf/mangadex-downloader/issues/30)
 - Added new config
   - `no_chapter_info`
+  - `no_group_name`
 
 ### Fix bugs
 

@@ -430,7 +430,8 @@ def get_args(argv):
         '--no-group-name',
         '-ngn',
         action='store_true',
-        help='Do not use scanlation group name for each chapter'
+        help='Do not use scanlation group name for each chapter',
+        default=config.no_group_name
     )
     chap_group.add_argument(
         '--use-chapter-title',
