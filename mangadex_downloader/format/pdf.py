@@ -71,6 +71,29 @@ class PDFPlugin:
 
         self.register_pdf_handler()
 
+    def check_truncated(self, img):
+        # Pillow won't load truncated images
+        # See https://github.com/python-pillow/Pillow/issues/1510
+        # Image reference: https://mangadex.org/chapter/1615adcb-5167-4459-8b12-ee7cfbdb10d9/16
+        err = None
+        try:
+            img.load()
+        except OSError as e:
+            err = e
+        else:
+            return False
+        
+        if err and 'broken data stream' in str(err):
+            ImageFile.LOAD_TRUNCATED_IMAGES = True
+        elif err:
+            # Other error
+            raise err
+        
+        # Load it again
+        img.load()
+
+        return True
+
     def _save_all(self, im, fp, filename):
         self._save(im, fp, filename, save_all=True)
 
@@ -101,6 +124,8 @@ class PDFPlugin:
             v = im.encoderinfo.get(k) if k in im.encoderinfo else default
             if v:
                 existing_pdf.info[k[0].upper() + k[1:]] = v
+
+        truncated = self.check_truncated(im)
 
         #
         # make sure image data is available
@@ -147,9 +172,14 @@ class PDFPlugin:
         # catalog and list of pages
         existing_pdf.write_catalog()
 
+        if truncated:
+            ImageFile.LOAD_TRUNCATED_IMAGES = False
+
         pageNumber = 0
         for im_ref in ims:
             im = im_ref() if isinstance(im_ref, _PageRef) else im_ref
+
+            truncated = self.check_truncated(im)
 
             if im.mode != 'RGB':
                 # Convert to RGB mode
@@ -275,6 +305,10 @@ class PDFPlugin:
             # Close image to save memory
             imSequence.close()
 
+            # For security sake
+            if truncated:
+                ImageFile.LOAD_TRUNCATED_IMAGES = False
+
         #
         # trailer
         existing_pdf.write_xref_and_trailer()
@@ -312,6 +346,8 @@ class PDF(BaseFormat):
         
         im_ref = images.pop(0)
         im = im_ref()
+
+        pdf_plugin.check_truncated(im)
 
         im.save(
             target,
