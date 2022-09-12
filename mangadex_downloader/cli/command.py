@@ -320,6 +320,7 @@ class SearchMangaCommand(MangaCommand):
     """A command that will prompt user to select which manga to download (from search)"""
     def __init__(self, parser, args, input_text):
         # Parse filters
+        orders = {}
         filter_kwargs = {}
         filters = args.search_filter or []
         for f in filters:
@@ -339,7 +340,21 @@ class SearchMangaCommand(MangaCommand):
                 new_values.extend(values)
 
                 filter_kwargs[key] = new_values
-        
+
+        # We cannot put "order[key]" into function parameters
+        # that would cause syntax error
+        for key in filter_kwargs.keys():
+            if 'order' in key:
+                orders[key] = filter_kwargs[key]
+
+        # Remove "order[key]" from filter_kwargs
+        # to avoid syntax error
+        for key in orders.keys():
+            filter_kwargs.pop(key)
+
+        # This much safer
+        filter_kwargs['order'] = orders
+
         iterator = IteratorManga(input_text, **filter_kwargs)
         super().__init__(
             parser,
