@@ -125,8 +125,6 @@ class PDFPlugin:
             if v:
                 existing_pdf.info[k[0].upper() + k[1:]] = v
 
-        truncated = self.check_truncated(im)
-
         #
         # make sure image data is available
         im.load()
@@ -172,7 +170,7 @@ class PDFPlugin:
         # catalog and list of pages
         existing_pdf.write_catalog()
 
-        if truncated:
+        if ImageFile.LOAD_TRUNCATED_IMAGES:
             ImageFile.LOAD_TRUNCATED_IMAGES = False
 
         pageNumber = 0
