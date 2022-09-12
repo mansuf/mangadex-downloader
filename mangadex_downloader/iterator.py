@@ -90,6 +90,7 @@ class IteratorManga(BaseIterator):
         updated_at_since=None,
         has_available_chapters=None,
         group=None,
+        order=None
     ):
         super().__init__()
 
@@ -219,6 +220,44 @@ class IteratorManga(BaseIterator):
             except ConfigTypeError as e:
                 raise SearchFilterError("has_available_chapters", e)
 
+        # Validate orders
+        def validate_order(order):
+            new_order = {}
+            ascending = ['asc', 'ascending']
+            descending = ['desc', 'descending']
+            for key, value in order.items():
+                # Validate order keys
+                re_order_key = r'order\[(' \
+                               r'title|' \
+                               r'year|' \
+                               r'createdAt|' \
+                               r'updatedAt|' \
+                               r'latestUploadedChapter|' \
+                               r'followedCount|' \
+                               r'relevance|' \
+                               r'rating|' \
+                               r')\]'
+                match = re.match(re_order_key, key)
+                if match is None:
+                    raise SearchFilterError(
+                        key,
+                        "Invalid order key"
+                    )
+
+                if value in ascending:
+                    new_order[key] = ascending[0]
+                elif value in descending:
+                    new_order[key] = descending[0]
+                else:
+                    raise SearchFilterError(
+                        key,
+                        f"invalid value must be one of {ascending} or {descending}"
+                    )
+            
+            return new_order
+
+        order = validate_order(order)
+
         self._param_init = {
             "authors[]": authors,
             "artists[]": artists,
@@ -238,6 +277,8 @@ class IteratorManga(BaseIterator):
             "hasAvailableChapters": has_available_chapters,
             "group": group,
         }
+
+        self._param_init.update(**order)
 
     def _get_params(self):
         includes = ['author', 'artist', 'cover_art']

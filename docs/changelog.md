@@ -9,6 +9,8 @@
 - Added new config
   - `no_chapter_info`
   - `no_group_name`
+- Added new search filters
+  - `order[*]` [#32](https://github.com/mansuf/mangadex-downloader/issues/32)
 
 ### Fix bugs
 

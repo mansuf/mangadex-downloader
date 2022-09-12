@@ -93,10 +93,40 @@ value must matching format `%Y-%m-%dT%H:%M:%S`
 ```{option} has_available_chapters [1 or 0, true or false]
 ```
 
+```{option} order[title] [asc or ascending, desc or descending]
+```
+
+```{option} order[year] [asc or ascending, desc or descending]
+```
+
+```{option} order[createdAt] [asc or ascending, desc or descending]
+```
+
+```{option} order[updatedAt] [asc or ascending, desc or descending]
+```
+
+```{option} order[latestUploadedChapter] [asc or ascending, desc or descending]
+```
+
+```{option} order[followedCount] [asc or ascending, desc or descending]
+```
+
+```{option} order[relevance] [asc or ascending, desc or descending]
+```
+
+```{option} order[rating] [asc or ascending, desc or descending]
+```
+
 ## Example usage
 
 Search manga with content rating erotica and status completed 
 
 ```shell
 mangadex-dl -s -sf "original_language=Japanese" -sf "content_rating=erotica" -sf "status=completed"
+```
+
+Search manhwa with "highest rating" order
+
+```shell
+mangadex-dl -s -sf "original_language=Korean" -sf "order[rating]=descending"
 ```
