@@ -11,6 +11,7 @@
   - `no_group_name`
 - Added new search filters
   - `order[*]` [#32](https://github.com/mansuf/mangadex-downloader/issues/32)
+- Added optional dependency [`orjson`](https://pypi.org/project/orjson/) for faster JSON loading and dumping JSON object.
 
 ### Fix bugs
 

@@ -22,6 +22,7 @@
 
 # Based on https://github.com/mansuf/zippyshare-downloader/blob/main/zippyshare_downloader/network.py
 
+import json
 import requests
 import urllib.parse
 import time
@@ -40,6 +41,20 @@ from .errors import (
 from .utils import QueueWorker
 from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
+
+try:
+    import orjson
+except ImportError:
+    have_orjson = False
+else:
+    have_orjson = True
+
+# Apply json loader into :class:`requests.Response`
+def loads_json(self):
+    return orjson.loads(self.content)
+
+if have_orjson:
+    requests.Response.json = loads_json
 
 log = logging.getLogger(__name__)
 
