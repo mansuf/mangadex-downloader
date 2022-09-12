@@ -259,7 +259,6 @@ class ChapterPageDownloader(FileDownloader):
             self._report(self.resp, self.report_total_size, round((t2 - self.t1) * 1000), True)
 
     def on_error(self, err, resp):
-        print(err, resp)
         if not isinstance(err, HTTPException) and resp is None:
             return
 
