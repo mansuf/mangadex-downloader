@@ -163,7 +163,6 @@ class InputHandler(argparse.Action):
             '--replace',
             '-r',
             '--verbose',
-            '-u',
             '--search',
             '-s',
             '--use-alt-details',
@@ -183,8 +182,6 @@ class InputHandler(argparse.Action):
             '--login-cache',
             '-lc',
             '-pipe',
-            '--no-verify',
-            '-nv',
             '--version',
             '-v',
             '--update',
@@ -572,12 +569,6 @@ def get_args(argv):
         help='Automatically select choices in selectable prompt (list, library, followed-list command)'
     )
     misc_group.add_argument('-pipe', action='store_true', help="Download from pipe input")
-    misc_group.add_argument(
-        '--no-verify',
-        '-nv',
-        action='store_true',
-        help='Skip hash checking for each images'
-    )
     misc_group.add_argument(
         '-v',
         '--version',

@@ -217,10 +217,6 @@ Automatically select choices in selectable prompt (list, library, followed-list 
 If set, the app will accept pipe input
 ```
 
-```{option} --no-verify -nv
-Skip hash checking for each images
-```
-
 ```{option} -v --version
 Print mangadex-downloader version
 ```

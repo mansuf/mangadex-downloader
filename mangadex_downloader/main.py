@@ -53,7 +53,6 @@ def download(
     no_group_name=False,
     group_id=None,
     use_chapter_title=False,
-    no_verify=False,
     _range=None,
     force_https=False,
     no_chapter_info=False
@@ -116,7 +115,6 @@ def download(
             m,
             compressed_image,
             replace,
-            no_verify,
             no_chapter_info,
             kwargs_iter_chapter_images
         )
@@ -172,7 +170,6 @@ def download_chapter(
     save_as=default_save_as_format,
     no_group_name=False,
     use_chapter_title=False,
-    no_verify=False,
     force_https=False,
     no_chapter_info=False
 ):
@@ -207,7 +204,6 @@ def download_chapter(
         manga,
         compressed_image,
         replace,
-        no_verify,
         no_chapter_info,
         kwargs_iter_chapter_images
     )
@@ -229,7 +225,6 @@ def download_list(
     no_group_name=False,
     group_id=None,
     use_chapter_title=True,
-    no_verify=False,
     force_https=False,
     no_chapter_info=False
 ):
@@ -248,7 +243,6 @@ def download_list(
             no_group_name=no_group_name,
             group_id=group_id,
             use_chapter_title=use_chapter_title,
-            no_verify=no_verify,
             force_https=force_https,
             no_chapter_info=no_chapter_info
         )

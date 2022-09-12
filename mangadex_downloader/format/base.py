@@ -35,7 +35,6 @@ class BaseFormat:
         manga,
         compress_img,
         replace,
-        no_verify,
         no_chapter_info,
         kwargs_iter_chapter_img
     ):
@@ -43,7 +42,6 @@ class BaseFormat:
         self.manga = manga
         self.compress_img = compress_img
         self.replace = replace
-        self.verify = not no_verify
         self.no_chapter_info = no_chapter_info
         self.kwargs_iter = kwargs_iter_chapter_img
 

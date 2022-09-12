@@ -24,6 +24,7 @@
 ### Breaking changes
 
 - Removed `--unsafe` and `-u` option (deprecated from v1.3.0)
+- Removed `--no-verify` and `-nv` option
 - Removed API references [notes](#notes-api-references-removal)
 - Changed extension file for `tachiyomi-zip` format (from `.zip` to `.cbz`)
 - [Pillow](https://pypi.org/project/pillow/) is no longer required when downloading in any `single` and `volume` format. 

@@ -97,7 +97,6 @@ def download_manga(url, args, legacy=False):
         args.no_group_name,
         args.group,
         args.use_chapter_title,
-        args.no_verify,
         args.range,
         args.force_https,
         args.no_chapter_info
@@ -124,7 +123,6 @@ def download_chapter(url, args, legacy=False):
         args.save_as,
         args.no_group_name,
         args.use_chapter_title,
-        args.no_verify,
         args.force_https,
         args.no_chapter_info
     )
@@ -163,7 +161,6 @@ def download_list(url, args):
         args.no_group_name,
         args.group,
         args.use_chapter_title,
-        args.no_verify,
         args.force_https,
         args.no_chapter_info
     )
