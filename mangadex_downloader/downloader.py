@@ -168,7 +168,7 @@ class FileDownloader:
             # Grab the file sizes
             file_sizes = float(resp.headers.get('Content-Length'))
 
-            # Check if server support `Range` header
+            # Try to get `accept-ranges` header to check if the server support `Range` header
             accept_range = resp.headers.get('accept-ranges')
             init_file_size = initial_file_sizes if initial_file_sizes else 0
             if accept_range is None and file_sizes != (init_file_size + file_sizes):
@@ -212,15 +212,6 @@ class FileDownloader:
             if current_size != file_sizes:
                 self.cleanup()
                 log.warning("File download is incomplete, restarting download...")
-
-                # # Try to get `accept-ranges` header to check if the server support `Range` header
-                # accept_range = resp.headers.get('accept-ranges')
-                # if accept_range is None:
-                #     # The server didn't support `Range` header
-                #     # Delete the file and try to download it from zero
-                #     if os.path.exists(self.file):
-                #         delete_file(self.file)
-
                 continue
 
             self.on_finish()
