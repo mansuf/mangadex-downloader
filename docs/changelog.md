@@ -20,7 +20,8 @@
 - Fixed download is overflowing when `.temp` file is out of range
 - Fixed memory slowly increased during download
 - Fixed download with `raw-single` format is not working.
-- Fixed error `OSError: broken data stream when reading image file` when downloading in any `pdf` formats
+- Fixed error `OSError: broken data stream when reading image file` when downloading in any `pdf` formats.
+- Fixed downloder is overflowing when server didn't support `Range` header
 
 ### Breaking changes
 
