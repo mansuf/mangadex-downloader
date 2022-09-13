@@ -168,6 +168,16 @@ class FileDownloader:
             # Grab the file sizes
             file_sizes = float(resp.headers.get('Content-Length'))
 
+            # Check if server support `Range` header
+            accept_range = resp.headers.get('accept-ranges')
+            init_file_size = initial_file_sizes if initial_file_sizes else 0
+            if accept_range is None and file_sizes != (init_file_size + file_sizes):
+                # Server didn't support `Range` header
+                log.warning("Server didn't support resume download, restarting download")
+                if os.path.exists(self.file):
+                    delete_file(self.file)
+                continue
+
             # If "Range" header request is present
             # Content-Length header response is not same as full size
             if initial_file_sizes:
@@ -203,13 +213,13 @@ class FileDownloader:
                 self.cleanup()
                 log.warning("File download is incomplete, restarting download...")
 
-                # Try to get `accept-ranges` header to check if the server support `Range` header
-                accept_range = resp.headers.get('accept-ranges')
-                if accept_range is None:
-                    # The server didn't support `Range` header
-                    # Delete the file and try to download it from zero
-                    if os.path.exists(self.file):
-                        delete_file(self.file)
+                # # Try to get `accept-ranges` header to check if the server support `Range` header
+                # accept_range = resp.headers.get('accept-ranges')
+                # if accept_range is None:
+                #     # The server didn't support `Range` header
+                #     # Delete the file and try to download it from zero
+                #     if os.path.exists(self.file):
+                #         delete_file(self.file)
 
                 continue
 
