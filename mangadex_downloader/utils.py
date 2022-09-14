@@ -61,13 +61,6 @@ def validate_group_url(url):
     else:
         return "all"
 
-def create_chapter_folder(base_path, chapter_title):
-    chapter_path = base_path / sanitize_filename(chapter_title)
-    if not chapter_path.exists():
-        chapter_path.mkdir(exist_ok=True)
-
-    return chapter_path
-
 def create_directory(name, path=None):
     """Create directory with ability to sanitize name to prevent error"""
     base_path = Path(".")

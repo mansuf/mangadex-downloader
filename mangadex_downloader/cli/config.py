@@ -122,7 +122,8 @@ def build_config(parser, args):
         config.login_cache = args.login_cache
 
     # Print all config to debug
-    log.debug(f"Loaded config from path '{_conf.path}' = {_conf._data}")
+    if config_enabled:
+        log.debug(f"Loaded config from path '{_conf.path}' = {_conf._data}")
 
     set_config_from_cli_opts(args)
 

@@ -33,32 +33,27 @@ from .chapter import Chapter
 from .format import default_save_as_format, get_format
 from .cover import default_cover_type
 from .downloader import FileDownloader
+from .config import config
 
 log = logging.getLogger(__name__)
 
 def download(
     manga_id,
-    folder=None,
     replace=False,
-    compressed_image=False,
     start_chapter=None,
     end_chapter=None,
     start_page=None,
     end_page=None,
     no_oneshot_chapter=False,
-    language=Language.English,
-    cover=default_cover_type,
-    save_as=default_save_as_format,
     use_alt_details=False,
-    no_group_name=False,
     group_id=None,
-    use_chapter_title=False,
     _range=None,
-    force_https=False,
-    no_chapter_info=False
 ):
     """Download a manga"""
-    lang = get_language(language)
+    save_as = config.save_as
+    cover = config.cover
+
+    lang = get_language(config.language)
 
     log.info(f"Using {lang.name} language")
 
@@ -68,7 +63,7 @@ def download(
     manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
 
     # Create folder for downloading
-    base_path = create_directory(manga.title, folder)
+    base_path = create_directory(manga.title, config.path)
 
     # Cover path
     cover_path = base_path / 'cover.jpg'
@@ -100,12 +95,8 @@ def download(
             "start_page": start_page,
             "end_page": end_page,
             "no_oneshot": no_oneshot_chapter,
-            "data_saver": compressed_image,
-            "no_group_name": no_group_name,
             "group": group_id,
-            "use_chapter_title": use_chapter_title,
             "_range": _range,
-            "force_https": force_https
         }
 
         log.info("Using %s format" % save_as)
@@ -113,9 +104,7 @@ def download(
         fmt = fmt_class(
             path,
             m,
-            compressed_image,
             replace,
-            no_chapter_info,
             kwargs_iter_chapter_images
         )
 
@@ -162,18 +151,12 @@ def download(
 
 def download_chapter(
     chap_id,
-    folder=None,
     replace=False,
     start_page=None,
     end_page=None,
-    compressed_image=False,
-    save_as=default_save_as_format,
-    no_group_name=False,
-    use_chapter_title=False,
-    force_https=False,
-    no_chapter_info=False
 ):
     """Download a chapter"""
+    save_as = config.save_as
     fmt_class = get_format(save_as)
 
     # Fetch manga
@@ -184,17 +167,13 @@ def download_chapter(
     log.info(f'Found chapter {chap.chapter} from manga "{manga.title}"')
 
     # Create folder for downloading
-    base_path = create_directory(manga.title, folder)
+    base_path = create_directory(manga.title, config.path)
     log.info(f'Download directory is set to "{base_path.resolve()}"')
 
     kwargs_iter_chapter_images = {
         "start_page": start_page,
         "end_page": end_page,
         "no_oneshot": False,
-        "data_saver": compressed_image,
-        "no_group_name": no_group_name,
-        "use_chapter_title": use_chapter_title,
-        "force_https": force_https
     }
 
     log.info(f'Using {save_as} format')
@@ -202,9 +181,7 @@ def download_chapter(
     fmt = fmt_class(
         base_path,
         manga,
-        compressed_image,
         replace,
-        no_chapter_info,
         kwargs_iter_chapter_images
     )
 
@@ -216,17 +193,8 @@ def download_chapter(
 
 def download_list(
     list_id,
-    folder=None,
     replace=False,
-    compressed_image=False,
-    language=Language.English,
-    cover=default_cover_type,
-    save_as=default_save_as_format,
-    no_group_name=False,
     group_id=None,
-    use_chapter_title=True,
-    force_https=False,
-    no_chapter_info=False
 ):
     """Download a list"""
     _list = MangaDexList(_id=list_id)
@@ -234,17 +202,8 @@ def download_list(
     for manga in _list.iter_manga():
         download(
             manga.id,
-            folder,
             replace,
-            compressed_image,
-            cover=cover,
-            save_as=save_as,
-            language=language,
-            no_group_name=no_group_name,
             group_id=group_id,
-            use_chapter_title=use_chapter_title,
-            force_https=force_https,
-            no_chapter_info=no_chapter_info
         )
 
 def download_legacy_manga(legacy_id, *args, **kwargs):

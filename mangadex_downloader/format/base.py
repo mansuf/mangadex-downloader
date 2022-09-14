@@ -33,16 +33,17 @@ class BaseFormat:
         self,
         path,
         manga,
-        compress_img,
         replace,
-        no_chapter_info,
         kwargs_iter_chapter_img
     ):
+        # "Circular imports" problem
+        from ..config import config
+
         self.path = path
         self.manga = manga
-        self.compress_img = compress_img
+        self.compress_img = config.use_compressed_image
         self.replace = replace
-        self.no_chapter_info = no_chapter_info
+        self.no_chapter_info = config.no_chapter_info
         self.kwargs_iter = kwargs_iter_chapter_img
 
     def get_images(self, chap_class, images, path, count):

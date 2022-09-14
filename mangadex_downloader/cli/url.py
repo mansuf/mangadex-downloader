@@ -25,10 +25,9 @@ import os
 import re
 import requests
 
-from mangadex_downloader.cli.utils import get_key_value
-from mangadex_downloader.network import Net
-
+from .utils import get_key_value
 from .command import registered_commands
+from ..network import Net
 from ..fetcher import get_chapter, get_list, get_manga
 from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
 from ..utils import validate_legacy_url, validate_url as get_uuid
@@ -56,8 +55,8 @@ def _build_re(_type):
     return regex
 
 def download_manga(url, args, legacy=False):
-    if args.group and args.no_group_name:
-        raise MangaDexException("--group cannot be used together with --no-group-name")
+    if args.group and args.group.lower().strip() == 'all' and args.no_group_name:
+        raise MangaDexException("'--group all' cannot be used together with --no-group-name")
 
     if args.start_chapter is not None and args.end_chapter is not None:
         if args.start_chapter > args.end_chapter:
@@ -82,24 +81,15 @@ def download_manga(url, args, legacy=False):
 
     args = (
         url,
-        args.path,
         args.replace,
-        args.use_compressed_image,
         args.start_chapter,
         args.end_chapter,
         args.start_page,
         args.end_page,
         args.no_oneshot_chapter,
-        args.language,
-        args.cover,
-        args.save_as,
         args.use_alt_details,
-        args.no_group_name,
         args.group,
-        args.use_chapter_title,
         args.range,
-        args.force_https,
-        args.no_chapter_info
     )
 
     if legacy:
@@ -115,16 +105,9 @@ def download_chapter(url, args, legacy=False):
 
     args = (
         url,
-        args.path,
         args.replace,
         args.start_page,
         args.end_page,
-        args.use_compressed_image,
-        args.save_as,
-        args.no_group_name,
-        args.use_chapter_title,
-        args.force_https,
-        args.no_chapter_info
     )
 
     if legacy:
@@ -152,17 +135,8 @@ def download_list(url, args):
 
     dl_list(
         url,
-        args.path,
         args.replace,
-        args.use_compressed_image,
-        args.language,
-        args.cover,
-        args.save_as,
-        args.no_group_name,
         args.group,
-        args.use_chapter_title,
-        args.force_https,
-        args.no_chapter_info
     )
 
 # Legacy support

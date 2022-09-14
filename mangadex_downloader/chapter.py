@@ -35,6 +35,7 @@ from .fetcher import (
 from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
+from .config import config
 from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
@@ -45,13 +46,11 @@ class ChapterImages:
         chapter,
         start_page=None,
         end_page=None,
-        data_saver=False,
         _range=None,
-        force_https=False
     ) -> None:
         self.chap = chapter
         self.id = chapter.id
-        self.data_saver = data_saver
+        self.data_saver = config.use_compressed_image
         self._images = []
         self._low_images = []
         self._data = None
@@ -60,7 +59,7 @@ class ChapterImages:
         self.start_page = start_page
         self.end_page = end_page
         self.range = _range
-        self.force_https = force_https
+        self.force_https = config.force_https
 
         self.legacy_range = (start_page or end_page)
     
@@ -351,12 +350,8 @@ class IteratorChapter:
         start_page=None,
         end_page=None,
         no_oneshot=None,
-        data_saver=None,
-        no_group_name=None,
         group=None,
-        use_chapter_title=False,
         _range=None,
-        force_https=False,
         **kwargs
     ):
 
@@ -380,13 +375,11 @@ class IteratorChapter:
         self.start_page = start_page
         self.end_page = end_page
         self.no_oneshot = no_oneshot
-        self.data_saver = data_saver
-        self.no_group_name = no_group_name
-        self.use_chapter_title = use_chapter_title
+        self.no_group_name = config.no_group_name
+        self.use_chapter_title = config.use_chapter_title
         self.group = None
         self.all_group = False
         self.legacy_range = legacy_range
-        self.force_https = force_https
         
         if _range is not None:
             self.range = range_mod.compile(_range)
@@ -542,9 +535,7 @@ class IteratorChapter:
                 chap,
                 self.start_page,
                 self.end_page,
-                self.data_saver,
                 self.range,
-                self.force_https
             )
 
             return chap, chap_images
