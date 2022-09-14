@@ -1,0 +1,39 @@
+# Security Policy
+
+## Reporting a Vulnerability
+
+To make a report, you can email me at security@mansuf.link
+
+Optionally, you can encrypt your report with GPG, using key [04CB0BCADD6AF284](https://keyserver.ubuntu.com/pks/lookup?search=04cb0bcadd6af284&fingerprint=on&op=index)
+
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQINBGKEXiIBEADfkfoviTQNwOpe7k+br2kfvjJvdQg6RN6z/adP9TMIko8yEUms
+wc6mMA7Ix9cgDvGFZrZu2tFWna6jZ9TvS6P5zTh/Yj9vMYWQxNFb3xa8vDXfLyza
+6mwiuV1Bz8o8FZNOurL4xZYaeFJLzSrS0xyzc7unI2RnvwWdOJvIMte7hi9TeeZQ
+zfCgtnxqy3ChuJ0cLKNGc7HgpJ3X5dT0VFHeQ0lGlClQKI4omApWxTMleRgL7CDx
+7NQ/gdNAyXvL0Vfm2O6Md/JOkKLZn6YpJBtE7G8KS0UrUIDtpoSlBjCgxLCAgKSb
+owqLWggPodSice7qPDCp6EBUucLI+vANHYJbl0D6XITtQQnoXvyaVgqGBzzlJDD2
+TD0d1gBQTJ1daNbMD+9Ipx4erB0rAmurxwjCPszbb4wAPoTavHmjwVLn0k6eEYbv
+xgMxehKr2XMSruF9qbAGfp93u5TqNia5viIsJ00RguMcQNXnohK2ERRdEe+n8+9R
+APmMGfNaJ45P3eo32bpDR78VhOaipZzT3IK7Tcz1z3I4uQMifiR4hphYuSewv7zJ
+XZAFHUPXzetxR1cLeaLHaZ0sH0NB+8UQSEd9g3BTvqiyRRhU6CPrB0VUiivhlGqE
+IQRpKa+Q1vrzeQfU+FBJD0YUFUzzTEUtYYA/7z3Oq4cqGCRRy10z09D3BwARAQAB
+tCFSYWhtYW4gWXVzdWYgPG1hbnN1ZkBtYW5zdWYubGluaz6JAlQEEwEIAD4WIQR7
+qIsiLNi/2hQYouMEywvK3WryhAUCYoReIgIbAwUJA8JnAAULCQgHAgYVCgkICwIE
+FgIDAQIeAQIXgAAKCRAEywvK3WryhLMJEADa9FxlvORc7wzXUNQM31TIROG31/lv
+ftz9z4PnCoApAiBx9g0eqiZKCduYENwEDaXzMiDaBZA2RgmYZnloq8GYAqhiKV9g
+yvFnpBnlCMcyGxdJvOsel3RFuazXRTk2BZUX6EZTHBxlACWmOttiY16DEkwPDZvP
+rVH2aFQdz+GneWw0MUESO6PTCrZt8aamCA/CvRQYEnGba5V8dApuWq9YA7bhQ/mN
+eE0EghuZ5+rCE1BtIeTMjqELDOnFWBjdgzhFzrR+Hq2Fj9PwY9C3MeDtQ7akvTC4
+pnUNy0o6DwkPysBhE5xaM2bRKZfaufOFUp5VLNAXFni1vQlSvVtJ9ggNpogdhIex
+jqNh9ZYj/rAihDs/trZ33REf4RXm8iTC3W2x17HYnX7BfAyYV11TJgVaA31XHy6r
+NNs+J57BZZdkwSWVocbGMoIWA2TGG4z4MXXyLe7xr3/rZZVEAHZGJw5aH3Nvfpy9
+LsZUQQ9xCbT8OxoPSd1per+Aj48QqHM7FIzFBMmscDDkAp3SZb1RU+J7LNW7dNva
+IOLxRomuffaHxNUFKau9Yjti4fuYKV/jgqV8QZwuyiib8ufDOV8pCZa5B680zOhY
+ibeCZFh37FExRrUJLRJmpRY4VaT+W4i0vKaPYypt6X3XPDm3Y3LGPDYiyqg+mX5z
+ZbnDW4OkJY/hdg==
+=nnmR
+-----END PGP PUBLIC KEY BLOCK-----
+```
