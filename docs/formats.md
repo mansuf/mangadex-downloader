@@ -21,18 +21,8 @@ This is default format of mangadex-downloader. It's just bunch of images stored 
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL Here")
 ```
 
 ## raw-volume
@@ -54,18 +44,8 @@ Same as `raw` format, except all chapters wrapped into each volumes.
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as raw-volume
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL Here", save_as="raw-volume")
 ```
 
 ## raw-single
@@ -85,18 +65,8 @@ Same as `raw` format, except all chapters wrapped into single folder.
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as raw-single
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL Here", save_as="raw-single")
 ```
 
 ## tachiyomi
@@ -125,18 +95,8 @@ You can [read here](https://tachiyomi.org/help/guides/local-manga) for instructi
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "tachiyomi"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL Here", save_as="tachiyomi")
 ```
 
 ## tachiyomi-zip
@@ -157,18 +117,8 @@ Same as `tachiyomi` except, all images in each chapter will stored in ZIP file.
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "tachiyomi-zip"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as="tachiyomi-zip")
 ```
 
 ## pdf
@@ -188,18 +138,8 @@ All images in each chapter will be converted to PDF file (.pdf)
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "pdf"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as='pdf')
 ```
 
 ## pdf-volume
@@ -219,18 +159,8 @@ Same as `pdf`, except all chapters wrapped into each volumes PDF file.
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "pdf-volume"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as='pdf-volume')
 ```
 
 ## pdf-single
@@ -249,18 +179,8 @@ same as `pdf` format, except all chapters wrapped into single PDF file
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "pdf-single"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as="pdf-single")
 ```
 
 ## cbz
@@ -284,18 +204,8 @@ This format was based of `zip` extension.
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cbz"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as="cbz")
 ```
 
 ## cbz-volume
@@ -315,18 +225,8 @@ same as `cbz` format, except all chapters wrapped into each volumes .cbz file
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cbz-volume"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as='cbz-volume')
 ```
 
 ## cbz-single
@@ -345,18 +245,8 @@ same as `cbz` format, except all chapters wrapped into single .cbz file
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cbz-single"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as="cbz-single")
 ```
 
 ## cb7
@@ -378,18 +268,8 @@ This format was based of `7z` extension.
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cb7"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as="cb7")
 ```
 
 ## cb7-volume
@@ -409,18 +289,8 @@ same as `cb7` format, except all chapters wrapped into each volumes .cb7 file
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cb7-volume"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as='cb7-volume')
 ```
 
 ## cb7-single
@@ -439,16 +309,6 @@ same as `cb7` format, except all chapters wrapped into single .cb7 file
 
 ### Usage
 
-For CLI
-
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cb7-single"
-```
-
-For embedding (API)
-
-```python
-from mangadex_downloader import download
-
-manga = download("insert MangaDex URL here", save_as="cb7-single")
 ```
