@@ -164,6 +164,7 @@ class _Config:
     def __init__(self):
         self._data = None
         self._lock = threading.Lock()
+        self.no_read = False
 
         # Load the config
         self._load()
@@ -266,7 +267,8 @@ class _Config:
             self._write(data)
 
     def read(self, name):
-        self._load()
+        if not self.no_read:
+            self._load()
         return self._data[name]
 
     def write(self, name, value):
@@ -293,6 +295,7 @@ def set_config_from_cli_opts(args):
         data[key] = validator(value)
     
     _conf._write(data, write_to_path=False)
+    _conf.no_read = True
 
 def reset_config(name=None):
     """Reset config. If ``name`` is not given, reset all configs"""
