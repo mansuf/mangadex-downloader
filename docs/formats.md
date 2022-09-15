@@ -312,3 +312,79 @@ same as `cb7` format, except all chapters wrapped into single .cb7 file
 ```shell
 mangadex-dl "insert MangaDex URL here" --save-as "cb7-single"
 ```
+
+## epub
+
+An electronic book file format that is supported by many e-readers. [Wikipedia](https://en.wikipedia.org/wiki/EPUB).
+
+This format was based of `zip` extension
+
+### Structure files
+
+`epub` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┣ 📜Volume. 1 Chapter. 1.epub
+ ┗ 📜Volume. 1 Chapter. 2.epub
+```
+
+### Usage
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "epub"
+```
+
+## epub-volume
+
+Same as `epub` format, except all chapters wrapped into each volumes.
+
+```{note}
+Unlike any other `volume` and `single` formats, `epub-volume` and `epub-single` doesn't create chapter info (or cover).
+
+If you don't know what that means, you can have look here -> {doc}`../cli_ref/chapter_info`
+```
+
+### Structure files
+
+`epub-volume` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┣ 📜Volume. 1.epub
+ ┗ 📜Volume. 2.epub
+```
+
+### Usage
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "epub-volume"
+```
+
+## epub-single
+
+Same as `epub` format, except all chapters wrapped into single .epub file.
+
+```{note}
+Unlike any other `volume` and `single` formats, `epub-volume` and `epub-single` doesn't create chapter info (or cover).
+
+If you don't know what that means, you can have look here -> {doc}`../cli_ref/chapter_info`
+```
+
+### Structure files
+
+`epub-single` format files look like this
+
+```
+📦Manga title
+ ┣ 📜cover.jpg
+ ┗ 📜Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2.epub
+```
+
+### Usage
+
+```shell
+mangadex-dl "insert MangaDex URL here" --save-as "epub-single"
+```

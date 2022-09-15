@@ -110,9 +110,15 @@ Do not use scanlation group name for each chapter
 Use chapter title for each chapters. **NOTE:** This option is useless if used with any single and volume format
 ```
 
-```{option} --no-chapter-info -nci
-Disable creation of chapter info for any `single` and `volume` formats
+````{option} --no-chapter-info -nci
+
+```{note}
+`epub-volume` and `epub-single` formats is not affected, 
+because creation of chapter info is totally disabled for any `epub` formats
 ```
+
+Disable creation of chapter info for any `single` and `volume` formats
+````
 
 ### Chapter page related
 
@@ -231,6 +237,7 @@ Update mangadex-downloader to latest version
 ```{toctree}
 :hidden:
 
+chapter_info
 search_filters
 random
 manga_library

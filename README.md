@@ -37,7 +37,8 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - HTTP / SOCKS proxy support
 - DNS-over-HTTPS support (using [requests-doh](https://github.com/mansuf/requests-doh) library)
 - Multi languages support
-- Save as raw images, PDF, Comic Book Archive (.cbz) or [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
+- Save as raw images, EPUB, PDF, Comic Book Archive (.cbz or .cb7) or
+[Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
 
 ***And ability to not download oneshot chapter***
 
@@ -67,9 +68,11 @@ python3 -m pip install mangadex-downloader
 
 You can also install optional dependencies
 
-- [Pillow](https://pypi.org/project/pillow/) for PDF support
 - [py7zr](https://pypi.org/project/py7zr/) for cb7 support
 - [orjson](https://pypi.org/project/orjson/) for maximum performance (fast JSON library)
+- [Pillow](https://pypi.org/project/pillow/), 
+[beautifulsoup4](https://pypi.org/project/beautifulsoup4/), 
+[lxml](https://pypi.org/project/lxml/) for EPUB and PDF support
 
 Or you can install all optional dependencies
 
@@ -102,7 +105,7 @@ Steps:
 ```shell
 git clone https://github.com/mansuf/mangadex-downloader.git
 cd mangadex-downloader
-python setup.py install
+python setup.py install # or "pip install ."
 ```
 
 ## Usage <a id="usage"></a>

@@ -12,6 +12,7 @@
 - Added new search filters
   - `order[*]` [#32](https://github.com/mansuf/mangadex-downloader/issues/32)
 - Added optional dependency [`orjson`](https://pypi.org/project/orjson/) for faster loading and dumping JSON object.
+- Added EPUB support (`epub`, `epub-volume`, `epub-single`)
 
 ### Fix bugs
 

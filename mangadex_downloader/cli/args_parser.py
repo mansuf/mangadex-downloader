@@ -442,7 +442,9 @@ def get_args(argv):
         '--no-chapter-info',
         '-nci',
         action='store_true',
-        help='Disable creation of chapter info for any `single` and `volume` formats',
+        help='Disable creation of chapter info for any `single` and `volume` formats. ' \
+             "NOTE: `epub-volume` and `epub-single` formats is not affected, " \
+             "because creation of chapter info is totally disabled for any `epub` formats",
         default=config.no_chapter_info
     )
     chap_group.add_argument(
