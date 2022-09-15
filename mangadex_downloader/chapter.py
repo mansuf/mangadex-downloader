@@ -606,19 +606,19 @@ class MangaChapter:
             raise ValueError("at least provide chapter or set all_chapters to True")
 
         self._volumes = {}
-        self._lang = Language(lang)
+        self.language = Language(lang)
         self.manga = manga
 
         if chapter:
             self._parse_volumes_from_chapter(chapter)
         elif all_chapters:
-            self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
+            self._parse_volumes(get_all_chapters(manga.id, self.language.value))
 
     def iter(self, *args, **kwargs):
         return IteratorChapter(
             self._volumes,
             self.manga,
-            self._lang,
+            self.language,
             *args,
             **kwargs
         )
@@ -654,7 +654,7 @@ class MangaChapter:
         if not data:
             raise ChapterNotFound("Manga \"%s\" with %s language has no chapters" % (
                 self.manga.title,
-                self._lang.name
+                self.language.name
             ))
 
         # Sorting volumes
