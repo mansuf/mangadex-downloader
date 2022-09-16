@@ -19,7 +19,6 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - [Usage](#usage)
     - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
     - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
-    - [Embedding (API)](#embedding-api)
 - [Contributing](#contributing)
 - [Links](#links)
 - [Disclaimer](#disclaimer)
@@ -145,16 +144,6 @@ mangadex-dl.exe "insert MangaDex URL here"
 For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_usage/index.html)
 
 For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_ref/index.html)
-
-### Embedding (API) <a id="embedding-api"></a>
-
-```python
-from mangadex_downloader import download
-
-download("insert MangaDex URL here")
-```
-
-For more information, you can [read here](https://mangadex-dl.mansuf.link/en/stable/usage_api.html)
 
 ## Contributing <a id="contributing"></a>
 
