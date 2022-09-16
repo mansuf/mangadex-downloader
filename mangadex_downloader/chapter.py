@@ -36,7 +36,7 @@ from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config
-from . import range as range_mod # range_mod stands for "range module"
+# from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
 

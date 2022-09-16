@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 import os
-import io
 import sys
 import subprocess
 import sys

@@ -22,7 +22,6 @@
 
 # Based on https://github.com/mansuf/zippyshare-downloader/blob/main/zippyshare_downloader/network.py
 
-import json
 import requests
 import urllib.parse
 import time

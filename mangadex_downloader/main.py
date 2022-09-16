@@ -30,8 +30,7 @@ from .fetcher import *
 from .mdlist import MangaDexList
 from .manga import Manga
 from .chapter import Chapter
-from .format import default_save_as_format, get_format
-from .cover import default_cover_type
+from .format import get_format
 from .downloader import FileDownloader
 from .config import config
 
