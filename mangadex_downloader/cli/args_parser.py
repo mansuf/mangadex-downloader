@@ -450,7 +450,7 @@ def get_args(argv):
     chap_group.add_argument(
         '--range',
         '-rg',
-        help='A range pattern to download specific chapters'
+        help='[DISABLED] A range pattern to download specific chapters'
     )
 
     # Chapter page related

@@ -32,6 +32,7 @@
 - Changed extension file for `tachiyomi-zip` format (from `.zip` to `.cbz`)
 - [Pillow](https://pypi.org/project/pillow/) is no longer required when downloading in any `single` and `volume` format. 
 - All formats will download and convert in separated time (previously was download and convert in same time).
+- `--range` option is disabled, because it's broken right now and needs to reworked
 
 ### Notes: API references removal <a id="notes-api-references-removal"></a>
 

@@ -15,7 +15,11 @@ from .auth import login_with_err_handler, logout_with_err_handler
 from .download import download
 from ..errors import MangaDexException
 
-_deprecated_opts = {}
+_deprecated_opts = {
+    # I know this isn't deprecated
+    # But i need the warning feature, hehe
+    "range": "--range is disabled, because it's broken and need to rework"
+}
 
 def _check_deprecations(log, args):
     for arg, msg in _deprecated_opts.items():

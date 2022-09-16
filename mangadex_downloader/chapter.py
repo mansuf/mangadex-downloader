@@ -382,7 +382,8 @@ class IteratorChapter:
         self.legacy_range = legacy_range
         
         if _range is not None:
-            self.range = range_mod.compile(_range)
+            # self.range = range_mod.compile(_range)
+            self.range = None
         else:
             self.range = _range
 
