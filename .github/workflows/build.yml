@@ -155,15 +155,15 @@ jobs:
         if: contains(env.python_version, '3.10')
         uses: actions/upload-artifact@v3
         with:
-          name: mangadex-dl_x64_${{ github.ref_name }}.zip
-          path: mangadex-dl_x64_${{ github.ref_name }}.zip
+          name: mangadex-dl_x64
+          path: dist_x64/mangadex-dl/
 
       - name: Upload artifact (x86)
         if: contains(env.python_version, '3.10')
         uses: actions/upload-artifact@v3
         with:
-          name: mangadex-dl_x86_${{ github.ref_name }}.zip
-          path: mangadex-dl_x86_${{ github.ref_name }}.zip
+          name: mangadex-dl_x86
+          path: dist_x86/mangadex-dl/
             
 
       - name: Create Release
