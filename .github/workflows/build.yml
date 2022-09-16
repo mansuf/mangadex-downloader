@@ -152,16 +152,18 @@ jobs:
           Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
       - name: Upload artifact (x64)
+        if: contains(env.python_version, '3.10')
         uses: actions/upload-artifact@v3
         with:
-          name: mangadex-dl_x64_${{ github.sha }}.zip
-          path: mangadex-dl_x64_${{ github.sha }}.zip
+          name: mangadex-dl_x64_${{ github.ref_name }}.zip
+          path: mangadex-dl_x64_${{ github.ref_name }}.zip
 
       - name: Upload artifact (x86)
+        if: contains(env.python_version, '3.10')
         uses: actions/upload-artifact@v3
         with:
-          name: mangadex-dl_x86_${{ github.sha }}.zip
-          path: mangadex-dl_x86_${{ github.sha }}.zip
+          name: mangadex-dl_x86_${{ github.ref_name }}.zip
+          path: mangadex-dl_x86_${{ github.ref_name }}.zip
             
 
       - name: Create Release
