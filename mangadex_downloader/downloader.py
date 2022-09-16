@@ -1,9 +1,30 @@
-# Based on https://github.com/mansuf/zippyshare-downloader/blob/main/zippyshare_downloader/downloader.py
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import tqdm
 import os
 import time
 import logging
+from .utils import delete_file
 from .network import Net
 from .errors import HTTPException
 
@@ -12,18 +33,7 @@ log = logging.getLogger(__name__)
 # For KeyboardInterrupt handler
 _cleanup_jobs = []
 
-# re.compile('bytes=([0-9]{1,}|)-([0-9]{1,}|)', re.IGNORECASE)
-
-class BaseDownloader:
-    def download(self):
-        """Download the file"""
-        raise NotImplementedError
-
-    def cleanup(self):
-        "Do the cleanup, Maybe close the session or the progress bar ? idk."
-        raise NotImplementedError
-
-class FileDownloader(BaseDownloader):
+class FileDownloader:
     def __init__(self, url, file, progress_bar=True, replace=False, use_requests=False, **headers) -> None:
         self.url = url
         self.file = str(file) + '.temp'
@@ -31,6 +41,7 @@ class FileDownloader(BaseDownloader):
         self.progress_bar = progress_bar
         self.replace = replace
         self.headers_request = headers
+        self.chunk_size = 2 ** 13
 
         # If somehow this is used to sending HTTP requests from another websites (not mangadex)
         # then use requests.Session instead
@@ -45,6 +56,10 @@ class FileDownloader(BaseDownloader):
         self._tqdm = None
         
         self._register_keyboardinterrupt_handler()
+
+        # If file exist, delete it
+        if self.replace:
+            delete_file(self.file)
     
     def _register_keyboardinterrupt_handler(self):
         _cleanup_jobs.append(lambda: self.cleanup())
@@ -90,52 +105,135 @@ class FileDownloader(BaseDownloader):
             headers['Range'] = 'bytes=%s-' % initial_sizes
         return headers
 
+    def on_prepare(self):
+        """This will be called before sending request to given url"""
+        pass
+
+    def on_read(self, chunk):
+        """This will be called when reading data
+
+        NOTE: this function will be called after :meth:`requests.Response.raw.read()` has been called
+        """
+        pass
+
+    def on_finish(self):
+        """This will be called when download is finished"""
+        pass
+
+    def on_error(self, err, resp):
+        """Register event when downloader are having problem"""
+        pass
+
+    def on_receive_response(self, resp):
+        """Register event when :class:`requests.Response` from given url are arrived"""
+        pass
+
     def download(self):
-        initial_file_sizes = self._get_file_size(self.file)
+        while True:
+            error = None
+            resp = None
+            self.on_prepare()
 
-        # Parse headers
-        headers = self._parse_headers(initial_file_sizes)
+            initial_file_sizes = self._get_file_size(self.file)
 
-        # Initiate request
-        resp = self.session.get(self.url, headers=headers, stream=True)
+            # Parse headers
+            headers = self._parse_headers(initial_file_sizes)
 
-        # Grab the file sizes
-        file_sizes = float(resp.headers.get('Content-Length'))
+            try:
+                resp = self.session.get(self.url, headers=headers, stream=True)
+            except Exception as e:
+                # Other Exception
+                error = e
+            
+            # The downloader are requesting out of range bytes file
+            # Because previous download are cancelled or error and .temp file are exists
+            # and fully downloaded
+            if resp is not None and resp.status_code == 416:
+                # Mark it as finished
+                self.on_finish()
+                self._write_final_file()
+                return True
 
-        # If "Range" header request is present
-        # Content-Length header response is not same as full size
-        if initial_file_sizes:
-            file_sizes += initial_file_sizes
+            # Request failed
+            if error is not None or (
+                resp is not None and
+                resp.status_code > 200 and not resp.status_code < 400
+            ):
+                self.on_error(error, resp)
+                return False
 
-        real_file_sizes = self._get_file_size(self.real_file)
-        if real_file_sizes:
-            if file_sizes == real_file_sizes and not self.replace:
-                log.info('File exist and replace is False, cancelling download...')
-                return
+            # Response are arrived !
+            self.on_receive_response(resp)
 
-        # Build the progress bar
-        self._build_progres_bar(initial_file_sizes, float(file_sizes))
+            # Grab the file sizes
+            file_sizes = float(resp.headers.get('Content-Length'))
 
-        # Heavily adapted from https://github.com/choldgraf/download/blob/master/download/download.py#L377-L390
-        chunk_size = 2 ** 16
-        with open(self.file, 'ab' if initial_file_sizes else 'wb') as writer:
-            while True:
-                t0 = time.time()
-                chunk = resp.raw.read(chunk_size)
-                dt = time.time() - t0
-                if dt < 0.005:
-                    chunk_size *= 2
-                elif dt > 0.1 and chunk_size > 2 ** 16:
-                    chunk_size = chunk_size // 2
-                if not chunk:
-                    break
-                writer.write(chunk)
-                self._update_progress_bar(len(chunk))
-        
-        # Delete original file if replace is True and real file is exist
-        if real_file_sizes and self.replace:
-            os.remove(self.real_file)
-        os.rename(self.file, self.real_file)
+            # Try to get `accept-ranges` header to check if the server support `Range` header
+            accept_range = resp.headers.get('accept-ranges')
+            init_file_size = initial_file_sizes if initial_file_sizes else 0
+            if accept_range is None and file_sizes != (init_file_size + file_sizes):
+                # Server didn't support `Range` header
+                log.warning("Server didn't support resume download, restarting download")
+                if os.path.exists(self.file):
+                    delete_file(self.file)
+                continue
+
+            # If "Range" header request is present
+            # Content-Length header response is not same as full size
+            if initial_file_sizes:
+                file_sizes += initial_file_sizes
+
+            # Check if file is exist or not
+            real_file_sizes = self._get_file_size(self.real_file)
+            if real_file_sizes:
+                if file_sizes == real_file_sizes and not self.replace:
+                    log.info('File exist and replace is False, cancelling download...')
+                    self.on_finish()
+                    return True
+
+            # Build the progress bar
+            self._build_progres_bar(initial_file_sizes, float(file_sizes))
+
+            # Begin downloading
+            current_size = 0
+            with open(self.file, 'ab' if initial_file_sizes else 'wb') as writer:
+                while True:
+                    chunk = resp.raw.read(self.chunk_size)
+                    current_size += len(chunk)
+                    self.on_read(chunk)
+                    if not chunk:
+                        break
+                    writer.write(chunk)
+                    writer.flush()
+                    self._update_progress_bar(len(chunk))
+
+            # See #14
+            # Download is not finished but marked as "finished"
+            if current_size != file_sizes:
+                self.cleanup()
+                log.warning("File download is incomplete, restarting download...")
+                continue
+
+            self.on_finish()
+            self._write_final_file()
+            return True
+
+    def _write_final_file(self):
+        if os.path.exists(self.real_file):
+            delete_file(self.real_file)
+
+        w_fp = open(self.real_file, 'wb')
+        r_fp =  open(self.file, 'rb')
+        while True:
+            data = r_fp.read(self.chunk_size)
+            if not data:
+                break
+            w_fp.write(data)
+
+        w_fp.close()
+        r_fp.close()
+
+        delete_file(self.file)
 
     def cleanup(self):
         # Close the progress bar
@@ -147,113 +245,41 @@ class ChapterPageDownloader(FileDownloader):
     
     When the download is finished this downloader class will report the download info to MangaDex network.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def download(self):
-        while True:
-            initial_file_sizes = self._get_file_size(self.file)
+        self.on_prepare()
+    
+    def on_prepare(self):
+        self.t1 = time.perf_counter()
+        self.report_total_size = 0
 
-            # Parse headers
-            headers = self._parse_headers(initial_file_sizes)
+        # Value will be changed in on_receive_response()
+        self.resp = None
 
-            # Initiate request
-            t1 = time.time()
+    def on_read(self, chunk):
+        self.report_total_size += len(chunk)
 
-            # Since server error are handled by session
-            # We need to catch the error to report it to MangaDex network
-            try:
-                resp = Net.mangadex.get(self.url, headers=headers, stream=True)
-            except HTTPException as e:
-                resp = e.response
+    def on_finish(self):
+        t2 = time.perf_counter()
 
-            # The downloader are requesting out of range bytes file
-            # Because previous download are cancelled or error and .temp file are exists
-            # and fully downloaded
-            if resp.status_code == 416:
-                # Mark it as finished
-                self._write_final_file()
-                return True
+        if self.report_total_size != 0:
+            # To prevent "unsupported operand" error
+            # Because if file exist and replace is `False`, on_finish() will be called (success)
+            self._report(self.resp, self.report_total_size, round((t2 - self.t1) * 1000), True)
 
-            # Report it to MangaDex network if failing
-            if resp.status_code > 200 and not resp.status_code < 400:
-                length = len(resp.content)
-                t2 = time.time()
-                self._report(resp, length, round((t2 - t1) * 1000), False)
-                return False
+    def on_error(self, err, resp):
+        if not isinstance(err, HTTPException) and resp is None:
+            return
 
-            # Grab the file sizes
-            file_sizes = float(resp.headers.get('Content-Length'))
+        response = resp if resp is not None else err.response
+        content = response.content
+        t2 = time.perf_counter()
 
-            # If "Range" header request is present
-            # Content-Length header response is not same as full size
-            if initial_file_sizes:
-                file_sizes += initial_file_sizes
+        self._report(response, len(content), round((t2 - self.t1) * 1000), False)
 
-            real_file_sizes = self._get_file_size(self.real_file)
-            if real_file_sizes:
-                if file_sizes == real_file_sizes and not self.replace:
-                    log.info('File exist and replace is False, cancelling download...')
-                    return True
-
-            current_size = initial_file_sizes or 0
-
-            # Build the progress bar
-            self._build_progres_bar(initial_file_sizes, float(file_sizes))
-
-            # Heavily adapted from https://github.com/choldgraf/download/blob/master/download/download.py#L377-L390
-            report_total_size = 0
-            chunk_size = 2 ** 16
-            with open(self.file, 'ab' if initial_file_sizes else 'wb') as writer:
-                while True:
-                    t0 = time.time()
-                    chunk = resp.raw.read(chunk_size)
-                    report_total_size += len(chunk)
-                    current_size += len(chunk)
-                    dt = time.time() - t0
-                    if dt < 0.005:
-                        chunk_size *= 2
-                    elif dt > 0.1 and chunk_size > 2 ** 16:
-                        chunk_size = chunk_size // 2
-                    if not chunk:
-                        break
-                    writer.write(chunk)
-                    writer.flush()
-                    self._update_progress_bar(len(chunk))
-                t2 = time.time()
-
-            # See #14
-            # Download is not finished but marked as "finished"
-            if current_size != file_sizes:
-                self.cleanup()
-                log.warning("File download is incomplete, restarting download...")
-                continue
-
-            self._write_final_file()
-
-            # Finally report it to MangaDex network
-            self._report(resp, report_total_size, round((t2 - t1) * 1000), True)
-            return True
-
-    def _write_final_file(self):
-        # "Circular imports" problem
-        from .format.utils import delete_file
-
-        if os.path.exists(self.real_file):
-            delete_file(self.real_file)
-
-        chunk_size = 2 ** 16
-
-        w_fp = open(self.real_file, 'wb')
-        r_fp =  open(self.file, 'rb')
-        while True:
-            data = r_fp.read(chunk_size)
-            if not data:
-                break
-            w_fp.write(data)
-
-        w_fp.close()
-        r_fp.close()
-
-        delete_file(self.file)
+    def on_receive_response(self, resp):
+        self.resp = resp
 
     def _report(self, resp, size, _time, success):
         self.cleanup()
@@ -277,7 +303,6 @@ class ChapterPageDownloader(FileDownloader):
             # Just in case something is happened
             if cache_header is not None:
                 cached = cache_header.startswith('HIT')
-
 
         data = {
             'url': self.url,

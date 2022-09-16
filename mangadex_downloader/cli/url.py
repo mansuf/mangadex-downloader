@@ -1,9 +1,36 @@
-import logging
-import re
+# MIT License
 
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import logging
+import os
+import re
+import requests
+
+from .utils import get_key_value
+from .command import registered_commands
+from ..network import Net
 from ..fetcher import get_chapter, get_list, get_manga
 from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
-from ..utils import validate_url
+from ..utils import validate_legacy_url, validate_url as get_uuid
 from ..main import (
     download as dl_manga,
     download_chapter as dl_chapter,
@@ -28,8 +55,8 @@ def _build_re(_type):
     return regex
 
 def download_manga(url, args, legacy=False):
-    if args.group and args.no_group_name:
-        raise MangaDexException("--group cannot be used together with --no-group-name")
+    if args.group and args.group.lower().strip() == 'all' and args.no_group_name:
+        raise MangaDexException("'--group all' cannot be used together with --no-group-name")
 
     if args.start_chapter is not None and args.end_chapter is not None:
         if args.start_chapter > args.end_chapter:
@@ -54,25 +81,15 @@ def download_manga(url, args, legacy=False):
 
     args = (
         url,
-        args.path,
         args.replace,
-        args.use_compressed_image,
         args.start_chapter,
         args.end_chapter,
         args.start_page,
         args.end_page,
         args.no_oneshot_chapter,
-        args.language,
-        args.cover,
-        args.save_as,
         args.use_alt_details,
-        args.no_group_name,
         args.group,
-        args.use_chapter_title,
-        args.unsafe,
-        args.no_verify,
         args.range,
-        args.force_https
     )
 
     if legacy:
@@ -88,17 +105,9 @@ def download_chapter(url, args, legacy=False):
 
     args = (
         url,
-        args.path,
         args.replace,
         args.start_page,
         args.end_page,
-        args.use_compressed_image,
-        args.save_as,
-        args.no_group_name,
-        args.use_chapter_title,
-        args.unsafe,
-        args.no_verify,
-        args.force_https
     )
 
     if legacy:
@@ -126,18 +135,8 @@ def download_list(url, args):
 
     dl_list(
         url,
-        args.path,
         args.replace,
-        args.use_compressed_image,
-        args.language,
-        args.cover,
-        args.save_as,
-        args.no_group_name,
         args.group,
-        args.use_chapter_title,
-        args.unsafe,
-        args.no_verify,
-        args.force_https
     )
 
 # Legacy support
@@ -193,12 +192,6 @@ def smart_select_url(url):
         # Get download function
         func = funcs[_type]
 
-        if 'legacy-' in _type:
-            # Only for legacy url
-            # Because inside `download_legacy_*` has already validator legacy url.
-            # Unlike download function for new id, if it's parsed id, it will throw error.
-            _id = url
-
         found = True
         
         if found:
@@ -207,7 +200,7 @@ def smart_select_url(url):
     # If none of patterns is match, grab UUID instantly and then
     # fetch one by one, starting from manga, list, and then chapter.
     if not found:
-        _id = validate_url(url)
+        _id = get_uuid(url)
 
         # Manga
         try:
@@ -239,3 +232,77 @@ def smart_select_url(url):
             raise InvalidURL(f"'{url}' is not valid MangaDex URL")
     
     return URL(func, _id)
+
+def _try_read(path):
+    if not os.path.exists(path):
+        return None
+    
+    with open(path, 'r') as o:
+        return o.read()
+
+def build_url(parser, args):
+    exec_command = False
+    for arg, command_cls in registered_commands.items():
+        value = getattr(args, arg)
+        if value:
+            command = command_cls(parser, args, args.URL)
+            result = command.prompt(args.input_pos)
+
+            exec_command = True
+            break
+    
+    if not exec_command:
+        # Parsing file path
+        if args.file:
+            _, file = get_key_value(args.URL, sep=':')
+            
+            if not file:
+                parser.error("Syntax error: file path argument is empty")
+
+            # web URL location support for "file:{location}" syntax
+            if file.startswith('http://') or file.startswith('https://'):
+                r = Net.requests.get(file)
+                try:
+                    r.raise_for_status()
+                except requests.HTTPError:
+                    raise MangaDexException(f"Failed to connect '{file}', status code = {r.status_code}")
+
+                urls = r.text
+            
+            # Because this is specified syntax for batch downloading
+            # If file doesn't exist, raise error
+            else:
+                urls = _try_read(file)
+                if urls is None:
+                    parser.error(f"File '{file}' is not exist")
+        else:
+            file_content = _try_read(args.URL)
+
+            if file_content is not None:
+                urls = file_content
+            else:
+                urls = args.URL
+
+        result = urls.splitlines(keepends=False)
+
+    def yeet():
+        """Function to yeet each url with error handling (:class:`InvalidURL`)"""
+        if args.type:
+            func = lambda i: build_URL_from_type(args.type, i)
+        else:
+            func = smart_select_url
+        
+        for i in result:
+            try:
+                yield func(i)
+            except InvalidURL as e:
+                log.error(e)
+                continue
+
+    # Finally, make :class:`URL` object
+    args.URL = yeet()
+
+    # Make sure to check if args.URL is empty
+    # if empty exit the program
+    if not args.URL:
+        parser.error("the following arguments are required: URL")

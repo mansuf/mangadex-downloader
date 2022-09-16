@@ -1,7 +1,27 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import logging
 import queue
-import re
-
 from pathvalidate import sanitize_filename
 
 from .user import User
@@ -13,9 +33,10 @@ from .fetcher import (
     get_all_chapters
 )
 from .network import Net, base_url
-from .errors import ChapterNotFound, GroupNotFound, MangaDexException, UserNotFound
+from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
-from . import range as range_mod # range_mod stands for "range module"
+from .config import config
+# from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
 
@@ -25,13 +46,11 @@ class ChapterImages:
         chapter,
         start_page=None,
         end_page=None,
-        data_saver=False,
         _range=None,
-        force_https=False
     ) -> None:
         self.chap = chapter
         self.id = chapter.id
-        self.data_saver = data_saver
+        self.data_saver = config.use_compressed_image
         self._images = []
         self._low_images = []
         self._data = None
@@ -40,7 +59,7 @@ class ChapterImages:
         self.start_page = start_page
         self.end_page = end_page
         self.range = _range
-        self.force_https = force_https
+        self.force_https = config.force_https
 
         self.legacy_range = (start_page or end_page)
     
@@ -283,6 +302,43 @@ class Chapter:
 
         return name
 
+def iter_chapters_feed(manga_id, lang):
+    includes = [
+        'scanlation_group',
+        'user'
+    ]
+    content_ratings = [
+        'safe',
+        'suggestive',
+        'erotica',
+        'pornographic'
+    ]
+    offset = 0
+    limit = 500
+    
+    while True:
+        params = {
+            'includes[]': includes,
+            'contentRating[]': content_ratings,
+            'limit': limit,
+            'offset': offset,
+            'order[volume]': 'desc',
+            'order[chapter]': 'desc',
+            'translatedLanguage[]': [lang]
+        }
+        r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
+        d = r.json()
+
+        items = d['data']
+
+        if not items:
+            break
+
+        for item in items:
+            yield item
+        
+        offset += len(items)
+
 class IteratorChapter:
     def __init__(
         self,
@@ -294,12 +350,8 @@ class IteratorChapter:
         start_page=None,
         end_page=None,
         no_oneshot=None,
-        data_saver=None,
-        no_group_name=None,
         group=None,
-        use_chapter_title=False,
         _range=None,
-        force_https=False,
         **kwargs
     ):
 
@@ -323,16 +375,15 @@ class IteratorChapter:
         self.start_page = start_page
         self.end_page = end_page
         self.no_oneshot = no_oneshot
-        self.data_saver = data_saver
-        self.no_group_name = no_group_name
-        self.use_chapter_title = use_chapter_title
+        self.no_group_name = config.no_group_name
+        self.use_chapter_title = config.use_chapter_title
         self.group = None
         self.all_group = False
         self.legacy_range = legacy_range
-        self.force_https = force_https
         
         if _range is not None:
-            self.range = range_mod.compile(_range)
+            # self.range = range_mod.compile(_range)
+            self.range = None
         else:
             self.range = _range
 
@@ -424,7 +475,7 @@ class IteratorChapter:
         # Some manga has chapters where it has no pages / images inside of it.
         # We need to verify it, to prevent error when downloading the manga.
         if chap.pages == 0:
-            log.warning(f"Chapter {0} from group {1} has no images, ignoring...".format(
+            log.warning("Chapter {0} from group {1} has no images, ignoring...".format(
                 chap.chapter,
                 chap.groups_name
             ))
@@ -485,9 +536,7 @@ class IteratorChapter:
                 chap,
                 self.start_page,
                 self.end_page,
-                self.data_saver,
                 self.range,
-                self.force_https
             )
 
             return chap, chap_images
@@ -502,45 +551,8 @@ class IteratorChapter:
                 )
 
     def _fill_data(self):
-        def iter_chapters(manga_id, lang):
-            includes = [
-                'scanlation_group',
-                'user'
-            ]
-            content_ratings = [
-                'safe',
-                'suggestive',
-                'erotica',
-                'pornographic'
-            ]
-            offset = 0
-            limit = 500
-            
-            while True:
-                params = {
-                    'includes[]': includes,
-                    'contentRating[]': content_ratings,
-                    'limit': limit,
-                    'offset': offset,
-                    'order[volume]': 'desc',
-                    'order[chapter]': 'desc',
-                    'translatedLanguage[]': [lang]
-                }
-                r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
-                d = r.json()
-
-                items = d['data']
-
-                if not items:
-                    break
-
-                for item in items:
-                    yield item
-                
-                offset += len(items)
-
         chapters_data = {}
-        for data in iter_chapters(self.manga.id, self.language.value):
+        for data in iter_chapters_feed(self.manga.id, self.language.value):
             chapters_data[data['id']] = data
         
         chap_others = []
@@ -595,19 +607,19 @@ class MangaChapter:
             raise ValueError("at least provide chapter or set all_chapters to True")
 
         self._volumes = {}
-        self._lang = Language(lang)
+        self.language = Language(lang)
         self.manga = manga
 
         if chapter:
             self._parse_volumes_from_chapter(chapter)
         elif all_chapters:
-            self._parse_volumes(get_all_chapters(manga.id, self._lang.value))
+            self._parse_volumes(get_all_chapters(manga.id, self.language.value))
 
     def iter(self, *args, **kwargs):
         return IteratorChapter(
             self._volumes,
             self.manga,
-            self._lang,
+            self.language,
             *args,
             **kwargs
         )
@@ -643,7 +655,7 @@ class MangaChapter:
         if not data:
             raise ChapterNotFound("Manga \"%s\" with %s language has no chapters" % (
                 self.manga.title,
-                self._lang.name
+                self.language.name
             ))
 
         # Sorting volumes

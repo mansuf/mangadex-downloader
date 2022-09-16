@@ -1,14 +1,31 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from .fetcher import get_list
 
 # Why "MangaDexList" ? why not "List" ?
 # to prevent typing.List conflict
 class MangaDexList:
     def __init__(self, _id=None, data=None):
-        if _id is None and data is None:
-            raise ValueError("at least provide _id or data")
-        elif _id and data:
-            raise ValueError("_id and data cannot be together")
-
         if _id is not None:
             data = get_list(_id)['data']
 
@@ -40,16 +57,10 @@ class MangaDexList:
     def __repr__(self) -> str:
         return f'{self.name} ({self.total()} total)'
 
-    def iter_manga(self, unsafe=False):
-        """Yield :class:`Manga` from a list
-
-        Parameters
-        -----------
-        unsafe: Optional[:class:`bool`]
-            If ``True``, allow users to get porn mangas in the list.
-        """
+    def iter_manga(self):
+        """Yield :class:`Manga` from a list"""
         # "Circular imports" problem
         from .iterator import IteratorMangaFromList
 
-        return IteratorMangaFromList(data=self.data.copy(), unsafe=unsafe)
+        return IteratorMangaFromList(data=self.data.copy())
 

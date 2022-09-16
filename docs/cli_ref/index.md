@@ -1,4 +1,4 @@
-# Command-line Interface (CLI) reference
+# Reference
 
 ## App names
 
@@ -53,13 +53,6 @@ Replace manga, chapter, or list (if exist)
 ```{option} --verbose
 Enable verbose output
 ```
-
-````{option} --unsafe -u
-```{warning}
-Deprecated, will be removed in v2.0.0
-```
-Do nothing
-````
 
 ### Search related
 
@@ -116,6 +109,16 @@ Do not use scanlation group name for each chapter
 ```{option} --use-chapter-title -uct
 Use chapter title for each chapters. **NOTE:** This option is useless if used with any single and volume format
 ```
+
+````{option} --no-chapter-info -nci
+
+```{note}
+`epub-volume` and `epub-single` formats is not affected, 
+because creation of chapter info is totally disabled for any `epub` formats
+```
+
+Disable creation of chapter info for any `single` and `volume` formats
+````
 
 ### Chapter page related
 
@@ -212,21 +215,12 @@ Set timeout for each HTTPS(s) requests
 
 ### Miscellaneous
 
+```{option} --input-pos
+Automatically select choices in selectable prompt (list, library, followed-list command)
+```
+
 ```{option} -pipe
 If set, the app will accept pipe input
-```
-
-````{option} --enable-legacy-sorting
-
-```{warning}
-Deprecated, will be removed in v1.3.0.
-```
-Does nothing. In previous version this option is used
-to enable legacy sorting. Which rename all images with numbers leading zeros (example: 001.jpg)
-````
-
-```{option} --no-verify -nv
-Skip hash checking for each images
 ```
 
 ```{option} -v --version
@@ -239,10 +233,18 @@ Print mangadex-downloader version
 Update mangadex-downloader to latest version
 ```
 
-<!-- HIDDEN TOC TREE -->
-```{toctree}
-:hidden:
+## Reference
 
+```{toctree}
+:maxdepth: 2
+
+file_command
+chapter_info
 search_filters
 random
+manga_library
+list_library
+follow_list_library
+config
+auth_cache
 ```

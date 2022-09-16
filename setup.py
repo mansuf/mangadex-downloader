@@ -2,77 +2,111 @@ import pathlib
 import re
 from setuptools import setup, find_packages
 
+# Root directory
+# (README.md, mangadex_downloader/__init__.py)
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
-
 init_file = (HERE / "mangadex_downloader/__init__.py").read_text()
 
-re_version = r'__version__ = \"([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})\"'
-_version = re.search(re_version, init_file)
+def get_version():
+    """Get version of the app"""
+    re_version = r'__version__ = \"([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.{1,})\"'
+    _version = re.search(re_version, init_file)
 
-if _version is None:
-  raise RuntimeError("Version is not set")
+    if _version is None:
+        raise RuntimeError("Version is not set")
 
-version = _version.group(1)
+    return _version.group(1)
 
-# Read description
-re_description = r'__description__ = \"(.{1,})\"'
-_description = re.search(re_description, init_file)
+def get_value_var(var_name):
+    """Get value of `__{var_name}__` from `mangadex_downloader/__init__.py`"""
+    var = f'__{var_name}__'
+    regex = '%s = "(.{1,})"' % var
 
-if _description is None:
-  raise RuntimeError("Description is not set")
+    found = re.search(regex, init_file)
 
-description = _description.group(1)
+    if found is None:
+        raise RuntimeError(f'{var} is not set in "mangadex_downloader/__init__.py"')
+    
+    return found.group(1)
 
-requirements = []
-with open('./requirements.txt', 'r') as r:
-  requirements = r.read().splitlines()
+def get_requirements():
+    """Return tuple of library needed for app to run"""
+    main = []
+    try:
+        with open('./requirements.txt', 'r') as r:
+            main = r.read().splitlines()
+    except FileNotFoundError:
+        raise RuntimeError("requirements.txt is needed to build mangadex-downloader")
 
-requirements_docs = []
-with open('./requirements-docs.txt', 'r') as r:
-  requirements_docs = r.read().splitlines()
+    if not main:
+        raise RuntimeError("requirements.txt have no necessary libraries inside of it")
 
-requirements_optional = []
-with open('./requirements-optional.txt', 'r') as r:
-  requirements_optional = r.read().splitlines()
+    docs = []
+    try:
+        with open('./requirements-docs.txt', 'r') as r:
+            docs = r.read().splitlines()
+    except FileNotFoundError:
+        # There is no docs requirements
+        # Developers can ignore this error and continue to install without any problem.
+        # However, this is needed if developers want to create documentation in readthedocs.org or local device.
+        pass
 
-extras_require = {
-  'docs': requirements_docs,
-  'optional': requirements_optional
-}
+    optional = []
+    try:
+        with open('./requirements-optional.txt', 'r') as r:
+            optional = r.read().splitlines()
+    except FileNotFoundError:
+        raise RuntimeError("requirements-optional.txt is needed to build mangadex-downloader")
 
+    if not optional:
+        raise RuntimeError("requirements-optional.txt have no necessary libraries inside of it")
+
+    return main, {
+        "docs": docs,
+        "optional": optional
+    }
+
+# Get requirements needed to build app
+requires_main, extras_require = get_requirements()
+
+# Get all modules
 packages = find_packages('.')
 
+# Get repository
+repo = get_value_var('repository')
+
+# Finally run main setup
 setup(
-  name = 'mangadex-downloader',         
-  packages = packages,   
-  version = version,
-  license='MIT',     
-  description = description,
-  long_description= README,
-  long_description_content_type= 'text/markdown',
-  author = 'Rahman Yusuf',              
-  author_email = 'danipart4@gmail.com',
-  url = 'https://github.com/mansuf/mangadex-downloader',  
-  download_url = 'https://github.com/mansuf/mangadex-downloader/releases',
-  keywords = ['mangadex'], 
-  install_requires=requirements,
-  extras_require=extras_require,
-  entry_points = {
-    'console_scripts': [
-      'mangadex-downloader=mangadex_downloader.__main__:main',
-      'mangadex-dl=mangadex_downloader.__main__:main'
-    ]
-  },
-  classifiers=[
-    'Development Status :: 5 - Production/Stable',  
-    'Intended Audience :: End Users/Desktop',
-    'License :: OSI Approved :: MIT License',  
-    'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10'
-  ],
-  python_requires='>=3.8'
+    name = 'mangadex-downloader',         
+    packages = packages,   
+    version = get_version(),
+    license=get_value_var('license'),
+    description = get_value_var('description'),
+    long_description= README,
+    long_description_content_type= 'text/markdown',
+    author = get_value_var('author'),
+    author_email = get_value_var('author_email'),
+    url = f'https://github.com/{repo}',
+    download_url = f'https://github.com/{repo}/releases',
+    keywords = ['mangadex'], 
+    install_requires=requires_main,
+    extras_require=extras_require,
+    entry_points = {
+        'console_scripts': [
+            'mangadex-downloader=mangadex_downloader.__main__:main',
+            'mangadex-dl=mangadex_downloader.__main__:main'
+        ]
+    },
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',  
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: MIT License',  
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10'
+    ],
+    python_requires='>=3.8'
 )

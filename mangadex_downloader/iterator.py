@@ -1,7 +1,28 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import logging
 import queue
 import re
-import uuid
 
 from .mdlist import MangaDexList
 from .errors import HTTPException, InvalidURL, MangaDexException, NotLoggedIn
@@ -42,50 +63,6 @@ class BaseIterator:
     def next(self):
         raise NotImplementedError
 
-class IteratorBulkChapters(BaseIterator):
-    """This class is returning 500 chapters in single yield
-    and will be used for IteratorChapter internally
-
-    Each of returned chapters from this class
-    are raw data (dict type) and should not be used directly.
-    """
-    def __init__(self, manga_id, lang):
-        super().__init__()
-
-        self.limit = 500
-        self.id = manga_id
-        self.language = lang
-
-    def next(self) -> dict:
-        return self.queue.get_nowait()
-    
-    def fill_data(self):
-        url = f'{base_url}/manga/{self.id}/feed'
-        includes = ['scanlation_group', 'user']
-        content_ratings = [
-            'safe',
-            'suggestive',
-            'erotica',
-            'pornographic'
-        ]
-        params = {
-            'limit': self.limit,
-            'offset': self.offset,
-            'includes[]': includes,
-            'contentRating[]': content_ratings,
-            'translatedLanguage[]': [self.language],
-        }
-
-        r = Net.mangadex.get(url, params=params)
-        data = r.json()
-
-        items = data['data']
-
-        for item in items:
-            self.queue.put(item)
-
-        self.offset += len(items)
-
 class SearchFilterError(MangaDexException):
     def __init__(self, key, msg):
         text = f"Search filter error '{key}' = {msg}"
@@ -96,7 +73,6 @@ class IteratorManga(BaseIterator):
     def __init__(
         self,
         title,
-        unsafe=False,
         authors=None,
         artists=None,
         year=None,
@@ -114,6 +90,7 @@ class IteratorManga(BaseIterator):
         updated_at_since=None,
         has_available_chapters=None,
         group=None,
+        order=None
     ):
         super().__init__()
 
@@ -126,7 +103,6 @@ class IteratorManga(BaseIterator):
 
         self.limit = 100
         self.title = title
-        self.unsafe = unsafe
 
         # Validation
         value_and_or = ['AND', 'OR']
@@ -244,6 +220,44 @@ class IteratorManga(BaseIterator):
             except ConfigTypeError as e:
                 raise SearchFilterError("has_available_chapters", e)
 
+        # Validate orders
+        def validate_order(order):
+            new_order = {}
+            ascending = ['asc', 'ascending']
+            descending = ['desc', 'descending']
+            for key, value in order.items():
+                # Validate order keys
+                re_order_key = r'order\[(' \
+                               r'title|' \
+                               r'year|' \
+                               r'createdAt|' \
+                               r'updatedAt|' \
+                               r'latestUploadedChapter|' \
+                               r'followedCount|' \
+                               r'relevance|' \
+                               r'rating|' \
+                               r')\]'
+                match = re.match(re_order_key, key)
+                if match is None:
+                    raise SearchFilterError(
+                        key,
+                        "Invalid order key"
+                    )
+
+                if value in ascending:
+                    new_order[key] = ascending[0]
+                elif value in descending:
+                    new_order[key] = descending[0]
+                else:
+                    raise SearchFilterError(
+                        key,
+                        f"invalid value must be one of {ascending} or {descending}"
+                    )
+            
+            return new_order
+
+        order = validate_order(order)
+
         self._param_init = {
             "authors[]": authors,
             "artists[]": artists,
@@ -263,6 +277,8 @@ class IteratorManga(BaseIterator):
             "hasAvailableChapters": has_available_chapters,
             "group": group,
         }
+
+        self._param_init.update(**order)
 
     def _get_params(self):
         includes = ['author', 'artist', 'cover_art']
@@ -307,12 +323,11 @@ class IteratorUserLibraryManga(BaseIterator):
         'completed'
     ]
 
-    def __init__(self, status=None, unsafe=False):
+    def __init__(self, status=None):
         super().__init__()
 
         self.limit = 100
         self.offset = 0
-        self.unsafe = unsafe
 
         if status is not None and status not in self.statuses:
             raise MangaDexException(f"{status} are not valid status, choices are {set(self.statuses)}")
@@ -375,7 +390,7 @@ class IteratorUserLibraryManga(BaseIterator):
         self.offset += len(items)
 
 class IteratorMangaFromList(BaseIterator):
-    def __init__(self, _id=None, data=None, unsafe=False):
+    def __init__(self, _id=None, data=None):
         if _id is None and data is None:
             raise ValueError("atleast provide _id or data")
         elif _id and data:
@@ -386,7 +401,6 @@ class IteratorMangaFromList(BaseIterator):
         self.id = _id
         self.data = data
         self.limit = 100
-        self.unsafe = unsafe
         self.name = None # type: str
         self.user = None # type: User
 
@@ -554,3 +568,21 @@ class IteratorUserLibraryFollowsList(BaseIterator):
             self.queue.put(MangaDexList(data=item))
         
         self.offset += len(items)
+
+def iter_random_manga(content_ratings):
+    ids = []
+    while True:
+        params = {
+            'includes[]': ['author', 'artist', 'cover_art'],
+            "contentRating[]": content_ratings
+        }
+        r = Net.mangadex.get(f'{base_url}/manga/random', params=params)
+        data = r.json()['data']
+        manga = Manga(data=data)
+
+        if manga.id not in ids:
+            # Make sure it's not duplicated manga
+            ids.append(manga.id)
+            yield manga
+
+        continue

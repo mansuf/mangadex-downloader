@@ -1,9 +1,8 @@
-import logging
 import sys
 import traceback
 from .update import check_update
 from .args_parser import get_args
-from .validator import build_url
+from .url import build_url
 from .utils import (
     close_network_object,
     setup_logging,
@@ -17,7 +16,9 @@ from .download import download
 from ..errors import MangaDexException
 
 _deprecated_opts = {
-    "unsafe": "--unsafe or -u option is deprecated and will be removed in v2.0.0"
+    # I know this isn't deprecated
+    # But i need the warning feature, hehe
+    "range": "--range is disabled, because it's broken and need to rework"
 }
 
 def _check_deprecations(log, args):

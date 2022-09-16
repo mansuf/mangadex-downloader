@@ -1,4 +1,4 @@
-# Command-line interface usage
+# Usage
 
 ## Download manga, chapter or list
 
@@ -282,13 +282,4 @@ For more information, see {doc}`../cli_ref/random`
 
 ```shell
 mangadex-dl --update
-```
-
-## Advanced usage
-
-See this section for more information
-
-```{toctree}
-
-advanced
 ```

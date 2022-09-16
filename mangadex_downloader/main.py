@@ -1,390 +1,68 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import logging
-from pathvalidate import sanitize_filename
-from pathlib import Path
 from .utils import (
-    validate_group_url,
-    validate_legacy_url,
-    validate_url,
-    comma_separated_text
+    comma_separated_text,
+    create_directory
 )
 from .language import Language, get_language
-from .utils import download as download_file
-from .errors import InvalidURL, NotAllowed
 from .fetcher import *
 from .mdlist import MangaDexList
-from .manga import Manga, ContentRating
-from .iterator import (
-    IteratorManga,
-    IteratorUserLibraryFollowsList,
-    IteratorUserLibraryList,
-    IteratorUserLibraryManga,
-    IteratorUserList
-)
-from .chapter import Chapter, MangaChapter
-from .network import Net
-from .format import default_save_as_format, get_format
-from .cover import default_cover_type, valid_cover_types
+from .manga import Manga
+from .chapter import Chapter
+from .format import get_format
+from .downloader import FileDownloader
+from .config import config
 
 log = logging.getLogger(__name__)
 
-__all__ = (
-    'download', 'download_chapter', 'download_list',
-    'fetch', 'login', 'logout', 'search',
-    'download_legacy_manga', 'download_legacy_chapter',
-    'get_manga_from_user_library',
-    'get_list_from_user_library',
-    'get_list_from_user',
-    'get_followed_list_from_user_library'
-)
-
-def login(*args, **kwargs):
-    """Login to MangaDex
-
-    Do not worry about token session, the library automatically handle this. 
-    Login session will be automtically renewed (unless you called :meth:`logout()`).
-    
-    Parameters
-    -----------
-    password: :class:`str`
-        Password to login
-    username: Optional[:class:`str`]
-        Username to login
-    email: Optional[:class:`str`]
-        Email to login
-    
-    Raises
-    -------
-    AlreadyLoggedIn
-        User are already logged in
-    ValueError
-        Parameters are not valid
-    LoginFailed
-        Login credential are not valid
-    """
-    Net.mangadex.login(*args, **kwargs)
-
-def logout():
-    """Logout from MangaDex
-    
-    Raises
-    -------
-    NotLoggedIn
-        User are not logged in
-    """
-    Net.mangadex.logout()
-
-def _get_manga_from_chapter(chapter_id):
-    chap = Chapter(chapter_id)
-    manga = _fetch_manga(chap.manga_id, chap.language.value, fetch_all_chapters=False)
-    manga._chapters = MangaChapter(manga, chap.language.value, chap)
-    return chap, manga
-
-def _fetch_manga(
-    manga_id,
-    lang,
-    fetch_all_chapters=True,
-    use_alt_details=False
-):
-    manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
-
-    if fetch_all_chapters:
-        # NOTE: After v0.4.0, fetch the chapters first before creating folder for downloading the manga
-        # and downloading the cover manga.
-        # This will check if selected language in manga has chapters inside of it.
-        # If the chapters are not available, it will throw error.
-        log.info("Fetching all chapters...")
-        chapters = MangaChapter(manga, lang, all_chapters=True)
-        manga._chapters = chapters
-
-    return manga
-
-def search(*args, **kwargs):
-    """Search manga
-
-    Parameters
-    -----------
-    title: :class:`str`
-        Manga title
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to search "porn" content
-
-    Returns
-    --------
-    :class:`IteratorManga`
-        An iterator that yield :class:`Manga`
-    """
-    return IteratorManga(*args, **kwargs)
-
-def get_manga_from_user_library(*args, **kwargs):
-    """Get all mangas from user library
-
-    You must login in order to use this function, or you will get error.
-
-    Parameters
-    -----------
-    status: :class:`str`
-        Filter retrieved manga based on status
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to search "porn" content
-
-    Raises
-    --------
-    NotLoggedIn
-        Retrieving user library require login
-
-    Returns
-    --------
-    :class:`IteratorUserLibraryManga`
-        An iterator that yield :class:`Manga`
-    """
-    return IteratorUserLibraryManga(*args, **kwargs)
-
-def get_list_from_user_library():
-    """Get all lists from user library
-
-    You must login in order to use this function, or you will get error.
-
-    Raises
-    -------
-    NotLoggedIn
-        Retrieving user library require login
-
-    Returns
-    --------
-    :class:`IteratorUserLibraryList`
-        An iterator that yield :class:`MangaDexList`
-    """
-    return IteratorUserLibraryList()
-
-def get_list_from_user(user_id):
-    """Get all public lists from given user
-    
-    Raises
-    -------
-    UserNotFound
-        user cannot be found
-    
-    Returns
-    --------
-    :class:`IteratorUserList`
-        An iterator that yield :class:`MangaDexList`
-    """
-    return IteratorUserList(user_id)
-
-def get_followed_list_from_user_library():
-    """Get all followed lists from user library
-
-    You must login in order to use this function, or you will get error.
-
-    Raises
-    -------
-    NotLoggedIn
-        Retrieving user library require login
-
-    Returns
-    --------
-    :class:`IteratorUserLibraryFollowsList`
-        An iterator that yield :class:`MangaDexList`
-    """
-    return IteratorUserLibraryFollowsList()
-
-def fetch(url, language=Language.English, use_alt_details=False, unsafe=False):
-    """Fetch the manga
-
-    Parameters
-    -----------
-    url: :class:`str`
-        A MangaDex URL or manga id
-    language: :class:`Language` (default: :class:`Language.English`)
-        Select a translated language for manga
-    use_alt_details: :class:`bool` (default: ``False``)
-        Use alternative title and description manga
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to see porn and erotica content
-
-    Raises
-    -------
-    InvalidURL
-        Not a valid MangaDex url
-    InvalidManga
-        Given manga cannot be found
-    ChapterNotFound
-        Given manga has no chapters
-    NotAllowed
-        ``unsafe`` is not enabled
-
-    Returns
-    --------
-    :class:`Manga`
-        An fetched manga
-    """
-    # Parse language
-    if isinstance(language, Language):
-        lang = language.value
-    elif isinstance(language, str):
-        lang = get_language(language).value
-    else:
-        raise ValueError("language must be Language or str, not %s" % language.__class__.__name__)
-    log.info("Using %s language" % Language(lang).name)
-
-    log.debug('Validating the url...')
-    try:
-        manga_id = validate_url(url)
-    except InvalidURL as e:
-        log.error('%s is not valid mangadex url' % url)
-        raise e from None
-    
-    # Begin fetching
-    log.info('Fetching manga %s' % manga_id)
-    manga = _fetch_manga(manga_id, lang, use_alt_details=use_alt_details)
-
-    log.info("Found manga \"%s\"" % manga.title)
-
-    return manga
-
 def download(
-    url,
-    folder=None,
+    manga_id,
     replace=False,
-    compressed_image=False,
     start_chapter=None,
     end_chapter=None,
     start_page=None,
     end_page=None,
     no_oneshot_chapter=False,
-    language=Language.English,
-    cover=default_cover_type,
-    save_as=default_save_as_format,
     use_alt_details=False,
-    no_group_name=False,
-    group=None,
-    use_chapter_title=False,
-    unsafe=False,
-    no_verify=False,
+    group_id=None,
     _range=None,
-    force_https=False
 ):
-    """Download a manga
-    
-    Parameters
-    -----------
-    url: :class:`str`
-        A MangaDex URL or manga id. It also accepting :class:`Manga` object
-    folder: :class:`str` (default: ``None``)
-        Store manga in given folder
-    replace: :class:`bool` (default: ``False``)
-        Replace manga if exist
-    compressed_image: :class:`bool` (default: ``False``)
-        Use compressed images for low size when downloading manga
-    start_chapter: :class:`float` (default: ``None``)
-        Start downloading manga from given chapter
-    end_chapter: :class:`float` (default: ``None``)
-        Stop downloading manga from given chapter
-    start_page: :class:`int` (default: ``None``)
-        Start download chapter page from given page number
-    end_page: :class:`int` (default: ``None``)
-        Stop download chapter page from given page number
-    no_oneshot_manga: :class:`bool` (default: ``False``)
-        If exist, don\'t download oneshot chapter
-    language: :class:`Language` (default: :class:`Language.English`)
-        Select a translated language for manga
-    cover: :class:`str` (default: ``original``)
-        Choose quality cover manga
-    save_as: :class:`str` (default: ``tachiyomi``)
-        Choose save as format
-    use_alt_details: :class:`bool` (default: ``False``)
-        Use alternative title and description manga
-    no_group_name: :class:`bool` (default: ``False``)
-        If ``True``, Do not use scanlation group name for each chapter.
-    group: :class:`str` (default: ``None``)
-        Use different scanlation group for each chapter.
-    use_chapter_title: :class:`bool` (default: ``False``)
-        If ``True``, use chapter title for each chapters.
-        NOTE: This option is useless if used with any single format.
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to download porn and erotica content
-    no_verify: :class:`bool`
-        If ``True``, Skip hash checking for each images
-    _range: :class:`str`
-        A range pattern to download specific chapters
-    force_https: :class:`bool`
-        Force download images in standard HTTPS port 443
+    """Download a manga"""
+    save_as = config.save_as
+    cover = config.cover
 
-    Raises
-    -------
-    InvalidURL
-        Not a valid MangaDex url
-    InvalidManga
-        Given manga cannot be found
-    ChapterNotFound
-        Given manga has no chapters
-    NotAllowed
-        ``unsafe`` is not enabled
-
-    Returns
-    --------
-    :class:`Manga`
-        An downloaded manga
-    """
-    # Validate start_chapter and end_chapter param
-    if start_chapter is not None and not isinstance(start_chapter, float):
-        raise ValueError("start_chapter must be float, not %s" % type(start_chapter))
-    if end_chapter is not None and not isinstance(end_chapter, float):
-        raise ValueError("end_chapter must be float, not %s" % type(end_chapter))
-
-    if start_chapter is not None and end_chapter is not None:
-        if start_chapter > end_chapter:
-            raise ValueError("start_chapter cannot be more than end_chapter")
-
-    if start_page is not None and end_page is not None:
-        if start_page > end_page:
-            raise ValueError("start_page cannot be more than end_page")
-
-    if cover not in valid_cover_types:
-        raise ValueError("invalid cover type, available are: %s" % valid_cover_types)
-
-    if group and group.lower().strip() == "all" and no_group_name:
-        raise ValueError("no_group_name cannot be True while group is used")
-
-    # Parse language
-    if isinstance(language, Language):
-        lang = language
-    elif isinstance(language, str):
-        lang = get_language(language)
-    else:
-        raise ValueError("language must be Language or str, not %s" % language.__class__.__name__)
+    lang = get_language(config.language)
 
     log.info(f"Using {lang.name} language")
-
-    log.debug('Validating the url...')
-    try:
-        manga_id = validate_url(url)
-    except InvalidURL as e:
-        log.error('%s is not valid mangadex url' % url)
-        raise e from None
-
-    # Validate group
-    group_id = validate_group_url(group)
 
     # Validation save as format
     fmt_class = get_format(save_as)
 
-    if not isinstance(url, Manga):
-        manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
-    else:
-        manga = url
+    manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
 
-    # base path
-    base_path = Path('.')
-
-    # Extend the folder
-    if folder:
-        base_path /= folder
-    base_path /= sanitize_filename(manga.title)
-    
-    # Create folder
-    log.debug("Creating folder for downloading")
-    base_path.mkdir(parents=True, exist_ok=True)
+    # Create folder for downloading
+    base_path = create_directory(manga.title, config.path)
 
     # Cover path
     cover_path = base_path / 'cover.jpg'
@@ -402,9 +80,11 @@ def download(
 
     # Download the cover art
     if cover_url is None:
-        log.debug('Not downloading cover manga, since \"cover\" is none')
+        log.info('Not downloading cover manga, since \"cover\" is none')
     else:
-        download_file(cover_url, str(cover_path), replace=replace)
+        fd = FileDownloader(cover_url, cover_path, replace=replace)
+        fd.download()
+        fd.cleanup()
 
     # Reuse is good
     def download_manga(m, path):
@@ -414,12 +94,8 @@ def download(
             "start_page": start_page,
             "end_page": end_page,
             "no_oneshot": no_oneshot_chapter,
-            "data_saver": compressed_image,
-            "no_group_name": no_group_name,
             "group": group_id,
-            "use_chapter_title": use_chapter_title,
             "_range": _range,
-            "force_https": force_https
         }
 
         log.info("Using %s format" % save_as)
@@ -427,9 +103,7 @@ def download(
         fmt = fmt_class(
             path,
             m,
-            compressed_image,
             replace,
-            no_verify,
             kwargs_iter_chapter_images
         )
 
@@ -454,238 +128,97 @@ def download(
             new_manga._description = manga.description
 
             # Fetch all chapters
-            new_manga._chapters = MangaChapter(new_manga, translated_lang.value, all_chapters=True)
+            new_manga.fetch_chapters(translated_lang.value, all_chapters=True)
 
             new_path = base_path / translated_lang.name
             new_path.mkdir(exist_ok=True)
 
+            log.info(f'Download directory is set to "{new_path.resolve()}"')
             download_manga(new_manga, new_path)
 
             log.info(f"Download finished for manga {manga.title} in {translated_lang.name} language")
         
     else:
-        # I really want to use _fetch_manga()
-        # but it would waste 1 http request
-        # and can cause slow performance
         log.info("Fetching all chapters...")
-        manga._chapters = MangaChapter(manga, lang.value, all_chapters=True)
+        manga.fetch_chapters(lang.value, all_chapters=True)
 
+        log.info(f'Download directory is set to "{base_path.resolve()}"')
         download_manga(manga, base_path)
                 
     log.info("Download finished for manga \"%s\"" % manga.title)
     return manga
 
 def download_chapter(
-    url,
-    folder=None,
+    chap_id,
     replace=False,
     start_page=None,
     end_page=None,
-    compressed_image=False,
-    save_as=default_save_as_format,
-    no_group_name=False,
-    use_chapter_title=False,
-    unsafe=False,
-    no_verify=False,
-    force_https=False
 ):
-    """Download a chapter
-    
-    Parameters
-    -----------
-    url: :class:`str`
-        A MangaDex URL or chapter id
-    folder: :class:`str` (default: ``None``)
-        Store chapter manga in given folder
-    replace: :class:`bool` (default: ``False``)
-        Replace chapter manga if exist
-    start_page: :class:`int` (default: ``None``)
-        Start download chapter page from given page number
-    end_page: :class:`int` (default: ``None``)
-        Stop download chapter page from given page number
-    compressed_image: :class:`bool` (default: ``False``)
-        Use compressed images for low size when downloading chapter manga
-    save_as: :class:`str` (default: ``tachiyomi``)
-        Choose save as format
-    no_group_name: :class:`bool` (default: ``False``)
-        If ``True``, Do not use scanlation group name for each chapter.
-    use_chapter_title: :class:`bool` (default: ``False``)
-        If ``True``, use chapter title for each chapters.
-        NOTE: This option is useless if used with any single format.
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to download porn and erotica content
-    no_verify: :class:`bool`
-        If ``True``, Skip hash checking for each images
-    force_https: :class:`bool`
-        Force download images in standard HTTPS port 443
-
-    Returns
-    --------
-    :class:`Manga`
-        An :class:`Manga` that has this chapter
-    """
-    # Validate start_page and end_page param
-    if start_page is not None and not isinstance(start_page, int):
-        raise ValueError("start_page must be int, not %s" % type(start_page))
-    if end_page is not None and not isinstance(end_page, int):
-        raise ValueError("end_page must be int, not %s" % type(end_page))
-
-    if start_page is not None and end_page is not None:
-        if start_page > end_page:
-            raise ValueError("start_page cannot be more than end_page")
-
+    """Download a chapter"""
+    save_as = config.save_as
     fmt_class = get_format(save_as)
 
-    log.debug('Validating the url...')
-    try:
-        chap_id = validate_url(url)
-    except InvalidURL as e:
-        log.error('%s is not valid mangadex url' % url)
-        raise e from None
-
     # Fetch manga
-    chap, manga = _get_manga_from_chapter(chap_id)
+    chap = Chapter(chap_id)
+    manga = Manga(_id=chap.manga_id)
+    manga.fetch_chapters(chap.language.value, chap)
 
-    log.info("Found chapter %s from manga \"%s\"" % (chap.chapter, manga.title))
+    log.info(f'Found chapter {chap.chapter} from manga "{manga.title}"')
 
-    # base path
-    base_path = Path('.')
-
-    # Extend the folder
-    if folder:
-        base_path /= folder
-    base_path /= sanitize_filename(manga.title)
-    
-    # Create folder
-    log.debug("Creating folder for downloading")
-    base_path.mkdir(parents=True, exist_ok=True)
+    # Create folder for downloading
+    base_path = create_directory(manga.title, config.path)
+    log.info(f'Download directory is set to "{base_path.resolve()}"')
 
     kwargs_iter_chapter_images = {
         "start_page": start_page,
         "end_page": end_page,
         "no_oneshot": False,
-        "data_saver": compressed_image,
-        "no_group_name": no_group_name,
-        "use_chapter_title": use_chapter_title,
-        "force_https": force_https
     }
 
-    log.info("Using %s format" % save_as)
+    log.info(f'Using {save_as} format')
 
     fmt = fmt_class(
         base_path,
         manga,
-        compressed_image,
         replace,
-        no_verify,
         kwargs_iter_chapter_images
     )
 
     # Execute main format
     fmt.main()
 
-    log.info("Finished download chapter %s from manga \"%s\"" % (chap.chapter, manga.title))
+    log.info(f'Finished download chapter {chap.chapter} from manga "{manga.title}"')
     return manga
 
 def download_list(
-    url,
-    folder=None,
+    list_id,
     replace=False,
-    compressed_image=False,
-    language=Language.English,
-    cover=default_cover_type,
-    save_as=default_save_as_format,
-    no_group_name=False,
-    group=None,
-    use_chapter_title=True,
-    unsafe=False,
-    no_verify=False,
-    force_https=False
+    group_id=None,
 ):
-    """Download a list
-
-    Parameters
-    -----------
-    url: :class:`str`
-        A MangaDex URL or chapter id
-    folder: :class:`str` (default: ``None``)
-        Store chapter manga in given folder
-    replace: :class:`bool` (default: ``False``)
-        Replace chapter manga if exist
-    compressed_image: :class:`bool` (default: ``False``)
-        Use compressed images for low size when downloading chapter manga
-    save_as: :class:`str` (default: ``tachiyomi``)
-        Choose save as format
-    no_group_name: :class:`bool` (default: ``False``)
-        If ``True``, Do not use scanlation group name for each chapter.
-    group: :class:`str` (default: ``None``)
-        Use different scanlation group for each chapter.
-    use_chapter_title: :class:`bool` (default: ``False``)
-        If ``True``, use chapter title for each chapters.
-        NOTE: This option is useless if used with any single format.
-    unsafe: :class:`bool`
-        If ``True``, it will allow you to download porn and erotica content
-    no_verify: :class:`bool`
-        If ``True``, Skip hash checking for each images
-    force_https: :class:`bool`
-        Force download images in standard HTTPS port 443
-    """
-    log.debug('Validating the url...')
-    try:
-        list_id = validate_url(url)
-    except InvalidURL as e:
-        log.error('%s is not valid mangadex url' % url)
-        raise e from None
-
+    """Download a list"""
     _list = MangaDexList(_id=list_id)
 
-    for manga in _list.iter_manga(unsafe):
+    for manga in _list.iter_manga():
         download(
             manga.id,
-            folder,
             replace,
-            compressed_image,
-            cover=cover,
-            save_as=save_as,
-            language=language,
-            no_group_name=no_group_name,
-            group=group,
-            use_chapter_title=use_chapter_title,
-            unsafe=unsafe,
-            no_verify=no_verify,
-            force_https=force_https
+            group_id=group_id,
         )
 
-def download_legacy_manga(url, *args, **kwargs):
+def download_legacy_manga(legacy_id, *args, **kwargs):
     """Download manga from old MangaDex url
     
     The rest of parameters will be passed to :meth:`download`.
     """
-    log.debug('Validating the url...')
-    try:
-        legacy_id = validate_legacy_url(url)
-    except InvalidURL as e:
-        log.error('%s is not valid mangadex url' % url)
-        raise e from None
-
     new_id = get_legacy_id('manga', legacy_id)
-
     manga = download(new_id, *args, **kwargs)
     return manga
 
-def download_legacy_chapter(url, *args, **kwargs):
+def download_legacy_chapter(legacy_id, *args, **kwargs):
     """Download chapter from old MangaDex url
     
     The rest of parameters will be passed to :meth:`download_chapter`
     """
-    log.debug('Validating the url...')
-    try:
-        legacy_id = validate_legacy_url(url)
-    except InvalidURL as e:
-        log.error('%s is not valid mangadex url' % url)
-        raise e from None
-
     new_id = get_legacy_id('chapter', legacy_id)
-
     manga = download_chapter(new_id, *args, **kwargs)
     return manga

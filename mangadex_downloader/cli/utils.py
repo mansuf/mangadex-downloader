@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import logging
 import signal
 import sys
@@ -55,12 +77,6 @@ def _keyboard_interrupt_handler(*args):
     for job in _cleanup_jobs:
         job()
 
-    # Unfinished jobs in pdf converting
-    from ..format.pdf import _cleanup_jobs as pdf_cleanup
-
-    for job in pdf_cleanup:
-        job()
-
     # Logging out
     try:
         Net.mangadex.logout()
@@ -82,48 +98,110 @@ def close_network_object():
     log.debug("Closing netwok object")
     Net.close()
 
+class IteratorEmpty(Exception):
+    pass
+
+# Honestly, this code was total messed up
+# I don't know how to make pagination correctly
 class Paginator:
-    def __init__(self, limit=10):
-        self._pages = {}
-        self._size = 0
+    """A tool to create sequence of pages"""
+    def __init__(self, iterator, limit=10):
+        self._pages = []
+
         self._pos = 0
-        self._item_pos = 1
+        self.iterator = iter(iterator)
         self.limit = limit
 
-    def add_page(self, *data):
+    @property
+    def pos(self):
+        """"Return current position"""
+        return self._pos
+
+    def _get_data(self):
         items = []
-        for item in data:
-            items.append({
-                "pos": self._item_pos,
-                "item": item
-            })
-            self._item_pos += 1
-
-        if not items:
-            return
-
-        self._pages[self._size] = items
-
-        self._size += 1
+        for _ in range(self.limit):
+            try:
+                item = next(self.iterator)
+            except StopIteration:
+                break
+            
+            items.append(item)
         
+        return items
+
+    def _add_page(self, until_pos):
+        # To prevent for loop is not executed
+        until_pos = until_pos + 1
+
+        for _ in range(self._pos, until_pos):
+            items = self._get_data()
+            if not items:
+                break
+            self._pages.append(items)
+
+    def _load_page_from_pos(self, for_pos):
+        try:
+            self._pages[for_pos]
+        except IndexError:
+            return False
+        else:
+            return True
+
+    def _try_load(self, for_pos):
+        """Try to load page data for given pos
+        
+        If not exist it will add page until given pos.
+        """
+        success = self._load_page_from_pos(for_pos)
+        
+        if success:
+            return True
+
+        # Add page if pages for given pos is empty
+        self._add_page(for_pos)
+
+        # Try to load again
+        return self._load_page_from_pos(for_pos)
+
     def next(self):
+        """Return next position items"""
+        pos = self._pos
+
+        success = self._try_load(pos)
+        if not success:
+            raise IteratorEmpty()
+
+        # Retrieving page
+        items = self._pages[pos]
+        start_item_pos = pos * self.limit
+        result = [
+            (pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)
+        ]
+
         self._pos += 1
-    
+
+        return result
+
     def previous(self):
-        if (self._pos - 1) < 0:
-            raise IndexError
+        """Return previous current position items"""
+        pos = self._pos - 2
+        if pos < 0:
+            raise IndexError()
+
+        items = self._pages[pos]
+        start_item_pos = pos * self.limit
+        result = [
+            (pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)
+        ]
 
         self._pos -= 1
 
-    def print(self):
-        page = self._pages[self._pos]
-        for item in page:
-            print(f"({item['pos']}). {item['item']}")
+        return result
 
 def print_version_info():
     bundled_executable = 'yes' if executable else 'no'
 
-    print(f"mangadex-downloader v{__version__} ({__repository__})")
+    print(f"mangadex-downloader v{__version__} (https://github.com/{__repository__})")
     print("Python: {0[0]}.{0[1]}.{0[2]}".format(sys.version_info))
     print(f"arch: {architecture}")
     print(f"bundled executable: {bundled_executable}")

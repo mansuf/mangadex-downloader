@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import argparse
 import logging
 import sys
@@ -7,13 +29,12 @@ from gettext import gettext
 
 from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
-from .config import build_config_from_url_arg
-from ..cover import valid_cover_types, default_cover_type
+from ..cover import valid_cover_types
 from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
-from ..utils import validate_group_url as _validate_group_url, validate_url
+from ..utils import validate_group_url as _validate_group_url
 from ..language import get_language, Language
-from ..format import formats, default_save_as_format
+from ..format import formats
 from ..config import config
 from ..errors import InvalidURL
 from .. import __description__, __version__
@@ -129,13 +150,6 @@ class InputHandler(argparse.Action):
             ),
             lowered_args
         )
-        self.unsafe = _check_args(
-            (
-                '--unsafe',
-                '-u'
-            ),
-            lowered_args
-        )
         self.use_alt_details = _check_args(
             (
                 '--use-alt-details',
@@ -149,8 +163,6 @@ class InputHandler(argparse.Action):
             '--replace',
             '-r',
             '--verbose',
-            '--unsafe',
-            '-u',
             '--search',
             '-s',
             '--use-alt-details',
@@ -170,8 +182,6 @@ class InputHandler(argparse.Action):
             '--login-cache',
             '-lc',
             '-pipe',
-            '--no-verify',
-            '-nv',
             '--version',
             '-v',
             '--update',
@@ -337,13 +347,6 @@ def get_args(argv):
         action='store_true'
     )
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
-    parser.add_argument(
-        '--unsafe',
-        '-u',
-        help='[DEPRECATED] Do nothing. In v1.2.1 lower this used to allow download erotica and pornographic manga', 
-        action='store_true',
-        default=False
-    )
 
     # Search related
     search_group = parser.add_argument_group('Search')
@@ -424,7 +427,8 @@ def get_args(argv):
         '--no-group-name',
         '-ngn',
         action='store_true',
-        help='Do not use scanlation group name for each chapter'
+        help='Do not use scanlation group name for each chapter',
+        default=config.no_group_name
     )
     chap_group.add_argument(
         '--use-chapter-title',
@@ -435,9 +439,18 @@ def get_args(argv):
         default=config.use_chapter_title
     )
     chap_group.add_argument(
+        '--no-chapter-info',
+        '-nci',
+        action='store_true',
+        help='Disable creation of chapter info for any `single` and `volume` formats. ' \
+             "NOTE: `epub-volume` and `epub-single` formats is not affected, " \
+             "because creation of chapter info is totally disabled for any `epub` formats",
+        default=config.no_chapter_info
+    )
+    chap_group.add_argument(
         '--range',
         '-rg',
-        help='A range pattern to download specific chapters'
+        help='[DISABLED] A range pattern to download specific chapters'
     )
 
     # Chapter page related
@@ -553,13 +566,11 @@ def get_args(argv):
 
     # Miscellaneous
     misc_group = parser.add_argument_group('Miscellaneous')
-    misc_group.add_argument('-pipe', action='store_true', help="Download from pipe input")
     misc_group.add_argument(
-        '--no-verify',
-        '-nv',
-        action='store_true',
-        help='Skip hash checking for each images'
+        '--input-pos',
+        help='Automatically select choices in selectable prompt (list, library, followed-list command)'
     )
+    misc_group.add_argument('-pipe', action='store_true', help="Download from pipe input")
     misc_group.add_argument(
         '-v',
         '--version',

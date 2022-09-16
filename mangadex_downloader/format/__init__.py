@@ -3,6 +3,7 @@ from .pdf import PDF, PDFSingle, PDFVolume
 from .tachiyomi import Tachiyomi, TachiyomiZip
 from .comic_book import ComicBookArchive, ComicBookArchiveSingle, ComicBookArchiveVolume
 from .sevenzip import SevenZip, SevenZipSingle, SevenZipVolume
+from .epub import Epub, EpubSingle, EpubVolume
 from ..errors import InvalidFormat
 
 formats = {
@@ -20,6 +21,9 @@ formats = {
     "cb7": SevenZip,
     "cb7-volume": SevenZipVolume,
     "cb7-single": SevenZipSingle,
+    "epub": Epub,
+    "epub-volume": EpubVolume,
+    "epub-single": EpubSingle
 }
 
 default_save_as_format = "raw"

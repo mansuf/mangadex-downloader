@@ -1,25 +1,39 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import os
 import re
 import time
-import signal
-import json
 import logging
 import sys
-from io import BytesIO
+import threading
+import queue
+from pathlib import Path
 from pathvalidate import sanitize_filename
-from enum import Enum
 from getpass import getpass
-from .errors import InvalidURL, NotLoggedIn
-from .downloader import FileDownloader, _cleanup_jobs
+from concurrent.futures import Future
+from .errors import InvalidURL
 
 log = logging.getLogger(__name__)
-
-# Compliance with Tachiyomi local JSON format
-class MangaStatus(Enum):
-    Ongoing = "1"
-    Completed = "2"
-    Hiatus = "6"
-    Cancelled = "5"
 
 def validate_url(url):
     """Validate mangadex url and return the uuid"""
@@ -47,64 +61,17 @@ def validate_group_url(url):
     else:
         return "all"
 
-def download(url, file, progress_bar=True, replace=False, use_requests=False, **headers):
-    """Shortcut for :class:`FileDownloader`"""
-    downloader = FileDownloader(
-        url,
-        file,
-        progress_bar,
-        replace,
-        use_requests,
-        **headers
-    )
-    downloader.download()
-    downloader.cleanup()
+def create_directory(name, path=None):
+    """Create directory with ability to sanitize name to prevent error"""
+    base_path = Path(".")
 
-def write_details(manga, path):
-    data = {}
-    data['title'] = manga.title
-
-    # Parse authors
-    authors = ""
-    for index, author in enumerate(manga.authors):
-        if index < (len(manga.authors) - 1):
-            authors += author + ","
-        else:
-            # If this is last index, append author without comma
-            authors += author
-    data['author'] = authors
-
-    # Parse artists
-    artists = ""
-    for index, artist in enumerate(manga.artists):
-        if index < (len(manga.artists) - 1):
-            artists += artist + ","
-        else:
-            # If this is last index, append artist without comma
-            artists += artist
-    data['artist'] = artists
-
-    data['description'] = manga.description
-    data['genre'] = manga.genres
-    data['status'] = MangaStatus[manga.status].value
-    data['_status values'] = [
-        "0 = Unknown",
-        "1 = Ongoing",
-        "2 = Completed",
-        "3 = Licensed",
-        "4 = Publishing finished",
-        "5 = Cancelled",
-        "6 = On hiatus"
-    ]
-    with open(path, 'w') as writer:
-        writer.write(json.dumps(data))
-
-def create_chapter_folder(base_path, chapter_title):
-    chapter_path = base_path / sanitize_filename(chapter_title)
-    if not chapter_path.exists():
-        chapter_path.mkdir(exist_ok=True)
-
-    return chapter_path
+    # User defined path
+    if path:
+        base_path /= path
+    
+    base_path /= sanitize_filename(name)
+    base_path.mkdir(parents=True, exist_ok=True)
+    return base_path
 
 # This is shortcut to extract data from localization dict structure
 # in MangaDex JSON data
@@ -119,37 +86,6 @@ def get_local_attr(data):
         return ""
     for key, val in data.items():
         return val
-
-class File:
-    """A utility for file naming
-
-    Parameter ``file`` can take IO (must has ``name`` object) or str
-    """
-    def __init__(self, file):
-        if hasattr(file, 'name'):
-            full_name = file.name
-        else:
-            full_name = file
-    
-        name, ext = os.path.splitext(full_name)
-
-        self.name = name
-        self.ext = ext
-
-    def __repr__(self) -> str:
-        return self.full_name
-
-    def __str__(self):
-        return self.full_name
-
-    @property
-    def full_name(self):
-        """Return file name with extension file"""
-        return self.name + self.ext
-
-    def change_name(self, new_name):
-        """Change file name to new name, but the extension file will remain same"""
-        self.name = new_name
 
 def input_handle(*args, **kwargs):
     """Same as input(), except when user hit EOFError the function automatically called sys.exit(0)"""
@@ -180,3 +116,102 @@ def comma_separated_text(array):
     text += ']'
     
     return text
+
+def delete_file(file):
+    """Helper function to delete file, retry 5 times if error happens"""
+    if not os.path.exists(file):
+        return
+
+    err = None
+    for attempt in range(5):
+        try:
+            os.remove(file)
+        except Exception as e:
+            log.debug("Failed to delete file \"%s\", reason: %s. Trying... (attempt: %s)" % (
+                file,
+                str(e),
+                attempt 
+            ))
+            err = e
+            time.sleep(attempt * 0.5) # Possible value 0.0 (0 * 0.5) lmao
+            continue
+        else:
+            break
+
+    # If 5 attempts is failed to delete file (ex: PermissionError, or etc.)
+    # raise error
+    if err is not None:
+        raise err
+
+class QueueWorker(threading.Thread):
+    """A queue-based worker run in another thread"""
+    def __init__(self) -> None:
+        threading.Thread.__init__(self)
+
+        self._queue = queue.Queue()
+
+        # Thread to check if mainthread is alive or not
+        # if not, then thread queue must be shutted down too
+        self._thread_wait_mainthread = threading.Thread(
+            target=self._wait_mainthread, 
+            name=f'QueueWorker-wait-mainthread, QueueWorker_id={self.ident}'
+        )
+
+    def start(self):
+        super().start()
+        self._thread_wait_mainthread.start()
+
+    def _wait_mainthread(self):
+        """Wait for mainthread to exit and then shutdown :class:`QueueWorker` thread"""
+        main_thread = threading.main_thread()
+
+        while True:
+            main_thread.join(timeout=1)
+            if not self.is_alive():
+                # QueueWorker already shutted down
+                # Possibly because of QueueWorker.shutdown() is called
+                return
+            elif not main_thread.is_alive():
+                # Main thread already shutted down
+                # and QueueWorker still alive, terminate it
+                self._queue.put(None)
+
+    def submit(self, job, blocking=True):
+        """Submit a job and return the result
+        
+        If ``blocking`` is ``True``, the function will wait until job is finished. 
+        If ``blocking`` is ``False``, it will return :class:`concurrent.futures.Future` instead. 
+        The ``job`` parameter must be function without parameters or lambda wrapped.
+        """
+        fut = Future()
+        data = [fut, job]
+        self._queue.put(data)
+
+        if not blocking:
+            return fut
+
+        err = fut.exception()
+        if err:
+            raise err
+        
+        return fut.result()
+
+    def shutdown(self):
+        """Shutdown the thread by passing ``None`` value to queue"""
+        self._queue.put(None)
+
+    def run(self):
+        while True:
+            data = self._queue.get()
+            if data is None:
+                # Shutdown signal is received
+                # begin shutting down
+                return
+
+            fut, job = data
+            try:
+                job()
+            except Exception as err:
+                fut.set_exception(err)
+            else:
+                fut.set_result(None)

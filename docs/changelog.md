@@ -1,5 +1,44 @@
 # Changelog
 
+## v2.0.0b0 (in development, not yet released)
+
+### New features
+
+- Added ability to auto select prompt (list, library, followed-list command) [#29](https://github.com/mansuf/mangadex-downloader/issues/29)
+- Added ability to disable creation of chapter info for any `single` and `volume` formats [#30](https://github.com/mansuf/mangadex-downloader/issues/30)
+- Added new config
+  - `no_chapter_info`
+  - `no_group_name`
+- Added new search filters
+  - `order[*]` [#32](https://github.com/mansuf/mangadex-downloader/issues/32)
+- Added optional dependency [`orjson`](https://pypi.org/project/orjson/) for faster loading and dumping JSON object.
+- Added EPUB support (`epub`, `epub-volume`, `epub-single`)
+
+### Fix bugs
+
+- Fixed message `Chapter ... from group ... has no images` is not showing properly.
+- Fixed batch download error handler is not working
+- Fixed download is overflowing when `.temp` file is out of range
+- Fixed memory slowly increased during download
+- Fixed download with `raw-single` format is not working.
+- Fixed error `OSError: broken data stream when reading image file` when downloading in any `pdf` formats.
+- Fixed downloder is overflowing when server didn't support `Range` header
+
+### Breaking changes
+
+- Removed `--unsafe` and `-u` option (deprecated from v1.3.0)
+- Removed `--no-verify` and `-nv` option
+- Removed API references [notes](#notes-api-references-removal)
+- Changed extension file for `tachiyomi-zip` format (from `.zip` to `.cbz`)
+- [Pillow](https://pypi.org/project/pillow/) is no longer required when downloading in any `single` and `volume` format. 
+- All formats will download and convert in separated time (previously was download and convert in same time).
+- `--range` option is disabled, because it's broken right now and needs to reworked
+
+### Notes: API references removal <a id="notes-api-references-removal"></a>
+
+All public API is now become private API. Please do not use it for your python script. 
+Those can be changed without any notice. 
+
 ## v1.7.2
 
 ### Fix bugs

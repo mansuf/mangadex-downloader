@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import logging
 from enum import Enum
 from typing import List
@@ -8,6 +30,7 @@ from .language import Language, get_details_language
 from .utils import get_local_attr, input_handle
 from .artist_and_author import Author, Artist
 from .cover import CoverArt
+from .chapter import MangaChapter
 
 log = logging.getLogger(__name__)
 
@@ -73,8 +96,93 @@ class Manga:
         """:class:`str`: ID manga"""
         return self._data.get('id')
 
-    def __str__(self):
-        return self.title
+    @property
+    def title(self):
+        """:class:`str`: Return title of the manga"""
+        return self._title
+
+    @property
+    def alternative_titles(self):
+        """List[:class:`str`]: List of alternative titles"""
+        titles = self._attr.get('altTitles')
+        return [get_local_attr(i) for i in titles]
+    
+    @property
+    def description(self):
+        """:class:`str`: Description manga"""
+        return self._description
+
+    @property
+    def authors(self):
+        """List[:class:`str`]: Author of the manga"""
+        return [i.name for i in self._authors]
+
+    @property
+    def artists(self):
+        """List[:class:`str`]: Artist of the manga"""
+        return [i.name for i in self._artists]
+
+    @property
+    def chapters(self):
+        """:class:`MangaChapter`: All chapters manga (if exist)"""
+        return self._chapters
+
+    @property
+    def cover_art(self):
+        """:class:`str`: Original cover manga"""
+        return '{0}/covers/{1}/{2}'.format(
+            uploads_url,
+            self.id,
+            self._cover.file
+        )
+    
+    @property
+    def cover_art_512px(self):
+        """:class:`str`: 512px wide thumbnail cover manga"""
+        return '{0}/covers/{1}/{2}.512.jpg'.format(
+            uploads_url,
+            self.id,
+            self._cover.file
+        )
+
+    @property
+    def cover_art_256px(self):
+        """:class:`str`: 256px wide thumbnail cover manga"""
+        return '{0}/covers/{1}/{2}.256.jpg'.format(
+            uploads_url,
+            self.id,
+            self._cover.file
+        )
+
+    @property
+    def genres(self):
+        """List[:class:`str`]: Genres of the manga"""
+        new_tags = []
+        tags = self._attr.get('tags')
+        for tag in tags:
+            attr = tag.get('attributes')
+            name = get_local_attr(attr.get('name'))
+            group = attr.get('group')
+
+            # Aim for genre
+            if group == 'genre':
+                new_tags.append(name)
+        return new_tags
+    
+    @property
+    def status(self):
+        """:class:`str`: Status of the manga"""
+        return self._attr.get('status').capitalize()
+
+    @property
+    def content_rating(self):
+        """:class:`ContentRating`: Return content rating of the manga"""
+        return ContentRating(self._attr.get('contentRating'))
+
+    @property
+    def translated_languages(self) -> List[Language]:
+        """List[:class:`Language`]: Return available translated languages of the manga"""
+        return [Language(i) for i in self._attr.get('availableTranslatedLanguages')]
 
     def __repr__(self):
         return self.title
@@ -171,90 +279,11 @@ class Manga:
             else:
                 return desc
 
-    @property
-    def title(self):
-        """:class:`str`: Return title of the manga"""
-        return self._title
-
-    @property
-    def alternative_titles(self):
-        """List[:class:`str`]: List of alternative titles"""
-        titles = self._attr.get('altTitles')
-        return [get_local_attr(i) for i in titles]
-    
-    @property
-    def description(self):
-        """:class:`str`: Description manga"""
-        return self._description
-
-    @property
-    def authors(self):
-        """List[:class:`str`]: Author of the manga"""
-        return [i.name for i in self._authors]
-
-    @property
-    def artists(self):
-        """List[:class:`str`]: Artist of the manga"""
-        return [i.name for i in self._artists]
-
-    @property
-    def chapters(self):
-        """:class:`Chapter`: All chapters manga (if exist)"""
-        return self._chapters
-
-    @property
-    def cover_art(self):
-        """:class:`str`: Original cover manga"""
-        return '{0}/covers/{1}/{2}'.format(
-            uploads_url,
-            self.id,
-            self._cover.file
-        )
-    
-    @property
-    def cover_art_512px(self):
-        """:class:`str`: 512px wide thumbnail cover manga"""
-        return '{0}/covers/{1}/{2}.512.jpg'.format(
-            uploads_url,
-            self.id,
-            self._cover.file
-        )
-
-    @property
-    def cover_art_256px(self):
-        """:class:`str`: 256px wide thumbnail cover manga"""
-        return '{0}/covers/{1}/{2}.256.jpg'.format(
-            uploads_url,
-            self.id,
-            self._cover.file
-        )
-
-    @property
-    def genres(self):
-        """List[:class:`str`]: Genres of the manga"""
-        new_tags = []
-        tags = self._attr.get('tags')
-        for tag in tags:
-            attr = tag.get('attributes')
-            name = get_local_attr(attr.get('name'))
-            group = attr.get('group')
-
-            # Aim for genre
-            if group == 'genre':
-                new_tags.append(name)
-        return new_tags
-    
-    @property
-    def status(self):
-        """:class:`str`: Status of the manga"""
-        return self._attr.get('status').capitalize()
-
-    @property
-    def content_rating(self):
-        """:class:`ContentRating`: Return content rating of the manga"""
-        return ContentRating(self._attr.get('contentRating'))
-
-    @property
-    def translated_languages(self) -> List[Language]:
-        """List[:class:`Language`]: Return available translated languages of the manga"""
-        return [Language(i) for i in self._attr.get('availableTranslatedLanguages')]
+    def fetch_chapters(self, lang, chapter=None, all_chapters=False):
+        """Fetch chapters of this manga.
+        
+        When initializing :class:`Manga`, :attr:`Manga.chapter` is filled with ``None``. 
+        Calling this function will fetch the chapters and fill :attr:`Manga.chapter` with 
+        :class:`MangaChapter`.
+        """
+        self._chapters = MangaChapter(self, lang, chapter, all_chapters)

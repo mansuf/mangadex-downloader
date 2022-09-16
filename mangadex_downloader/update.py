@@ -1,5 +1,26 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import os
-import io
 import sys
 import subprocess
 import sys
@@ -7,11 +28,10 @@ import logging
 import tempfile
 import zipfile
 from packaging.version import parse as parse_version
-from importlib.util import find_spec
 from pathlib import Path
 
 from .network import Net
-from .utils import download
+from .downloader import FileDownloader
 from . import __version__
 
 current_version = parse_version(__version__)
@@ -92,7 +112,9 @@ def update_app():
             log.info("Downloading update v%s" % latest_version)
             # Download update
             try:
-                download(url_update, update_file_path, use_requests=True)
+                fd = FileDownloader(url_update, update_file_path, use_requests=True)
+                fd.download()
+                fd.cleanup()
             except Exception as e:
                 log.error("Failed to download update, reason: %s" % e)
                 sys.exit(1)

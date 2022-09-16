@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) 2022 Rahman Yusuf
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import binascii
 import json
 import sys
@@ -125,6 +147,14 @@ class _Config:
         "dns_over_https": [
             None,
             lambda x: _validate_value_from_iterator(x, _doh_providers)
+        ],
+        "no_chapter_info": [
+            False,
+            _validate_bool
+        ],
+        "no_group_name": [
+            False,
+            _validate_bool
         ]
     }
     default_conf = {
@@ -134,6 +164,7 @@ class _Config:
     def __init__(self):
         self._data = None
         self._lock = threading.Lock()
+        self.no_read = False
 
         # Load the config
         self._load()
@@ -236,7 +267,8 @@ class _Config:
             self._write(data)
 
     def read(self, name):
-        self._load()
+        if not self.no_read:
+            self._load()
         return self._data[name]
 
     def write(self, name, value):
@@ -263,6 +295,7 @@ def set_config_from_cli_opts(args):
         data[key] = validator(value)
     
     _conf._write(data, write_to_path=False)
+    _conf.no_read = True
 
 def reset_config(name=None):
     """Reset config. If ``name`` is not given, reset all configs"""
