@@ -208,10 +208,6 @@ You cannot use `--proxy` and `--proxy-env` together. It will throw error, if you
 To avoid conflict filenames with reserved names (such as: `list`, `library`, `followed-list`) in `URL` argument, 
 you can use special syntax for batch download
 
-```
-file:<path_to_file>
-```
-
 For example:
 
 ```shell
@@ -220,32 +216,9 @@ mangadex-dl "file:/home/manga/urls.txt"
 mangadex-dl "file:list"
 ```
 
-Also, you can do batch download from web URL location
+For more information, see {doc}`../cli_ref/file_command`
 
-```{warning}
-Make sure the inside contents is raw text and readable.
-```
-
-```shell
-mangadex-dl "file:https://raw.githubusercontent.com/mansuf/md-test-urls/main/urls.txt"
-```
-
-````{warning}
-If you give invalid path, the app will throw an error.
-See example below
-
-```shell
-# Not valid path
-$ mangadex-dl "file:not-exist-lol/lmao.txt"
-# error: argument URL: File "not-exist-lol/lmao.txt" is not exist
-
-# valid path
-$ mangadex-dl "file:yes-it-exist/exist.txt"
-# ...
-```
-````
-
-## Chapters and pages range syntax
+<!-- ## Chapters and pages range syntax
 
 mangadex-downloader already have these options for downloading chapters and pages `from n to n`
 
@@ -308,7 +281,7 @@ mangadex-dl "https://mangadex.org/title/..." --range "1[2-20],2[3-15],5[3-9,!5,1
 # 1 with pages: 2 to 20
 # 2 with pages: 3 to 15
 # 3 with pages: 3,4,6,7,8,9,12
-```
+``` -->
 
 ## Configuration
 
@@ -336,43 +309,7 @@ set MANGADEXDL_CONFIG_PATH=D:\myconfig\here\lmao
 export MANGADEXDL_CONFIG_PATH="/etc/mangadex-dl/config"
 ```
 
-### Supported configs
-
-```{option} login_cache [1 or 0, true or false]
-Same as `--login-cache`
-```
-
-```{option} language
-Same as `--language` or `-lang`
-```
-
-```{option} cover
-Same as `--cover` or `-c`
-```
-
-```{option} save_as
-Same as `--save-as` or `-f`
-```
-
-```{option} use_chapter_title [1 or 0, true or false]
-Same as `--use-chapter-title` or `-uct`
-```
-
-```{option} use_compressed_image [1 or 0, true or false]
-Same as `--use-compressed-image` or `-uci`
-```
-
-```{option} force_https [1 or 0, true or false]
-Same as `--force-https` or `-fh`
-```
-
-```{option} path
-Same as `--path` or `--folder` or `-d`
-```
-
-### Example usage
-
-Set a config
+Example usage
 
 ```shell
 mangadex-dl "conf:save_as=pdf"
@@ -382,24 +319,7 @@ mangadex-dl "conf:use_chapter_title=1"
 # Successfully changed config use_chapter_title from 'False' to 'True'
 ```
 
-Print all configs
-
-```shell
-mangadex-dl "conf"
-# Config 'login_cache' is set to '...'
-# Config 'language' is set to '...'
-# Config 'cover' is set to '...'
-# Config 'save_as' is set to '...'
-# Config 'use_chapter_title' is set to '...'
-# Config 'use_compressed_image' is set to '...'
-```
-
-Reset a config back to default value
-
-```shell
-mangadex-dl "conf:reset=save_as"
-# Successfully reset config 'save_as'
-```
+For more information, you can see -> {doc}`../cli_ref/config`
 
 ## Authentication cache
 
@@ -407,7 +327,7 @@ mangadex-downloader support authentication cache, which mean you can re-use your
 without re-login.
 
 ```{note}
-This authentication cache is stored in same place as where [config](#configuration) is stored. If you concerned about security, you can change `MANGADEXDL_CONFIG_PATH` to secured and safe path.
+This authentication cache is stored in same place as where [config](#configuration) is stored.
 ```
 
 You have to enable [config](#configuration) in order to get working.
@@ -432,56 +352,20 @@ use `--login` option if you want to update user login.
 mangadex-dl "https://mangadex.org/title/..." --login
 ```
 
-### Available commands
-
-```{option} purge
-Purge cached authentication tokens
-```
-
-```{option} show
-Show expiration time cached authentication tokens 
-```
-
-````{option} show_unsafe
-```{warning}
-You should not use this command, 
-because it exposing your auth tokens to terminal screen. 
-Use this if you know what are you doing.
-```
-
-Show cached authentication tokens
-````
-
-### Example usage commands
-
-Purge cached authentication tokens
-
-```shell
-mangadex-dl "login_cache:purge"
-```
-
-Show expiration time session token and refresh token
-
-```shell
-mangadex-dl "login_cache:show"
-
-# or
-
-mangadex-dl "login_cache"
-```
+For more information, you can see here -> {doc}`../cli_ref/auth_cache`
 
 ## Search filters
 
 mangadex-downloader support search manga with filters. Which mean you can speed up your searching !
 
-For more information about syntax and available filters, see {doc}`../cli_ref/search_filters`
-
-### Example usage
+Example usage
 
 ```shell
 # Search manhwa with status completed and ongoing, with tags "Comedy" and "Slice of life"
 mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
 ```
+
+For more information about syntax and available filters, see {doc}`../cli_ref/search_filters`
 
 ## Download manga, chapter, or list in forced HTTPS 443 port
 

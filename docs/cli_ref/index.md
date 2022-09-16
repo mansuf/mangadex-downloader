@@ -233,14 +233,18 @@ Print mangadex-downloader version
 Update mangadex-downloader to latest version
 ```
 
-<!-- HIDDEN TOC TREE -->
-```{toctree}
-:hidden:
+## Reference
 
+```{toctree}
+:maxdepth: 2
+
+file_command
 chapter_info
 search_filters
 random
 manga_library
 list_library
 follow_list_library
+config
+auth_cache
 ```
