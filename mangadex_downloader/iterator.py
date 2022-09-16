@@ -32,7 +32,7 @@ from .fetcher import get_list
 from .user import User
 from .language import get_language
 from .config import ConfigTypeError, _validate_bool as validate_boolean
-from .utils import validate_url
+from .utils import validate_url, get_local_attr
 
 log = logging.getLogger(__name__)
 
@@ -127,8 +127,6 @@ class IteratorManga(BaseIterator):
         validate_tags_mode("included_tags_mode")
         validate_tags_mode("excluded_tags_mode")
 
-        # At this point includedTags and excludedTags are UUID based
-        # i don't know why
         def validate_uuid(key):
             new_values = []
             values = _locals[key]
@@ -152,9 +150,46 @@ class IteratorManga(BaseIterator):
             
             return new_values
 
-        included_tags = validate_uuid("included_tags")
-        excluded_tags = validate_uuid("excluded_tags")
         group = validate_uuid("group")
+
+        tags = self._get_tags()
+        def validate_tags(key):
+            new_values = []
+            values = _locals[key]
+            if values is None:
+                return
+
+            if isinstance(values, str):
+                values = [values]
+
+            # Lowercase to prevent error
+            values = [i.lower() for i in values]
+
+            for value in values:
+                # Try to match the keyword tags
+                try:
+                    _id = tags[value]
+                except KeyError:
+                    pass
+                else:
+                    new_values.append(_id)
+                    continue
+
+                # Try to get uuid
+                try:
+                    _id = validate_url(value)
+                except InvalidURL:
+                    raise SearchFilterError(
+                        key,
+                        f"'{value}' is not valid keyword or uuid tag"
+                    )
+                
+                new_values.append(_id)
+            
+            return new_values
+
+        included_tags = validate_tags("included_tags")
+        excluded_tags = validate_tags("excluded_tags")
 
         def validate_values_from_list(key, array):
             values = _locals[key]
@@ -279,6 +314,19 @@ class IteratorManga(BaseIterator):
         }
 
         self._param_init.update(**order)
+
+    def _get_tags(self):
+        tags = {}
+        r = Net.mangadex.get(f'{base_url}/manga/tag')
+        data = r.json()
+
+        for item in data['data']:
+            _id = item['id']
+            attr = item['attributes']
+            name = get_local_attr(attr['name']).lower()
+            tags[name] = _id
+        
+        return tags
 
     def _get_params(self):
         includes = ['author', 'artist', 'cover_art']

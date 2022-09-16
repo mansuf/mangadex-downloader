@@ -362,6 +362,10 @@ Example usage
 
 ```shell
 # Search manhwa with status completed and ongoing, with tags "Comedy" and "Slice of life"
+mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=comedy, slice of life"
+
+# or
+
 mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
 ```
 

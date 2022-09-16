@@ -14,6 +14,10 @@
 - Added optional dependency [`orjson`](https://pypi.org/project/orjson/) for faster loading and dumping JSON object.
 - Added EPUB support (`epub`, `epub-volume`, `epub-single`)
 
+## Improvements
+
+- Search filter `included_tags` and `excluded_tags` now accepting keyword
+
 ### Fix bugs
 
 - Fixed message `Chapter ... from group ... has no images` is not showing properly.

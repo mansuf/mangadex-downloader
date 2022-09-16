@@ -27,7 +27,7 @@ Year of release
 ```
 
 ```{option} included_tags [VALUE1, VALUE2, ...]
-Value must be valid uuid or MangaDex url containing uuid. 
+Value must be valid keyword or uuid or MangaDex url containing uuid. 
 To see all available tags in MangaDex -> https://mangadex.org/tag/
 ```
 
@@ -35,7 +35,7 @@ To see all available tags in MangaDex -> https://mangadex.org/tag/
 ```
 
 ```{option} excluded_tags [VALUE1, VALUE2, ...]
-Value must be valid uuid or MangaDex url containing uuid. 
+Value must be valid keyword or uuid or MangaDex url containing uuid. 
 To see all available tags in MangaDex -> https://mangadex.org/tag/
 ```
 
