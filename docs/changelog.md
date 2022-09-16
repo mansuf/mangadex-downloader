@@ -16,7 +16,7 @@
 
 ## Improvements
 
-- Search filter `included_tags` and `excluded_tags` now accepting keyword
+- Search filter `included_tags` and `excluded_tags` are now accepting keyword
 
 ### Fix bugs
 
