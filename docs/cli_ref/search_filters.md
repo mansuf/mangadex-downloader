@@ -3,13 +3,25 @@
 ## Syntax
 
 ```shell
-mangadex-dl -s -sf "FILTER_KEY=FILTER_VALUE"
+mangadex-dl -s -sf "KEY=VALUE"
 ```
 
 It also support multiple values separated by commas
 
 ```shell
-mangadex-dl -s -sf "FILTER_KEY=FILTER_VALUE1,FILTER_VALUE2,FILTER_VALUE3"
+mangadex-dl -s -sf "KEY=VALUE1,VALUE2,VALUE3"
+```
+
+Also, you can do this too
+
+```shell
+mangadex-dl -s -sf "KEY=VALUE1" -sf "KEY=VALUE2" -sf "KEY=VALUE3"
+```
+
+And this too
+
+```shell
+mangadex-dl -s -sf "KEY=VALUE1,VALUE2" -sf "KEY=VALUE3,VALUE4"
 ```
 
 ## Available filters
