@@ -2,7 +2,7 @@
 A command-Line tool to download manga from MangaDex, written in Python
 """
 
-__version__ = "2.0.0a"
+__version__ = "2.0.0b0"
 __description__ = "A Command-line tool to download manga from MangaDex, written in Python"
 __author__ = "Rahman Yusuf"
 __author_email__ = "danipart4@gmail.com"
