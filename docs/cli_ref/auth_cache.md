@@ -4,9 +4,10 @@
 You must enable config in order to use authentication cache.
 ```
 
+## Syntax command
+
 ```shell
-# Enable authentication cache
-mangadex-dl "conf:login_cache=1"
+mangadex-dl "login_cache:<command>"
 ```
 
 ## Available commands
@@ -30,6 +31,12 @@ Show cached authentication tokens
 ````
 
 ## Example usage commands
+
+### Enable authentication cache
+
+```shell
+mangadex-dl "conf:login_cache=1"
+```
 
 ### Purge cached authentication tokens
 

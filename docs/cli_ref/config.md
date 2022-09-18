@@ -50,6 +50,10 @@ Same as `--force-https` or `-fh`
 Same as `--path` or `--folder` or `-d`
 ```
 
+```{option} reset [config]
+Reset config back to default value
+```
+
 ## Example usage
 
 ### Enable config
