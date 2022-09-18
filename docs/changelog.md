@@ -14,7 +14,7 @@
 - Added optional dependency [`orjson`](https://pypi.org/project/orjson/) for faster loading and dumping JSON object.
 - Added EPUB support (`epub`, `epub-volume`, `epub-single`)
 
-## Improvements
+### Improvements
 
 - Search filter `included_tags` and `excluded_tags` are now accepting keyword
 
