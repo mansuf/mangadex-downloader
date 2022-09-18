@@ -34,7 +34,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - Control how many chapters and pages you want to download
 - Compressed images support
 - HTTP / SOCKS proxy support
-- DNS-over-HTTPS support (using [requests-doh](https://github.com/mansuf/requests-doh) library)
+- DNS-over-HTTPS support
 - Multi languages support
 - Save as raw images, EPUB, PDF, Comic Book Archive (.cbz or .cb7) or
 [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
