@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed `UnboundLocalError` when the app get rate limited
+
 ## v2.0.1
 
 ### Fix bugs
