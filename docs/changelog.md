@@ -5,7 +5,7 @@
 ### Fix bugs
 
 - Fixed `UnboundLocalError: local variable 'delay' referenced before assignment` when the app get rate limited
-- Fixed download in any `single` formats is not working
+- Fixed download in any `single` formats is not working if there is no chapters want to download
 
 ## v2.0.1
 
