@@ -28,7 +28,7 @@ import time
 import logging
 import sys
 import threading
-from . import __version__
+from . import __version__, __repository__
 from .errors import (
     AlreadyLoggedIn,
     HTTPException,
@@ -54,6 +54,8 @@ def loads_json(self):
 
 if have_orjson:
     requests.Response.json = loads_json
+
+DEFAULT_RATE_LIMITED_TIMEOUT = 120
 
 log = logging.getLogger(__name__)
 
@@ -190,6 +192,23 @@ class requestsMangaDexSession(ModifiedSession):
             
             elif resp.headers.get('Retry-After'):
                 delay = float(resp.headers.get('Retry-After'))
+            else:
+                # Somehow `x-ratelimit-retry-after` and `Retry-After` header are not exist
+                # and they sending 429 response which should be marked as rate limited
+                # Since we have no idea how many seconds we should do for `time.sleep()`
+                # the app is sleeping for 120 seconds if happened like this, 
+                delay = DEFAULT_RATE_LIMITED_TIMEOUT
+
+                # Give this info to console output, so users can open an issue in repository
+                # And we can fix this
+                log.warning(
+                    "There is no `x-ratelimit-retry-after` and `Retry-After` " \
+                    f"in request header '{_get_netloc(resp.url)}'. " \
+                    f"Please report this headers below to https://github.com/{__repository__}/issues"
+                )
+                print("==========BEGIN HEADERS==========", file=sys.stderr)
+                print(resp.headers, file=sys.stderr)
+                print("==========END HEADERS==========", file=sys.stderr)
             
             log.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
             time.sleep(delay)
