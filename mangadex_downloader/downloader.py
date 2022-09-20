@@ -129,7 +129,9 @@ class FileDownloader:
         pass
 
     def download(self):
-        while True:
+        error = None
+        resp = None
+        for attempt, _ in enumerate(range(5), start=1):
             error = None
             resp = None
             self.on_prepare()
@@ -140,7 +142,7 @@ class FileDownloader:
             headers = self._parse_headers(initial_file_sizes)
 
             try:
-                resp = self.session.get(self.url, headers=headers, stream=True)
+                resp = self.session.get(self.url, headers=headers, stream=True, timeout=15)
             except Exception as e:
                 # Other Exception
                 error = e
@@ -173,10 +175,14 @@ class FileDownloader:
             init_file_size = initial_file_sizes if initial_file_sizes else 0
             if accept_range is None and file_sizes != (init_file_size + file_sizes):
                 # Server didn't support `Range` header
-                log.warning("Server didn't support resume download, restarting download")
+                log.warning(
+                    f"Server didn't support resume download, deleting '{os.path.basename(self.file)}'"
+                )
+
                 if os.path.exists(self.file):
                     delete_file(self.file)
-                continue
+                
+                initial_file_sizes = None
 
             # If "Range" header request is present
             # Content-Length header response is not same as full size
@@ -211,12 +217,21 @@ class FileDownloader:
             # Download is not finished but marked as "finished"
             if current_size != file_sizes:
                 self.cleanup()
-                log.warning("File download is incomplete, restarting download...")
+                log.warning(
+                    f"File download is incomplete, restarting download... (attempt: {attempt})"
+                )
                 continue
 
             self.on_finish()
             self._write_final_file()
             return True
+
+        # Usually this will happend if 
+        # - downloader trying to resume download but the server didn't support `Range` header
+        # - The server didn't send full content of file (received bytes and `Content-Length` header are not same)
+        if resp is not None:
+            self.on_error(None, resp)
+        return False
 
     def _write_final_file(self):
         if os.path.exists(self.real_file):

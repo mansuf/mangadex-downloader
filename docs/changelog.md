@@ -1,5 +1,15 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed downloader is keep restarting indefinitely if the server has a problem.
+
+### Improvements
+
+- Downloader now has a default timeout (15 seconds) to prevent infinite waiting
+
 ## v2.0.0
 
 ### New features
