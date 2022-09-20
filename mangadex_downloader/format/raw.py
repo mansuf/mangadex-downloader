@@ -98,31 +98,18 @@ class RawSingle(BaseFormat):
     def main(self):
         base_path = self.path
         manga = self.manga
-        total = 0
 
-        # In order to add "next chapter" image mark in end of current chapter
-        # We need to cache all chapters
-        log.info("Preparing to download...")
-        cache = []
-        # Enable log cache
-        kwargs_iter = self.kwargs_iter.copy()
-        kwargs_iter['log_cache'] = True
-        for chap_class, images in manga.chapters.iter(**kwargs_iter):
-            # Each chapters has one page that has "Chapter n"
-            # This is called "start of the chapter" image
-            total += 1
+        result_cache = self.get_fmt_single_cache(manga)
 
-            total += chap_class.pages
-
-            item = [chap_class, images]
-            cache.append(item)
+        if result_cache is None:
+            # The chapters is empty
+            # there is nothing we can download
+            return
+        
+        cache, total, merged_name = result_cache
 
         count = NumberWithLeadingZeros(total)
-
-        # Construct folder name from first and last chapter
-        first_chapter = cache[0][0]
-        last_chapter = cache[len(cache) - 1][0]
-        path = base_path / sanitize_filename(first_chapter.simple_name + " - " + last_chapter.simple_name)
+        path = base_path / merged_name
         path.mkdir(exist_ok=True)
 
         for chap_class, images in cache:

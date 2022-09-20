@@ -258,33 +258,17 @@ class ComicBookArchiveSingle(ComicBookArchive):
         images = []
         manga = self.manga
         worker = self.create_worker()
-        total = 0
+        result_cache = self.get_fmt_single_cache(manga)
 
-        # In order to add "next chapter" image mark in end of current chapter
-        # We need to cache all chapters
-        log.info("Preparing to download...")
-        cache = []
-        # Enable log cache
-        kwargs_iter = self.kwargs_iter.copy()
-        kwargs_iter['log_cache'] = True
-        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
-            # Fix #10
-            # Some programs wouldn't display images correctly
-            # Each chapters has one page that has "Chapter n"
-            # This is called "start of the chapter" image
-            total += 1
-
-            total += chap_class.pages
-
-            item = [chap_class, chap_images]
-            cache.append(item)
+        if result_cache is None:
+            # The chapters is empty
+            # there is nothing we can download
+            worker.shutdown()
+            return
+        
+        cache, total, merged_name = result_cache
 
         count = NumberWithLeadingZeros(total)
-
-        # Construct .cbz filename from first and last chapter
-        first_chapter = cache[0][0]
-        last_chapter = cache[len(cache) - 1][0]
-        merged_name = sanitize_filename(first_chapter.simple_name + " - " + last_chapter.simple_name)
         manga_zip_path = self.path / (merged_name + '.cbz')
 
         # Check if exist or not

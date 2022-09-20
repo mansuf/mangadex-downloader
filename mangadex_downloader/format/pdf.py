@@ -394,23 +394,15 @@ class PDFSingle(PDF):
         images = []
         count = NumberWithLeadingZeros(0)
 
-        # In order to add chapter info image in start of the chapter
-        # We need to cache all chapters
-        log.info("Preparing to download...")
-        cache = []
-        # Enable log cache
-        kwargs_iter = self.kwargs_iter.copy()
-        kwargs_iter['log_cache'] = True
-        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
-            item = [chap_class, chap_images]
-            cache.append(item)
+        result_cache = self.get_fmt_single_cache(manga)
+
+        if result_cache is None:
+            # The chapters is empty
+            # there is nothing we can download
+            worker.shutdown()
+            return
         
-        # Construct pdf filename from first and last chapter
-        first_chapter = cache[0][0]
-        last_chapter = cache[len(cache) - 1][0]
-        merged_name = sanitize_filename(
-            first_chapter.simple_name + " - " + last_chapter.simple_name 
-        )
+        cache, _, merged_name = result_cache
         pdf_file = self.path / (merged_name + '.pdf')
 
         if pdf_file.exists():

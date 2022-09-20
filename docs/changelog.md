@@ -4,7 +4,8 @@
 
 ### Fix bugs
 
-- Fixed `UnboundLocalError` when the app get rate limited
+- Fixed `UnboundLocalError: local variable 'delay' referenced before assignment` when the app get rate limited
+- Fixed download in any `single` formats is not working
 
 ## v2.0.1
 
