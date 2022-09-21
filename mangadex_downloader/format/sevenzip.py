@@ -80,7 +80,6 @@ class SevenZip(BaseFormat):
         for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
             count = NumberWithLeadingZeros(0)
             chap_name = chap_class.get_simplified_name()
-            chapter_path = create_directory(chap_name, self.path)
 
             chapter_zip_path = self.path / (chap_name + '.cb7')
             if chapter_zip_path.exists():
@@ -89,6 +88,8 @@ class SevenZip(BaseFormat):
                 else:
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
                     continue
+
+            chapter_path = create_directory(chap_name, self.path)
 
             images = self.get_images(chap_class, chap_images, chapter_path, count)
 
@@ -148,9 +149,6 @@ class SevenZipVolume(SevenZip):
             else:
                 volume = 'No Volume'
 
-            # Create volume folder
-            volume_path = create_directory(volume, self.path)
-
             volume_zip_path = self.path / (volume + '.cb7')
             if volume_zip_path.exists():
                 if self.replace:
@@ -158,6 +156,9 @@ class SevenZipVolume(SevenZip):
                 else:
                     log.info(f"'{volume_zip_path.name}' is exist and replace is False, cancelling download...")
                     continue
+
+            # Create volume folder
+            volume_path = create_directory(volume, self.path)
 
             for chap_class, chap_images in chapters:
                 # Insert "start of the chapter" image

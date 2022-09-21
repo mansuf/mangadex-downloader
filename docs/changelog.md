@@ -6,6 +6,7 @@
 
 - Fixed `UnboundLocalError: local variable 'delay' referenced before assignment` when the app get rate limited
 - Fixed download in any `single` formats is not working if there is no chapters want to download
+- Fixed the app is leaving empty folders if chapters or volume already exists [#35](https://github.com/mansuf/mangadex-downloader/issues/35)
 
 ## v2.0.1
 

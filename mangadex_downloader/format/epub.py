@@ -370,8 +370,6 @@ class Epub(BaseFormat):
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap_name = chap_class.get_simplified_name()
 
-            chapter_path = create_directory(chap_name, self.path)
-
             # Check if .epub file is exist or not
             chapter_epub_path = self.path / (chap_name + '.epub')
             if chapter_epub_path.exists():
@@ -381,6 +379,8 @@ class Epub(BaseFormat):
                 else:
                     log.info(f"'{chapter_epub_path.name}' is exist and replace is False, cancelling download...")
                     continue
+
+            chapter_path = create_directory(chap_name, self.path)
 
             count = NumberWithLeadingZeros(chap_class.pages)
             images = self.get_images(chap_class, images, chapter_path, count)
@@ -444,8 +444,6 @@ class EpubVolume(Epub):
             else:
                 volume = 'No Volume'
 
-            # Create volume folder
-            volume_path = create_directory(volume, self.path)
             volume_epub_path = self.path / (volume + '.epub')
 
             # Check if exist or not
@@ -456,6 +454,9 @@ class EpubVolume(Epub):
                 else:
                     log.info(f"{volume_epub_path.name} is exist and replace is False, cancelling download...")
                     continue
+
+            # Create volume folder
+            volume_path = create_directory(volume, self.path)
 
             for chap_class, chap_images in chapters:
                 images = []

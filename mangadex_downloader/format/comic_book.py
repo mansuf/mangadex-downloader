@@ -120,8 +120,6 @@ class ComicBookArchive(BaseFormat):
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap_name = chap_class.get_simplified_name()
 
-            chapter_path = create_directory(chap_name, self.path)
-
             # Check if .cbz file is exist or not
             chapter_zip_path = self.path / (chap_name + '.cbz')
             if chapter_zip_path.exists():
@@ -131,6 +129,8 @@ class ComicBookArchive(BaseFormat):
                 else:
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
                     continue
+
+            chapter_path = create_directory(chap_name, self.path)
 
             chapter_zip = zipfile.ZipFile(
                 str(chapter_zip_path),
@@ -202,8 +202,6 @@ class ComicBookArchiveVolume(ComicBookArchive):
             else:
                 volume = 'No Volume'
 
-            # Create volume folder
-            volume_path = create_directory(volume, self.path)
             volume_zip_path = self.path / (volume + '.cbz')
 
             # Check if exist or not
@@ -214,6 +212,9 @@ class ComicBookArchiveVolume(ComicBookArchive):
                 else:
                     log.info(f"{volume_zip_path.name} is exist and replace is False, cancelling download...")
                     continue
+
+            # Create volume folder
+            volume_path = create_directory(volume, self.path)
 
             volume_zip = zipfile.ZipFile(
                 str(volume_zip_path),
