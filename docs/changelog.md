@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed the app failed to run because of manga has volume with leading zeros numbers (ex: `00`)
+
 ## v2.0.2
 
 ### Fix bugs

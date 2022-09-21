@@ -661,34 +661,34 @@ class MangaChapter:
         # Sorting volumes
         volumes = []
 
-        none_volume = False
-        none_value = None
-
-        def append_volumes(num):
-            nonlocal none_volume
-            nonlocal none_value
-
-            try:
-                volumes.append(int(num))
-            except ValueError:
-                # none volume detected
-                none_volume = True
-                none_value = num
-
         # Sometimes volumes are in list not in dict
         # wtf
         # Reference: https://api.mangadex.org/manga/d667637e-9e6d-4c5a-89c4-0faba6f96338/aggregate?translatedLanguage[]=en
         if isinstance(data, list):
             for info in data:
                 num = info['volume']
-                append_volumes(num)
+                volumes.append(num)
         else:
             for num in data.keys():
-                append_volumes(num)
+                volumes.append(num)
 
-        volumes = sorted(volumes)
-        if none_volume:
-            volumes.append(none_value)
+        def int_or_nan(val):
+            try:
+                return int(val)
+            except ValueError:
+                return float('nan')
+
+        # In v2.0.2 or lower, sorting volumes for manga with leading zeros volumes (ex: 00, 01)
+        # is failing. Because the app is converting these string numbers to integer numbers.
+        # Which is causing the leading zero numbers is removed (ex: 00 -> 0, 01 -> 1)
+        # Reference: https://api.mangadex.org/manga/1784f612-9a81-4ed6-a596-ef3e2d2e814f/aggregate?translatedLanguage[]=en
+        volumes = sorted(volumes, key=int_or_nan)
+        if volumes[0] == 'none':
+            # None volume in beginning of array
+            # may caused problem highest chapters get downloaded first
+            volumes.append(volumes[0])
+            volumes.pop(0)
+
         for volume in volumes:
 
             chapters = []
