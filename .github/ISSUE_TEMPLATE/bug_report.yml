@@ -20,6 +20,12 @@ body:
       required: true
   - type: textarea
     attributes:
+      label: OS version
+      description: What Operating System you're currently using on ?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
       label: App version
       description: You can get it from `mangadex-dl --version`
     validations:
