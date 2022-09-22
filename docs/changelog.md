@@ -5,6 +5,7 @@
 ### Fix bugs
 
 - Fixed the app failed to run because of manga has volume with leading zeros numbers (ex: `00`)
+- Fixed the app failed to run because of manga has volume that is not numbers (ex: `3C63`, `xxx`)
 
 ## v2.0.2
 

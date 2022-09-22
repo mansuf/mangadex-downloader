@@ -215,3 +215,19 @@ class QueueWorker(threading.Thread):
                 fut.set_exception(err)
             else:
                 fut.set_result(None)
+
+def convert_int_or_float(value):
+    err_int = None
+    err_float = None
+
+    try:
+        return int(value)
+    except ValueError as e:
+        err_int = e
+    
+    try:
+        return float(value)
+    except ValueError as e:
+        err_float = e
+    
+    raise err_float from err_int

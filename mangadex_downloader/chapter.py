@@ -36,6 +36,7 @@ from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config
+from .utils import convert_int_or_float
 # from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
@@ -198,10 +199,14 @@ class Chapter:
             # As far as i know
             # Volume manga are integer numbers, not float
             try:
-                return int(vol)
+                return convert_int_or_float(vol)
             except ValueError:
-                # To prevent unexpected error
-                return float(vol)
+                pass
+
+            # Weird af volume name
+            # Example: https://api.mangadex.org/manga/485a777b-e395-4ab1-b262-2a87f53e23c0/aggregate
+            # (Take a look volume '3Cxx')
+            return vol
 
         # No volume
         return vol
@@ -671,6 +676,26 @@ class MangaChapter:
         else:
             for num in data.keys():
                 volumes.append(num)
+
+        # Again, sorting issue if manga volumes contain weird name
+        # Reference: https://api.mangadex.org/manga/485a777b-e395-4ab1-b262-2a87f53e23c0/aggregate
+        # (Take a look volume '3Cxx')
+        # We need to sorting numbers first and then the others
+        vol_nums = []
+        vol_others = []
+
+        for vol in volumes:
+            try:
+                convert_int_or_float(vol)
+            except ValueError:
+                vol_others.append(vol)
+            else:
+                vol_nums.append(vol)
+
+        volumes = vol_nums
+        # others volume didn't sorted when combined with numbers volume
+        # we need to sort it first and then combined it
+        volumes.extend(sorted(vol_others))
 
         def int_or_nan(val):
             try:
