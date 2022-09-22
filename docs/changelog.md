@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed error handling for MD@H node report is not working
+
 ## v2.0.3
 
 ### Fix bugs
