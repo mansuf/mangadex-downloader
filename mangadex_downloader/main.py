@@ -79,8 +79,11 @@ def download(
         cover_url = None
 
     # Download the cover art
-    if cover_url is None:
-        log.info('Not downloading cover manga, since \"cover\" is none')
+    if cover == 'none':
+        log.info('Not downloading cover manga, since "cover" is none')
+    elif cover_url is None:
+        # The manga doesn't have cover
+        log.info(f"Not downloading cover manga, since manga '{manga.title}' doesn\'t have cover")
     else:
         fd = FileDownloader(cover_url, cover_path, replace=replace)
         fd.download()

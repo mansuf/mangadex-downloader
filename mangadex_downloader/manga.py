@@ -53,6 +53,15 @@ def _append_authors(cls, data, array):
     
     array.append(created)
 
+def _make_cover_art(data):
+    try:
+        return CoverArt(data=data)
+    except KeyError:
+        # Ghost cover detected
+        # cover id is exist but the rest of data is not
+        # Reference: https://api.mangadex.org/manga/ee6106b1-4915-4ba3-aced-7f980848f615?includes[]=cover_art
+        return
+
 class Manga:
     def __init__(self, data=None, _id=None, use_alt_details=False):
         if _id and data:
@@ -78,7 +87,7 @@ class Manga:
                 _append_authors(Artist, rel, artists)
 
             elif _type == 'cover_art':
-                cover_art = CoverArt(data=rel)
+                cover_art = _make_cover_art(rel)
 
         self._artists = artists
         self._authors = authors
@@ -130,6 +139,9 @@ class Manga:
     @property
     def cover_art(self):
         """:class:`str`: Original cover manga"""
+        if self._cover is None:
+            return
+
         return '{0}/covers/{1}/{2}'.format(
             uploads_url,
             self.id,
@@ -139,6 +151,9 @@ class Manga:
     @property
     def cover_art_512px(self):
         """:class:`str`: 512px wide thumbnail cover manga"""
+        if self._cover is None:
+            return
+
         return '{0}/covers/{1}/{2}.512.jpg'.format(
             uploads_url,
             self.id,
@@ -148,6 +163,9 @@ class Manga:
     @property
     def cover_art_256px(self):
         """:class:`str`: 256px wide thumbnail cover manga"""
+        if self._cover is None:
+            return
+
         return '{0}/covers/{1}/{2}.256.jpg'.format(
             uploads_url,
             self.id,

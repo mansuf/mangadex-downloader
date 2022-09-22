@@ -4,8 +4,10 @@
 
 ### Fix bugs
 
-- Fixed the app failed to run because of manga has volume with leading zeros numbers (ex: `00`)
-- Fixed the app failed to run because of manga has volume that is not numbers (ex: `3C63`, `xxx`)
+- Fixed the app failed to download because of:
+  - manga has volume with leading zeros numbers (ex: `00`, `01`)
+  - manga has volume that is not numbers (ex: `3C63`, `xxx`)
+  - manga doesn't have cover
 
 ## v2.0.2
 
