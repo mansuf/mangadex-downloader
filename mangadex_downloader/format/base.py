@@ -59,8 +59,8 @@ class BaseFormat:
         ))
         images.fetch()
 
-        error = False
         while True:
+            error = False
             for page, img_url, img_name in images.iter(log_info=True):
                 server_file = img_name
 
