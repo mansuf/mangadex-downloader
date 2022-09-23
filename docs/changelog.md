@@ -4,7 +4,7 @@
 
 ### Fix bugs
 
-- Fixed error handling for MD@H node report is not working
+- Fixed the app repeatedly download chapter images after error happened in one of MD@H node
 
 ## v2.0.3
 
