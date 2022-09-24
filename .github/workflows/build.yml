@@ -196,6 +196,7 @@ jobs:
             | mangadex-dl_x64_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x64_hash }} |
             | mangadex-dl_x86_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x86_hash }} |
 
+            These binaries are for Windows only.
           files: |
             mangadex-dl_x64_${{ github.ref_name }}.zip
             mangadex-dl_x86_${{ github.ref_name }}.zip
