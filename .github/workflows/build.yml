@@ -186,6 +186,16 @@ jobs:
         with:
           tag_name: ${{ env.GIRHUB_REF_NAME }}
           name: mangadex-downloader ${{ github.ref_name }}
+          body: |
+            ------
+
+            ## Files hash
+
+            | Name | SHA-256 |
+            | ---- | ------- |
+            | mangadex-dl_x64_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x64_hash }} |
+            | mangadex-dl_x86_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x86_hash }} |
+
           files: |
             mangadex-dl_x64_${{ github.ref_name }}.zip
             mangadex-dl_x86_${{ github.ref_name }}.zip
