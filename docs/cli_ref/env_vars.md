@@ -22,9 +22,18 @@ Must be one of:
 For more information, see https://docs.python.org/3/library/zipfile.html#zipfile.ZIP_STORED
 ```
 
-```{option} MANGADEXDL_ZIP_COMPRESSION_LEVEL
+````{option} MANGADEXDL_ZIP_COMPRESSION_LEVEL
 Set zip compression level for any `cbz` and `epub` formats.
+
+```{note}
+Zip compression type `stored` or `lzma` has no effect
+```
+
+levels:
+
+- deflated : 0-9
+- bzip2    : 1-9
 
 For more information about each levels zip compression, 
 see https://docs.python.org/3/library/zipfile.html#zipfile.ZipFile
-```
+````
