@@ -28,6 +28,7 @@ import logging
 import os
 import base64
 import traceback
+import zipfile
 import jwt
 from pathlib import Path
 from datetime import datetime
@@ -86,10 +87,83 @@ def _validate_format(val):
 def _dummy_validator(val):
     return val
 
-_env_dir = os.environ.get('MANGADEXDL_CONFIG_PATH')
+def _validate_zip_compression_type(val):
+    types = {
+        'stored': zipfile.ZIP_STORED,
+        'deflated': zipfile.ZIP_DEFLATED,
+        'bzip2': zipfile.ZIP_BZIP2,
+        'lzma': zipfile.ZIP_LZMA
+    }
+
+    try:
+        return types[val]
+    except KeyError:
+        raise ConfigTypeError(f"zip compression type '{val}' is not valid")
+
+def _validate_int(val):
+    try:
+        return int(val)
+    except ValueError:
+        raise ConfigTypeError(f"'{val}' is not valid integer")
+
+class EnvironmentVariables:
+    _vars = [
+        [
+            'config_enabled',
+            False,
+            _validate_bool,
+        ],
+        [
+            'config_path',
+            None,
+            _dummy_validator
+        ],
+        [
+            'zip_compression_type',
+            zipfile.ZIP_STORED,
+            _validate_zip_compression_type    
+        ],
+        [
+            'zip_compression_level',
+            None,
+            _validate_int
+        ]
+    ]
+
+    def __init__(self):
+        self.data = {}
+
+        for key, default_value, validator in self._vars:
+            env_value = os.environ.get(f'MANGADEXDL_{key.upper()}')
+            if env_value is not None:
+                self.data[key] = validator(env_value)
+            else:
+                self.data[key] = default_value
+        
+    def read(self, name):
+        try:
+            return self.data[name]
+        except KeyError:
+            # This should not happened
+            # unless user is hacking in the internal API
+            raise MangaDexException(f'environment variable "{name}" is not exist')
+
+_env_orig = EnvironmentVariables()
+
+class EnvironmentVariablesProxy:
+    def __getattr__(self, name):
+        return _env_orig.read(name)
+
+    def __setattr__(self, name, value):
+        raise NotImplementedError
+
+# Allow library to get values from attr easily
+env = EnvironmentVariablesProxy()
+
+_env_dir = env.config_path
 base_path = Path(_env_dir) if _env_dir is not None else (Path.home() / '.mangadex-dl')
 
-_env_conf_enabled = os.environ.get('MANGADEXDL_CONFIG_ENABLED')
+_env_conf_enabled = env.config_enabled
 try:
     config_enabled = _validate_bool(_env_conf_enabled)
 except ConfigTypeError:

@@ -2,6 +2,12 @@
 
 ## v2.1.0a (Not yet released, still in development)
 
+### New features
+
+- Add new environment variables
+  - `MANGADEXDL_ZIP_COMPRESSION_TYPE`
+  - `MANGADEXDL_ZIP_COMPRESSION_LEVEL`
+
 ### Fix bugs
 
 - Fixed download file is incomplete when network error happened

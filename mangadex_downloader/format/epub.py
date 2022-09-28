@@ -313,6 +313,8 @@ class EpubPlugin:
         self._container = root
     
     def write(self, path):
+        from ..config import env
+
         progress_bar = tqdm.tqdm(
             total=len(self._pages),
             initial=0,
@@ -320,7 +322,12 @@ class EpubPlugin:
             unit='item'
         )
 
-        with zipfile.ZipFile(path, "a" if os.path.exists(path) else "w") as zip_obj:
+        with zipfile.ZipFile(
+            path, 
+            "a" if os.path.exists(path) else "w",
+            compression=env.zip_compression_type,
+            compresslevel=env.zip_compression_level
+        ) as zip_obj:
             # Write MIMETYPE
             zip_obj.writestr('mimetype', 'application/epub+zip')
 

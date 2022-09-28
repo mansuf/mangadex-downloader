@@ -112,6 +112,16 @@ class ComicBookArchive(BaseFormat):
 
         progress_bar.close()
 
+    def make_zip(self, path):
+        from ..config import env
+
+        return zipfile.ZipFile(
+            path,
+            "a" if os.path.exists(path) else "w",
+            compression=env.zip_compression_type,
+            compresslevel=env.zip_compression_level
+        )
+
     def main(self):
         manga = self.manga
         worker = self.create_worker()
@@ -132,10 +142,7 @@ class ComicBookArchive(BaseFormat):
 
             chapter_path = create_directory(chap_name, self.path)
 
-            chapter_zip = zipfile.ZipFile(
-                str(chapter_zip_path),
-                "a" if os.path.exists(chapter_zip_path) else "w"
-            )
+            chapter_zip = self.make_zip(chapter_zip_path)
 
             # Generate 'ComicInfo.xml' data
             xml_data = generate_Comicinfo(manga, chap_class)
@@ -216,10 +223,7 @@ class ComicBookArchiveVolume(ComicBookArchive):
             # Create volume folder
             volume_path = create_directory(volume, self.path)
 
-            volume_zip = zipfile.ZipFile(
-                str(volume_zip_path),
-                "a" if os.path.exists(volume_zip_path) else "w"
-            )
+            volume_zip = self.make_zip(volume_zip_path)
 
             for chap_class, chap_images in chapters:
                 img_name = count.get() + '.png'
@@ -280,10 +284,7 @@ class ComicBookArchiveSingle(ComicBookArchive):
                 log.info(f"{manga_zip_path.name} is exist and replace is False, cancelling download...")
                 return
 
-        manga_zip = zipfile.ZipFile(
-            str(manga_zip_path),
-            "a" if os.path.exists(manga_zip_path) else "w"
-        )
+        manga_zip = self.make_zip(manga_zip_path)
         path = create_directory(merged_name, self.path)
 
         for chap_class, chap_images in cache:
