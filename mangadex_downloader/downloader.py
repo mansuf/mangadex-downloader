@@ -172,8 +172,7 @@ class FileDownloader:
 
             # Try to get `accept-ranges` header to check if the server support `Range` header
             accept_range = resp.headers.get('accept-ranges')
-            init_file_size = initial_file_sizes if initial_file_sizes else 0
-            if accept_range is None and file_sizes != (init_file_size + file_sizes):
+            if accept_range is None:
                 # Server didn't support `Range` header
                 log.warning(
                     f"Server didn't support resume download, deleting '{os.path.basename(self.file)}'"

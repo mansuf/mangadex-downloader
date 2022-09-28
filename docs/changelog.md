@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.0a (Not yet released, still in development)
+
+### Fix bugs
+
+- Fixed download file is incomplete when network error happened
+
 ## v2.0.4
 
 ### Fix bugs
