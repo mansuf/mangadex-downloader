@@ -50,6 +50,18 @@ Same as `--force-https` or `-fh`
 Same as `--path` or `--folder` or `-d`
 ```
 
+```{option} dns_over_https
+Same as `-doh` or `--dns-over-https`
+```
+
+```{option} no_chapter_info
+Same as `-nci` or `--no-chapter-info`
+```
+
+```{option} no_group_name
+Same as `-ngn` or `--no-group-name`
+```
+
 ```{option} reset [config]
 Reset config back to default value
 ```
