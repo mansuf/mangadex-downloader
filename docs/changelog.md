@@ -7,6 +7,7 @@
 - Add new environment variables
   - `MANGADEXDL_ZIP_COMPRESSION_TYPE`
   - `MANGADEXDL_ZIP_COMPRESSION_LEVEL`
+- Added ability to download seasonal manga
 
 ### Fix bugs
 

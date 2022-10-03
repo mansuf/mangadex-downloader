@@ -617,6 +617,28 @@ class IteratorUserLibraryFollowsList(BaseIterator):
         
         self.offset += len(items)
 
+class IteratorSeasonalManga(IteratorMangaFromList):
+    owner_list = 'd2ae45e0-b5e2-4e7f-a688-17925c2d7d6b'
+
+    def __init__(self, season):
+        seasons = self._get_seasons()
+
+        try:
+            mdlist = seasons[season]
+        except KeyError:
+            raise MangaDexException(f"invalid season, available choices are {list(seasons.keys())}")
+        
+        super().__init__(mdlist.id)
+
+    @classmethod
+    def _get_seasons(self):
+        seasons = {}
+        for mdlist in IteratorUserList(self.owner_list):
+            name = mdlist.name.lower().replace('seasonal: ', '')
+            seasons[name] = mdlist
+        
+        return seasons
+
 def iter_random_manga(content_ratings):
     ids = []
     while True:

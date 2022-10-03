@@ -278,6 +278,16 @@ mangadex-dl "random:safe, suggestive"
 
 For more information, see {doc}`../cli_ref/random`
 
+## Download seasonal manga
+
+Trying to see something good in this season ?
+
+```shell
+mangadex-dl "seasonal"
+```
+
+For more information, see {doc}`../cli_ref/seasonal_manga`
+
 ## Update mangadex-downloader
 
 ```shell

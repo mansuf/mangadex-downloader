@@ -1,3 +1,6 @@
+import sys
+
+import requests
 from .utils import (
     Paginator, 
     dynamic_bars, 
@@ -7,12 +10,15 @@ from .utils import (
 )
 from ..iterator import (
     IteratorManga,
+    IteratorMangaFromList,
+    IteratorSeasonalManga,
     IteratorUserLibraryFollowsList,
     IteratorUserLibraryList,
     IteratorUserLibraryManga,
     IteratorUserList,
     iter_random_manga
 )
+from .. import __repository__
 from ..utils import input_handle, validate_url
 from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
 from ..network import Net
@@ -424,11 +430,59 @@ class RandomMangaCommand(MangaCommand):
         # This should never happened
         self.args_parser.error('Unknown error when fetching random manga')
 
+class SeasonalMangaCommand(MangaCommand):
+    def __init__(self, parser, args, input_text):
+        # Get season
+        _, season = get_key_value(input_text, sep=':')
+
+        season = season.lower().strip()
+
+        if season == "list":
+            self._print_help()
+        elif not season:
+            # Current season
+            r = Net.requests.get(f'https://raw.githubusercontent.com/{__repository__}/main/seasonal_manga_now.txt')
+            try:
+                r.raise_for_status()
+            except requests.HTTPError as e:
+                raise MangaDexException(f"failed to get current seasonal manga, reason: {e}")
+            
+            season_list_id = validate_url(r.text)
+            iterator = IteratorMangaFromList(season_list_id)
+            season = iterator.name
+        else:
+            season = f'Seasonal: {season.capitalize()}'
+            iterator = IteratorSeasonalManga(season)
+
+        text = f"List of manga from {season}"
+        super().__init__(
+            parser,
+            args,
+            iterator,
+            text
+        )
+
+    def _print_help(self):
+        header = "Available seasons"
+
+        print(header)
+        print(dynamic_bars(header), end='\n\n')
+
+        for season in IteratorSeasonalManga._get_seasons():
+            print(season)
+        
+        sys.exit(0)
+
+    def on_empty_error(self):
+        # This should never happened
+        self.args_parser.error('Unknown error when fetching seasonal manga')
+
 registered_commands = {
     "search": SearchMangaCommand,
     "fetch_library_manga": MangaLibraryCommand,
     "fetch_library_list": ListLibraryCommand,
     "fetch_library_follows_list": FollowedListLibraryCommand,
     "random": RandomMangaCommand,
-    "fetch_group": GroupMangaCommand
+    "fetch_group": GroupMangaCommand,
+    "seasonal": SeasonalMangaCommand
 }

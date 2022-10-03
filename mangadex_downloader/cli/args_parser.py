@@ -250,6 +250,7 @@ class InputHandler(argparse.Action):
         random = urls.startswith('random')
         group = urls.startswith('group')
         file = urls.startswith('file')
+        seasonal = urls.startswith('seasonal')
 
         if self.pipe and self.search:
             parser.error("search with pipe input are not supported")
@@ -311,6 +312,7 @@ class InputHandler(argparse.Action):
         setattr(namespace, 'random', random)
         setattr(namespace, 'fetch_group', group)
         setattr(namespace, 'file', file)
+        setattr(namespace, 'seasonal', seasonal)
 
 def get_args(argv):
     parser = ModifiedArgumentParser(description=__description__)

@@ -245,6 +245,7 @@ random
 manga_library
 list_library
 follow_list_library
+seasonal_manga
 config
 auth_cache
 env_vars
