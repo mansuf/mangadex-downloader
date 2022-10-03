@@ -61,7 +61,7 @@ class BaseIterator:
         raise NotImplementedError
 
     def next(self):
-        raise NotImplementedError
+        return self.queue.get_nowait()
 
 class SearchFilterError(MangaDexException):
     def __init__(self, key, msg):
@@ -341,9 +341,6 @@ class IteratorManga(BaseIterator):
 
         return params
 
-    def next(self) -> Manga:
-        return self.queue.get_nowait()
-
     def fill_data(self):
         params = self._get_params()
         url = f'{base_url}/manga'
@@ -409,7 +406,7 @@ class IteratorUserLibraryManga(BaseIterator):
 
     def next(self) -> Manga:
         while True:
-            manga = self.queue.get_nowait()
+            manga = super().next()
 
             if not self._check_status(manga):
                 # Filter is used
@@ -472,12 +469,6 @@ class IteratorMangaFromList(BaseIterator):
             elif _type == 'user':
                 self.user = User(_id)
     
-    def next(self) -> Manga:
-        while True:
-            manga = self.queue.get_nowait()
-            
-            return manga
-    
     def fill_data(self):
         ids = self.manga_ids
         includes = ['author', 'artist', 'cover_art']
@@ -527,9 +518,6 @@ class IteratorUserLibraryList(BaseIterator):
         if not logged_in:
             raise NotLoggedIn("Retrieving user library require login")
 
-    def next(self) -> MangaDexList:
-        return self.queue.get_nowait()
-
     def fill_data(self):
         params = {
             'limit': self.limit,
@@ -553,9 +541,6 @@ class IteratorUserList(BaseIterator):
         self.limit = 100
         self.user = User(_id)
     
-    def next(self) -> MangaDexList:
-        return self.queue.get_nowait()
-
     def fill_data(self):
         params = {
             'limit': self.limit,
@@ -597,9 +582,6 @@ class IteratorUserLibraryFollowsList(BaseIterator):
         logged_in = Net.mangadex.check_login()
         if not logged_in:
             raise NotLoggedIn("Retrieving user library require login")
-
-    def next(self) -> MangaDexList:
-        return self.queue.get_nowait()
 
     def fill_data(self):
         params = {
