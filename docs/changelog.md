@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.2.0a (Not released)
+
+### New features
+
+- Added new environment variables
+  - `MANGADEXDL_USER_BLACKLIST`
+  - `MANGADEXDL_GROUP_BLACKLIST`
+- Added ability to blacklist users and groups uploaded chapter
+
 ## v2.1.0
 
 ### New features

@@ -35,7 +35,7 @@ from .fetcher import (
 from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
-from .config import config
+from .config import config, env
 from .utils import convert_int_or_float
 # from . import range as range_mod # range_mod stands for "range module"
 
@@ -490,6 +490,23 @@ class IteratorChapter:
             return False
 
         if not self._check_range_chapter(chap):
+            return False
+
+        # Check blacklisted groups and users
+        if chap.groups:
+            for group in chap.groups:
+                if group.id in env.group_blacklist:
+                    log.info(
+                        f"Ignoring chapter {chap.chapter}, " \
+                        f"because group '{group.name}' is blacklisted"
+                    )
+                    return False
+
+        if chap.user.id in env.user_blacklist:
+            log.info(
+                f"Ignoring chapter {chap.chapter}, " \
+                f"because user '{chap.user.name}' is blacklisted"
+            )
             return False
 
         # Check if it's same group as self.group

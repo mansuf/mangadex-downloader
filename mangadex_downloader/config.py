@@ -38,6 +38,7 @@ from . import format as fmt
 from .language import Language, get_language
 from .errors import MangaDexException
 from .cover import default_cover_type, valid_cover_types
+from .utils import validate_url
 
 log = logging.getLogger(__name__)
 
@@ -106,6 +107,22 @@ def _validate_int(val):
     except ValueError:
         raise ConfigTypeError(f"'{val}' is not valid integer")
 
+def _validate_blacklist(val):
+    values = [i.strip() for i in val.split(',')]
+
+    blacklisted = []
+    for url in values:
+        if os.path.exists(url):
+            fp = open(url, 'r')
+            content = [validate_url(i) for i in fp.read().splitlines()]
+            fp.close()
+        else:
+            content = [validate_url(url)]
+
+        blacklisted.extend(content)
+    
+    return blacklisted
+
 class EnvironmentVariables:
     _vars = [
         [
@@ -127,6 +144,16 @@ class EnvironmentVariables:
             'zip_compression_level',
             None,
             _validate_int
+        ],
+        [
+            'user_blacklist',
+            tuple(),
+            _validate_blacklist
+        ],
+        [
+            'group_blacklist',
+            tuple(),
+            _validate_blacklist
         ]
     ]
 
@@ -134,9 +161,16 @@ class EnvironmentVariables:
         self.data = {}
 
         for key, default_value, validator in self._vars:
-            env_value = os.environ.get(f'MANGADEXDL_{key.upper()}')
+            env_key = f'MANGADEXDL_{key.upper()}'
+            env_value = os.environ.get(env_key)
             if env_value is not None:
-                self.data[key] = validator(env_value)
+                try:
+                    self.data[key] = validator(env_value)
+                except Exception as e:
+                    raise MangaDexException(
+                        f'An error happened when validating env {env_key}. ' \
+                        f'Reason: {e}'
+                    ) from None
             else:
                 self.data[key] = default_value
         
