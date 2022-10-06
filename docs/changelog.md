@@ -7,6 +7,9 @@
 - Added new environment variables
   - `MANGADEXDL_USER_BLACKLIST`
   - `MANGADEXDL_GROUP_BLACKLIST`
+- Added new config
+  - `sort_by`
+- Added `--sort-by`, Sorting download by `volume` or `chapter`
 - Added ability to blacklist users and groups uploaded chapter
 
 ## v2.1.0

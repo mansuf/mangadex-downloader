@@ -609,6 +609,7 @@ class IteratorChapter:
                 chapters_data[item['id']] = item
 
         # Begin parsing
+        chapters = []
         for ag_chap in chap_others:
             data = chapters_data[ag_chap]
 
@@ -618,8 +619,20 @@ class IteratorChapter:
                 use_chapter_title=self.use_chapter_title
             )
 
-            self.queue.put(chap)
+            chapters.append(chap)
+
+        def sort_chapter(c):
+            try:
+                return convert_int_or_float(c.chapter)
+            except ValueError:
+                return float('nan')
+
+        if config.sort_by == 'chapter':
+            chapters = sorted(chapters, key=sort_chapter)
         
+        for chap in chapters:
+            print(chap.chapter, chap.volume)
+            # self.queue.put(chap)
 
 class MangaChapter:
     def __init__(self, manga, lang, chapter=None, all_chapters=False):

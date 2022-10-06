@@ -123,6 +123,13 @@ def _validate_blacklist(val):
     
     return blacklisted
 
+def _validate_sort_by(val):
+    sort_by = ["volume", "chapter"]
+    if val not in sort_by:
+        raise ConfigTypeError(f"'{val}' is not valid sort by value, must be {sort_by}")
+    
+    return val
+
 class EnvironmentVariables:
     _vars = [
         [
@@ -263,6 +270,10 @@ class _Config:
         "no_group_name": [
             False,
             _validate_bool
+        ],
+        "sort_by": [
+            "volume",
+            _validate_sort_by
         ]
     }
     default_conf = {

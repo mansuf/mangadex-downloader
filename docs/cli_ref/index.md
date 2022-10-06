@@ -120,6 +120,10 @@ because creation of chapter info is totally disabled for any `epub` formats
 Disable creation of chapter info for any `single` and `volume` formats
 ````
 
+```{option} --sort-by
+Download sorting method, by default it's selected to `volume`
+```
+
 ### Chapter page related
 
 ```{option} --start-page -sp NUM_PAGE

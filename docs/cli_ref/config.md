@@ -62,6 +62,10 @@ Same as `-nci` or `--no-chapter-info`
 Same as `-ngn` or `--no-group-name`
 ```
 
+```{option} sort_by
+Same as `--sort-by`
+```
+
 ```{option} reset [config]
 Reset config back to default value
 ```

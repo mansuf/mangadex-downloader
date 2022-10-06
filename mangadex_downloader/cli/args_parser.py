@@ -454,6 +454,11 @@ def get_args(argv):
         '-rg',
         help='[DISABLED] A range pattern to download specific chapters'
     )
+    chap_group.add_argument(
+        '--sort-by',
+        help='Download sorting method, by default it\'s selected to "volume"',
+        default=config.sort_by
+    )
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")
