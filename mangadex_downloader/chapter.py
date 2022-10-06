@@ -631,8 +631,7 @@ class IteratorChapter:
             chapters = sorted(chapters, key=sort_chapter)
         
         for chap in chapters:
-            print(chap.chapter, chap.volume)
-            # self.queue.put(chap)
+            self.queue.put(chap)
 
 class MangaChapter:
     def __init__(self, manga, lang, chapter=None, all_chapters=False):
