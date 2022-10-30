@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Improvements
+
+- When executing `login_cache:purge` cached auth tokens will be invalidated (not only purged)
+
 ## v2.2.0
 
 ### New features
