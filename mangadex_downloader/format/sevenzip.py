@@ -54,23 +54,24 @@ class SevenZip(BaseFormat):
     def convert(self, images, path, pb=True): # `pb` stands for progress bar
         progress_bar = None
         if pb:
-            progress_bar = tqdm.tqdm(
-                desc='cb7_progress',
-                total=len(images),
-                initial=0,
-                unit='item'
-            )
+            # Don't mind me
+            pb = self.config.no_progress_bar
+
+        progress_bar = tqdm.tqdm(
+            desc='cb7_progress',
+            total=len(images),
+            initial=0,
+            unit='item',
+            disable=pb
+        )
 
         for im_path in images:
 
             with py7zr.SevenZipFile(path, "a" if os.path.exists(path) else "w") as zip_obj:
                 zip_obj.write(im_path, im_path.name)
-            
-            if pb:
                 progress_bar.update(1)
         
-        if pb:
-            progress_bar.close()
+        progress_bar.close()
 
     def main(self):
         manga = self.manga

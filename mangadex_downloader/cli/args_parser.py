@@ -585,6 +585,13 @@ def get_args(argv):
         nargs=0,
         help='Print mangadex-downloader version'
     )
+    misc_group.add_argument(
+        '--no-progress-bar',
+        '-npb',
+        action='store_true',
+        default=config.no_progress_bar,
+        help='Disable progress bar when downloading or converting'
+    )
 
     # Update application
     update_group = parser.add_argument_group('Update application')

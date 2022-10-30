@@ -103,7 +103,8 @@ class ComicBookArchive(BaseFormat):
             desc='cbz_progress',
             total=len(images),
             initial=0,
-            unit='item'
+            unit='item',
+            disable=not self.progress_bar
         )
 
         for im_path in images:

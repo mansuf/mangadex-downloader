@@ -313,13 +313,14 @@ class EpubPlugin:
         self._container = root
     
     def write(self, path):
-        from ..config import env
+        from ..config import env, config
 
         progress_bar = tqdm.tqdm(
             total=len(self._pages),
             initial=0,
             desc='epub_progress',
-            unit='item'
+            unit='item',
+            disable=config.no_progress_bar
         )
 
         with zipfile.ZipFile(

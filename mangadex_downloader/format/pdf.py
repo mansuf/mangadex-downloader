@@ -62,11 +62,15 @@ class _PageRef:
 
 class PDFPlugin:
     def __init__(self, ims):
+        # "Circular Imports" problem
+        from ..config import config
+
         self.tqdm = tqdm(
             desc='pdf_progress',
             total=len(ims),
             initial=0,
             unit='item',
+            disable=config.no_progress_bar
         )
 
         self.register_pdf_handler()

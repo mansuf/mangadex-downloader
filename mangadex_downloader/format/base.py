@@ -40,6 +40,7 @@ class BaseFormat:
         # "Circular imports" problem
         from ..config import config
 
+        self.config = config
         self.path = path
         self.manga = manga
         self.compress_img = config.use_compressed_image
@@ -99,7 +100,8 @@ class BaseFormat:
                 downloader = ChapterPageDownloader(
                     img_url,
                     img_path,
-                    replace=replace
+                    replace=replace,
+                    progress_bar=not self.config.no_progress_bar
                 )
                 success = downloader.download()
                 downloader.cleanup()

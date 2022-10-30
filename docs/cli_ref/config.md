@@ -66,6 +66,10 @@ Same as `-ngn` or `--no-group-name`
 Same as `--sort-by`
 ```
 
+```{option} no_progress_bar
+Same as `-npb` or `--no-progress-bar`
+```
+
 ```{option} reset [config]
 Reset config back to default value
 ```

@@ -231,6 +231,10 @@ If set, the app will accept pipe input
 Print mangadex-downloader version
 ```
 
+```{option} -npb --no-progress-bar
+Disable progress bar when downloading or converting
+```
+
 ### Update application
 
 ```{option} --update

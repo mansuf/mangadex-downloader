@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+### New features
+
+- Added ability to disable progress bar
+
 ### Improvements
 
 - When executing `login_cache:purge` cached auth tokens will be invalidated (not only purged)

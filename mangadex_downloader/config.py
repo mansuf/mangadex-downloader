@@ -274,6 +274,10 @@ class _Config:
         "sort_by": [
             "volume",
             _validate_sort_by
+        ],
+        "no_progress_bar": [
+            False,
+            _validate_bool
         ]
     }
     default_conf = {

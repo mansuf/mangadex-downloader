@@ -85,7 +85,12 @@ def download(
         # The manga doesn't have cover
         log.info(f"Not downloading cover manga, since manga '{manga.title}' doesn\'t have cover")
     else:
-        fd = FileDownloader(cover_url, cover_path, replace=replace)
+        fd = FileDownloader(
+            cover_url,
+            cover_path,
+            replace=replace,
+            progress_bar=not config.no_progress_bar
+        )
         fd.download()
         fd.cleanup()
 
