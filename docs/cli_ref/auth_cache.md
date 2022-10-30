@@ -13,7 +13,7 @@ mangadex-dl "login_cache:<command>"
 ## Available commands
 
 ```{option} purge
-Purge cached authentication tokens
+Invalidate and purge cached authentication tokens
 ```
 
 ```{option} show
@@ -38,7 +38,7 @@ Show cached authentication tokens
 mangadex-dl "conf:login_cache=1"
 ```
 
-### Purge cached authentication tokens
+### Invalidate and purge cached authentication tokens
 
 ```shell
 mangadex-dl "login_cache:purge"
