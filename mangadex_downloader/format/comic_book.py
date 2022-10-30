@@ -104,7 +104,7 @@ class ComicBookArchive(BaseFormat):
             total=len(images),
             initial=0,
             unit='item',
-            disable=not self.progress_bar
+            disable=self.config.no_progress_bar
         )
 
         for im_path in images:
