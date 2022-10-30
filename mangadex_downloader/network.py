@@ -96,7 +96,7 @@ class requestsMangaDexSession(ModifiedSession):
     """
     def __init__(self, trust_env=True) -> None:
         # "Circular imports" problem
-        from .config import login_cache
+        from .config import login_cache, config_enabled
 
         super().__init__()
         self.trust_env = trust_env
@@ -113,6 +113,7 @@ class requestsMangaDexSession(ModifiedSession):
         self._session_token = None
         self._refresh_token = None
 
+        self._config_enabled = config_enabled
         self._login_cache = login_cache
 
         # For auto-renew login
@@ -377,12 +378,12 @@ class requestsMangaDexSession(ModifiedSession):
         t = threading.Thread(target=self._renew_login, daemon=True)
         t.start()
 
-    def logout(self):
+    def logout(self, purge=False):
         """Logout from MangaDex"""
         if not self.check_login():
             raise NotLoggedIn("User are not logged in")
 
-        if self._is_token_cached():
+        if not purge and self._is_token_cached():
             # To prevent error "Missing session" when renewing session token
             return
 
@@ -392,6 +393,9 @@ class requestsMangaDexSession(ModifiedSession):
         self._reset_token()
         self._notify_login_fut()
         self._login_fut = Future()
+
+        if purge and self._config_enabled:
+            self._login_cache.purge()
 
         log.info("Logged out from MangaDex")
 
