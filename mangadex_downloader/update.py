@@ -20,7 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import hashlib
 import os
+import re
 import sys
 import subprocess
 import sys
@@ -60,13 +62,29 @@ def _get_asset(_version):
         version = 'v' + version
 
     r = Net.requests.get('https://api.github.com/repos/mansuf/mangadex-downloader/releases')
+    rinfo = None
+    assets = None
+    download_url = None
+    file_hash = None
+    filename = None
     for release_info in r.json():
         if version == release_info['tag_name']:
+            rinfo = release_info
             assets = release_info['assets']
-            for asset in assets:
-                filename = 'mangadex-dl_{arch}_{version}.zip'.format(arch=architecture, version=version)
-                if asset['name'] == filename:
-                    return asset['browser_download_url']
+            break
+
+    # Find download url
+    for asset in assets:
+        filename = 'mangadex-dl_{arch}_{version}.zip'.format(arch=architecture, version=version)
+        if asset['name'] == filename:
+            download_url = asset['browser_download_url']
+            break
+    
+    re_hash = r'%s \| (?P<hash>.{1,}) \|' % filename.replace('.', '\\.')
+    match = re.search(re_hash, rinfo['body'])
+    file_hash = match.group('hash')
+
+    return filename, download_url, file_hash
 
 def check_version():
     # Get latest version
@@ -94,7 +112,7 @@ def update_app():
 
         # Get url update
         try:
-            url_update = _get_asset(latest_version)
+            filename, url_update, file_hash = _get_asset(latest_version)
         except Exception as e:
             log.error("Failed to get update url, reason: %s" % e) 
             sys.exit(1)
@@ -108,7 +126,7 @@ def update_app():
                 log.error("Failed to create temporary folder, reason: %s" % e)
                 sys.exit(1)
 
-            update_file_path = str(temp_folder / ('%s.zip' % latest_version))
+            update_file_path = str(temp_folder / filename)
 
             log.info("Downloading update v%s" % latest_version)
             # Download update
@@ -121,6 +139,20 @@ def update_app():
                 shutil.rmtree(temp_folder, ignore_errors=True)
                 sys.exit(1)
 
+            # Verify downloaded file
+            log.info("Verifying update...")
+            file_sha256 = hashlib.sha256()
+            with open(update_file_path, 'rb') as o:
+                file_sha256.update(o.read())
+            
+            if file_sha256.hexdigest() != file_hash:
+                log.error("Failed to verify downloaded file, reason: File hash is not matching")
+                shutil.rmtree(temp_folder, ignore_errors=True)
+                sys.exit(1)
+
+            log.info("Update file is verified")
+
+            log.info("Installing update...")
             # Extract update
             try:
                 with zipfile.ZipFile(update_file_path, 'r') as update:

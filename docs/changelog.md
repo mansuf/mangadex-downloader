@@ -9,6 +9,7 @@
 ### Improvements
 
 - When executing `login_cache:purge` cached auth tokens will be invalidated (not only purged)
+- Update in bundled executable is now verify the file before proceed to install
 
 ## v2.2.0
 
