@@ -27,6 +27,7 @@ import sys
 import logging
 import tempfile
 import zipfile
+import shutil
 from packaging.version import parse as parse_version
 from pathlib import Path
 
@@ -117,6 +118,7 @@ def update_app():
                 fd.cleanup()
             except Exception as e:
                 log.error("Failed to download update, reason: %s" % e)
+                shutil.rmtree(temp_folder, ignore_errors=True)
                 sys.exit(1)
 
             # Extract update
@@ -125,6 +127,7 @@ def update_app():
                     update.extractall(Path(update_file_path).parent)
             except Exception as e:
                 log.error("Failed to extract update, reason: %s" % e)
+                shutil.rmtree(temp_folder, ignore_errors=True)
                 sys.exit(1)
 
             extracted_update_path = str(temp_folder / 'mangadex-dl')
