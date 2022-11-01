@@ -33,9 +33,17 @@ from .. import __repository__
 log = logging.getLogger(__name__)
 
 def get_chapter_info(chapter, path, replace):
+    # "Circular Imports" problem
+    from ..config import config
+
     log.info(f'Getting chapter info for "{chapter.get_name()}"')
     url = f'https://og.mangadex.org/og-image/chapter/{chapter.id}'
-    fd = FileDownloader(url, path, replace=replace)
+    fd = FileDownloader(
+        url,
+        path,
+        replace=replace,
+        progress_bar=not config.no_progress_bar
+    )
     fd.download()
     fd.cleanup()
 

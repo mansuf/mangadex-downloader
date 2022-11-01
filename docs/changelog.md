@@ -6,6 +6,10 @@
 
 - Added filters on `random` manga
 
+### Fix bugs
+
+- Fixed progress bar are not hidden when `--no-progress-bar` is used
+
 ### Dependecies
 
 - Bump Pillow to v9.3.0
