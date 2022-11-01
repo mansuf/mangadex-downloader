@@ -364,6 +364,13 @@ def get_args(argv):
         help='Search manga and then download it',
         action='store_true'
     )
+    search_group.add_argument(
+        '--search-filter',
+        '-sf',
+        help='NOTE: Deprecated, will be removed in v2.6.0. Use --filter or -ft instead. ' \
+             'Apply filter when searching manga',
+        action='append'
+    )
 
     # Manga related
     manga_group = parser.add_argument_group('Manga')
