@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Dependecies
+
+- Bump Pillow to v9.3.0
+
 ## v2.3.0
 
 ### New features

@@ -24,6 +24,7 @@ import logging
 import io
 import os
 import time
+import math
 import shutil
 
 from pathvalidate import sanitize_filename
@@ -44,7 +45,8 @@ try:
         ImageFile,
         ImageSequence,
         PdfParser,
-        __version__
+        __version__,
+        features
     )
 except ImportError:
     pillow_ready = False
@@ -101,7 +103,7 @@ class PDFPlugin:
     def _save_all(self, im, fp, filename):
         self._save(im, fp, filename, save_all=True)
 
-    # This was modified version of Pillow/PdfImagePlugin.py version 9.0.1
+    # This was modified version of Pillow/PdfImagePlugin.py version 9.3.0
     # The images will be automatically converted to RGB and closed when done converting to PDF
     def _save(self, im, fp, filename, save_all=False):
         is_appending = im.encoderinfo.get("append", False)
@@ -145,22 +147,22 @@ class PDFPlugin:
             append_images = im.encoderinfo.get("append_images", [])
             ims.extend(append_images)
 
-        numberOfPages = 0
+        number_of_pages = 0
         image_refs = []
         page_refs = []
         contents_refs = []
         for im_ref in ims:
             img = im_ref() if isinstance(im_ref, _PageRef) else im_ref
-            im_numberOfPages = 1
+            im_number_of_pages = 1
             if save_all:
                 try:
-                    im_numberOfPages = img.n_frames
+                    im_number_of_pages = img.n_frames
                 except AttributeError:
                     # Image format does not have n_frames.
                     # It is a single frame image
                     pass
-            numberOfPages += im_numberOfPages
-            for i in range(im_numberOfPages):
+            number_of_pages += im_number_of_pages
+            for i in range(im_number_of_pages):
                 image_refs.append(existing_pdf.next_object_id(0))
                 page_refs.append(existing_pdf.next_object_id(0))
                 contents_refs.append(existing_pdf.next_object_id(0))
@@ -177,7 +179,7 @@ class PDFPlugin:
         if ImageFile.LOAD_TRUNCATED_IMAGES:
             ImageFile.LOAD_TRUNCATED_IMAGES = False
 
-        pageNumber = 0
+        page_number = 0
         for im_ref in ims:
             im = im_ref() if isinstance(im_ref, _PageRef) else im_ref
 
@@ -185,18 +187,18 @@ class PDFPlugin:
 
             if im.mode != 'RGB':
                 # Convert to RGB mode
-                imSequence = im.convert('RGB')
+                im_sequence = im.convert('RGB')
 
                 # Close image to save memory
                 im.close()
             else:
                 # Already in RGB mode
-                imSequence = im
+                im_sequence = im
 
             # Copy necessary encoderinfo to new image
-            imSequence.encoderinfo = encoderinfo.copy()
+            im_sequence.encoderinfo = encoderinfo.copy()
 
-            im_pages = ImageSequence.Iterator(imSequence) if save_all else [imSequence]
+            im_pages = ImageSequence.Iterator(im_sequence) if save_all else [im_sequence]
             for im in im_pages:
                 # FIXME: Should replace ASCIIHexDecode with RunLengthDecode
                 # (packbits) or LZWDecode (tiff/lzw compression).  Note that
@@ -206,11 +208,31 @@ class PDFPlugin:
                 params = None
                 decode = None
 
+                #
+                # Get image characteristics
+
+                width, height = im.size
+
                 if im.mode == "1":
-                    filter = "DCTDecode"
+                    if features.check("libtiff"):
+                        filter = "CCITTFaxDecode"
+                        bits = 1
+                        params = PdfParser.PdfArray(
+                            [
+                                PdfParser.PdfDict(
+                                    {
+                                        "K": -1,
+                                        "BlackIs1": True,
+                                        "Columns": width,
+                                        "Rows": height,
+                                    }
+                                )
+                            ]
+                        )
+                    else:
+                        filter = "DCTDecode"
                     colorspace = PdfParser.PdfName("DeviceGray")
                     procset = "ImageB"  # grayscale
-                    bits = 1
                 elif im.mode == "L":
                     filter = "DCTDecode"
                     # params = f"<< /Predictor 15 /Columns {width-2} >>"
@@ -245,6 +267,14 @@ class PDFPlugin:
 
                 if filter == "ASCIIHexDecode":
                     ImageFile._save(im, op, [("hex", (0, 0) + im.size, 0, im.mode)])
+                elif filter == "CCITTFaxDecode":
+                    im.save(
+                        op,
+                        "TIFF",
+                        compression="group4",
+                        # use a single strip
+                        strip_size=math.ceil(im.width / 8) * im.height,
+                    )
                 elif filter == "DCTDecode":
                     Image.SAVE["JPEG"](im, op, filename)
                 elif filter == "FlateDecode":
@@ -254,22 +284,24 @@ class PDFPlugin:
                 else:
                     raise ValueError(f"unsupported PDF filter ({filter})")
 
-                #
-                # Get image characteristics
-
-                width, height = im.size
+                stream = op.getvalue()
+                if filter == "CCITTFaxDecode":
+                    stream = stream[8:]
+                    filter = PdfParser.PdfArray([PdfParser.PdfName(filter)])
+                else:
+                    filter = PdfParser.PdfName(filter)
 
                 existing_pdf.write_obj(
-                    image_refs[pageNumber],
-                    stream=op.getvalue(),
+                    image_refs[page_number],
+                    stream=stream,
                     Type=PdfParser.PdfName("XObject"),
                     Subtype=PdfParser.PdfName("Image"),
                     Width=width,  # * 72.0 / resolution,
                     Height=height,  # * 72.0 / resolution,
-                    Filter=PdfParser.PdfName(filter),
+                    Filter=filter,
                     BitsPerComponent=bits,
                     Decode=decode,
-                    DecodeParams=params,
+                    DecodeParms=params,
                     ColorSpace=colorspace,
                 )
 
@@ -277,10 +309,10 @@ class PDFPlugin:
                 # page
 
                 existing_pdf.write_page(
-                    page_refs[pageNumber],
+                    page_refs[page_number],
                     Resources=PdfParser.PdfDict(
                         ProcSet=[PdfParser.PdfName("PDF"), PdfParser.PdfName(procset)],
-                        XObject=PdfParser.PdfDict(image=image_refs[pageNumber]),
+                        XObject=PdfParser.PdfDict(image=image_refs[page_number]),
                     ),
                     MediaBox=[
                         0,
@@ -288,7 +320,7 @@ class PDFPlugin:
                         width * 72.0 / resolution,
                         height * 72.0 / resolution,
                     ],
-                    Contents=contents_refs[pageNumber],
+                    Contents=contents_refs[page_number],
                 )
 
                 #
@@ -299,13 +331,13 @@ class PDFPlugin:
                     height * 72.0 / resolution,
                 )
 
-                existing_pdf.write_obj(contents_refs[pageNumber], stream=page_contents)
+                existing_pdf.write_obj(contents_refs[page_number], stream=page_contents)
 
                 self.tqdm.update(1)
-                pageNumber += 1
+                page_number += 1
             
             # Close image to save memory
-            imSequence.close()
+            im_sequence.close()
 
             # For security sake
             if truncated:
