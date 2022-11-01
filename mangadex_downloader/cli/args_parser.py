@@ -349,6 +349,12 @@ def get_args(argv):
         action='store_true'
     )
     parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
+    parser.add_argument(
+        '--filter',
+        '-ft',
+        help='Apply filter to search and random manga',
+        action='append'
+    )
 
     # Search related
     search_group = parser.add_argument_group('Search')
@@ -357,12 +363,6 @@ def get_args(argv):
         '-s',
         help='Search manga and then download it',
         action='store_true'
-    )
-    search_group.add_argument(
-        '--search-filter',
-        '-sf',
-        help='Apply filter when searching manga',
-        action='append'
     )
 
     # Manga related

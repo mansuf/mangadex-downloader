@@ -322,13 +322,13 @@ class FollowedListLibraryCommand(MDListCommand):
     def on_empty_error(self):
         self.args_parser.error(f'User "{self.user.name}" has no followed lists')
 
-class SearchMangaCommand(MangaCommand):
-    """A command that will prompt user to select which manga to download (from search)"""
-    def __init__(self, parser, args, input_text):
+class FilterEnabled:
+    @classmethod
+    def parse_filter(cls, args):
         # Parse filters
         orders = {}
         filter_kwargs = {}
-        filters = args.search_filter or []
+        filters = args.filter or []
         for f in filters:
             key, value  = get_key_value(f)
             try:
@@ -359,7 +359,15 @@ class SearchMangaCommand(MangaCommand):
             filter_kwargs.pop(key)
 
         # This much safer
-        filter_kwargs['order'] = orders
+        if orders:
+            filter_kwargs['order'] = orders
+
+        return filter_kwargs
+
+class SearchMangaCommand(MangaCommand, FilterEnabled):
+    """A command that will prompt user to select which manga to download (from search)"""
+    def __init__(self, parser, args, input_text):
+        filter_kwargs = self.parse_filter(args)
 
         iterator = IteratorManga(input_text, **filter_kwargs)
         super().__init__(
@@ -400,23 +408,11 @@ class GroupMangaCommand(MangaCommand):
     def on_empty_error(self):
         self.args_parser.error(f'Group "{self.group.name}" has no uploaded mangas')
 
-class RandomMangaCommand(MangaCommand):
+class RandomMangaCommand(MangaCommand, FilterEnabled):
     def __init__(self, parser, args, input_text):
-        # Parse content ratings
-        _, raw_cr = get_key_value(input_text, sep=':')
-        content_ratings = split_comma_separated(raw_cr, single_value_to_list=True)
+        filters = self.parse_filter(args)
 
-        if not content_ratings[0]:
-            # Fallback to default value
-            content_ratings = [i.value for i in ContentRating]
-        else:
-            # Verify it
-            try:
-                content_ratings = [ContentRating(i).value for i in content_ratings]
-            except ValueError as e:
-                raise MangaDexException(e)
-
-        iterator = iter_random_manga(content_ratings)
+        iterator = iter_random_manga(**filters)
         text = f'Found random manga'
         super().__init__(
             parser,
