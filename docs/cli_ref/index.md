@@ -50,6 +50,12 @@ Store manga in given folder / directory
 Replace manga, chapter, or list (if exist)
 ```
 
+```{option} --filter -ft
+Apply filter to search and random manga
+
+For more information, see {doc}`./filters`
+```
+
 ```{option} --verbose
 Enable verbose output
 ```
@@ -58,12 +64,6 @@ Enable verbose output
 
 ```{option} --search -s
 Search a manga and then download it
-```
-
-```{option} --search-filter -sf
-Apply filter when searching manga
-
-For more info about available filters, see {doc}`./search_filters`
 ```
 
 ### Manga related
@@ -248,7 +248,7 @@ Update mangadex-downloader to latest version
 
 file_command
 chapter_info
-search_filters
+filters
 random
 manga_library
 list_library

@@ -1,27 +1,27 @@
-# Search filters
+# Filters
 
 ## Syntax
 
+It's accesible from `-ft` or `--filter` option
+
 ```shell
-mangadex-dl -s -sf "KEY=VALUE"
+mangadex-dl -s -ft "KEY=VALUE"
 ```
 
 It also support multiple values separated by commas
 
 ```shell
-mangadex-dl -s -sf "KEY=VALUE1,VALUE2,VALUE3"
+mangadex-dl "random" -ft "KEY=VALUE1,VALUE2,VALUE3"
 ```
 
-Also, you can do this too
+```{note}
+random manga has limited filters, here a list of available filters for random manga.
 
-```shell
-mangadex-dl -s -sf "KEY=VALUE1" -sf "KEY=VALUE2" -sf "KEY=VALUE3"
-```
+- included_tags
+- included_tags_mode
+- excluded_tags
+- excluded_tags_mode
 
-And this too
-
-```shell
-mangadex-dl -s -sf "KEY=VALUE1,VALUE2" -sf "KEY=VALUE3,VALUE4"
 ```
 
 ## Available filters
@@ -134,11 +134,17 @@ value must matching format `%Y-%m-%dT%H:%M:%S`
 Search manga with content rating erotica and status completed 
 
 ```shell
-mangadex-dl -s -sf "original_language=Japanese" -sf "content_rating=erotica" -sf "status=completed"
+mangadex-dl -s -ft "original_language=Japanese" -ft "content_rating=erotica" -ft "status=completed"
 ```
 
 Search manhwa with "highest rating" order
 
 ```shell
-mangadex-dl -s -sf "original_language=Korean" -sf "order[rating]=descending"
+mangadex-dl -s -ft "original_language=Korean" -ft "order[rating]=descending"
+```
+
+Random manga with oneshot tags but without yuri and yaoi tags
+
+```shell
+mangadex-dl "random" -ft "included_tags=oneshot" -ft "excluded_tags=boys' love, girls' love"
 ```

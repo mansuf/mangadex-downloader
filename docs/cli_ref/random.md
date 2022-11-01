@@ -3,24 +3,25 @@
 ## Syntax
 
 ```shell
-mangadex-dl "random:{CONTENT_RATINGS}"
+mangadex-dl "random"
 ```
 
-## Arguments
+With filter
 
-```{option} CONTENT_RATINGS
-Content ratings of manga
-
-must be one of:
-
-- safe
-- suggestive
-- erotica
-- pornographic
+```shell
+mangadex-dl "random" -ft "KEY=VALUE"
 ```
+
+For more information about filters, see {doc}`./filters`
 
 ## Example usage
 
 ```shell
-mangadex-dl "random:safe, suggestive"
+mangadex-dl "random"
+```
+
+Random manga with oneshot tags
+
+```shell
+mangadex-dl "random" -ft "included_tags=oneshot"
 ```

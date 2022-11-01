@@ -120,7 +120,7 @@ mangadex-dl "group:https://mangadex.org/group/063cf1b0-9e25-495b-b234-296579a344
 This was equal to these command if you use search with filters
 
 ```shell
-mangadex-dl -s -sf "group=063cf1b0-9e25-495b-b234-296579a34496"
+mangadex-dl -s -ft "group=063cf1b0-9e25-495b-b234-296579a34496"
 ```
 
 ## Blacklist a group or user
@@ -381,22 +381,33 @@ mangadex-dl "https://mangadex.org/title/..." --login
 
 For more information, you can see here -> {doc}`../cli_ref/auth_cache`
 
-## Search filters
+## Filters
 
-mangadex-downloader support search manga with filters. Which mean you can speed up your searching !
+mangadex-downloader support filters. These filters applied to search and random manga.
 
-Example usage
+Example usage (Search manga)
 
 ```shell
 # Search manhwa with status completed and ongoing, with tags "Comedy" and "Slice of life"
-mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=comedy, slice of life"
+mangadex-dl -s -ft "status=completed,ongoing" -ft "original_language=Korean" -ft "included_tags=comedy, slice of life"
 
 # or
 
-mangadex-dl -s -sf "status=completed,ongoing" -sf "original_language=Korean" -sf "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
+mangadex-dl -s -ft "status=completed,ongoing" -ft "original_language=Korean" -ft "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
 ```
 
-For more information about syntax and available filters, see {doc}`../cli_ref/search_filters`
+Example usage (Random manga)
+
+```shell
+# Search manga with tags "Comedy" and "Slice of life"
+mangadex-dl "random" -ft "included_tags=comedy, slice of life"
+
+# or
+
+mangadex-dl "random" -ft "included_tags=4d32cc48-9f00-4cca-9b5a-a839f0764984, e5301a23-ebd9-49dd-a0cb-2add944c7fe9"
+```
+
+For more information about syntax and available filters, see {doc}`../cli_ref/filters`
 
 ## Download manga, chapter, or list in forced HTTPS 443 port
 
