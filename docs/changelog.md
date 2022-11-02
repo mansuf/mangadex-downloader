@@ -18,6 +18,7 @@
 ### Dependecies
 
 - Bump Pillow to v9.3.0
+- Bump py7zr to v0.20.2
 
 ### Breaking changes
 

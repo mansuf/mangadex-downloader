@@ -1,5 +1,5 @@
 Pillow==9.3.0
-py7zr==0.20.0
+py7zr==0.20.2
 orjson
 beautifulsoup4
 lxml
