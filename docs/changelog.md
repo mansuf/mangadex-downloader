@@ -2,7 +2,7 @@
 
 ## UNRELEASED
 
-## New features
+### New features
 
 - Added filters on `random` manga
 
