@@ -16,7 +16,8 @@
 
 ### Breaking changes
 
-- `--search-filter` and `-sf` are no longer working as replaced with `--filter` and `-ft` option. It will be removed in v2.6.0
+- `--search-filter` and `-sf` are no longer working as replaced with `--filter` and `-ft` option. 
+The `--search-filter` and `-sf` option will be removed in v2.6.0
 
 ## v2.3.0
 
