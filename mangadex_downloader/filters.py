@@ -84,6 +84,10 @@ class Filter:
                 'artists[]',
                 self._dummy_validator,
             ),
+            'author_or_artist': _FilterKey(
+                'authorOrArtist',
+                lambda x: self._validate_uuid("author_or_artist", x),
+            ),
             'included_tags': _FilterKey(
                 'includedTags[]',
                 lambda x: self._validate_tags("included_tags", x),

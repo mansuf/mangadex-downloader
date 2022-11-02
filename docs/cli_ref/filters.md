@@ -28,10 +28,20 @@ random manga has limited filters, here a list of available filters for random ma
 
 ```{option} authors [VALUE1, VALUE2, ...]
 Authors of manga
+
+Value must be valid uuid or MangaDex url containing uuid. 
 ```
 
 ```{option} artists [VALUE1, VALUE2, ...]
 Artists of manga
+
+Value must be valid uuid or MangaDex url containing uuid. 
+```
+
+```{option} author_or_artist [VALUE]
+An Author OR an Artist within Manga
+
+Value must be valid uuid or MangaDex url containing uuid. 
 ```
 
 ```{option} year [INTEGER]

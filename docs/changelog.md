@@ -6,6 +6,11 @@
 
 - Added filters on `random` manga
 
+### Improvements
+
+- Added new filters
+  - `author_or_artist`
+
 ### Fix bugs
 
 - Fixed progress bar are not hidden when `--no-progress-bar` is used
