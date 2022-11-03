@@ -410,6 +410,14 @@ class GroupMangaCommand(MangaCommand):
 
 class RandomMangaCommand(MangaCommand, FilterEnabled):
     def __init__(self, parser, args, input_text):
+        _, value = get_key_value(input_text, sep=':')
+
+        if value:
+            raise MangaDexException(
+                "Syntax 'random:<content_rating>' are no longer supported, " \
+                "use --filter or -ft instead."
+            )
+
         filters = self.parse_filter(args)
 
         iterator = iter_random_manga(**filters)

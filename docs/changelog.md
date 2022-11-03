@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed `content_rating` filter is not working in `random` manga
+
 ## v2.4.1
 
 ### Fix bugs

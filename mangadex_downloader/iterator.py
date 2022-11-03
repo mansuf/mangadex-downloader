@@ -376,6 +376,7 @@ class IteratorSeasonalManga(IteratorMangaFromList):
 def iter_random_manga(**filters):
     ids = []
     f = Filter([
+        'content_rating',
         'included_tags',
         'included_tags_mode',
         'excluded_tags',
