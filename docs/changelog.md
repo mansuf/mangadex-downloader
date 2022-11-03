@@ -1,6 +1,6 @@
 # Changelog
 
-## UNRELEASED
+## v2.4.2
 
 ### Fix bugs
 
