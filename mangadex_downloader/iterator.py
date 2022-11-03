@@ -388,7 +388,6 @@ def iter_random_manga(**filters):
         }
         params.update(**filter_params)
         r = Net.mangadex.get(f'{base_url}/manga/random', params=params)
-        print(r.text, r.request.url)
         data = r.json()['data']
         manga = Manga(data=data)
 

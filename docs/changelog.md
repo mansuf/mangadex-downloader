@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.1
+
+### Fix bugs
+
+- Removed unnecessary console output from `random` command
+
 ## v2.4.0
 
 ### New features
