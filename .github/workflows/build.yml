@@ -40,19 +40,19 @@ jobs:
 
       - name: Install required libraries
         run: |
-          py -3-64 -m pip install -U pip
-          py -3-64 -m pip install -U wheel pyinstaller setuptools tox
+          py -${{ matrix.python-version }}-64 -m pip install -U pip
+          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools tox
           # For building lxml
-          py -3-64 -m pip install -U cython
-          py -3-64 -m pip install -U -r requirements.txt
-          py -3-64 -m pip install -U -r requirements-optional.txt
+          py -${{ matrix.python-version }}-64 -m pip install -U cython
+          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements.txt
+          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements-optional.txt
 
-          py -3-32 -m pip install -U pip
-          py -3-32 -m pip install -U wheel pyinstaller setuptools tox
+          py -${{ matrix.python-version }}-32 -m pip install -U pip
+          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools tox
           # For building lxml
-          py -3-32 -m pip install -U cython
-          py -3-32 -m pip install -U -r requirements.txt
-          py -3-32 -m pip install -U -r requirements-optional.txt
+          py -${{ matrix.python-version }}-32 -m pip install -U cython
+          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements.txt
+          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements-optional.txt
 
       - name: Test imports (x64)
         run: |
