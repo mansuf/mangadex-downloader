@@ -6,6 +6,11 @@
 
 - Fixed input command if user entering a invalid input on first try
 
+### Improvements
+
+- Do not download cover and create folder if manga doesn't contain downloadable chapters (for single language only)
+- Do not show traceback errors when manga doesn't have downloadable chapters
+
 ### New features
 
 - Added ability to block one or more tags

@@ -23,7 +23,7 @@
 import logging
 import traceback
 
-from ..errors import MangaDexException
+from ..errors import MangaDexException, ChapterNotFound
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +31,9 @@ def download(args):
     for url in args.URL:
         try:
             url(args, args.type)
+        except ChapterNotFound as e:
+            # Do not show traceback for "chapter not found" errors
+            log.error(e)
         except MangaDexException as e:
             # The error already explained
             log.error(e)

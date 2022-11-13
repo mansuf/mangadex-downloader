@@ -72,6 +72,12 @@ def download(
         )
         return manga
 
+    all_languages = lang == Language.All
+
+    if not all_languages:
+        log.info("Fetching all chapters...")
+        manga.fetch_chapters(lang.value, all_chapters=True)
+
     # Create folder for downloading
     base_path = create_directory(manga.title, config.path)
 
@@ -129,8 +135,6 @@ def download(
         # Execute main format
         fmt.main()
 
-    all_languages = lang == Language.All
-
     if all_languages:
         # Print info to users
         # Let the users know how many translated languages available
@@ -158,9 +162,6 @@ def download(
             log.info(f"Download finished for manga {manga.title} in {translated_lang.name} language")
         
     else:
-        log.info("Fetching all chapters...")
-        manga.fetch_chapters(lang.value, all_chapters=True)
-
         log.info(f'Download directory is set to "{base_path.resolve()}"')
         download_manga(manga, base_path)
                 
