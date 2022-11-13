@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+### Fix bugs
+
+- Fixed input command if user entering a invalid input on first try
+
 ### New features
 
 - Added ability to block one or more tags

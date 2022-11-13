@@ -192,12 +192,13 @@ class BaseCommand:
                     else:
                         return item
                 
-                try:
-                    self._insert_choices(choices, action)
-                except IteratorEmpty:
-                    self._error("There are no more results")
-                except IndexError:
-                    self._error("Choices are out of range, try again")
+                if answer is not None:
+                    try:
+                        self._insert_choices(choices, action)
+                    except IteratorEmpty:
+                        self._error("There are no more results")
+                    except IndexError:
+                        self._error("Choices are out of range, try again")
         
             self._print_choices()
             answer = input_handle("=> ")
