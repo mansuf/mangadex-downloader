@@ -27,6 +27,7 @@ import logging
 import sys
 import threading
 import queue
+import itertools
 from pathlib import Path
 from pathvalidate import sanitize_filename
 from getpass import getpass
@@ -231,3 +232,18 @@ def convert_int_or_float(value):
         err_float = e
     
     raise err_float from err_int
+
+def check_blacklisted_tags_manga(manga):
+    from .config import env
+
+    found_tags = []
+    for manga_tag, blacklisted_tag_id in itertools.product(manga.tags, env.tags_blacklist):
+        if manga_tag.id != blacklisted_tag_id:
+            continue
+
+        found_tags.append(manga_tag)
+
+    if found_tags:
+        return True, found_tags
+    else:
+        return False, found_tags

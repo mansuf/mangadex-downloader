@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Callable
 
 from .errors import MangaDexException, InvalidURL
-from .utils import validate_url, get_local_attr
+from .utils import validate_url
 from .config import _validate_bool as validate_boolean, ConfigTypeError
 from .manga import ContentRating
 from .language import get_language
-from .network import Net, base_url
+from .tag import get_all_tags
 
 class SearchFilterError(MangaDexException):
     def __init__(self, key, msg):
@@ -59,15 +59,10 @@ class Filter:
 
     def _get_tags(self):
         tags = {}
-        r = Net.mangadex.get(f'{base_url}/manga/tag')
-        data = r.json()
 
-        for item in data['data']:
-            _id = item['id']
-            attr = item['attributes']
-            name = get_local_attr(attr['name']).lower()
-            tags[name] = _id
-        
+        for tag in get_all_tags():
+            tags[tag.name.lower()] = tag
+
         return tags
 
     def _init_filters(self):
@@ -201,11 +196,11 @@ class Filter:
         for value in values:
             # Try to match the keyword tags
             try:
-                _id = self.tags[value]
+                tag = self.tags[value]
             except KeyError:
                 pass
             else:
-                new_values.append(_id)
+                new_values.append(tag.id)
                 continue
 
             # Try to get uuid

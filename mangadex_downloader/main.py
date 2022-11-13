@@ -23,7 +23,8 @@
 import logging
 from .utils import (
     comma_separated_text,
-    create_directory
+    create_directory,
+    check_blacklisted_tags_manga
 )
 from .language import Language, get_language
 from .fetcher import *
@@ -60,6 +61,16 @@ def download(
     fmt_class = get_format(save_as)
 
     manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
+
+    # Check blacklisted tags in manga
+    blacklisted, tags = check_blacklisted_tags_manga(manga)
+
+    if blacklisted:
+        log.warning(
+            f"Not downloading manga '{manga.title}', " \
+            f"since it contain one or more blacklisted tags {tags}"
+        )
+        return manga
 
     # Create folder for downloading
     base_path = create_directory(manga.title, config.path)

@@ -36,7 +36,7 @@ from requests_doh import get_all_dns_provider
 
 from . import format as fmt
 from .language import Language, get_language
-from .errors import MangaDexException
+from .errors import MangaDexException, InvalidURL
 from .cover import default_cover_type, valid_cover_types
 from .utils import validate_url
 
@@ -107,17 +107,43 @@ def _validate_int(val):
     except ValueError:
         raise ConfigTypeError(f"'{val}' is not valid integer")
 
-def _validate_blacklist(val):
+def validate_tag(tag):
+    # "Circular imports" problem smh
+    from .tag import get_all_tags
+
+    tags = {i.name.lower(): i for i in get_all_tags(use_requests=True)}
+
+    # Keyword
+    try:
+        t = tags[tag]
+    except KeyError:
+        pass
+    else:
+        return t.id
+
+    # UUID
+    return validate_url(tag)
+
+def _validate_blacklist(val, validate=validate_url):
     values = [i.strip() for i in val.split(',')]
 
     blacklisted = []
     for url in values:
         if os.path.exists(url):
             fp = open(url, 'r')
-            content = [validate_url(i) for i in fp.read().splitlines()]
-            fp.close()
+            try:
+                content = [validate(i) for i in fp.read().splitlines()]
+            except InvalidURL as e:
+                # Verbose error
+                # Provide more useful information rather than
+                # "invalid url, {url} is not valid MangaDex url"
+                raise MangaDexException(
+                    f'Invalid url detected in file "{url}", {e}'
+                )
+            finally:
+                fp.close()
         else:
-            content = [validate_url(url)]
+            content = [validate(url)]
 
         blacklisted.extend(content)
     
@@ -161,6 +187,11 @@ class EnvironmentVariables:
             'group_blacklist',
             tuple(),
             _validate_blacklist
+        ],
+        [
+            'tags_blacklist',
+            tuple(),
+            lambda x: _validate_blacklist(x, validate_tag)
         ]
     ]
 

@@ -30,6 +30,7 @@ from .manga import Manga
 from .fetcher import get_list
 from .user import User
 from .filters import Filter
+from .utils import check_blacklisted_tags_manga
 
 log = logging.getLogger(__name__)
 
@@ -60,13 +61,33 @@ class BaseIterator:
     def next(self):
         return self.queue.get_nowait()
 
+class MangaIterator(BaseIterator):
+    """Iterator specialized for manga that has abilities like
+    
+    - Filter tags based on environment MANGADEXDL_TAGS_BLACKLIST
+    """
+    def next(self):
+        while True:
+            manga = super().next()
+
+            blacklisted, tags = check_blacklisted_tags_manga(manga)
+
+            if blacklisted:
+                log.debug(
+                    f'Not showing manga "{manga.title}", ' \
+                    f'since it contain one or more blacklisted tags {tags}'
+                )
+                continue
+
+            return manga
+
 class SearchFilterError(MangaDexException):
     def __init__(self, key, msg):
         text = f"Search filter error '{key}' = {msg}"
 
         super().__init__(text)
 
-class IteratorManga(BaseIterator):
+class IteratorManga(MangaIterator):
     def __init__(
         self,
         title,
@@ -110,7 +131,7 @@ class IteratorManga(BaseIterator):
 
         self.offset += len(items)
 
-class IteratorUserLibraryManga(BaseIterator):
+class IteratorUserLibraryManga(MangaIterator):
     statuses = [
         'reading',
         'on_hold',
@@ -186,7 +207,7 @@ class IteratorUserLibraryManga(BaseIterator):
         
         self.offset += len(items)
 
-class IteratorMangaFromList(BaseIterator):
+class IteratorMangaFromList(MangaIterator):
     def __init__(self, _id=None, data=None):
         if _id is None and data is None:
             raise ValueError("atleast provide _id or data")
@@ -391,6 +412,15 @@ def iter_random_manga(**filters):
         r = Net.mangadex.get(f'{base_url}/manga/random', params=params)
         data = r.json()['data']
         manga = Manga(data=data)
+
+        blacklisted, tags = check_blacklisted_tags_manga(manga)
+
+        if blacklisted:
+            log.debug(
+                f'Not showing manga "{manga.title}", ' \
+                f'since it contain one or more blacklisted tags {tags}'
+            )
+            continue
 
         if manga.id not in ids:
             # Make sure it's not duplicated manga

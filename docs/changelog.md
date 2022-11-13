@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### New features
+
+- Added ability to block one or more tags
+
 ## v2.4.2
 
 ### Fix bugs

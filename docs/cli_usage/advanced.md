@@ -150,6 +150,20 @@ export MANGADEXDL_USER_BLACKLIST=1c4d814e-b1c1-4b75-8a69-f181bb4e57a9, f8cc4f8a-
 
 For more information, see {doc}`../cli_ref/env_vars`
 
+## Blacklist one or more tags
+
+Sometimes you don't like manga that has **some** tags. You can use this feature to prevent the manga being downloaded.
+
+```shell
+# For Windows
+set MANGADEXDL_TAGS_BLACKLIST=gore, sexual violence, oneshot
+
+# For Linux / Mac OS
+export MANGADEXDL_TAGS_BLACKLIST=gore, sexual violence, oneshot
+```
+
+For more information, see {doc}`../cli_ref/env_vars`
+
 ## Download manga, chapter, or list from pipe input
 
 mangadex-downloader support pipe input. You can use it by adding `-pipe` option.

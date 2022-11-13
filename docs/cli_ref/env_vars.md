@@ -112,3 +112,49 @@ set MANGADEXDL_USER_BLACKLIST=1c4d814e-b1c1-4b75-8a69-f181bb4e57a9, f8cc4f8a-e59
 export MANGADEXDL_USER_BLACKLIST=1c4d814e-b1c1-4b75-8a69-f181bb4e57a9, f8cc4f8a-e596-4618-ab05-ef6572980bbf
 ```
 ````
+
+````{option} MANGADEXDL_TAGS_BLACKLIST [VALUE1, VALUE2, ...]
+Add tags to blacklist. 
+This to prevent manga being downloaded if it's contain one or more blacklisted tags.
+
+Value must be file path, keyword, uuid, MangaDex url containing uuid. 
+Multiple values is supported (separated by comma)
+
+**Example usage (from a file)**
+
+```shell
+# inside of blocked_tags.txt
+
+boys' love
+girls' love
+https://mangadex.org/tag/b29d6a3d-1569-4e7a-8caf-7557bc92cd5d/gore
+```
+
+```
+# For Windows
+set MANGADEXDL_TAGS_BLACKLIST=blocked_tags.txt
+
+# For Linux / Mac OS
+export MANGADEXDL_TAGS_BLACKLIST=blocked_tags.txt
+```
+
+**Example usage (keyword)**
+
+```shell
+# For Windows
+set MANGADEXDL_GROUP_BLACKLIST=gore, girls' love
+
+# For Linux / Mac OS
+export MANGADEXDL_GROUP_BLACKLIST=gore, girls' love
+```
+
+**Example usage (uuid)**
+
+```shell
+# For Windows
+set MANGADEXDL_GROUP_BLACKLIST=b29d6a3d-1569-4e7a-8caf-7557bc92cd5d, a3c67850-4684-404e-9b7f-c69850ee5da6
+
+# For Linux / Mac OS
+export MANGADEXDL_GROUP_BLACKLIST=b29d6a3d-1569-4e7a-8caf-7557bc92cd5d, a3c67850-4684-404e-9b7f-c69850ee5da6
+```
+````

@@ -31,6 +31,7 @@ from .utils import get_local_attr, input_handle
 from .artist_and_author import Author, Artist
 from .cover import CoverArt
 from .chapter import MangaChapter
+from .tag import Tag
 
 log = logging.getLogger(__name__)
 
@@ -201,6 +202,11 @@ class Manga:
     def translated_languages(self) -> List[Language]:
         """List[:class:`Language`]: Return available translated languages of the manga"""
         return [Language(i) for i in self._attr.get('availableTranslatedLanguages')]
+    
+    @property
+    def tags(self) -> List[Tag]:
+        """Return tags of the manga"""
+        return [Tag(i) for i in self._attr.get('tags')]
 
     def __repr__(self):
         return self.title
