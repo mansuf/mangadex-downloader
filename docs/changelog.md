@@ -1,6 +1,6 @@
 # Changelog
 
-## UNRELEASED
+## v2.5.0
 
 ### Fix bugs
 
@@ -8,7 +8,7 @@
 
 ### Improvements
 
-- Do not download cover and create folder if manga doesn't contain downloadable chapters (for single language only)
+- Do not download cover and create folder if manga doesn't contain downloadable chapters (single language only)
 - Do not show traceback errors when manga doesn't have downloadable chapters
 
 ### New features
