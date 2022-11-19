@@ -58,7 +58,7 @@ jobs:
         run: |
           # Setup for venv python x64
           echo "Creating virtual environment"
-          py -3-64 -m venv test_imports_x64
+          py -${{ matrix.python-version }}-64 -m venv test_imports_x64
 
           # Install mangadex-downloader
           echo "Installing mangadex-downloader"
@@ -87,7 +87,7 @@ jobs:
         run: |
           # Setup for venv python x86
           echo "Creating virtual environment"
-          py -3-32 -m venv test_imports_x86
+          py -${{ matrix.python-version }}-32 -m venv test_imports_x86
 
           # Install mangadex-downloader
           echo "Installing mangadex-downloader"
