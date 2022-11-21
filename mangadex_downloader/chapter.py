@@ -519,7 +519,7 @@ class IteratorChapter:
                 group_names = chap.groups_name
                 group_check = False
             
-            elif isinstance(self.group, User) and self.group.id != chap.user.id:
+            elif isinstance(self.group, User) and chap.user and self.group.id != chap.user.id:
                 group_type = 'user'
                 group_names = chap.user.name
                 group_check = False
