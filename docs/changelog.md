@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed chapters are often skipped [#36](https://github.com/mansuf/mangadex-downloader/issues/36)
+
 ## v2.5.0
 
 ### Fix bugs
