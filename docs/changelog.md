@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.5.2
+
+### Fix bugs
+
+- Fixed options `--use-chapter-title` and `--no-group-name` is not working. [#37](https://github.com/mansuf/mangadex-downloader/issues/37)
+- Fixed duplicate chapters. [#37](https://github.com/mansuf/mangadex-downloader/issues/37)
+
 ## v2.5.1
 
 ### Fix bugs
