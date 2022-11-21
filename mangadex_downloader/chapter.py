@@ -147,8 +147,6 @@ class Chapter:
         self,
         _id=None,
         data=None,
-        use_group_name=True,
-        use_chapter_title=False
     ):
         if _id and data:
             raise ValueError("_id and data cannot be together")
@@ -185,8 +183,8 @@ class Chapter:
         self._name = None
         self._simpl_name = None
         self.oneshot = False
-        self.use_group_name = use_group_name
-        self.use_chapter_title = use_chapter_title
+        self.use_group_name = not config.no_group_name
+        self.use_chapter_title = config.use_chapter_title
 
         self._lang = Language(self._attr['translatedLanguage'])
 
@@ -381,11 +379,10 @@ class IteratorChapter:
         self.start_page = start_page
         self.end_page = end_page
         self.no_oneshot = no_oneshot
-        self.no_group_name = config.no_group_name
-        self.use_chapter_title = config.use_chapter_title
         self.group = None
         self.all_group = False
         self.legacy_range = legacy_range
+        self.duplicates = {}
         
         if _range is not None:
             # self.range = range_mod.compile(_range)
@@ -475,8 +472,26 @@ class IteratorChapter:
 
         return True
 
+    def _check_duplicate(self, chap):
+        name = f'{chap.volume}:{chap.chapter}'
+
+        try:
+            self.duplicates[name]
+        except KeyError:
+            self.duplicates[name] = chap
+        else:
+            return True
+        
+        return False
+
     def _check_chapter(self, chap):
         num_chap = chap.chapter
+
+        if self._check_duplicate(chap):
+            log.warning(
+                f"Found duplicate {chap.simple_name} from [{chap.groups_name}], ignoring... "
+            )
+            return False
 
         # Some manga has chapters where it has no pages / images inside of it.
         # We need to verify it, to prevent error when downloading the manga.
@@ -563,15 +578,6 @@ class IteratorChapter:
             )
 
             return chap, chap_images
-
-    def _get_chapter(self, _id, bulk_data):
-        for data in bulk_data:
-            if _id == data['id']:
-                return Chapter(
-                    data=data,
-                    use_group_name=not self.no_group_name,
-                    use_chapter_title=self.use_chapter_title
-                )
 
     def _fill_data(self):
         def sort_chapter(c):
