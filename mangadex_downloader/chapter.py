@@ -503,7 +503,7 @@ class IteratorChapter:
                     )
                     return False
 
-        if chap.user.id in env.user_blacklist:
+        if chap.user and chap.user.id in env.user_blacklist:
             log.info(
                 f"Ignoring chapter {chap.chapter}, " \
                 f"because user '{chap.user.name}' is blacklisted"

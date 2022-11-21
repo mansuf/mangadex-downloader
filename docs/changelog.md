@@ -5,6 +5,7 @@
 ### Fix bugs
 
 - Fixed chapters are often skipped [#36](https://github.com/mansuf/mangadex-downloader/issues/36)
+- Fixed unhandled exception because of `MANGADEXDL_USER_BLACKLIST` filter
 
 ## v2.5.0
 
