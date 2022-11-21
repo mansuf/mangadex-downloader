@@ -327,9 +327,10 @@ def iter_chapters_feed(manga_id, lang):
             'contentRating[]': content_ratings,
             'limit': limit,
             'offset': offset,
-            'order[volume]': 'desc',
-            'order[chapter]': 'desc',
-            'translatedLanguage[]': [lang]
+            'order[volume]': 'asc',
+            'order[chapter]': 'asc',
+            'translatedLanguage[]': lang,
+            'includeEmptyPages': 0
         }
         r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
         d = r.json()
@@ -347,7 +348,7 @@ def iter_chapters_feed(manga_id, lang):
 class IteratorChapter:
     def __init__(
         self,
-        volumes,
+        chapters,
         manga,
         lang,
         start_chapter=None,
@@ -371,7 +372,7 @@ class IteratorChapter:
         if _range and legacy_range:
             raise ValueError("_range and (start_* or end_* or no_oneshot) cannot be together")
 
-        self.volumes = volumes
+        self.chapters = chapters
         self.manga = manga
         self.language = lang
         self.queue = queue.Queue()
@@ -573,54 +574,6 @@ class IteratorChapter:
                 )
 
     def _fill_data(self):
-        chapters_data = {}
-        for data in iter_chapters_feed(self.manga.id, self.language.value):
-            chapters_data[data['id']] = data
-        
-        chap_others = []
-        for _, chapters in self.volumes.items():
-            for chapter in chapters:
-                chap_others.append(chapter.id)
-
-                if chapter.others_id and (
-                    self.all_group or 
-                    self.group or
-                    self.language == Language.Other
-                ):
-                    chap_others.extend(chapter.others_id)
-
-        # Sometimes chapters returned from /manga/{id}/feed are less than
-        # /manga/{id}/aggregate
-        missing_chapters = []
-        for ag_chap in chap_others:
-            try:
-                chapters_data[ag_chap]
-            except KeyError:
-                missing_chapters.append(ag_chap)
-
-        # Get the missing chapters
-        limit = 100
-        while missing_chapters:
-            ids = missing_chapters[:limit]
-            del missing_chapters[:limit]
-            items = get_bulk_chapters(ids)['data']
-
-            for item in items:
-                chapters_data[item['id']] = item
-
-        # Begin parsing
-        chapters = []
-        for ag_chap in chap_others:
-            data = chapters_data[ag_chap]
-
-            chap = Chapter(
-                data=data,
-                use_group_name=not self.no_group_name,
-                use_chapter_title=self.use_chapter_title
-            )
-
-            chapters.append(chap)
-
         def sort_chapter(c):
             try:
                 return convert_int_or_float(c.chapter)
@@ -628,9 +581,9 @@ class IteratorChapter:
                 return float('nan')
 
         if config.sort_by == 'chapter':
-            chapters = sorted(chapters, key=sort_chapter)
+            self.chapters = sorted(self.chapters, key=sort_chapter)
         
-        for chap in chapters:
+        for chap in self.chapters:
             self.queue.put(chap)
 
 class MangaChapter:
@@ -640,18 +593,18 @@ class MangaChapter:
         elif chapter is None and not all_chapters:
             raise ValueError("at least provide chapter or set all_chapters to True")
 
-        self._volumes = {}
+        self.chapters = []
         self.language = Language(lang)
         self.manga = manga
 
         if chapter:
             self._parse_volumes_from_chapter(chapter)
         elif all_chapters:
-            self._parse_volumes(get_all_chapters(manga.id, self.language.value))
+            self._parse_volumes()
 
     def iter(self, *args, **kwargs):
         return IteratorChapter(
-            self._volumes,
+            self.chapters,
             self.manga,
             self.language,
             *args,
@@ -664,111 +617,14 @@ class MangaChapter:
         else:
             chap = chapter
 
-        # "api.mangadex.org/{manga-id}/aggregate" data for self._parse_volumes
-        aggregate_data = {
-            "volumes": {
-                str(chap.volume): {
-                    "volume": chap.volume,
-                    "chapters": {
-                        chap.chapter: {
-                            "chapter": chap.chapter,
-                            "id": chap.id
-                        }
-                    }
-                }
-            }
-        }
+        self.chapters.append(chap)
 
-        self._parse_volumes(aggregate_data)
+    def _parse_volumes(self):
+        for chapter_data in iter_chapters_feed(self.manga.id, self.language.value):
+            chap = Chapter(data=chapter_data)
+            self.chapters.append(chap)
 
-    def _parse_volumes(self, json_data):
-        data = json_data.get('volumes')
-
-        # if translated language is not found in selected manga
-        # raise error
-        if not data:
-            raise ChapterNotFound("Manga \"%s\" with %s language has no chapters" % (
-                self.manga.title,
-                self.language.name
-            ))
-
-        # Sorting volumes
-        volumes = []
-
-        # Sometimes volumes are in list not in dict
-        # wtf
-        # Reference: https://api.mangadex.org/manga/d667637e-9e6d-4c5a-89c4-0faba6f96338/aggregate?translatedLanguage[]=en
-        if isinstance(data, list):
-            for info in data:
-                num = info['volume']
-                volumes.append(num)
-        else:
-            for num in data.keys():
-                volumes.append(num)
-
-        # Again, sorting issue if manga volumes contain weird name
-        # Reference: https://api.mangadex.org/manga/485a777b-e395-4ab1-b262-2a87f53e23c0/aggregate
-        # (Take a look volume '3Cxx')
-        # We need to sorting numbers first and then the others
-        vol_nums = []
-        vol_others = []
-
-        for vol in volumes:
-            try:
-                convert_int_or_float(vol)
-            except ValueError:
-                vol_others.append(vol)
-            else:
-                vol_nums.append(vol)
-
-        volumes = vol_nums
-        # others volume didn't sorted when combined with numbers volume
-        # we need to sort it first and then combined it
-        volumes.extend(sorted(vol_others))
-
-        def int_or_nan(val):
-            try:
-                return int(val)
-            except ValueError:
-                return float('nan')
-
-        # In v2.0.2 or lower, sorting volumes for manga with leading zeros volumes (ex: 00, 01)
-        # is failing. Because the app is converting these string numbers to integer numbers.
-        # Which is causing the leading zero numbers is removed (ex: 00 -> 0, 01 -> 1)
-        # Reference: https://api.mangadex.org/manga/1784f612-9a81-4ed6-a596-ef3e2d2e814f/aggregate?translatedLanguage[]=en
-        volumes = sorted(volumes, key=int_or_nan)
-        if volumes[0] == 'none':
-            # None volume in beginning of array
-            # may caused problem highest chapters get downloaded first
-            volumes.append(volumes[0])
-            volumes.pop(0)
-
-        for volume in volumes:
-
-            chapters = []
-
-            # As far as i know, if volumes are in list, the list only have 1 data
-            if isinstance(data, list):
-                value = data[0]
-            else:
-                value = data[str(volume)]
-
-            # Retrieving chapters
-            c = value.get('chapters')
-
-            def append_chapters(value):
-                chap = AggregateChapter(value)
-                chapters.append(chap)
-
-            # Sometimes chapters are in list not in dict
-            # I don't know why
-            # Reference: https://api.mangadex.org/manga/433e77d2-5a58-48a3-95b8-e3c02f309255/aggregate?translatedLanguage[]=en
-            if isinstance(c, list):
-                for value in c:
-                    append_chapters(value)
-            else:
-                for value in c.values():
-                    append_chapters(value)
-
-            chapters.reverse()
-            self._volumes[volume] = chapters
+        if not self.chapters:
+            raise ChapterNotFound(
+                f"Manga '{self.manga.title}' with {self.language.name} language has no chapters"
+            )
