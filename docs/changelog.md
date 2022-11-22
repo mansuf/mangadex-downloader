@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.5.3
+
+### Fix bugs
+
+- Fixed option `--group` is not working due to duplicate chapters.
+
 ## v2.5.2
 
 ### Fix bugs

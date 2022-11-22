@@ -487,7 +487,7 @@ class IteratorChapter:
     def _check_chapter(self, chap):
         num_chap = chap.chapter
 
-        if self._check_duplicate(chap):
+        if not self.all_group and not self.group and self._check_duplicate(chap):
             log.warning(
                 f"Found duplicate {chap.simple_name} from [{chap.groups_name}], ignoring... "
             )
