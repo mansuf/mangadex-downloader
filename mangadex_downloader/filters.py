@@ -170,7 +170,7 @@ class Filter:
 
     def _validate_year(self, value):
         if value:
-            m = re.match(r'[0-9]{4}')
+            m = re.match(r'[0-9]{4}', value)
             if not m:
                 raise FilterError(
                     "year",

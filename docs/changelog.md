@@ -5,6 +5,7 @@
 ### Fix bugs
 
 - Fixed typo in filter error message
+- Fixed `year` filter is not working
 
 ## v2.5.3
 
