@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.5.4
+
+### Fix bugs
+
+- Fixed typo in filter error message
+
 ## v2.5.3
 
 ### Fix bugs

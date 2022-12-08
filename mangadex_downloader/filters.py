@@ -9,9 +9,9 @@ from .manga import ContentRating
 from .language import get_language
 from .tag import get_all_tags
 
-class SearchFilterError(MangaDexException):
+class FilterError(MangaDexException):
     def __init__(self, key, msg):
-        text = f"Search filter error '{key}' = {msg}"
+        text = f"Filter error '{key}', {msg}"
 
         super().__init__(text)
 
@@ -35,12 +35,12 @@ class Filter:
         params = {}
         for filter_key, filter_value in filters.items():
             if self.allowed_keys and filter_key not in self.allowed_keys:
-                raise SearchFilterError(filter_key, "Invalid key filter")
+                raise FilterError(filter_key, "Invalid key filter")
 
             try:
                 f: _FilterKey = self.filters[filter_key]
             except KeyError:
-                raise SearchFilterError(filter_key, "Invalid key filter")
+                raise FilterError(filter_key, "Invalid key filter")
 
             # Special treatment for "order[...]" filters
             if 'order' in filter_key:
@@ -172,7 +172,7 @@ class Filter:
         if value:
             m = re.match(r'[0-9]{4}')
             if not m:
-                raise SearchFilterError(
+                raise FilterError(
                     "year",
                     f"value must be integer and length must be 4"
                 )
@@ -207,7 +207,7 @@ class Filter:
             try:
                 _id = validate_url(value)
             except InvalidURL:
-                raise SearchFilterError(
+                raise FilterError(
                     key,
                     f"'{value}' is not valid keyword or uuid tag"
                 )
@@ -219,7 +219,7 @@ class Filter:
     def _validate_tags_mode(self, key, value):
         value_and_or = ['AND', 'OR']
         if value and value.upper() not in value_and_or:
-            raise SearchFilterError(
+            raise FilterError(
                 key,
                 f"value must be 'OR' or 'AND', not '{value}'"
             )
@@ -235,7 +235,7 @@ class Filter:
 
         for value in values:
             if value.lower() not in array:
-                raise SearchFilterError(
+                raise FilterError(
                     key,
                     f"Value must be one of {array}, not {value}"
                 )
@@ -254,7 +254,7 @@ class Filter:
             try:
                 lang = get_language(value)
             except ValueError as e:
-                raise SearchFilterError(key, e)
+                raise FilterError(key, e)
             else:
                 new_values.append(lang.value)
     
@@ -265,7 +265,7 @@ class Filter:
             try:
                 validate_boolean(value)
             except ConfigTypeError as e:
-                raise SearchFilterError("has_available_chapters", e)
+                raise FilterError("has_available_chapters", e)
         
         return value
 
@@ -282,7 +282,7 @@ class Filter:
             try:
                 _id = validate_url(value)
             except InvalidURL:
-                raise SearchFilterError(
+                raise FilterError(
                     key,
                     f"'{value}' is not valid UUID"
                 )
@@ -309,7 +309,7 @@ class Filter:
                         r')\]'
             match = re.match(re_order_key, key)
             if match is None:
-                raise SearchFilterError(
+                raise FilterError(
                     key,
                     "Invalid order key"
                 )
@@ -319,7 +319,7 @@ class Filter:
             elif value in descending:
                 new_order[key] = descending[0]
             else:
-                raise SearchFilterError(
+                raise FilterError(
                     key,
                     f"invalid value must be one of {ascending} or {descending}"
                 )
