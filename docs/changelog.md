@@ -6,6 +6,7 @@
 
 - Fixed typo in filter error message
 - Fixed `year` filter is not working
+- Fixed validator for environment `MANGADEXDL_TAGS_BLACKLIST` is not respecting rate limit
 
 ## v2.5.3
 

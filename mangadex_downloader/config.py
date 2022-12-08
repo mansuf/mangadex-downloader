@@ -30,6 +30,8 @@ import base64
 import traceback
 import zipfile
 import jwt
+import typing
+from dataclasses import dataclass
 from pathlib import Path
 from datetime import datetime
 from requests_doh import get_all_dns_provider
@@ -111,7 +113,7 @@ def validate_tag(tag):
     # "Circular imports" problem smh
     from .tag import get_all_tags
 
-    tags = {i.name.lower(): i for i in get_all_tags(use_requests=True)}
+    tags = {i.name.lower(): i for i in get_all_tags()}
 
     # Keyword
     try:
@@ -156,69 +158,112 @@ def _validate_sort_by(val):
     
     return val
 
+def _load_env(env_key, env_value, validator):
+    try:
+        return validator(env_value)
+    except Exception as e:
+        raise MangaDexException(
+            f'An error happened when validating env {env_key}. ' \
+            f'Reason: {e}'
+        ) from None
+
+# A utility class as indicator for lazy load environments in `EnvironmentVariables` class
+@dataclass
+class _LazyLoad:
+    env_key: str
+    env_value: str
+    validator: typing.Callable
+
+    def load(self):
+        return _load_env(
+            self.env_key,
+            self.env_value,
+            self.validator
+        )
+
 class EnvironmentVariables:
+    # 4 values of tuple
+    # (key_env: string, default_value: Any, validator_function: Callable, lazy_loading: boolean)
     _vars = [
         [
             'config_enabled',
             False,
             _validate_bool,
+            False,
         ],
         [
             'config_path',
             None,
-            _dummy_validator
+            _dummy_validator,
+            False,
         ],
         [
             'zip_compression_type',
             zipfile.ZIP_STORED,
-            _validate_zip_compression_type    
+            _validate_zip_compression_type,
+            False,
         ],
         [
             'zip_compression_level',
             None,
-            _validate_int
+            _validate_int,
+            False,
         ],
         [
             'user_blacklist',
             tuple(),
-            _validate_blacklist
+            _validate_blacklist,
+            False,
         ],
         [
             'group_blacklist',
             tuple(),
-            _validate_blacklist
+            _validate_blacklist,
+            False,
         ],
         [
             'tags_blacklist',
             tuple(),
-            lambda x: _validate_blacklist(x, validate_tag)
+            lambda x: _validate_blacklist(x, validate_tag),
+            
+            # We need to use lazy loading for env MANGADEXDL_TAGS_BLACKLIST
+            # to prevent "circular imports" problem when using `requestsMangaDexSession`.
+            # Previously, it was using `requests.Session`
+            # which can get users blacklisted from MangaDex because of spam requests
+            # (if users already get rate limited warning).
+            # NOTE: `requestsMangaDexSession` has rate limit handler while `requests.Session` don't.
+            True,
         ]
     ]
 
     def __init__(self):
         self.data = {}
 
-        for key, default_value, validator in self._vars:
+        for key, default_value, validator, lazy_loading in self._vars:
             env_key = f'MANGADEXDL_{key.upper()}'
             env_value = os.environ.get(env_key)
             if env_value is not None:
-                try:
-                    self.data[key] = validator(env_value)
-                except Exception as e:
-                    raise MangaDexException(
-                        f'An error happened when validating env {env_key}. ' \
-                        f'Reason: {e}'
-                    ) from None
+                if lazy_loading:
+                    self.data[key] = _LazyLoad(env_key, env_value, validator)
+                    continue
+
+                self.data[key] = _load_env(env_key, env_value, validator)
             else:
                 self.data[key] = default_value
         
     def read(self, name):
         try:
-            return self.data[name]
+            value = self.data[name]
         except KeyError:
             # This should not happened
             # unless user is hacking in the internal API
             raise MangaDexException(f'environment variable "{name}" is not exist')
+        
+        if not isinstance(value, _LazyLoad):
+            return value
+        
+        self.data[name] = value.load()
+        return self.data[name]
 
 _env_orig = EnvironmentVariables()
 
