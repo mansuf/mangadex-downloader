@@ -388,7 +388,11 @@ class _Config:
 
         # Validation tests
         for conf_key, conf_value in obj.items():
-            default_value, validator = self.confs[conf_key]
+            try:
+                default_value, validator = self.confs[conf_key]
+            except KeyError:
+                # Backward compatibility support to prevent crash
+                continue
 
             try:
                 validator(conf_value)

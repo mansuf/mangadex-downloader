@@ -7,6 +7,7 @@
 - Fixed typo in filter error message
 - Fixed `year` filter is not working
 - Fixed validator for environment `MANGADEXDL_TAGS_BLACKLIST` is not respecting rate limit
+- Fixed app is crashing due to backward compatibility for config
 
 ## v2.5.3
 
