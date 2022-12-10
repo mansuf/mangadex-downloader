@@ -229,9 +229,7 @@ class EnvironmentVariables:
             # We need to use lazy loading for env MANGADEXDL_TAGS_BLACKLIST
             # to prevent "circular imports" problem when using `requestsMangaDexSession`.
             # Previously, it was using `requests.Session`
-            # which can get users blacklisted from MangaDex because of spam requests
-            # (if users already get rate limited warning).
-            # NOTE: `requestsMangaDexSession` has rate limit handler while `requests.Session` don't.
+            # which is not respecting rate limit system from MangaDex API
             True,
         ]
     ]
