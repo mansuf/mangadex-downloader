@@ -9,6 +9,10 @@
 - Fixed validator for environment `MANGADEXDL_TAGS_BLACKLIST` is not respecting rate limit
 - Fixed app is crashing due to backward compatibility for config
 
+### Improvements
+
+- Some optimizations
+
 ## v2.5.3
 
 ### Fix bugs

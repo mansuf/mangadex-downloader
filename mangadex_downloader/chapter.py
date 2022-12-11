@@ -22,6 +22,7 @@
 
 import logging
 import queue
+import itertools
 from pathvalidate import sanitize_filename
 
 from .user import User
@@ -189,6 +190,12 @@ class Chapter:
         self._lang = Language(self._attr['translatedLanguage'])
 
         self._parse_name()
+
+    # This was used for any classes or functions that require
+    # first positional arguments
+    @classmethod
+    def from_data(cls, data):
+        return cls(data=data)
 
     @property
     def volume(self):
@@ -626,9 +633,8 @@ class MangaChapter:
         self.chapters.append(chap)
 
     def _parse_volumes(self):
-        for chapter_data in iter_chapters_feed(self.manga.id, self.language.value):
-            chap = Chapter(data=chapter_data)
-            self.chapters.append(chap)
+        iterator = iter_chapters_feed(self.manga.id, self.language.value)
+        self.chapters = map(Chapter.from_data, iterator)
 
         if not self.chapters:
             raise ChapterNotFound(
