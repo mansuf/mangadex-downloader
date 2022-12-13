@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Dependecies
+
+- Bump orjson to v3.8.3
+
 ## v2.5.4
 
 ### Fix bugs
