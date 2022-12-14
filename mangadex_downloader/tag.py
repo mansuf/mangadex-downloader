@@ -19,10 +19,6 @@ class Tag:
 
 @lru_cache(maxsize=4096)
 def get_all_tags() -> List[Tag]:
-    # See validator for env MANGADEXDL_TAGS_BLACKLIST
-    # We cannot use `requestsMangaDexSession` (Net.mangadex)
-    # because of "Circular imports" problem
-    # smh
     tags = []
     r = Net.mangadex.get(f'{base_url}/manga/tag')
     data = r.json()
