@@ -33,7 +33,7 @@ mangadex-downloader also support old MangaDex url
 mangadex-dl "https://mangadex.org/title/123"
 
 # Old chapter url
-mangadex-dl "https://mangadex.org/title/34"
+mangadex-dl "https://mangadex.org/chapter/34"
 ```
 
 ````{warning}
