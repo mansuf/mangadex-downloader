@@ -23,6 +23,7 @@
 # Based on https://github.com/mansuf/zippyshare-downloader/blob/main/zippyshare_downloader/network.py
 
 import requests
+import itertools
 import urllib.parse
 import time
 import logging
@@ -96,12 +97,13 @@ class requestsMangaDexSession(ModifiedSession):
     """
     def __init__(self, trust_env=True) -> None:
         # "Circular imports" problem
-        from .config import login_cache, config_enabled
+        from .config import login_cache, config_enabled, config
 
         super().__init__()
         self.trust_env = trust_env
         self.user = None
         self.delay = None
+        self.config = config
         user_agent = 'mangadex-downloader {0} (https://github.com/mansuf/mangadex-downloader) '.format(__version__)
         user_agent += 'Python/{0[0]}.{0[1]} '.format(sys.version_info)
         user_agent += 'requests/{0}'.format(
@@ -224,14 +226,26 @@ class requestsMangaDexSession(ModifiedSession):
     def request(self, *args, **kwargs):
         attempt = 1
         resp = None
-        for _ in range(5):
+        retries = self.config.http_retries
+
+        if isinstance(retries, int):
+            iterator = range(retries)
+        else:
+            iterator = itertools.count()
+
+        for _ in iterator:
             resp = self._request(attempt, *args, **kwargs)
 
             if self.delay:
                 delay = self.delay
+            elif resp is not None:
+                delay = None
+            elif attempt >= 5:
+                # We don't wanna go further
+                delay = 2.5
             else:
-                delay = None if resp is not None else attempt * 0.5
-            
+                delay = attempt * 0.5
+
             if delay:
                 time.sleep(delay)
 

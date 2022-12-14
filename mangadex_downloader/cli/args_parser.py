@@ -35,7 +35,7 @@ from ..update import update_app
 from ..utils import validate_group_url as _validate_group_url
 from ..language import get_language, Language
 from ..format import formats
-from ..config import config
+from ..config import config, _validate_http_retries
 from ..errors import InvalidURL
 from .. import __description__, __version__
 
@@ -576,6 +576,14 @@ def get_args(argv):
         help='Set timeout for each HTTPS(s) requests',
         metavar='TIME_IN_SECONDS',
         type=float
+    )
+    network_group.add_argument(
+        '--http-retries',
+        help='Set HTTP retries, use this if you want to set how much to retries ' \
+             'if the app failed to send HTTP requests to MangaDex API. ' \
+             'Value must be numbers or "unlimited", by default it set to 5',
+        metavar='NUMBERS_OR_UNLIMITED',
+        default=config.http_retries,
     )
 
     # Miscellaneous

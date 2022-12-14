@@ -70,6 +70,10 @@ Same as `--sort-by`
 Same as `-npb` or `--no-progress-bar`
 ```
 
+```{option} http_retries
+Same as `--http-retries`
+```
+
 ```{option} reset [config]
 Reset config back to default value
 ```

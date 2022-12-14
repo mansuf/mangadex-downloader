@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+### New features
+
+- Add ability to set retries for failed HTTP requests (`--http-retries`)
+
 ### Dependecies
 
 - Bump orjson to v3.8.3

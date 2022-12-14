@@ -158,6 +158,22 @@ def _validate_sort_by(val):
     
     return val
 
+def _validate_http_retries(val):
+    try:
+        return int(val)
+    except ValueError:
+        # Not a number
+        pass
+
+    val = val.lower().strip()
+
+    if val != "unlimited":
+        raise ConfigTypeError(
+            f"'{val}' is not valid 'http_retries' value, it must be numbers or 'unlimited'"
+        )
+    
+    return val
+
 def _load_env(env_key, env_value, validator):
     try:
         return validator(env_value)
@@ -352,6 +368,10 @@ class _Config:
         "no_progress_bar": [
             False,
             _validate_bool
+        ],
+        "http_retries": [
+            5,
+            _validate_http_retries
         ]
     }
     default_conf = {

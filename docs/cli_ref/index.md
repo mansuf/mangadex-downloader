@@ -217,6 +217,12 @@ Enable DNS-over-HTTPS (DoH), must be one of `cloudflare` or `google`
 Set timeout for each HTTPS(s) requests
 ```
 
+```{option} --http-retries NUMBERS_OR_UNLIMITED
+Set HTTP retries, use this if you want to set how much to retries 
+if the app failed to send HTTP requests to MangaDex API. 
+Value must be numbers or "unlimited", by default it set to 5
+```
+
 ### Miscellaneous
 
 ```{option} --input-pos
