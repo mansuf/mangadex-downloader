@@ -19,9 +19,6 @@ _deprecated_opts = {
     # I know this isn't deprecated
     # But i need the warning feature, hehe
     "range": "--range is disabled, because it's broken and need to rework",
-    "search_filter": "--search-filter and -sf are deprecated and no longer working. " \
-                     "Use --filter or -ft instead. " \
-                     "The option will be removed in v2.6.0",
 }
 
 def _check_deprecations(log, args):

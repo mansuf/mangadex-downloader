@@ -10,6 +10,10 @@
 
 - Bump orjson to v3.8.3
 
+### Deprecated
+
+- Removed `--search-filter` and `-sf` option as it's deprecated from v2.4.0
+
 ## v2.5.4
 
 ### Fix bugs
