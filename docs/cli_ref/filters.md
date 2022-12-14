@@ -1,5 +1,10 @@
 # Filters
 
+Currently filters can be used in:
+
+- Search manga (`mangadex-dl "title manga" -s`)
+- Random manga (`mangadex-dl "random"`)
+
 ## Syntax
 
 It's accesible from `-ft` or `--filter` option
