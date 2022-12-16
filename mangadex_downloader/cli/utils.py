@@ -227,4 +227,18 @@ def split_comma_separated(text, single_value_to_list=False):
         return [text] if single_value_to_list else  text
     
     return [i.strip() for i in text.split(',')]
-    
+
+def check_group_all(args):
+    """Check `--group` is containing `all` value with another `--group <group_id>` """
+    if args.group is None:
+        return
+
+    is_all = filter(lambda x: x.lower().strip() == "all", args.group)
+
+    try:
+        next(is_all)
+    except StopIteration:
+        pass
+    else:
+        if len(args.group) > 1:
+            raise MangaDexException("'--group all' cannot be used with another '--group <group_id>'")

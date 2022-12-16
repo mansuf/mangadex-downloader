@@ -4,7 +4,8 @@
 
 ### New features
 
-- Add ability to set retries for failed HTTP requests (`--http-retries`)
+- Added ability to add more groups or users in `--group` option
+- Added ability to set retries for failed HTTP requests (`--http-retries`)
 
 ### Dependecies
 

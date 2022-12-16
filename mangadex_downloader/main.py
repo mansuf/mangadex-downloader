@@ -46,7 +46,7 @@ def download(
     end_page=None,
     no_oneshot_chapter=False,
     use_alt_details=False,
-    group_id=None,
+    groups=None,
     _range=None,
 ):
     """Download a manga"""
@@ -119,7 +119,7 @@ def download(
             "start_page": start_page,
             "end_page": end_page,
             "no_oneshot": no_oneshot_chapter,
-            "group": group_id,
+            "groups": groups,
             "_range": _range,
         }
 
@@ -213,7 +213,7 @@ def download_chapter(
 def download_list(
     list_id,
     replace=False,
-    group_id=None,
+    groups=None,
 ):
     """Download a list"""
     _list = MangaDexList(_id=list_id)
@@ -222,7 +222,7 @@ def download_list(
         download(
             manga.id,
             replace,
-            group_id=group_id,
+            groups=groups,
         )
 
 def download_legacy_manga(legacy_id, *args, **kwargs):

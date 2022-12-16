@@ -361,7 +361,7 @@ class IteratorChapter:
         start_page=None,
         end_page=None,
         no_oneshot=None,
-        group=None,
+        groups=None,
         _range=None,
         **kwargs
     ):
@@ -386,7 +386,7 @@ class IteratorChapter:
         self.start_page = start_page
         self.end_page = end_page
         self.no_oneshot = no_oneshot
-        self.group = None
+        self.groups = None
         self.all_group = False
         self.legacy_range = legacy_range
         self.duplicates = {}
@@ -397,38 +397,45 @@ class IteratorChapter:
         else:
             self.range = _range
 
-        if group and group == "all":
+        if groups and groups[0] == "all":
             self.all_group = True
-        elif group:
-            self.group = self._parse_group(group)
+        elif groups:
+            self.groups = self._parse_groups(groups)
 
         log_cache = kwargs.get('log_cache')
         self.log_cache = True if log_cache else False
 
         self._fill_data()
 
-    def _parse_group(self, _id):
-        group = None
+    def _parse_groups(self, ids):
+        groups = []
 
-        try:
-            group = Group(_id)
-        except GroupNotFound:
-            # It's not a group
-            pass
+        for _id in ids:
+            group = None
 
-        # Check if it's a user
-        try:
-            group = User(_id)
-        except UserNotFound:
-            # It's not a user
-            pass
+            try:
+                group = Group(_id)
+            except GroupNotFound:
+                # It's not a group
+                pass
+            else:
+                groups.append(group)
 
-        # It's not a group or user
-        # raise error
-        if group is None:
-            raise GroupNotFound(f"Group or user \"{_id}\" cannot be found")
-        
-        return group
+            # Check if it's a user
+            try:
+                group = User(_id)
+            except UserNotFound:
+                # It's not a user
+                pass
+            else:
+                groups.append(group)
+
+            # It's not a group or user
+            # raise error
+            if group is None:
+                raise GroupNotFound(f"Group or user \"{_id}\" cannot be found")
+            
+        return groups
 
     def _check_range_chapter_legacy(self, chap):
         num_chap = chap.chapter
@@ -494,7 +501,7 @@ class IteratorChapter:
     def _check_chapter(self, chap):
         num_chap = chap.chapter
 
-        if not self.all_group and not self.group and self._check_duplicate(chap):
+        if not self.all_group and not self.groups and self._check_duplicate(chap):
             log.warning(
                 f"Found duplicate {chap.simple_name} from [{chap.groups_name}], ignoring... "
             )
@@ -517,13 +524,13 @@ class IteratorChapter:
 
         # Check blacklisted groups and users
         if chap.groups:
-            for group in chap.groups:
-                if group.id in env.group_blacklist:
-                    log.info(
-                        f"Ignoring chapter {chap.chapter}, " \
-                        f"because group '{group.name}' is blacklisted"
-                    )
-                    return False
+            blacklisted_groups = filter(lambda x: x.id in env.group_blacklist, chap.groups)
+            for group in blacklisted_groups:
+                log.info(
+                    f"Ignoring chapter {chap.chapter}, " \
+                    f"because group '{group.name}' is blacklisted"
+                )
+                return False
 
         if chap.user and chap.user.id in env.user_blacklist:
             log.info(
@@ -532,24 +539,30 @@ class IteratorChapter:
             )
             return False
 
-        # Check if it's same group as self.group
-        if not self.all_group and self.group:
-            group_check = True
+        # Check if chap.group in self.groups (`--group`)
+        if not self.all_group and self.groups:
 
-            if isinstance(self.group, Group) and self.group.id not in chap.groups_id:
-                group_type = 'scanlator group'
-                group_names = chap.groups_name
-                group_check = False
-            
-            elif isinstance(self.group, User) and chap.user and self.group.id != chap.user.id:
-                group_type = 'user'
-                group_names = chap.user.name
-                group_check = False
-            
+            group_check = False
+            for group in self.groups:
+
+                if isinstance(group, Group):
+                    group_type = 'scanlator group'
+                    group_names = chap.groups_name
+
+                    if group.id in chap.groups_id:
+                        group_check = True
+                
+                elif isinstance(group, User):
+                    group_type = 'user'
+                    group_names = chap.user.name
+
+                    if chap.user and group.id == chap.user.id:
+                        group_check = True
+                
             if not group_check:
                 log.info(
                     f"Ignoring chapter {num_chap}, " \
-                    f"{group_type} \"{group_names}\" is not match with \"{self.group.name}\""
+                    f"{group_type} \"{group_names}\" is not match with \"{group.name}\""
                 )
                 return False
 

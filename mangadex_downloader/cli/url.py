@@ -25,12 +25,12 @@ import os
 import re
 import requests
 
-from .utils import get_key_value
+from .utils import get_key_value, check_group_all
 from .command import registered_commands
 from ..network import Net
 from ..fetcher import get_chapter, get_list, get_manga
 from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
-from ..utils import validate_legacy_url, validate_url as get_uuid
+from ..utils import validate_url as get_uuid
 from ..main import (
     download as dl_manga,
     download_chapter as dl_chapter,
@@ -55,8 +55,10 @@ def _build_re(_type):
     return regex
 
 def download_manga(url, args, legacy=False):
-    if args.group and args.group.lower().strip() == 'all' and args.no_group_name:
-        raise MangaDexException("'--group all' cannot be used together with --no-group-name")
+    check_group_all(args)
+
+    if args.group and args.no_group_name:
+        raise MangaDexException("--group cannot be used together with --no-group-name")
 
     if args.start_chapter is not None and args.end_chapter is not None:
         if args.start_chapter > args.end_chapter:
@@ -129,6 +131,8 @@ def download_list(url, args):
         _error_list('--end-page')
     elif args.range:
         _error_list('--range')
+
+    check_group_all(args)
 
     if args.group and args.no_group_name:
         raise MangaDexException("--group cannot be used together with --no-group-name")

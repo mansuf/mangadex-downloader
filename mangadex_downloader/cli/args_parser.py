@@ -69,13 +69,13 @@ def validate_group_url(url):
     try:
         return _validate_group_url(url)
     except InvalidURL as e:
-        raise argparse.ArgumentTypeError(str(e))
+        raise argparse.ArgumentTypeError(e)
 
 def validate_language(lang):
     try:
         return get_language(lang)
     except Exception as e:
-        raise argparse.ArgumentTypeError(str(e))
+        raise argparse.ArgumentTypeError(e)
 
 class ListLanguagesAction(argparse.Action):
     def __call__(self, *args, **kwargs):
@@ -382,7 +382,8 @@ def get_args(argv):
         metavar='GROUP_ID',
         type=validate_group_url,
         help='Filter each chapter with different scanlation group. ' \
-             'Filter with user also supported.'
+             'Filter with user also supported.',
+        action='append'
     )
 
     # Language related
