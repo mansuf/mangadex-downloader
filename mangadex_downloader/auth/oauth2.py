@@ -156,7 +156,7 @@ class OAuth2(MangaDexAuthBase):
 
     def logout(self):
         # XXX: Now, i'm confused with logout in OAuth2
-        # Should we just revoke the "access_token" and "refresh_session" only ?
+        # Should we just revoke the "access_token" and "refresh_token" only ?
         # or we should revoke the tokens + end the session ?
         # ======================================================================
         # Method "revoke the tokens only" will revoke the tokens.
