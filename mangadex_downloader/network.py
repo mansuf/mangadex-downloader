@@ -66,8 +66,9 @@ __all__ = (
     'base_url', 'uploads_url'
 )
 
-origin_url = 'https://mangadex.org'
 base_url = 'https://api.mangadex.org'
+auth_url = 'https://auth.mangadex.org'
+origin_url = 'https://mangadex.org'
 uploads_url = 'https://uploads.mangadex.org'
 
 # A utility to get shortened url from full URL
@@ -91,6 +92,12 @@ class ModifiedSession(requests.Session):
         return super().send(r, **kwargs)
 
 class requestsMangaDexSession(ModifiedSession):
+    # For be able inside class can access global variables in network.py module
+    base_url = base_url
+    auth_url = auth_url
+    origin_url = origin_url
+    uploads_url = uploads_url
+
     """A requests session for MangaDex only. 
 
     Sending other HTTP(s) requests to other sites will break the session

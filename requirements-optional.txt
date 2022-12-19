@@ -3,3 +3,5 @@ py7zr==0.20.2
 orjson==3.8.3
 beautifulsoup4
 lxml==4.9.1
+Flask
+Authlib
