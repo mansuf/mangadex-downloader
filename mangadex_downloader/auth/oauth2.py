@@ -1,5 +1,6 @@
 import webbrowser
 import logging
+import time
 from requests.auth import AuthBase
 from multiprocessing import Process, Manager
 
@@ -86,7 +87,7 @@ class OAuth2(MangaDexAuthBase):
 
     def run_callback_handler(self, n, e):
         self.callback_handler = OAuth2CallbackHandler(n, e)        
-        self.callback_handler.event("localhost", 3000, debug=False, load_dotenv=False)
+        self.callback_handler.run()
 
     def _make_ready_token(self, token):
         return {
@@ -112,6 +113,7 @@ class OAuth2(MangaDexAuthBase):
                 log.info(f"Failed to open browser. Please open this url to authenticate => {url}")
 
             log.info("Waiting OAuth2 callback handler response")
+            time.sleep(1)
             event.wait()
 
             result_auth = namespace.result
