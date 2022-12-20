@@ -132,7 +132,13 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
             return
 
         query = parse_qs(url.query)
-        state = query["state"][0]
+        state = query.get("state")
+
+        if not state:
+            self.send_invalid_request()
+            return
+        
+        state = state[0]
 
         if state != orig_state:
             self.send_invalid_state()
