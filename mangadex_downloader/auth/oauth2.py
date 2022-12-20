@@ -1,18 +1,21 @@
 import webbrowser
 import logging
 import time
+import shutil
+import io
+from urllib.parse import urlparse, parse_qs
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from requests.auth import AuthBase
 from multiprocessing import Process, Manager
 
 from .base import MangaDexAuthBase
-from ..errors import MangaDexException
+from ..errors import MangaDexException, LoginFailed
 
 log = logging.getLogger(__name__)
 
 try:
     from authlib.oauth2.auth import ClientAuth
     from authlib.oauth2 import OAuth2Client
-    from flask import Flask, request
 except ImportError:
     oauth_ready = False
 else:
@@ -30,36 +33,148 @@ if oauth_ready:
             )
             return req
 
-    # For callback handler (`redirect_uri`)
-    class OAuth2CallbackHandler:
-        def __init__(self, namespace, event):
-            self.namespace = namespace
-            self.event = event
-            self.server = Flask("mangadex-downloader-oauth-callback", static_folder=None)
+# For callback handler (`redirect_uri`)
+class OAuth2CallbackHandler(BaseHTTPRequestHandler):
+    invalid_path_response = b"""
+    <html>
+        <head>
+            <title>Error happened</title>
+        </head>
+        
+        <body>
+            <p>Invalid request, please try again</p>
+        </body>
+    </html>
+    """
 
-            self.server.add_url_rule('/', view_func=self.handle_auth, methods=["GET"])
+    invalid_state_response = b"""
+    <html>
+        <head>
+            <title>Error happened</title>
+        </head>
+        
+        <body>
+            <p>Invalid state, please try again</p>
+        </body>
+    </html>
+    """
 
-        def run(self):
-            self.server.run("localhost", "3000", debug=False, load_dotenv=False)
+    good_response = b"""
+    <html>
+        <head>
+            <title>Success</title>
+        </head>
+        
+        <body>
+            <p>You're logged in now, check your 'mangadex-downloader' app</p>
+        </body>
+    </html>
+    """
 
-        def handle_auth(self):
-            state = self.namespace.state
+    def send_invalid_request(self):
+        self.send_response(400)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", len(self.invalid_path_response))
+        self.end_headers()
 
-            if state != request.args.get("state"):
-                return "Invalid state, please try again"
+        fp = io.BytesIO(self.invalid_path_response)
+        shutil.copyfileobj(fp, self.wfile)
 
-            self.namespace.result = request.args.to_dict()
+    def send_invalid_state(self):
+        self.send_response(400)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", len(self.invalid_state_response))
+        self.end_headers()
+
+        fp = io.BytesIO(self.invalid_state_response)
+        shutil.copyfileobj(fp, self.wfile)
+
+    def send_success(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", len(self.good_response))
+        self.end_headers()
+
+        fp = io.BytesIO(self.good_response)
+        shutil.copyfileobj(fp, self.wfile)
+
+    def send_login_error(self, err_type, message):
+        error_response = """
+        <html>
+            <head>
+                <title>Error happened</title>
+            </head>
+            
+            <body>
+                <p>{msg}</p>
+            </body>
+        </html>
+        """.format(
+            msg=f"Login Failed (err_type: {err_type}). Description: '{message}'" \
+                ". Please check your 'mangadex-downloader' app"
+        )
+
+        self.send_response(403)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", len(error_response))
+        self.end_headers()
+
+        fp = io.BytesIO(error_response.encode())
+        shutil.copyfileobj(fp, self.wfile)
+
+    def do_GET(self):
+        orig_state = self.namespace.state
+        host = self.request.getsockname()
+        url = urlparse(f"http://{host[0]}:{host[1]}" + self.path)
+
+        if url.path != "/":
+            self.send_invalid_request()
+            return
+
+        query = parse_qs(url.query)
+        state = query["state"][0]
+
+        if state != orig_state:
+            self.send_invalid_state()
+            return
+
+        new_args = {}
+        for key, value in query.items():
+            new_args[key] = value[0]
+
+        error = new_args.get("error")
+        if error:
+            self.send_login_error(error, new_args["error_description"])
+            self.namespace.result = {
+                "error": error,
+                "description": new_args["error_description"]
+            }
             self.event.set()
-            return "You're logged in now, check your 'mangadex-downloader' app"
+            return
+
+        self.send_success()
+
+        self.namespace.result = new_args
+        self.event.set()
+
+class OAuth2CallbackHandleBuilder:
+    def __init__(self, namespace, event) -> None:
+        self.namespace = namespace
+        self.event = event
+
+    def __call__(self, *args, **kwargs):
+        OAuth2CallbackHandler.namespace = self.namespace
+        OAuth2CallbackHandler.event = self.event
+        return OAuth2CallbackHandler(*args, **kwargs)
 
 class OAuth2(MangaDexAuthBase):
     callback_host = "localhost"
-    callback_port = "3000"
+    callback_port = 3000
 
     def __init__(self, *args, **kwargs):
 
         if not oauth_ready:
-            raise MangaDexException("Library 'Flask' and 'authlib' is not installed")
+            raise MangaDexException("Library 'authlib' is not installed")
 
         super().__init__(*args, **kwargs)
 
@@ -86,8 +201,11 @@ class OAuth2(MangaDexAuthBase):
         self.token = None
 
     def run_callback_handler(self, n, e):
-        self.callback_handler = OAuth2CallbackHandler(n, e)        
-        self.callback_handler.run()
+        self.callback_handler = HTTPServer(
+            (self.callback_host, self.callback_port), 
+            OAuth2CallbackHandleBuilder(n, e)
+        )
+        self.callback_handler.serve_forever()
 
     def _make_ready_token(self, token):
         return {
@@ -120,6 +238,12 @@ class OAuth2(MangaDexAuthBase):
 
             log.debug("Terminating OAuth2 callback handler")
             proc.terminate()
+
+            # Check for errors
+            error = result_auth.get("error")
+            err_description = result_auth.get("description")
+            if error:
+                raise LoginFailed(f"Login to MangaDex failed, reason: {err_description}")
 
             self.session_state = result_auth["session_state"]
             self.authorization_code = result_auth["code"]
