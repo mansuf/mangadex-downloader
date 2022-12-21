@@ -1,11 +1,9 @@
 class MangaDexAuthBase:
     """Base auth class for MangaDex API"""
-    def __init__(self, session, login_cache, config_enabled):
+    def __init__(self, session):
         self.session = session
-        self.login_cache = login_cache
-        self.config_enabled = config_enabled
 
-    def login(self):
+    def login(self, username, email, password):
         """Login to MangaDex"""
         pass
 

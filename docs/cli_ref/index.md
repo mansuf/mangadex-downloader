@@ -160,6 +160,11 @@ Choose quality cover, default is `original`
 Login to MangaDex
 ```
 
+```{option} --login-method -lm legacy|oauth2
+Set authentication method for MangaDex, by default it set to `legacy`. 
+Which is directly input (username or email) and password to the application.
+```
+
 ````{option} --login-username -lu USERNAME
 ```{note}
 You must provide `--login` or `-l` option to login. If you don't, you will not logged in to MangaDex

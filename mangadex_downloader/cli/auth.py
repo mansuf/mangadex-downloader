@@ -171,21 +171,23 @@ def login_with_err_handler(args):
     if args.login:
         email = None
         username = None
+        password = None
 
-        if not args.login_username:
-            username = input_handle("MangaDex username / email => ")
-        else:
-            username = args.login_username
-        if not args.login_password:
-            password = getpass_handle("MangaDex password => ")
-        else:
-            password = args.login_password
+        if args.login_method != "oauth2":
+            if not args.login_username:
+                username = input_handle("MangaDex username / email => ")
+            else:
+                username = args.login_username
+            if not args.login_password:
+                password = getpass_handle("MangaDex password => ")
+            else:
+                password = args.login_password
 
-        # Ability to login with email
-        is_email = re.match(email_regex, username)
-        if is_email is not None:
-            email = is_email.group()
-            username = None
+            # Ability to login with email
+            is_email = re.match(email_regex, username)
+            if is_email is not None:
+                email = is_email.group()
+                username = None
 
         # Logging in
         login_success = False
@@ -194,6 +196,7 @@ def login_with_err_handler(args):
             try:
                 Net.mangadex.login(password, username, email)
             except LoginFailed as e:
+                log.error(e)
                 sys.exit(1)
             except ValueError as e:
                 log.error(e)

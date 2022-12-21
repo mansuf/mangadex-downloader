@@ -71,6 +71,8 @@ def setup_network(args):
     if args.timeout:
         Net.set_timeout(args.timeout)
 
+    Net.set_auth(args.login_method)
+
 def _keyboard_interrupt_handler(*args):
     print("Cleaning up...")
     # Downloader are not cleaned up

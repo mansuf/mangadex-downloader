@@ -184,7 +184,7 @@ class OAuth2(MangaDexAuthBase):
 
         super().__init__(*args, **kwargs)
 
-        self.openid_config_url = f"https://{self.session.auth_url}/realms/mangadex/.well-known/openid-configuration"
+        self.openid_config_url = f"{self.session.auth_url}/realms/mangadex/.well-known/openid-configuration"
         self.openid_config = self.session.get(self.openid_config_url).json()
 
         self.authorization_endpoint = self.openid_config["authorization_endpoint"]
@@ -192,11 +192,13 @@ class OAuth2(MangaDexAuthBase):
         self.revocation_endpoint = self.openid_config["revocation_endpoint"]
 
         self.client = OAuth2Client(
-            session=self.session, 
-            client_id="THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET, PLEASE CHANGE THIS ONCE IT'S ALLOWED",
-            scope="openid profile roles groups",
+            session=self.session,
+            # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET, PLEASE CHANGE THIS ONCE IT'S ALLOWED
+            client_id="thirdparty-oauth-client",
+            scope="openid profile",
             redirect_uri=f"http://{self.callback_host}:{self.callback_port}",
         )
+        self.client.client_auth_class = OAuth2ClientAuth
 
         # OAuth2 callback handler
         self.callback_handler = None
@@ -219,7 +221,7 @@ class OAuth2(MangaDexAuthBase):
             "refresh": token["refresh_token"]
         }
 
-    def login(self):
+    def login(self, username, email, password):
         log.debug("Creating Manager for multiprocessing")
         with Manager() as manager:
             namespace = manager.Namespace()

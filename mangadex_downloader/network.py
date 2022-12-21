@@ -38,6 +38,7 @@ from .errors import (
     NotLoggedIn,
     UnhandledHTTPError
 )
+from .auth import OAuth2, LegacyAuth
 from .utils import QueueWorker
 from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
@@ -102,7 +103,7 @@ class requestsMangaDexSession(ModifiedSession):
 
     Sending other HTTP(s) requests to other sites will break the session
     """
-    def __init__(self, trust_env=True) -> None:
+    def __init__(self, trust_env=True, auth_cls=LegacyAuth) -> None:
         # "Circular imports" problem
         from .config import login_cache, config_enabled, config
 
@@ -134,6 +135,12 @@ class requestsMangaDexSession(ModifiedSession):
         self._worker_report = QueueWorker()
         self._worker_report.start()
 
+        # To prevent conflict with `requests.Session.auth`
+        self.api_auth = auth_cls(self)
+
+    def set_auth(self, auth_cls):
+        self.api_auth = auth_cls(self)
+
     def login_from_cache(self):
         if self.check_login():
             raise AlreadyLoggedIn("User already logged in")
@@ -164,10 +171,10 @@ class requestsMangaDexSession(ModifiedSession):
             # Session and refresh token are still valid in cache
             # Login with this
             self._update_token(
-                {"token": {
+                {
                     "refresh": refresh_token,
                     "session": session_token
-                }}
+                }
             )
 
         # Start "auto-renew session token" process
@@ -269,9 +276,9 @@ class requestsMangaDexSession(ModifiedSession):
 
         raise UnhandledHTTPError("Unhandled HTTP error")
 
-    def _update_token(self, result):
-        session_token = result['token']['session']
-        refresh_token = result['token']['refresh']
+    def _update_token(self, token):
+        session_token = token['session']
+        refresh_token = token['refresh']
 
         self._refresh_token = refresh_token
         self._session_token = session_token
@@ -321,26 +328,17 @@ class requestsMangaDexSession(ModifiedSession):
     def refresh_login(self):
         """Refresh login session with refresh token"""
         if self._refresh_token is None:
-            raise RuntimeError("User are not logged in")
+            raise LoginFailed("User are not logged in")
         
-        url = '{0}/auth/refresh'.format(base_url)
-        r = self.post(url, json={"token": self._refresh_token})
-        result = r.json()
-
-        if r.status_code != 200:
-            raise LoginFailed("Refresh token failed, reason: %s" % result["errors"][0]["detail"])
-
-        self._update_token(result)
+        new_token = self.api_auth.refresh_token()
+        self._update_token(new_token)
 
     def check_login(self):
         """Check if user are still logged in"""
         if self._refresh_token is None and self._session_token is None:
             return False
 
-        url = '{0}/auth/check'.format(base_url)
-        r = self.get(url)
-
-        return r.json()['isAuthenticated']
+        return self.api_auth.check_login()
 
     def login(self, password, username=None, email=None):
         """Login to MangaDex"""
@@ -348,41 +346,10 @@ class requestsMangaDexSession(ModifiedSession):
         if self.check_login():
             raise AlreadyLoggedIn("User already logged in")
 
-        # Type checking
-        if not isinstance(password, str):
-            raise ValueError("password must be str, not %s" % type(password))
-        if username and not isinstance(username, str):
-            raise ValueError("username must be str, not %s" % type(username))
-        if email and not isinstance(email, str):
-            raise ValueError("email must be str, not %s" % type(email))
-
-        if not username and not email:
-            raise LoginFailed("at least provide \"username\" or \"email\" to login")
-
-        # Raise error if password length are less than 8 characters
-        if len(password) < 8:
-            raise ValueError("password length must be more than 8 characters")
-
         log.info('Logging in to MangaDex')
 
-        url = '{0}/auth/login'.format(base_url)
-        data = {"password": password}
-        
-        if username:
-            data['username'] = username
-        if email:
-            data['email'] = email
-        
-        # Begin to log in
-        r = self.post(url, json=data)
-        if r.status_code == 401:
-            result = r.json()
-            err = result["errors"][0]["detail"]
-            log.error("Login to MangaDex failed, reason: %s" % err)
-            raise LoginFailed(err)
-        
-        result = r.json()
-        self._update_token(result)
+        token = self.api_auth.login(username, email, password)
+        self._update_token(token)
 
         self._start_renew_login()
 
@@ -410,7 +377,7 @@ class requestsMangaDexSession(ModifiedSession):
 
         log.info("Logging out from MangaDex")
 
-        self.post("{0}/auth/logout".format(base_url))
+        self.api_auth.logout()
         self._reset_token()
         self._notify_login_fut()
         self._login_fut = Future()
@@ -436,6 +403,12 @@ class requestsMangaDexSession(ModifiedSession):
 
 class NetworkManager:
     """A requests and MangaDex session manager"""
+
+    available_auth_cls = {
+        "oauth2": OAuth2,
+        "legacy": LegacyAuth
+    }
+    default_auth_method = "legacy"
     def __init__(self, proxy=None, trust_env=False) -> None:
         self._proxy = proxy
         self._trust_env = trust_env
@@ -562,7 +535,11 @@ class NetworkManager:
 
         self.requests.mount('https://', doh)
         self.requests.mount('http://', doh)
-    
+
+    def set_auth(self, auth_method):
+        """Set Authentication method for MangaDex API (default to :class:`LegacyAuth`)"""
+        self.mangadex.set_auth(self.available_auth_cls[auth_method])
+
     def set_timeout(self, time):
         """Set timeout for each requests for MangaDex and requests session"""
         self.mangadex.set_timeout(time)

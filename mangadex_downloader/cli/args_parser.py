@@ -37,6 +37,7 @@ from ..language import get_language, Language
 from ..format import formats
 from ..config import config, _validate_http_retries
 from ..errors import InvalidURL
+from ..network import Net
 from .. import __description__, __version__
 
 log = logging.getLogger(__name__)
@@ -498,6 +499,14 @@ def get_args(argv):
     # Authentication related
     auth_group = parser.add_argument_group('Authentication')
     auth_group.add_argument('--login', '-l', help='Login to MangaDex', action='store_true')
+    auth_group.add_argument(
+        '--login-method',
+        '-lm',
+        help='Set authentication method for MangaDex, by default it set to `legacy`. ' \
+             'Which is directly input (username or email) and password to the application',
+        choices=Net.available_auth_cls.keys(),
+        default=Net.default_auth_method
+    )
     auth_group.add_argument(
         '--login-username',
         '-lu',
