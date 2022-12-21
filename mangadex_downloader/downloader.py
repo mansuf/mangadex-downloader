@@ -168,7 +168,8 @@ class FileDownloader:
             self.on_receive_response(resp)
 
             # Grab the file sizes
-            file_sizes = float(resp.headers.get('Content-Length'))
+            content_length = float(resp.headers.get('Content-Length'))
+            file_sizes = content_length
 
             # Try to get `accept-ranges` header to check if the server support `Range` header
             accept_range = resp.headers.get('accept-ranges')
@@ -212,7 +213,7 @@ class FileDownloader:
 
             # See #14
             # Download is not finished but marked as "finished"
-            if current_size != file_sizes:
+            if current_size < content_length:
                 self.cleanup()
                 log.warning(
                     f"File download is incomplete, restarting download... (attempt: {attempt})"

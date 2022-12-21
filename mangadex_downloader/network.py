@@ -67,10 +67,10 @@ __all__ = (
     'base_url', 'uploads_url'
 )
 
-base_url = 'https://api.mangadex.org'
-auth_url = 'https://auth.mangadex.org'
+base_url = 'https://api.mangadex.dev'
+auth_url = 'https://auth.mangadex.dev'
 origin_url = 'https://mangadex.org'
-uploads_url = 'https://uploads.mangadex.org'
+uploads_url = 'https://uploads.mangadex.dev'
 
 # A utility to get shortened url from full URL
 # (scheme, netloc, and path only)

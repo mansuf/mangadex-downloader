@@ -8,6 +8,10 @@
 - Added ability to set retries for failed HTTP requests (`--http-retries`)
 - Added OAuth2 login support (`--login-method oauth2`)
 
+### Fix bugs
+
+- Fixed download is overflowing when trying to resume incomplete download
+
 ### Dependecies
 
 - Bump orjson to v3.8.3
