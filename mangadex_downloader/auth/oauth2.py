@@ -284,7 +284,7 @@ class OAuth2(MangaDexAuthBase):
         )
 
         if not response.ok:
-            log.error(f"Failed to revoke 'access_token', reason: {response.content}")
+            log.error(f"Failed to revoke '{type_token}', reason: {response.content}")
 
     def logout(self):
         # XXX: Now, i'm confused with logout in OAuth2
