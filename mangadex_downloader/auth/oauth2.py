@@ -265,7 +265,10 @@ class OAuth2(MangaDexAuthBase):
             return self._make_ready_token(self.token)
 
     def refresh_token(self):
-        self.token = self.client.refresh_token(self.token["refresh_token"])
+        self.token = self.client.refresh_token(
+            url=self.token_endpoint,
+            refresh_token=self.token["refresh_token"]
+        )
 
         return self._make_ready_token(self.token)
 
