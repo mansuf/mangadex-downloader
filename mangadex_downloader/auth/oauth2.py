@@ -195,7 +195,7 @@ class OAuth2(MangaDexAuthBase):
             session=self.session,
             # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET, PLEASE CHANGE THIS ONCE IT'S ALLOWED
             client_id="thirdparty-oauth-client",
-            scope="openid profile",
+            scope="openid groups profile roles",
             redirect_uri=f"http://{self.callback_host}:{self.callback_port}",
         )
         self.client.client_auth_class = OAuth2ClientAuth
