@@ -7,7 +7,7 @@ __description__ = "A Command-line tool to download manga from MangaDex, written 
 __author__ = "Rahman Yusuf"
 __author_email__ = "danipart4@gmail.com"
 __license__ = "MIT"
-__repository__ = "mansuf/mangadex-downloader"
+__repository__ = "mangadex-downloader/app"
 
 import logging
 
