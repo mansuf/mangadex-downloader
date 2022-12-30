@@ -34,13 +34,13 @@ class _TachiyomiFormatBase:
         details_path = self.path / 'details.json'
         log.info('Writing details.json')
         write_tachiyomi_details(self.manga, details_path)
-
-class Tachiyomi(Raw, _TachiyomiFormatBase):
+    
     def main(self):
         self.write_details()
         super().main()
 
-class TachiyomiZip(ComicBookArchive, _TachiyomiFormatBase):
-    def main(self):
-        self.write_details()
-        super().main()
+class Tachiyomi(_TachiyomiFormatBase, Raw):
+    pass
+
+class TachiyomiZip(_TachiyomiFormatBase, ComicBookArchive):
+    pass
