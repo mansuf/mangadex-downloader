@@ -416,21 +416,7 @@ class EpubVolume(Epub):
         manga = self.manga
         worker = self.create_worker()
 
-        # Sorting volumes
-        log.info("Preparing to download")
-        cache = {}
-        def append_cache(volume, item):
-            try:
-                data = cache[volume]
-            except KeyError:
-                cache[volume] = [item]
-            else:
-                data.append(item)
-
-        kwargs_iter = self.kwargs_iter.copy()
-        kwargs_iter['log_cache'] = True
-        for chap_class, chap_images in manga.chapters.iter(**kwargs_iter):
-            append_cache(chap_class.volume, [chap_class, chap_images])
+        cache = self.get_fmt_volume_cache(manga)
 
         # Begin downloading
         for volume, chapters in cache.items():
