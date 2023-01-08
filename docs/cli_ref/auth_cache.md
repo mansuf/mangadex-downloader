@@ -1,5 +1,8 @@
 # Authentication cache
 
+Re-use authentication tokens for later use. These tokens stored in same place as [config](./config) is stored. 
+You don't have to use `--login` again with this, just run the app and you will be automatically logged in.
+
 ```{warning}
 You must enable config in order to use authentication cache.
 ```
@@ -7,10 +10,10 @@ You must enable config in order to use authentication cache.
 ## Syntax command
 
 ```shell
-mangadex-dl "login_cache:<command>"
+mangadex-dl "login_cache:<subcommand>"
 ```
 
-## Available commands
+## Available sub commands
 
 ```{option} purge
 Invalidate and purge cached authentication tokens
