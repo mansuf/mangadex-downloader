@@ -400,7 +400,7 @@ def get_args(argv):
     # #  Finalization Process  #
     # ##########################
 
-    urls: str = args.URL
+    urls: str = sys.stdin.read() if args.pipe else args.URL
 
     fetch_library_manga = urls.startswith('library')
     fetch_library_list = urls.startswith('list')
