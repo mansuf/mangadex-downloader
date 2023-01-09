@@ -26,6 +26,8 @@ formats = {
     "epub-single": EpubSingle
 }
 
+deprecated_formats = ["tachiyomi", "tachiyomi-zip"]
+
 default_save_as_format = "raw"
 
 def get_format(fmt):

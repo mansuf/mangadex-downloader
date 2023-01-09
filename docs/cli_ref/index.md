@@ -252,6 +252,68 @@ Disable progress bar when downloading or converting
 Update mangadex-downloader to latest version
 ```
 
+## Available commands
+
+### Example usage
+
+```
+mangadex-dl "random"
+```
+
+### List of commands
+
+```{option} random
+Show 5 of random manga and select to download
+
+For more info, see {doc}`./random`
+```
+
+```{option} library
+Show list of saved manga from logged in user
+
+For more info, see {doc}`./manga_library`
+```
+
+```{option} list
+Show list of saved MDLists from logged in user
+
+For more info, see {doc}`./list_library`
+```
+
+```{option} followed-list
+Show list of followed MDLists from logged in user
+
+For more info, see {doc}`./follow_list_library`
+```
+
+```{option} group
+Show list of manga from a group that have uploaded scanlated chapters
+```
+
+```{option} file
+Download list of manga, chapters or lists from a file
+
+For more info, see {doc}`./file_command`
+```
+
+```{option} seasonal
+Select and download seasonal manga
+
+For more info, see {doc}`./seasonal_manga`
+```
+
+```{option} conf
+Modify or show config
+
+For more info, see {doc}`./config`
+```
+
+```{option} login_cache
+Modify or show cached authentication tokens expiration time
+
+For more info, see {doc}`./auth_cache`
+```
+
 ## Reference
 
 ```{toctree}

@@ -13,7 +13,9 @@ from .utils import (
 from .config import build_config
 from .auth import login_with_err_handler, logout_with_err_handler
 from .download import download
+
 from ..errors import MangaDexException
+from ..format import deprecated_formats
 
 _deprecated_opts = {
     # I know this isn't deprecated
@@ -21,11 +23,21 @@ _deprecated_opts = {
     "range": "--range is disabled, because it's broken and need to rework",
 }
 
-def _check_deprecations(log, args):
+def check_deprecated_options(log, args):
     for arg, msg in _deprecated_opts.items():
         deprecated = getattr(args, arg)
         if deprecated:
             log.warning(msg)
+
+def check_deprecated_formats(log, args):
+    if args.save_as in deprecated_formats:
+        log.warning(
+            f"format `{args.save_as}` is deprecated, " \
+             "please use `--write-tachiyomi-info` instead"
+        )
+
+        # Enable `--write-tachiyomi-info` because it's using `tachiyomi` and `tachiyomi-zip` format
+        args.write_tachiyomi_info = True
 
 def _main(argv):
     parser = None
@@ -39,14 +51,15 @@ def _main(argv):
         # Setup logging
         log = setup_logging('mangadex_downloader', args.verbose)
 
+        # Check deprecated
+        check_deprecated_options(log, args)
+        check_deprecated_formats(log, args)
+
         # Parse config
         build_config(parser, args)
 
         # Setup network
         setup_network(args)
-
-        # Check deprecation options
-        _check_deprecations(log, args)
 
         # Login
         login_with_err_handler(args)
