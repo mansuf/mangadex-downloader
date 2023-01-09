@@ -99,7 +99,7 @@ def get_args(argv):
     parser.add_argument(
         'URL',
         help='MangaDex URL or a file containing MangaDex URLs. ' \
-             'See ??? for available commands',
+             'See https://mangadex-downloader.rtfd.io/en/latest/cli_ref/index.html#available-commands for available commands',
         nargs='?',
         default=""
     )
