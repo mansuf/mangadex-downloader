@@ -253,6 +253,15 @@ class MangaLibraryCommand(MangaCommand):
         if not status:
             # To prevent error "invalid value"
             status = None
+        elif status == "help":
+            text = "List of statuses filter for user library manga"
+
+            bars = dynamic_bars(text)
+
+            print(f"{bars}\n{text}\n{bars}")
+            for item in IteratorUserLibraryManga.statuses:
+                print(item)
+            parser.exit(0)
 
         user = Net.mangadex.user
 

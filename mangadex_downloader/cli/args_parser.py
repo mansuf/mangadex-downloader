@@ -51,21 +51,6 @@ class ModifiedArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         self.exit(2, f'Error: {gettext(message)}\n')
 
-def _check_args(opts, args):
-    """Utility for checking args from original and alias options
-    
-    Used in :class:`InputHandler`
-    """
-    for opt in opts:
-        if opt not in args:
-            continue
-        else:
-            # original or alias options is exist in args
-            return True
-    
-    # not exist
-    return False
-
 def validate_group_url(url):
     try:
         return _validate_group_url(url)
@@ -109,225 +94,14 @@ class PrintVersionAction(argparse.Action):
         print_version_info()
         sys.exit(0)
 
-class InputHandler(argparse.Action):
-    def __init__(
-        self,
-        option_strings,
-        dest,
-        nargs=None,
-        const=None,
-        default=None,
-        type=None,
-        choices=None,
-        required=False,
-        help=None,
-        metavar=None,
-    ):
-        super().__init__(
-            option_strings,
-            dest,
-            nargs=nargs,
-            const=const,
-            default=default,
-            type=type,
-            choices=choices,
-            required=required,
-            help=help,
-            metavar=metavar
-        )
-        # Get url from pipe input
-        lowered_args = [i.lower() for i in sys_argv]
-        if '-pipe' in lowered_args:
-            pipe = True
-            pipe_value = sys.stdin.read()
-        else:
-            pipe = False
-            pipe_value = None
-
-        self.search = _check_args(
-            (
-                '--search',
-                '-s'
-            ),
-            lowered_args
-        )
-        self.use_alt_details = _check_args(
-            (
-                '--use-alt-details',
-                '-uad'
-            ),
-            lowered_args
-        )
-
-        # An monkey patch to determine if positional arguments is empty or no
-        _store_true_args = [
-            '--replace',
-            '-r',
-            '--verbose',
-            '--search',
-            '-s',
-            '--use-alt-details',
-            '-uad',
-            '--list-languages',
-            '-ll',
-            '--no-oneshot-chapter',
-            '-noc',
-            '--no-group-name',
-            '-ngn',
-            '--use-chapter-title',
-            '-uct',
-            '--use-compressed-image',
-            '-uci',
-            '--login',
-            '-l',
-            '--login-cache',
-            '-lc',
-            '-pipe',
-            '--version',
-            '-v',
-            '--update',
-            '--force-https',
-            '-fh'
-        ]
-
-        # positional arguments
-        pos_arg = False
-        pos_value = None
-        pos = 0
-        while True:
-            try:
-                argv = sys_argv[pos]
-            except IndexError:
-                break
-            
-            if argv.startswith('-'):
-                # Try to find value option
-                try:
-                    next_arg = sys_argv[pos + 1]
-                except IndexError:
-                    pass
-                else:
-                    if not next_arg.startswith('-') and argv not in _store_true_args:
-                        # We assume this as value of another option
-                        pos += 1
-                        pass
-                
-                pos += 1
-                continue
-            
-            pos_arg = True
-            pos_value = argv
-            break
-
-        # If positional exist and pipe is true
-        # remove it
-        # ONLY if -pipe is exist
-        if pos_arg and pipe:
-            sys_argv.remove(pos_value)
-
-        # Manipulate positional arguments
-        if pipe:
-            sys_argv.append(pipe_value)
-
-        # Allow to search with empty keyword
-        self.empty_search = not pos_arg and self.search
-        if self.empty_search:
-            sys_argv.append("dummy_empty_search")
-        
-        self.pipe = pipe
-        self.pipe_value = pipe_value
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        urls = self.pipe_value if self.pipe else values
-
-        file_exist = False
-        file_path = Path(urls)
-        if file_path.exists() and file_path.is_file():
-            file_exist = True
-
-        fetch_library_manga = urls.startswith('library')
-        fetch_library_list = urls.startswith('list')
-        fetch_library_follows_list = urls.startswith('followed-list')
-        random = urls.startswith('random')
-        group = urls.startswith('group')
-        file = urls.startswith('file')
-        seasonal = urls.startswith('seasonal')
-
-        if self.pipe and self.search:
-            parser.error("search with pipe input are not supported")
-        elif self.pipe and self.use_alt_details:
-            parser.error("--use-alt-details with -pipe are not supported")
-        elif self.pipe and fetch_library_manga:
-            parser.error("-pipe are not supported when fetching user library manga")
-        elif self.search and fetch_library_manga:
-            parser.error("--search are not supported when fetching user library manga")
-        elif self.pipe and fetch_library_list:
-            parser.error("-pipe are not supported when fetching user library list")
-        elif self.search and fetch_library_list:
-            parser.error("--search are not supported when fetching user library list")
-        elif self.pipe and fetch_library_follows_list:
-            parser.error("-pipe are not supported when fetching user library followed list")
-        elif self.search and fetch_library_follows_list:
-            parser.error("--search are not supported when fetching user library followed list")
-        elif self.search and file_exist:
-            parser.error("--search are not supported when used for batch downloading")
-
-        if fetch_library_manga:
-            result = urls.split(':')
-            
-            # Try to get filter status
-            try:
-                status = result[1]
-            except IndexError:
-                status = None
-            else:
-                status = status.strip()
-            
-            if status == 'help':
-                text = "List of statuses filter for user library manga"
-
-                # Build dynamic bar
-                bars = ""
-                for _ in text:
-                    bars += "="
-
-                print(bars)
-                print(text)
-                print(bars)
-                for item in IteratorUserLibraryManga.statuses:
-                    print(item)
-                sys.exit(0)
-
-            if status is not None and status not in IteratorUserLibraryManga.statuses:
-                err = str(set(IteratorUserLibraryManga.statuses)).replace('\'', '')
-                parser.error(f"{status} are not valid status, choices are {err}")
-
-        setattr(namespace, self.dest, "" if self.empty_search else urls)
-        setattr(namespace, 'fetch_library_manga', fetch_library_manga)
-        setattr(namespace, 'fetch_library_list', fetch_library_list)
-        setattr(
-            namespace,
-            'fetch_library_follows_list',
-            fetch_library_follows_list
-        )
-        setattr(namespace, 'random', random)
-        setattr(namespace, 'fetch_group', group)
-        setattr(namespace, 'file', file)
-        setattr(namespace, 'seasonal', seasonal)
-
 def get_args(argv):
     parser = ModifiedArgumentParser(description=__description__)
     parser.add_argument(
         'URL',
-        action=InputHandler,
         help='MangaDex URL or a file containing MangaDex URLs. ' \
-             'Type `library:<status>` to download manga from logged in user library, ' \
-             'if <status> is provided, it will fetch all mangas with given reading status, ' \
-             'if not, then it will fetch all mangas from logged in user. ' \
-             'Type `list:<user_id>` to download MangaDex list user, ' \
-             'if <user_id> is provided it will download public list, ' \
-             'if not, then it will download from public and private list from logged in user. ' \
-             'Type `followed-list` to download followed MangaDex list from logged in user ' \
+             'See ??? for available commands',
+        nargs='?',
+        default=""
     )
     parser.add_argument(
         '--type',
@@ -621,5 +395,34 @@ def get_args(argv):
     )
 
     args = parser.parse_args(argv)
+
+    # ##########################
+    # #  Finalization Process  #
+    # ##########################
+
+    urls: str = args.URL
+
+    fetch_library_manga = urls.startswith('library')
+    fetch_library_list = urls.startswith('list')
+    fetch_library_follows_list = urls.startswith('followed-list')
+    random = urls.startswith('random')
+    group = urls.startswith('group')
+    file = urls.startswith('file')
+    seasonal = urls.startswith('seasonal')
+
+    # TODO: Add extra checking for -pipe and --search options
+
+    setattr(args, "URL", urls)
+    setattr(args, 'fetch_library_manga', fetch_library_manga)
+    setattr(args, 'fetch_library_list', fetch_library_list)
+    setattr(
+        args,
+        'fetch_library_follows_list',
+        fetch_library_follows_list
+    )
+    setattr(args, 'random', random)
+    setattr(args, 'fetch_group', group)
+    setattr(args, 'file', file)
+    setattr(args, 'seasonal', seasonal)
 
     return parser, args

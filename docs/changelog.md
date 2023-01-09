@@ -11,6 +11,7 @@
 ### Fix bugs
 
 - Fixed download is overflowing when trying to resume incomplete download
+- Fixed various bugs in command-line options parser
 
 ### Dependecies
 
