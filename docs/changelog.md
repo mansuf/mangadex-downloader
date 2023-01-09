@@ -20,6 +20,7 @@
 ### Deprecated
 
 - Removed `--search-filter` and `-sf` option as it's deprecated from v2.4.0
+- Format `tachiyomi` and `tachiyomi-zip` are now deprecated, please use `raw` and `cbz` with `--write-tachiyomi-info` instead
 
 ## v2.5.4
 

@@ -384,6 +384,13 @@ def get_args(argv):
         default=config.no_progress_bar,
         help='Disable progress bar when downloading or converting'
     )
+    misc_group.add_argument(
+        '--write-tachiyomi-info',
+        '-wti',
+        action='store_true',
+        default=config.write_tachiyomi_info,
+        help='Write manga details to tachiyomi `details.json` file'
+    )
 
     # Update application
     update_group = parser.add_argument_group('Update application')

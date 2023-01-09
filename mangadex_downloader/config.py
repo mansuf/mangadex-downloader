@@ -372,6 +372,10 @@ class _Config:
         "http_retries": [
             5,
             _validate_http_retries
+        ],
+        "write_tachiyomi_info": [
+            False,
+            _validate_bool
         ]
     }
     default_conf = {

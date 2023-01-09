@@ -28,19 +28,8 @@ from .utils import write_tachiyomi_details
 
 log = logging.getLogger(__name__)
 
-class _TachiyomiFormatBase:
-    def write_details(self):
-        # Write details.json for tachiyomi local manga
-        details_path = self.path / 'details.json'
-        log.info('Writing details.json')
-        write_tachiyomi_details(self.manga, details_path)
-    
-    def main(self):
-        self.write_details()
-        super().main()
-
-class Tachiyomi(_TachiyomiFormatBase, Raw):
+class Tachiyomi(Raw):
     pass
 
-class TachiyomiZip(_TachiyomiFormatBase, ComicBookArchive):
+class TachiyomiZip(ComicBookArchive):
     pass

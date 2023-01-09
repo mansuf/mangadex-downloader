@@ -23,7 +23,7 @@
 import logging
 import os
 from pathvalidate import sanitize_filename
-from .utils import verify_sha256
+from .utils import verify_sha256, write_tachiyomi_details
 from ..downloader import ChapterPageDownloader
 from ..utils import QueueWorker
 
@@ -179,6 +179,12 @@ class BaseFormat:
             append_cache(chap_class.volume, [chap_class, chap_images])
         
         return cache
+
+    def write_tachiyomi_info(self):
+        """Write `details.json` file for tachiyomi app"""
+        if self.config.write_tachiyomi_info:
+            log.info("Writing tachiyomi `details.json` file")
+            write_tachiyomi_details(self.manga, (self.path / "details.json"))
 
     def create_worker(self):
         # If CTRL+C is pressed all process is interrupted, right ?

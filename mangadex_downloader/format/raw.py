@@ -33,6 +33,8 @@ class Raw(BaseFormat):
         base_path = self.path
         manga = self.manga
 
+        self.write_tachiyomi_info()
+
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap_name = chap_class.get_simplified_name()
