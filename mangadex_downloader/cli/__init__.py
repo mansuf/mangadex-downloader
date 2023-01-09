@@ -33,7 +33,7 @@ def check_deprecated_formats(log, args):
     if args.save_as in deprecated_formats:
         log.warning(
             f"format `{args.save_as}` is deprecated, " \
-             "please use `--write-tachiyomi-info` instead"
+             "please use `raw` or `cbz` format with `--write-tachiyomi-info` instead"
         )
 
         # Enable `--write-tachiyomi-info` because it's using `tachiyomi` and `tachiyomi-zip` format
