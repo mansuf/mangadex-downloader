@@ -157,3 +157,5 @@ See [CONTRIBUTING.md](https://github.com/mansuf/mangadex-downloader/blob/main/CO
 ## Disclaimer <a id="disclaimer"></a>
 
 mangadex-downloader are not affiliated with MangaDex. Also, the current maintainer ([@mansuf](https://github.com/mansuf)) is not a MangaDex dev
+
+
