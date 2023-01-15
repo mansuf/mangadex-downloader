@@ -101,6 +101,10 @@ class Manga:
         self._title = self._parse_title()
         self._description = self._parse_description()
 
+        # An DownloadTracker for manga
+        # Value will be filled in `main.py` module
+        self.tracker = None
+
     @property
     def id(self):
         """:class:`str`: ID manga"""

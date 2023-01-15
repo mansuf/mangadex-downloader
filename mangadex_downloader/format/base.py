@@ -23,7 +23,7 @@
 import logging
 import os
 from pathvalidate import sanitize_filename
-from .utils import verify_sha256, write_tachiyomi_details
+from .utils import verify_sha256, write_tachiyomi_details, get_md_file_hash
 from ..downloader import ChapterPageDownloader
 from ..utils import QueueWorker
 
@@ -48,25 +48,84 @@ class BaseFormat:
         self.no_chapter_info = config.no_chapter_info
         self.kwargs_iter = kwargs_iter_chapter_img
 
+        # I want to change BaseFormat.get_images() parameters
+        # for parameter DownloadTracker (BaseFormat.manga.tracker)
+        # But, it will require change the entire formats module
+        # And since this will be used in raw formats only
+        # It takes too much times to working on this (also i'm lazy :P)
+        # So i'm gonna store the folder name to this variable instead
+        self.raw_name = None
+
     def get_images(self, chap_class, images, path, count):
         imgs = []
         chap = chap_class.chapter
         chap_name = chap_class.get_name()
+        cls_name = self.__class__.__name__
+        file_info = None
+        tracker = self.manga.tracker
+        unverified_images = []
+        empty_images = False
+        is_raw_fmt = "Raw" == cls_name
 
-        # Fetching chapter images
-        log.info('Getting %s from chapter %s' % (
-            'compressed images' if self.compress_img else 'images',
-            chap
-        ))
-        images.fetch()
+        # Do not fetch chapter images when we have tracker file
+        # (For raw formats only)
+        if is_raw_fmt:
+            file_info = tracker.get(self.raw_name)
+            log.debug(f"Verifying {self.raw_name} images")
+
+            if file_info is None:
+                file_info = tracker.add_file_info(
+                    self.raw_name,
+                    chap_class.id,
+                    null_images=False,
+                )
+
+            for im_info in file_info.images:
+                verified = verify_sha256(im_info.hash, (path / im_info.name))
+                if not verified:
+                    unverified_images.append(im_info.name)
+            
+            if not unverified_images and file_info.completed and file_info.images:
+                log.info(
+                    f"All images from '{self.raw_name}' is verified. " \
+                     "No need to re-download."
+                )
+                return [path / i.name for i in file_info.images]
+
+            elif not file_info.images:
+                # Images are empty (not downloaded yet)
+                self.fetch_images(images, chap)
+                empty_images = True
+
+            else:
+                # Failed to verify or missing images
+                total = len(unverified_images) or (chap_class.pages - len(file_info.images))
+                log.info(
+                    f"Found {total} unverified or missing pages. " \
+                    "Re-downloading missing pages..."
+                )
+                self.fetch_images(images, chap)
+                tracker.toggle_complete(self.raw_name, False)
+        else:
+            self.fetch_images(images, chap)
 
         while True:
             error = False
             for page, img_url, img_name in images.iter(log_info=True):
-                server_file = img_name
-
+                img_hash = get_md_file_hash(img_name)
                 img_ext = os.path.splitext(img_name)[1]
                 img_name = count.get() + img_ext
+
+                # Ignore verified images
+                # (raw formats only)
+                if (
+                    is_raw_fmt and 
+                    not empty_images and 
+                    img_name not in unverified_images and
+                    file_info.completed
+                ):
+                    count.increase()
+                    continue
 
                 img_path = path / img_name
 
@@ -79,7 +138,7 @@ class BaseFormat:
                 # `True`: Verify success, hash matching
                 # `False`: Verify failed, hash is not matching
                 # `None`: Cannot verify, file is not exist (if `path` argument is given)
-                verified = verify_sha256(server_file, img_path)
+                verified = verify_sha256(img_hash, img_path)
 
                 if verified is None:
                     replace = False
@@ -90,6 +149,14 @@ class BaseFormat:
                 # Continue to download the others
                 if verified and not self.replace:
                     log.info("File exist and same as file from MangaDex server, cancelling download...")
+
+                    if is_raw_fmt:
+                        tracker.add_image_info(
+                            self.raw_name,
+                            img_name,
+                            img_hash
+                        )
+
                     count.increase()
                     imgs.append(img_path)
                     continue
@@ -118,6 +185,13 @@ class BaseFormat:
                     images.fetch()
                     break
                 else:
+                    if is_raw_fmt:
+                        tracker.add_image_info(
+                            self.raw_name,
+                            img_name,
+                            img_hash
+                        )
+
                     imgs.append(img_path)
                     count.increase()
                     continue
@@ -125,14 +199,20 @@ class BaseFormat:
             if not error:
                 return imgs
 
+    def fetch_images(self, images, chap):
+        # Fetch chapter images
+        log.info('Getting %s from chapter %s' % (
+            'compressed images' if self.compress_img else 'images',
+            chap
+        ))
+        images.fetch()
+
     def get_fmt_single_cache(self, manga):
         """Get cached all chapters, total pages, 
         and merged name (ex: Vol. 1 Ch. 1 - Vol. 2 Ch. 2) for any single formats
         """
         total = 0
 
-        # In order to add "next chapter" image mark in end of current chapter
-        # We need to cache all chapters
         log.info("Preparing to download...")
         cache = []
         # Enable log cache
@@ -141,8 +221,6 @@ class BaseFormat:
         for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
             # Fix #10
             # Some programs wouldn't display images correctly
-            # Each chapters has one page that has "Chapter n"
-            # This is called "start of the chapter" image
             total += 1
 
             total += chap_class.pages
@@ -153,12 +231,9 @@ class BaseFormat:
         if not cache:
             return None
 
-        # Construct .cbz filename from first and last chapter
-        first_chapter = cache[0][0]
-        last_chapter = cache[len(cache) - 1][0]
-        merged_name = sanitize_filename(first_chapter.simple_name + " - " + last_chapter.simple_name)
+        name = "All chapters"
 
-        return cache, total, merged_name
+        return cache, total, name
 
     def get_fmt_volume_cache(self, manga):
         """Get all cached volumes"""
@@ -185,6 +260,46 @@ class BaseFormat:
         if self.config.write_tachiyomi_info:
             log.info("Writing tachiyomi `details.json` file")
             write_tachiyomi_details(self.manga, (self.path / "details.json"))
+
+    def get_fi_volume_or_single_fmt(self, name, hash=None):
+        """Get DownloadTracker file_info for volume or single format
+        
+        Create one if it doesn't exist
+        """
+        tracker = self.manga.tracker
+        file_info = tracker.get(name)
+        if file_info is None:
+            file_info = tracker.add_file_info(
+                name=name,
+                id=None,
+                hash=hash,
+                null_images=True,
+                null_chapters=False
+            )
+        
+        return file_info
+
+    def get_new_chapters(self, file_info, chapters, name):
+        """Retrieve new chapters for volume and single formats"""
+        # Check for new chapters in volume
+        new_chapters = []
+        for chap_class, _ in chapters:
+            if chap_class.id not in file_info.chapters:
+                new_chapters.append(chap_class.name)
+
+        if new_chapters and file_info.completed:
+            log.info(
+                f"There is new {len(new_chapters)} chapters in {name}. " \
+                f"Re-downloading {name}..."
+            )
+
+            # Let output list of new chapters in verbose mode only
+            log.debug(f"List of new chapters = {new_chapters}")
+
+        elif file_info.completed:
+            log.info(f"There is no new chapters in {name}, ignoring...")
+
+        return new_chapters
 
     def create_worker(self):
         # If CTRL+C is pressed all process is interrupted, right ?

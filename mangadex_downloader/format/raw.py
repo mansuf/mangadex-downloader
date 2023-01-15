@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import logging
+import shutil
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
 from .utils import NumberWithLeadingZeros, get_chapter_info
@@ -35,19 +36,28 @@ class Raw(BaseFormat):
 
         self.write_tachiyomi_info()
 
+        # Recreate DownloadTracker JSON file if --replace is present
+        if self.replace:
+            manga.tracker.recreate()
+
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
             chap_name = chap_class.get_simplified_name()
+            self.raw_name = chap_name
 
             chapter_path = create_directory(chap_name, base_path)
             count = NumberWithLeadingZeros(chap_class.pages)
 
             self.get_images(chap_class, images, chapter_path, count)
 
+            manga.tracker.toggle_complete(chap_name, True)
+
 class RawVolume(BaseFormat):
     def main(self):
         base_path = self.path
         manga = self.manga
+        tracker = manga.tracker
+        file_info = None
 
         cache = self.get_fmt_volume_cache(manga)
 
@@ -55,23 +65,33 @@ class RawVolume(BaseFormat):
         for volume, chapters in cache.items():
             num = 0
             for chap_class, images in chapters:
-                # Each chapters has one page that has "Chapter n"
-                # This is called "start of the chapter" image
                 num += 1
 
                 num += chap_class.pages
 
             count = NumberWithLeadingZeros(num)
 
-            for chap_class, images in chapters:
-                # Build volume folder name
-                if chap_class.volume is not None:
-                    volume = f'Vol. {chap_class.volume}'
-                else:
-                    volume = 'No Volume'
-                
-                volume_path = create_directory(volume, base_path)
+            # Build volume folder name
+            if volume is not None:
+                volume_name = f'Volume {volume}'
+            else:
+                volume_name = 'No Volume'
 
+            volume_path = create_directory(volume_name, base_path)
+
+            file_info = self.get_fi_volume_or_single_fmt(volume_name)
+            
+            new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
+
+            # Only checks if ``file_info.complete`` state is True
+            if not new_chapters and file_info.completed:
+                continue
+            elif file_info.completed:
+                # Re-create directory to prevent error
+                shutil.rmtree(volume_path, ignore_errors=True)
+                volume_path = create_directory(volume_name, base_path)
+
+            for chap_class, images in chapters:
                 # Insert "start of the chapter" image
                 img_name = count.get() + '.png'
                 img_path = volume_path / img_name
@@ -82,10 +102,20 @@ class RawVolume(BaseFormat):
 
                 self.get_images(chap_class, images, volume_path, count)
 
+                tracker.add_chapter_info(
+                    volume_name,
+                    chap_class.name,
+                    chap_class.id,
+                )
+
+            tracker.toggle_complete(volume_name, True)
+
 class RawSingle(BaseFormat):
     def main(self):
         base_path = self.path
         manga = self.manga
+        tracker = manga.tracker
+        file_info = None
 
         result_cache = self.get_fmt_single_cache(manga)
 
@@ -94,11 +124,21 @@ class RawSingle(BaseFormat):
             # there is nothing we can download
             return
         
-        cache, total, merged_name = result_cache
+        cache, total, name = result_cache
 
         count = NumberWithLeadingZeros(total)
-        path = base_path / merged_name
-        path.mkdir(exist_ok=True)
+        path = create_directory(name, base_path)
+
+        file_info = self.get_fi_volume_or_single_fmt(name)
+        new_chapters = self.get_new_chapters(file_info, cache, name)
+
+        # Only checks if ``file_info.complete`` state is True
+        if not new_chapters and file_info.completed:
+            return
+        elif file_info.completed:
+            # Re-create directory to prevent error
+            shutil.rmtree(path, ignore_errors=True)
+            path = create_directory(name, base_path)
 
         for chap_class, images in cache:
             # Insert "start of the chapter" image
@@ -110,3 +150,9 @@ class RawSingle(BaseFormat):
                 count.increase()
 
             self.get_images(chap_class, images, path, count)
+
+            tracker.add_chapter_info(
+                name,
+                chap_class.name,
+                chap_class.id,
+            )
