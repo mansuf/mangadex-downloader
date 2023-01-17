@@ -72,11 +72,11 @@ class NumberWithLeadingZeros:
     def reset(self):
         self._num = 0
 
-    def increase(self):
-        self._num += 1
+    def increase(self, num=1):
+        self._num += num
     
-    def decrease(self):
-        self._num -= 1
+    def decrease(self, num=1):
+        self._num -= num
 
     def get_without_zeros(self):
         """This will return number without leading zeros"""
@@ -139,6 +139,23 @@ def verify_sha256(file_hash, path=None, data=None):
         local_sha256.update(data)
     
     return local_sha256.hexdigest() == file_hash
+
+def create_file_hash_sha256(path):
+    s = hashlib.sha256()
+
+    if not os.path.exists(path):
+        return None
+    
+    size = 8192
+    with open(path, "rb") as reader:
+        while True:
+            data = reader.read(size)
+            if not data:
+                break
+
+            s.update(data)
+    
+    return s.hexdigest()
 
 # Compliance with Tachiyomi local JSON format
 class MangaStatus(Enum):

@@ -22,13 +22,20 @@
 
 import logging
 import shutil
-from pathvalidate import sanitize_filename
+import os
+
 from .base import BaseFormat
-from .utils import NumberWithLeadingZeros, get_chapter_info
-from ..utils import create_directory
+from .utils import (
+    NumberWithLeadingZeros,
+    get_chapter_info,
+    verify_sha256,
+    create_file_hash_sha256
+)
+from ..utils import create_directory, delete_file
 
 log = logging.getLogger(__name__)
 
+# TODO: PLEASE REFACTOR THIS CODE (Raw, RawVolume, RawSingle)
 class Raw(BaseFormat):
     def main(self):
         base_path = self.path
@@ -42,13 +49,43 @@ class Raw(BaseFormat):
 
         # Begin downloading
         for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
+            failed_images = []
             chap_name = chap_class.get_simplified_name()
-            self.raw_name = chap_name
 
+            file_info = self.get_fi_chapter_fmt(chap_name, chap_class.id)
             chapter_path = create_directory(chap_name, base_path)
+
+            for im_info in file_info.images:
+                verified = verify_sha256(im_info.hash, chapter_path / im_info.name)
+                if not verified:
+                    failed_images.append(im_info)
+                
+            if failed_images and file_info.completed:
+                log.warning(
+                    f"Found {len(failed_images)} unverified or missing images from {chap_name}. " \
+                    "Re-downloading..."
+                )
+
+                # Delete unverified images
+                for im_info in failed_images:
+                    im_path = chapter_path / im_info.name
+
+                    log.debug(f"Removing unverified image '{im_path.resolve()}'")
+                    delete_file(im_path)
+            elif file_info.completed:
+                log.info(f"'{chap_name}' is verified. no need to re-download")
+                continue
+
             count = NumberWithLeadingZeros(chap_class.pages)
 
-            self.get_images(chap_class, images, chapter_path, count)
+            images = self.get_images(chap_class, images, chapter_path, count)
+
+            for im in images:
+                basename = os.path.basename(im)
+                im_hash = create_file_hash_sha256(im)
+                manga.tracker.add_image_info(
+                    chap_name, basename, im_hash, chap_class.id
+                )
 
             manga.tracker.toggle_complete(chap_name, True)
 
@@ -63,6 +100,7 @@ class RawVolume(BaseFormat):
 
         # Begin downloading
         for volume, chapters in cache.items():
+            failed_images = []
             num = 0
             for chap_class, images in chapters:
                 num += 1
@@ -78,20 +116,45 @@ class RawVolume(BaseFormat):
                 volume_name = 'No Volume'
 
             volume_path = create_directory(volume_name, base_path)
-
-            file_info = self.get_fi_volume_or_single_fmt(volume_name)
-            
+            file_info = self.get_fi_volume_or_single_fmt(volume_name, null_images=False)
             new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
 
             # Only checks if ``file_info.complete`` state is True
-            if not new_chapters and file_info.completed:
-                continue
-            elif file_info.completed:
+            if new_chapters and file_info.completed:
                 # Re-create directory to prevent error
                 shutil.rmtree(volume_path, ignore_errors=True)
                 volume_path = create_directory(volume_name, base_path)
 
+            for im_info in file_info.images:
+                verified = verify_sha256(im_info.hash, volume_path / im_info.name)
+                if not verified:
+                    failed_images.append(im_info)
+                
+            if failed_images and file_info.completed and not new_chapters:
+                log.warning(
+                    f"Found {len(failed_images)} unverified or missing images from {volume_name}. " \
+                    "Re-downloading..."
+                )
+
+                # Delete unverified images
+                for im_info in failed_images:
+                    im_path = volume_path / im_info.name
+
+                    log.debug(f"Removing unverified image '{im_path.resolve()}'")
+                    delete_file(im_path)
+            elif file_info.completed:
+                log.info(f"'{volume_name}' is verified. no need to re-download")
+                continue
+
+            # Chapters that have images that are failed to verify
+            # (hash is not matching)
+            chapter_failed_images = set(i.chapter_id for i in failed_images)
+
             for chap_class, images in chapters:
+                if chap_class.id not in chapter_failed_images and file_info.completed:
+                    count.increase(chap_class.pages)
+                    continue
+
                 # Insert "start of the chapter" image
                 img_name = count.get() + '.png'
                 img_path = volume_path / img_name
@@ -100,13 +163,23 @@ class RawVolume(BaseFormat):
                     get_chapter_info(chap_class, img_path, self.replace)
                     count.increase()
 
-                self.get_images(chap_class, images, volume_path, count)
+                images = self.get_images(chap_class, images, volume_path, count)
 
                 tracker.add_chapter_info(
                     volume_name,
                     chap_class.name,
                     chap_class.id,
                 )
+
+                for im in images:
+                    basename = os.path.basename(im)
+                    im_hash = create_file_hash_sha256(im)
+                    manga.tracker.add_image_info(
+                        volume_name,
+                        basename,
+                        im_hash,
+                        chap_class.id
+                    )
 
             tracker.toggle_complete(volume_name, True)
 
@@ -116,6 +189,7 @@ class RawSingle(BaseFormat):
         manga = self.manga
         tracker = manga.tracker
         file_info = None
+        failed_images = []
 
         result_cache = self.get_fmt_single_cache(manga)
 
@@ -127,20 +201,47 @@ class RawSingle(BaseFormat):
         cache, total, name = result_cache
 
         count = NumberWithLeadingZeros(total)
-        path = create_directory(name, base_path)
 
-        file_info = self.get_fi_volume_or_single_fmt(name)
+        path = create_directory(name, base_path)
+        file_info = self.get_fi_volume_or_single_fmt(name, null_images=False)
         new_chapters = self.get_new_chapters(file_info, cache, name)
 
         # Only checks if ``file_info.complete`` state is True
-        if not new_chapters and file_info.completed:
-            return
-        elif file_info.completed:
+        if new_chapters and file_info.completed:
             # Re-create directory to prevent error
             shutil.rmtree(path, ignore_errors=True)
             path = create_directory(name, base_path)
 
+        for im_info in file_info.images:
+            verified = verify_sha256(im_info.hash, path / im_info.name)
+            if not verified:
+                failed_images.append(im_info)
+            
+        if failed_images and file_info.completed and not new_chapters:
+            log.warning(
+                f"Found {len(failed_images)} unverified or missing images from {name}. " \
+                "Re-downloading..."
+            )
+
+            # Delete unverified images
+            for im_info in failed_images:
+                im_path = path / im_info.name
+
+                log.debug(f"Removing unverified image '{im_path.resolve()}'")
+                delete_file(im_path)
+        elif file_info.completed:
+            log.info(f"'{name}' is verified. no need to re-download")
+            return
+
+        # Chapters that have images that are failed to verify
+        # (hash is not matching)
+        chapter_failed_images = [i.chapter_id for i in failed_images]
+
         for chap_class, images in cache:
+            if chap_class.id not in chapter_failed_images and file_info.completed:
+                count.increase(chap_class.pages)
+                continue
+
             # Insert "start of the chapter" image
             img_name = count.get() + '.png'
             img_path = path / img_name
@@ -149,10 +250,22 @@ class RawSingle(BaseFormat):
                 get_chapter_info(chap_class, img_path, self.replace)
                 count.increase()
 
-            self.get_images(chap_class, images, path, count)
+            images = self.get_images(chap_class, images, path, count)
 
             tracker.add_chapter_info(
                 name,
                 chap_class.name,
                 chap_class.id,
             )
+
+            for im in images:
+                basename = os.path.basename(im)
+                im_hash = create_file_hash_sha256(im)
+                manga.tracker.add_image_info(
+                    name,
+                    basename,
+                    im_hash,
+                    chap_class.id
+                )
+        
+        tracker.toggle_complete(name, True)

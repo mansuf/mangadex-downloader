@@ -18,12 +18,14 @@ class _ImageInfo(_BasicInfo):
     def __init__(self, data) -> None:
         self.name = data["name"]
         self.hash = data["hash"]
+        self.chapter_id = data["chapter_id"]
 
     @property
     def data(self):
         return {
             "name": self.name,
-            "hash": self.hash
+            "hash": self.hash,
+            "chapter_id": self.chapter_id
         }
     
     def __eq__(self, o) -> bool:
@@ -60,7 +62,11 @@ class _FileInfo(_BasicInfo):
         else:
             self.images = images
 
-        self.chapters = data["chapters"]
+        chapters = data["chapters"]
+        if chapters is not None:
+            self.chapters = [_ChapterInfo(i) for i in data["chapters"]]
+        else:
+            self.chapters = chapters
 
     @property
     def data(self):
@@ -231,11 +237,11 @@ class DownloadTracker:
 
         return file_info
 
-    def add_image_info(self, name, img_name, hash):
+    def add_image_info(self, name, img_name, hash, chap_id):
         file_info = self.get(name)
 
         im_info = _ImageInfo(
-            {"name": img_name, "hash": hash}
+            {"name": img_name, "hash": hash, "chapter_id": chap_id}
         )
         try:
             file_info.images.remove(im_info) # to prevent duplicate
