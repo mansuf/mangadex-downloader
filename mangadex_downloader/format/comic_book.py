@@ -129,8 +129,8 @@ class ComicBookArchive(BaseFormat):
             compresslevel=env.zip_compression_level
         )
 
-    def _add_fi(self, name, id, path):
-        """Add new DownloadTracker._FileInfo for chapter to the tracker"""
+    def add_fi(self, name, id, path, chapters=None):
+        """Add new DownloadTracker._FileInfo to the tracker"""
         file_hash = create_file_hash_sha256(path)
 
         name = f"{name}.cbz"
@@ -143,8 +143,18 @@ class ComicBookArchive(BaseFormat):
             id=id,
             hash=file_hash,
             null_images=True,
-            null_chapters=True
+            null_chapters=False if chapters else True
         )
+
+        if chapters:
+            for ch, _ in chapters:
+                self.manga.tracker.add_chapter_info(
+                    name=name,
+                    chapter_name=ch.name,
+                    chapter_id=ch.id
+                )
+        
+        self.manga.tracker.toggle_complete(name, True)
 
     def _download(self, worker, chapters):
         manga = self.manga
@@ -162,8 +172,8 @@ class ComicBookArchive(BaseFormat):
                 else:
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
 
-                    # Store tracker for existing chapter
-                    self._add_fi(chap_name, chap_class.id, chapter_zip_path)
+                    # Store file_info tracker for existing chapter
+                    self.add_fi(chap_name, chap_class.id, chapter_zip_path)
                     continue
 
             chapter_path = create_directory(chap_name, self.path)
@@ -191,7 +201,7 @@ class ComicBookArchive(BaseFormat):
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
 
-            self._add_fi(chap_name, chap_class.id, chapter_zip_path)
+            self.add_fi(chap_name, chap_class.id, chapter_zip_path)
 
     def main(self):
         manga = self.manga
@@ -246,11 +256,12 @@ class ComicBookArchive(BaseFormat):
                 log.warning(f"'{chap_name}' is missing or unverified (hash is not matching)")
                 # Either missing file or hash is not matching
                 chapters.append((chap_class, images))
+                delete_file(self.path / chap_name)
             else:
                 log.info(f"'{chap_name}' is verified and no need to re-download")
 
         if chapters:
-            log.info(
+            log.warning(
                 f"Found {len(chapters)} missing or unverified chapters, " \
                 f"re-downloading {len(chapters)} chapters..."
             )
@@ -262,14 +273,9 @@ class ComicBookArchive(BaseFormat):
         worker.shutdown()
 
 class ComicBookArchiveVolume(ComicBookArchive):
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
-
-        cache = self.get_fmt_volume_cache(manga)
-
+    def _download(self, worker, volumes):
         # Begin downloading
-        for volume, chapters in cache.items():
+        for volume, chapters in volumes.items():
             num = 0
             images = []
 
@@ -282,13 +288,9 @@ class ComicBookArchiveVolume(ComicBookArchive):
 
             count = NumberWithLeadingZeros(num)
 
-            # Build volume folder name
-            if chap_class.volume is not None:
-                volume = f'Vol. {chap_class.volume}'
-            else:
-                volume = 'No Volume'
+            volume_name = self.get_volume_name(volume)
 
-            volume_zip_path = self.path / (volume + '.cbz')
+            volume_zip_path = self.path / (volume_name + '.cbz')
 
             # Check if exist or not
             if volume_zip_path.exists():
@@ -297,10 +299,13 @@ class ComicBookArchiveVolume(ComicBookArchive):
                     delete_file(volume_zip_path)
                 else:
                     log.info(f"{volume_zip_path.name} is exist and replace is False, cancelling download...")
+
+                    # Store file_info tracker for existing volume
+                    self.add_fi(volume_name, None, volume_zip_path, chapters)
                     continue
 
             # Create volume folder
-            volume_path = create_directory(volume, self.path)
+            volume_path = create_directory(volume_name, self.path)
 
             volume_zip = self.make_zip(volume_zip_path)
 
@@ -327,12 +332,92 @@ class ComicBookArchiveVolume(ComicBookArchive):
 
                 images.extend(self.get_images(chap_class, chap_images, volume_path, count))
 
-            log.info(f"{volume} has finished download, converting to cbz...")
+            log.info(f"{volume_name} has finished download, converting to cbz...")
 
             worker.submit(lambda: self.convert(volume_zip, images))
                 
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
+
+            self.add_fi(volume_name, None, volume_zip_path, chapters)
+
+    def main(self):
+        manga = self.manga
+        worker = self.create_worker()
+        tracker = manga.tracker
+
+        # Steps for existing (downloaded) volumes:
+        # - Check for new chapters.
+        # - Re-download the volume that has new chapters (if available)
+        # - Verify downloaded volumes
+
+        # Steps for new (not downloaded) volumes:
+        # - Download all of them, yes
+
+        cache = self.get_fmt_volume_cache(manga)
+
+        # There is not existing (downloaded) volumes
+        # Download all of them
+        if tracker.empty:
+            self._download(worker, cache)
+            return
+
+        volumes = {}
+        # Check for new chapters in exsiting (downloaded) volumes
+        for volume, chapters in cache.items():
+            volume_name = self.get_volume_name(volume) + ".cbz"
+            fi = tracker.get(volume_name)
+
+            if not fi:
+                # We assume this volume has not been downloaded yet
+                volumes[volume] = chapters
+                continue
+
+            for chapter, _ in chapters:
+                if chapter.id in fi.chapters:
+                    continue
+
+                # New chapters detected
+                volumes[volume] = chapters
+                break
+            
+        # Delete existing volumes if the volumes containing new chapters
+        # because we want to re-download them
+        for volume, _ in volumes.items():
+            volume_name = self.get_volume_name(volume)
+
+            path = self.path / (volume_name + ".cbz")
+            delete_file(path)
+        
+        # Re-download the volumes
+        self._download(worker, volumes)
+
+        volumes = {}
+
+        # Verify downloaded volumes
+        for volume, chapters in cache.items():
+            volume_name = self.get_volume_name(volume) + ".cbz"
+            path = self.path / volume_name
+
+            fi = tracker.get(volume_name)
+
+            passed = verify_sha256(fi.hash, path)
+            if not passed:
+                log.warning(f"'{volume_name}' is missing or unverified (hash is not matching)")
+                # Either missing file or hash is not matching
+                volumes[volume] = chapters
+                delete_file(path)
+            else:
+                log.info(f"'{volume_name}' is verified and no need to re-download")
+        
+        if volumes:
+            log.warning(
+                f"Found {len(volumes)} missing or unverified volumes, " \
+                f"re-downloading {len(volumes)} volumes..."
+            )
+
+        # Download missing or unverified volumes
+        self._download(worker, volumes)
 
         # Shutdown queue-based thread process
         worker.shutdown()

@@ -175,6 +175,15 @@ class BaseFormat:
         
         return cache
 
+    def get_volume_name(self, vol):
+        # Build volume folder name
+        if vol is not None:
+            name = f'Vol. {vol}'
+        else:
+            name = 'No Volume'
+        
+        return name
+
     def write_tachiyomi_info(self):
         """Write `details.json` file for tachiyomi app"""
         if self.config.write_tachiyomi_info:
