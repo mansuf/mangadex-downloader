@@ -202,6 +202,10 @@ class DownloadTracker:
             json.dumps(data, cls=DownloadTrackerJSONEncoder, indent=4)
         )
 
+    @property
+    def empty(self):
+        return len(self.data["files"]) == 0
+
     def get(self, name) -> _FileInfo:
         """Retrieve file_info from given name"""
         files = self.data["files"]
@@ -211,6 +215,13 @@ class DownloadTracker:
             file_info = fi
         
         return file_info
+
+    def remove_file_info_from_name(self, name):
+        files = self.data["files"]
+
+        iterator = filter(lambda x: x.name == name, files)
+        for fi in iterator:
+            files.remove(fi)
 
     def add_file_info(
         self,
@@ -232,6 +243,7 @@ class DownloadTracker:
                 "chapters": None if null_chapters else [],
             }
         )
+
         files.append(file_info)
         self._write(self.data)
 
@@ -256,7 +268,7 @@ class DownloadTracker:
 
             found = re.search(re_page, im_info.name)
             if found is None:
-                raise MangaDexException(
+                raise Exception(
                     f"An error occurred when getting page from filename '{im_info.name}'. " \
                     f"Please report it to {__repository__}/issues"
                 )

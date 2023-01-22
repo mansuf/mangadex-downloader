@@ -30,7 +30,12 @@ import xml.etree.ElementTree as ET
 from tqdm import tqdm
 from pathvalidate import sanitize_filename
 from .base import BaseFormat
-from .utils import get_chapter_info, NumberWithLeadingZeros
+from .utils import (
+    get_chapter_info,
+    NumberWithLeadingZeros,
+    create_file_hash_sha256,
+    verify_sha256
+)
 from ..utils import create_directory, delete_file
 from ..errors import PillowNotInstalled
 
@@ -112,6 +117,7 @@ class ComicBookArchive(BaseFormat):
             progress_bar.update(1)                
 
         progress_bar.close()
+        zip_obj.close()
 
     def make_zip(self, path):
         from ..config import env
@@ -123,24 +129,41 @@ class ComicBookArchive(BaseFormat):
             compresslevel=env.zip_compression_level
         )
 
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
+    def _add_fi(self, name, id, path):
+        """Add new DownloadTracker._FileInfo for chapter to the tracker"""
+        file_hash = create_file_hash_sha256(path)
 
-        self.write_tachiyomi_info()
+        name = f"{name}.cbz"
+
+        # Prevent duplicate
+        self.manga.tracker.remove_file_info_from_name(name)
+
+        self.manga.tracker.add_file_info(
+            name=name,
+            id=id,
+            hash=file_hash,
+            null_images=True,
+            null_chapters=True
+        )
+
+    def _download(self, worker, chapters):
+        manga = self.manga
 
         # Begin downloading
-        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
+        for chap_class, images in chapters:
             chap_name = chap_class.get_simplified_name()
 
-            # Check if .cbz file is exist or not
             chapter_zip_path = self.path / (chap_name + '.cbz')
-            if chapter_zip_path.exists():
 
+            # Check if .cbz file is exist or not
+            if chapter_zip_path.exists():
                 if self.replace:
                     delete_file(chapter_zip_path)
                 else:
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
+
+                    # Store tracker for existing chapter
+                    self._add_fi(chap_name, chap_class.id, chapter_zip_path)
                     continue
 
             chapter_path = create_directory(chap_name, self.path)
@@ -167,6 +190,73 @@ class ComicBookArchive(BaseFormat):
 
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
+
+            self._add_fi(chap_name, chap_class.id, chapter_zip_path)
+
+    def main(self):
+        manga = self.manga
+        worker = self.create_worker()
+        tracker = manga.tracker
+
+        # Steps for existing (downloaded) chapters:
+        # - Check for new chapters.
+        # - Download the new chapters (if available)
+        # - Verify downloaded chapters
+
+        # Steps for new (not downloaded) chapters:
+        # - Download all of them, yes
+
+        self.write_tachiyomi_info()
+
+        log.info("Preparing to download...")
+        cache = []
+        cache.extend(manga.chapters.iter(**self.kwargs_iter))
+
+        # There is no existing (downloaded) chapters
+        # Download all of them
+        if tracker.empty:
+            self._download(worker, cache)
+            return
+
+        chapters = []
+        # Check for new chapters in existing (downloaded) chapters
+        for chap_class, images in cache:
+            chap_name = chap_class.get_simplified_name() + ".cbz"
+
+            fi = tracker.get(chap_name)
+            if fi:
+                continue
+                
+            # There is new chapters
+            chapters.append((chap_class, images))
+        
+        # Download the new chapters first 
+        self._download(worker, chapters)
+
+        chapters = []
+
+        # Verify downloaded chapters
+        for chap_class, images in cache:
+            chap_name = chap_class.get_simplified_name() + ".cbz"
+            
+            fi = tracker.get(chap_name)
+
+            passed = verify_sha256(fi.hash, (self.path / chap_name))
+            if not passed:
+                log.warning(f"'{chap_name}' is missing or unverified (hash is not matching)")
+                # Either missing file or hash is not matching
+                chapters.append((chap_class, images))
+            else:
+                log.info(f"'{chap_name}' is verified and no need to re-download")
+
+        if chapters:
+            log.info(
+                f"Found {len(chapters)} missing or unverified chapters, " \
+                f"re-downloading {len(chapters)} chapters..."
+            )
+
+        # Download missing or unverified chapters
+        self._download(worker, chapters)
 
         # Shutdown queue-based thread process
         worker.shutdown()

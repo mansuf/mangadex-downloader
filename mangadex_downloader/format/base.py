@@ -216,17 +216,15 @@ class BaseFormat:
         
         return file_info
 
-    def get_new_chapters(self, file_info, chapters, name):
+    def get_new_chapters(self, file_info, chapters, name, log_output=True):
         """Retrieve new chapters for volume and single formats"""
         # Check for new chapters in volume
         new_chapters = []
         for chap_class, _ in chapters:
-            # iterator = filter(lambda x: x.id == chap_class.id, file_info.chapters)
-            # new_chapters.extend(iterator)
             if chap_class.id not in file_info.chapters:
                 new_chapters.append(chap_class.name)
 
-        if new_chapters and file_info.completed:
+        if new_chapters and file_info.completed and log_output:
             log.info(
                 f"There is new {len(new_chapters)} chapters in {name}. " \
                 f"Re-downloading {name}..."
