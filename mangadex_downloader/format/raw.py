@@ -96,6 +96,10 @@ class RawVolume(BaseFormat):
         tracker = manga.tracker
         file_info = None
 
+        # Recreate DownloadTracker JSON file if --replace is present
+        if self.replace:
+            manga.tracker.recreate()
+
         cache = self.get_fmt_volume_cache(manga)
 
         # Begin downloading
@@ -190,6 +194,10 @@ class RawSingle(BaseFormat):
         tracker = manga.tracker
         file_info = None
         failed_images = []
+
+        # Recreate DownloadTracker JSON file if --replace is present
+        if self.replace:
+            manga.tracker.recreate()
 
         result_cache = self.get_fmt_single_cache(manga)
 
