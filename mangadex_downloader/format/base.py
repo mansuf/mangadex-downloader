@@ -22,9 +22,14 @@
 
 import logging
 import os
-from .utils import verify_sha256, write_tachiyomi_details, get_md_file_hash
+from .utils import (
+    verify_sha256,
+    write_tachiyomi_details,
+    get_md_file_hash,
+    create_file_hash_sha256
+)
 from ..downloader import ChapterPageDownloader
-from ..utils import QueueWorker
+from ..utils import QueueWorker, delete_file
 
 log = logging.getLogger(__name__)
 
@@ -260,3 +265,273 @@ class BaseFormat:
         Subclasses must implement this.
         """
         raise NotImplementedError
+
+# Converted formats
+# cbz, cbz-volume, cbz-single, pdf, epub, etc...
+class BaseConvertedFormat(BaseFormat):
+    # Now, you maybe wondering. Some functions in this class want to access `self.file_ext` value.
+    # But it's not declared yet in this base class. How ?
+    # Well the answer is to create a new class that has `file_ext` variable
+    # stored in class variables with utility functions that related to
+    # file extension creation (zip, 7z, epub, pdf, etc...)
+    # and use that class in each format clasess
+    # See `CBZFileExt` class in `format/comic_book.py` module for example
+
+    def add_fi(self, name, id, path, chapters=None):
+        """Add new DownloadTracker._FileInfo to the tracker"""
+        file_hash = create_file_hash_sha256(path)
+
+        name = f"{name}{self.file_ext}"
+
+        # Prevent duplicate
+        self.manga.tracker.remove_file_info_from_name(name)
+
+        self.manga.tracker.add_file_info(
+            name=name,
+            id=id,
+            hash=file_hash,
+            null_images=True,
+            null_chapters=False if chapters else True
+        )
+
+        if chapters:
+            for ch, _ in chapters:
+                self.manga.tracker.add_chapter_info(
+                    name=name,
+                    chapter_name=ch.name,
+                    chapter_id=ch.id
+                )
+        
+        self.manga.tracker.toggle_complete(name, True)
+
+    def download_chapters(self, worker, chapters):
+        raise NotImplementedError
+    
+    def download_volumes(self, worker, volumes):
+        raise NotImplementedError
+
+    def download_single(self, worker, total, merged_name, chapters):
+        raise NotImplementedError
+
+class ConvertedChaptersFormat(BaseConvertedFormat):
+    def main(self):
+        manga = self.manga
+        worker = self.create_worker()
+        tracker = manga.tracker
+
+        # Steps for existing (downloaded) chapters:
+        # - Check for new chapters.
+        # - Download the new chapters (if available)
+        # - Verify downloaded chapters
+
+        # Steps for new (not downloaded) chapters:
+        # - Download all of them, yes
+
+        self.write_tachiyomi_info()
+
+        log.info("Preparing to download...")
+        cache = []
+        cache.extend(manga.chapters.iter(**self.kwargs_iter))
+
+        # There is no existing (downloaded) chapters
+        # Download all of them
+        if tracker.empty:
+            self.download_chapters(worker, cache)
+            return
+
+        chapters = []
+        # Check for new chapters in existing (downloaded) chapters
+        for chap_class, images in cache:
+            chap_name = chap_class.get_simplified_name() + self.file_ext
+
+            fi = tracker.get(chap_name)
+            if fi:
+                continue
+                
+            # There is new chapters
+            chapters.append((chap_class, images))
+        
+        # Download the new chapters first 
+        self.download_chapters(worker, chapters)
+
+        chapters = []
+
+        # Verify downloaded chapters
+        for chap_class, images in cache:
+            chap_name = chap_class.get_simplified_name() + self.file_ext
+            
+            fi = tracker.get(chap_name)
+
+            passed = verify_sha256(fi.hash, (self.path / chap_name))
+            if not passed:
+                log.warning(f"'{chap_name}' is missing or unverified (hash is not matching)")
+                # Either missing file or hash is not matching
+                chapters.append((chap_class, images))
+                delete_file(self.path / chap_name)
+            else:
+                log.info(f"'{chap_name}' is verified and no need to re-download")
+
+        if chapters:
+            log.warning(
+                f"Found {len(chapters)} missing or unverified chapters, " \
+                f"re-downloading {len(chapters)} chapters..."
+            )
+
+        # Download missing or unverified chapters
+        self.download_chapters(worker, chapters)
+
+        # Shutdown queue-based thread process
+        worker.shutdown()
+
+class ConvertedVolumesFormat(BaseConvertedFormat):
+    def main(self):
+        manga = self.manga
+        worker = self.create_worker()
+        tracker = manga.tracker
+
+        # Steps for existing (downloaded) volumes:
+        # - Check for new chapters.
+        # - Re-download the volume that has new chapters (if available)
+        # - Verify downloaded volumes
+
+        # Steps for new (not downloaded) volumes:
+        # - Download all of them, yes
+
+        cache = self.get_fmt_volume_cache(manga)
+
+        # There is not existing (downloaded) volumes
+        # Download all of them
+        if tracker.empty:
+            self.download_volumes(worker, cache)
+            return
+
+        volumes = {}
+        # Check for new chapters in exsiting (downloaded) volumes
+        for volume, chapters in cache.items():
+            volume_name = self.get_volume_name(volume) + self.file_ext
+            fi = tracker.get(volume_name)
+
+            if not fi:
+                # We assume this volume has not been downloaded yet
+                volumes[volume] = chapters
+                continue
+
+            for chapter, _ in chapters:
+                if chapter.id in fi.chapters:
+                    continue
+
+                # New chapters detected
+                volumes[volume] = chapters
+                break
+            
+        # Delete existing volumes if the volumes containing new chapters
+        # because we want to re-download them
+        for volume, _ in volumes.items():
+            volume_name = self.get_volume_name(volume)
+
+            path = self.path / (volume_name + self.file_ext)
+            delete_file(path)
+        
+        # Re-download the volumes
+        self.download_volumes(worker, volumes)
+
+        volumes = {}
+
+        # Verify downloaded volumes
+        for volume, chapters in cache.items():
+            volume_name = self.get_volume_name(volume) + self.file_ext
+            path = self.path / volume_name
+
+            fi = tracker.get(volume_name)
+
+            passed = verify_sha256(fi.hash, path)
+            if not passed:
+                log.warning(f"'{volume_name}' is missing or unverified (hash is not matching)")
+                # Either missing file or hash is not matching
+                volumes[volume] = chapters
+                delete_file(path)
+            else:
+                log.info(f"'{volume_name}' is verified and no need to re-download")
+        
+        if volumes:
+            log.warning(
+                f"Found {len(volumes)} missing or unverified volumes, " \
+                f"re-downloading {len(volumes)} volumes..."
+            )
+
+        # Download missing or unverified volumes
+        self.download_volumes(worker, volumes)
+
+        # Shutdown queue-based thread process
+        worker.shutdown()
+
+class ConvertedSingleFormat(BaseConvertedFormat):
+    def main(self):
+        manga = self.manga
+        worker = self.create_worker()
+        tracker = self.manga.tracker
+        result_cache = self.get_fmt_single_cache(manga)
+
+        if result_cache is None:
+            # The chapters is empty
+            # there is nothing we can download
+            worker.shutdown()
+            return
+
+        # Steps for existing (downloaded) file (single format):
+        # - Check for new chapters.
+        # - Re-download the entire file (if there is new chapters)
+        # - Verify downloaded file
+
+        # Steps for new (not downloaded) file (single format):
+        # - Download all of them, yes
+
+        cache, total, merged_name = result_cache
+
+        # There is no existing (downloaded) file
+        # Download all of them
+        if tracker.empty:
+            self.download_single(worker, total, merged_name, cache)
+            return
+
+        filename = merged_name + self.file_ext
+
+        fi = tracker.get(filename)
+        if not fi:
+            # We assume the file has not been downloaded yet
+            self.download_single(worker, total, merged_name, cache)
+            return
+
+        chapters = []
+        # Check for new chapters in existing (downloaded) file
+        for chap_class, images in cache:
+            if chap_class.id in fi.chapters:
+                continue
+
+            # New chapters deteceted
+            chapters.append((chap_class, images))
+        
+        # Download the new chapters first 
+        if chapters:
+            delete_file(self.path / filename)
+            self.download_single(worker, total, merged_name, cache)
+
+        # Verify downloaded file
+        fi = tracker.get(filename)
+
+        passed = verify_sha256(fi.hash, (self.path / filename))
+        if not passed:
+            log.warning(
+                f"'{filename}' is missing or unverified (hash is not matching), " \
+                "re-downloading..."
+            )
+            delete_file(self.path / filename)
+        else:
+            log.info(f"'{filename}' is verified and no need to re-download")
+
+        # Download missing or unverified chapters
+        if not passed:
+            self.download_single(worker, total, merged_name, cache)
+
+        # Shutdown queue-based thread process
+        worker.shutdown()
