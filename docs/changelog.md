@@ -10,6 +10,7 @@
 
 ### Fix bugs
 
+- Fixed download is not resuming when network error happened
 - Fixed download is overflowing when trying to resume incomplete download
 - Fixed various bugs in command-line options parser
 

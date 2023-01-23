@@ -24,6 +24,7 @@ import tqdm
 import os
 import time
 import logging
+import re
 from .utils import delete_file
 from .network import Net
 from .errors import HTTPException
@@ -170,9 +171,11 @@ class FileDownloader:
             # Grab the file sizes
             file_sizes = float(resp.headers.get('Content-Length'))
 
-            # Try to get `accept-ranges` header to check if the server support `Range` header
+            # Try to check if the server support `Range` header
+            content_range = resp.headers.get("content-range", "")
+            cr_match = re.match("bytes %s\-[0-9]{1,}\/[0-9]{1,}", content_range)
             accept_range = resp.headers.get('accept-ranges')
-            if accept_range is None and os.path.exists(self.file):
+            if accept_range is None and cr_match and os.path.exists(self.file):
                 # Server didn't support `Range` header
                 log.warning(
                     f"Server didn't support resume download, deleting '{os.path.basename(self.file)}'"
