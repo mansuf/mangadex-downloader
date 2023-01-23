@@ -27,9 +27,12 @@ import time
 import math
 import shutil
 
-from pathvalidate import sanitize_filename
 from tqdm import tqdm
-from .base import BaseFormat
+from .base import (
+    ConvertedChaptersFormat,
+    ConvertedVolumesFormat,
+    ConvertedSingleFormat
+)
 from .utils import (
     NumberWithLeadingZeros,
     get_chapter_info,
@@ -362,14 +365,13 @@ class PDFPlugin:
 
         Image.register_mime("PDF", "application/pdf")
 
-class PDF(BaseFormat):
-    def __init__(self, *args, **kwargs):
+class PDFFileExt:
+    file_ext = ".pdf"
+
+    def convert(self, imgs, target):
         if not pillow_ready:
             raise PillowNotInstalled("pillow is not installed")
 
-        super().__init__(*args, **kwargs)
-
-    def convert(self, imgs, target):
         pdf_plugin = PDFPlugin(imgs)
 
         # Because images from BaseFormat.get_images() was just bunch of pathlib.Path
@@ -391,22 +393,26 @@ class PDF(BaseFormat):
 
         pdf_plugin.close_progress_bar()
 
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
-
+class PDF(ConvertedChaptersFormat, PDFFileExt):
+    def download_chapters(self, worker, chapters):
         # Begin downloading
-        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
+        for chap_class, chap_images in chapters:
             chap_name = chap_class.get_simplified_name()
             count = NumberWithLeadingZeros(0)
 
-            pdf_file = self.path / (chap_name + '.pdf')
+            pdf_file = self.path / (chap_name + self.file_ext)
             if pdf_file.exists():
 
                 if self.replace:
                     delete_file(pdf_file)
                 else:
                     log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
+
+                    self.add_fi(
+                        name=chap_name,
+                        id=chap_class.id,
+                        path=pdf_file,
+                    )
                     continue
 
             chapter_path = create_directory(chap_name, self.path)
@@ -420,78 +426,23 @@ class PDF(BaseFormat):
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+            self.add_fi(
+                name=chap_name,
+                id=chap_class.id,
+                path=pdf_file,
+            )
 
-class PDFSingle(PDF):
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
-        images = []
-        count = NumberWithLeadingZeros(0)
-
-        result_cache = self.get_fmt_single_cache(manga)
-
-        if result_cache is None:
-            # The chapters is empty
-            # there is nothing we can download
-            worker.shutdown()
-            return
-        
-        cache, _, merged_name = result_cache
-        pdf_file = self.path / (merged_name + '.pdf')
-
-        if pdf_file.exists():
-            if self.replace:
-                delete_file(pdf_file)
-            else:
-                log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
-                return
-
-        path = create_directory(merged_name, self.path)
-
-        for chap_class, chap_images in cache:
-            # Insert "start of the chapter" image
-            img_name = count.get() + '.png'
-            img_path = path / img_name
-
-            if not self.no_chapter_info:
-                get_chapter_info(chap_class, img_path, self.replace)
-                images.append(img_path)
-                count.increase()
-
-            images.extend(self.get_images(chap_class, chap_images, path, count))
-
-        log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
-
-        # Save it as pdf
-        worker.submit(lambda: self.convert(images, pdf_file))
-
-        # Remove downloaded images
-        shutil.rmtree(path, ignore_errors=True)
-
-        # Shutdown queue-based thread process
-        worker.shutdown()
-
-class PDFVolume(PDF):
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
-
-        cache = self.get_fmt_volume_cache(manga)
-
+class PDFVolume(ConvertedVolumesFormat, PDFFileExt):
+    def download_volumes(self, worker, volumes):
         # Begin downloading
-        for volume, chapters in cache.items():
+        for volume, chapters in volumes.items():
             images = []
             count = NumberWithLeadingZeros(0)
 
             # Build volume folder name
-            if volume is not None:
-                vol_name = f'Vol. {volume}'
-            else:
-                vol_name = 'No Volume'
+            vol_name = self.get_volume_name(volume)
 
-            pdf_name = vol_name + '.pdf'
+            pdf_name = vol_name + self.file_ext
             pdf_file = self.path / pdf_name
 
             if pdf_file.exists():
@@ -499,6 +450,7 @@ class PDFVolume(PDF):
                     delete_file(pdf_file)
                 else:
                     log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
+                    self.add_fi(vol_name, None, pdf_file, chapters)
                     return
 
             # Create volume folder
@@ -525,5 +477,43 @@ class PDFVolume(PDF):
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+            self.add_fi(vol_name, None, pdf_file, chapters)
+
+class PDFSingle(ConvertedSingleFormat, PDFFileExt):
+    def download_single(self, worker, total, merged_name, chapters):
+        manga = self.manga
+        images = []
+        count = NumberWithLeadingZeros(0)
+        pdf_file = self.path / (merged_name + self.file_ext)
+
+        if pdf_file.exists():
+            if self.replace:
+                delete_file(pdf_file)
+            else:
+                log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
+                self.add_fi(merged_name, None, pdf_file, chapters)
+                return
+
+        path = create_directory(merged_name, self.path)
+
+        for chap_class, chap_images in chapters:
+            # Insert "start of the chapter" image
+            img_name = count.get() + '.png'
+            img_path = path / img_name
+
+            if not self.no_chapter_info:
+                get_chapter_info(chap_class, img_path, self.replace)
+                images.append(img_path)
+                count.increase()
+
+            images.extend(self.get_images(chap_class, chap_images, path, count))
+
+        log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
+
+        # Save it as pdf
+        worker.submit(lambda: self.convert(images, pdf_file))
+
+        # Remove downloaded images
+        shutil.rmtree(path, ignore_errors=True)
+
+        self.add_fi(merged_name, None, pdf_file, chapters)
