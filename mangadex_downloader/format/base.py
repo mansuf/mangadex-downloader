@@ -350,7 +350,16 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                 
             # There is new chapters
             chapters.append((chap_class, images))
-        
+
+        # If somehow there is downloaded chapters
+        # and it's not in the tracker
+        # it's sus, re-download them
+        for chap, _ in chapters:
+            chap_name = chap.get_simplified_name() + self.file_ext
+            path = self.path / chap_name
+
+            delete_file(path)
+
         # Download the new chapters first 
         self.download_chapters(worker, chapters)
 
