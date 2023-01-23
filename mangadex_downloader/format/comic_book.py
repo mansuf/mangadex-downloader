@@ -423,20 +423,8 @@ class ComicBookArchiveVolume(ComicBookArchive):
         worker.shutdown()
 
 class ComicBookArchiveSingle(ComicBookArchive):
-    def main(self):
+    def _download(self, worker, total, merged_name, chapters):
         images = []
-        manga = self.manga
-        worker = self.create_worker()
-        result_cache = self.get_fmt_single_cache(manga)
-
-        if result_cache is None:
-            # The chapters is empty
-            # there is nothing we can download
-            worker.shutdown()
-            return
-        
-        cache, total, merged_name = result_cache
-
         count = NumberWithLeadingZeros(total)
         manga_zip_path = self.path / (merged_name + '.cbz')
 
@@ -446,12 +434,15 @@ class ComicBookArchiveSingle(ComicBookArchive):
                 delete_file(manga_zip_path)
             else:
                 log.info(f"{manga_zip_path.name} is exist and replace is False, cancelling download...")
+
+                # Store file_info tracker for existing manga
+                self.add_fi(merged_name, None, manga_zip_path, chapters)
                 return
 
         manga_zip = self.make_zip(manga_zip_path)
         path = create_directory(merged_name, self.path)
 
-        for chap_class, chap_images in cache:
+        for chap_class, chap_images in chapters:
             img_name = count.get() + '.png'
             img_path = path / img_name
 
@@ -476,11 +467,80 @@ class ComicBookArchiveSingle(ComicBookArchive):
             images.extend(self.get_images(chap_class, chap_images, path, count))
 
         # Convert
-        log.info(f"Manga '{manga.title}' has finished download, converting to cbz...")
+        log.info(f"Manga '{self.manga.title}' has finished download, converting to cbz...")
         worker.submit(lambda: self.convert(manga_zip, images))
 
         # Remove downloaded images
         shutil.rmtree(path, ignore_errors=True)
+
+        self.add_fi(merged_name, None, manga_zip_path, chapters)
+
+    def main(self):
+        manga = self.manga
+        worker = self.create_worker()
+        tracker = self.manga.tracker
+        result_cache = self.get_fmt_single_cache(manga)
+
+        if result_cache is None:
+            # The chapters is empty
+            # there is nothing we can download
+            worker.shutdown()
+            return
+
+        # Steps for existing (downloaded) file (single format):
+        # - Check for new chapters.
+        # - Re-download the entire file (if there is new chapters)
+        # - Verify downloaded file
+
+        # Steps for new (not downloaded) file (single format):
+        # - Download all of them, yes
+
+        cache, total, merged_name = result_cache
+
+        # There is no existing (downloaded) file
+        # Download all of them
+        if tracker.empty:
+            self._download(worker, total, merged_name, cache)
+            return
+
+        filename = merged_name + ".cbz"
+
+        fi = tracker.get(filename)
+        if not fi:
+            # We assume the file has not been downloaded yet
+            self._download(worker, total, merged_name, cache)
+            return
+
+        chapters = []
+        # Check for new chapters in existing (downloaded) file
+        for chap_class, images in cache:
+            if chap_class.id in fi.chapters:
+                continue
+
+            # New chapters deteceted
+            chapters.append((chap_class, images))
+        
+        # Download the new chapters first 
+        if chapters:
+            delete_file(self.path / filename)
+            self._download(worker, total, merged_name, cache)
+
+        # Verify downloaded file
+        fi = tracker.get(filename)
+
+        passed = verify_sha256(fi.hash, (self.path / filename))
+        if not passed:
+            log.warning(
+                f"'{filename}' is missing or unverified (hash is not matching), " \
+                "re-downloading..."
+            )
+            delete_file(self.path / filename)
+        else:
+            log.info(f"'{filename}' is verified and no need to re-download")
+
+        # Download missing or unverified chapters
+        if not passed:
+            self._download(worker, total, merged_name, cache)
 
         # Shutdown queue-based thread process
         worker.shutdown()
