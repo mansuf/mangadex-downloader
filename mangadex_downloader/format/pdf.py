@@ -368,10 +368,11 @@ class PDFPlugin:
 class PDFFileExt:
     file_ext = ".pdf"
 
-    def convert(self, imgs, target):
+    def check_dependecies(self):
         if not pillow_ready:
             raise PillowNotInstalled("pillow is not installed")
 
+    def convert(self, imgs, target):
         pdf_plugin = PDFPlugin(imgs)
 
         # Because images from BaseFormat.get_images() was just bunch of pathlib.Path

@@ -277,6 +277,13 @@ class BaseConvertedFormat(BaseFormat):
     # and use that class in each format clasess
     # See `CBZFileExt` class in `format/comic_book.py` module for example
 
+    def __init__(self, *args, **kwargs):
+        # Each formats must implement this
+        # to check if optional packages is installed or not
+        self.check_dependecies()
+
+        super().__init__(*args, **kwargs)
+
     def add_fi(self, name, id, path, chapters=None):
         """Add new DownloadTracker._FileInfo to the tracker"""
         file_hash = create_file_hash_sha256(path)
