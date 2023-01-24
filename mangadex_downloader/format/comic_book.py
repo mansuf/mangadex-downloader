@@ -121,6 +121,9 @@ class CBZFileExt:
         progress_bar.close()
         zip_obj.close()
 
+    def check_dependecies(self):
+        pass
+
     def make_zip(self, path):
         from ..config import env
 
