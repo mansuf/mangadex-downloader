@@ -26,7 +26,11 @@ import os
 import tqdm
 
 from pathvalidate import sanitize_filename
-from .base import BaseFormat
+from .base import (
+    ConvertedChaptersFormat,
+    ConvertedVolumesFormat,
+    ConvertedSingleFormat
+)
 from .utils import get_chapter_info, NumberWithLeadingZeros
 from ..utils import create_directory, delete_file
 from ..errors import MangaDexException
@@ -44,12 +48,12 @@ class py7zrNotInstalled(MangaDexException):
 
 log = logging.getLogger(__name__)
 
-class SevenZip(BaseFormat):
-    def __init__(self, *args, **kwargs):
+class SevenZipFileExt:
+    file_ext = ".cb7"
+
+    def check_dependecies(self):
         if not PY7ZR_OK:
             raise py7zrNotInstalled("py7zr is not installed")
-
-        super().__init__(*args, **kwargs)
 
     def convert(self, images, path, pb=True): # `pb` stands for progress bar
         progress_bar = None
@@ -73,21 +77,27 @@ class SevenZip(BaseFormat):
         
         progress_bar.close()
 
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
+    def check_write_chapter_info(self, path, target):
+        if not os.path.exists(path):
+            return True
 
+        with py7zr.SevenZipFile(path, 'r') as zip_obj:
+            return target not in zip_obj.getnames()
+
+class SevenZip(ConvertedChaptersFormat, SevenZipFileExt):
+    def download_chapters(self, worker, chapters):
         # Begin downloading
-        for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
+        for chap_class, chap_images in chapters:
             count = NumberWithLeadingZeros(0)
             chap_name = chap_class.get_simplified_name()
 
-            chapter_zip_path = self.path / (chap_name + '.cb7')
+            chapter_zip_path = self.path / (chap_name + self.file_ext)
             if chapter_zip_path.exists():
                 if self.replace:
                     delete_file(chapter_zip_path)
                 else:
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
+                    self.add_fi(chap_name, chap_class.id, chapter_zip_path)
                     continue
 
             chapter_path = create_directory(chap_name, self.path)
@@ -100,25 +110,12 @@ class SevenZip(BaseFormat):
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+            self.add_fi(chap_name, chap_class.id, chapter_zip_path)
 
-class SevenZipVolume(SevenZip):
-    def check_write_chapter_info(self, path, target):
-        if not os.path.exists(path):
-            return True
-
-        with py7zr.SevenZipFile(path, 'r') as zip_obj:
-            return target not in zip_obj.getnames()
-
-    def main(self):
-        manga = self.manga
-        worker = self.create_worker()
-
-        cache = self.get_fmt_volume_cache(manga)
-
+class SevenZipVolume(ConvertedVolumesFormat, SevenZipFileExt):
+    def download_volumes(self, worker, volumes):
         # Begin downloading
-        for volume, chapters in cache.items():
+        for volume, chapters in volumes.items():
             images = []
             num = 0
             for chap_class, _ in chapters:
@@ -131,17 +128,15 @@ class SevenZipVolume(SevenZip):
             count = NumberWithLeadingZeros(num)
 
             # Build volume folder name
-            if chap_class.volume is not None:
-                volume = f'Vol. {chap_class.volume}'
-            else:
-                volume = 'No Volume'
+            volume = self.get_volume_name(volume)
 
-            volume_zip_path = self.path / (volume + '.cb7')
+            volume_zip_path = self.path / (volume + self.file_ext)
             if volume_zip_path.exists():
                 if self.replace:
                     delete_file(volume_zip_path)
                 else:
                     log.info(f"'{volume_zip_path.name}' is exist and replace is False, cancelling download...")
+                    self.add_fi(volume, None, volume_zip_path, chapters)
                     continue
 
             # Create volume folder
@@ -173,37 +168,26 @@ class SevenZipVolume(SevenZip):
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+            self.add_fi(volume, None, volume_zip_path, chapters)
 
 class SevenZipSingle(SevenZipVolume):
-    def main(self):
+    def download_single(self, worker, total, merged_name, chapters):
         images = []
         manga = self.manga
-        worker = self.create_worker()
-        result_cache = self.get_fmt_single_cache(manga)
-
-        if result_cache is None:
-            # The chapters is empty
-            # there is nothing we can download
-            worker.shutdown()
-            return
-        
-        cache, total, merged_name = result_cache
-
         count = NumberWithLeadingZeros(total)
-        manga_zip_path = self.path / (merged_name + '.cb7')
+        manga_zip_path = self.path / (merged_name + self.file_ext)
 
         if manga_zip_path.exists():
             if self.replace:
                 delete_file(manga_zip_path)
             else:
                 log.info(f"'{manga_zip_path.name}' is exist and replace is False, cancelling download...")
+                self.add_fi(merged_name, None, manga_zip_path, chapters)
                 return
 
         path = create_directory(merged_name, self.path)
 
-        for chap_class, chap_images in cache:
+        for chap_class, chap_images in chapters:
             # Insert "start of the chapter" image
             img_name = count.get() + '.png'
 
@@ -229,5 +213,4 @@ class SevenZipSingle(SevenZipVolume):
         # Remove original manga folder
         shutil.rmtree(path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+        self.add_fi(merged_name, None, manga_zip_path, chapters)
