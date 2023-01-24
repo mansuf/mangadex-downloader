@@ -14,6 +14,10 @@
 - Fixed download is overflowing when trying to resume incomplete download
 - Fixed various bugs in command-line options parser
 
+### Improvements
+
+- Rework how to download latest chapters on various formats. See commit [`865b7f5`](https://github.com/mansuf/mangadex-downloader/commit/865b7f5988a9cd92e21112ac8649a29299b5023f) for more info
+
 ### Dependecies
 
 - Bump orjson to v3.8.3
