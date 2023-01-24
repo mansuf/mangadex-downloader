@@ -4,7 +4,11 @@ import shutil
 import tqdm
 import logging
 from pathvalidate import sanitize_filename
-from .base import BaseFormat
+from .base import (
+    ConvertedChaptersFormat,
+    ConvertedVolumesFormat,
+    ConvertedSingleFormat
+)
 from .utils import NumberWithLeadingZeros, get_chapter_info
 
 from ..utils import create_directory, delete_file
@@ -355,37 +359,38 @@ class EpubPlugin:
 
                 progress_bar.update(1)
 
-class Epub(BaseFormat):
-    def __init__(self, *args, **kwargs):
+class EPUBFileExt:
+    file_ext = ".epub"
+
+    def check_dependecies(self):
         if not epub_ready:
             raise EpubMissingDependencies()
-        
-        super().__init__(*args, **kwargs)
 
-    def convert(self, _id, title, lang, chapters, path):
-        epub = EpubPlugin(_id, title, lang)
+    def convert(self, id, title, lang, chapters, path):
+        epub = EpubPlugin(id, title, lang)
 
         for chapter, images in chapters:
             epub.create_page(chapter.get_name(), images)
         
         epub.write(path)
 
-    def main(self):
+class Epub(ConvertedChaptersFormat, EPUBFileExt):
+    def download_chapters(self, worker, chapters):
         manga = self.manga
-        worker = self.create_worker()
 
         # Begin downloading
-        for chap_class, images in manga.chapters.iter(**self.kwargs_iter):
+        for chap_class, images in chapters:
             chap_name = chap_class.get_simplified_name()
 
             # Check if .epub file is exist or not
-            chapter_epub_path = self.path / (chap_name + '.epub')
+            chapter_epub_path = self.path / (chap_name + self.file_ext)
             if chapter_epub_path.exists():
 
                 if self.replace:
                     delete_file(chapter_epub_path)
                 else:
                     log.info(f"'{chapter_epub_path.name}' is exist and replace is False, cancelling download...")
+                    self.add_fi(chap_name, chap_class.id, chapter_epub_path)
                     continue
 
             chapter_path = create_directory(chap_name, self.path)
@@ -408,18 +413,14 @@ class Epub(BaseFormat):
             # Remove original chapter folder
             shutil.rmtree(chapter_path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+            self.add_fi(chap_name, chap_class.id, chapter_epub_path)
 
-class EpubVolume(Epub):
-    def main(self):
+class EpubVolume(ConvertedVolumesFormat, EPUBFileExt):
+    def download_volumes(self, worker, volumes):
         manga = self.manga
-        worker = self.create_worker()
-
-        cache = self.get_fmt_volume_cache(manga)
 
         # Begin downloading
-        for volume, chapters in cache.items():
+        for volume, chapters in volumes.items():
             num = 0
             epub_chapters = []
 
@@ -433,12 +434,9 @@ class EpubVolume(Epub):
             count = NumberWithLeadingZeros(num)
 
             # Build volume folder name
-            if chap_class.volume is not None:
-                volume = f'Vol. {chap_class.volume}'
-            else:
-                volume = 'No Volume'
+            volume = self.get_volume_name(volume)
 
-            volume_epub_path = self.path / (volume + '.epub')
+            volume_epub_path = self.path / (volume + self.file_ext)
 
             # Check if exist or not
             if volume_epub_path.exists():
@@ -447,6 +445,7 @@ class EpubVolume(Epub):
                     delete_file(volume_epub_path)
                 else:
                     log.info(f"{volume_epub_path.name} is exist and replace is False, cancelling download...")
+                    self.add_fi(volume, None, volume_epub_path, chapters)
                     continue
 
             # Create volume folder
@@ -471,26 +470,14 @@ class EpubVolume(Epub):
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+            self.add_fi(volume, None, volume_epub_path, chapters)
 
-class EpubSingle(Epub):
-    def main(self):
+class EpubSingle(ConvertedSingleFormat, EPUBFileExt):
+    def download_single(self, worker, total, merged_name, chapters):
         epub_chapters = []
         manga = self.manga
-        worker = self.create_worker()
-        result_cache = self.get_fmt_single_cache(manga)
-
-        if result_cache is None:
-            # The chapters is empty
-            # there is nothing we can download
-            worker.shutdown()
-            return
-        
-        cache, total, merged_name = result_cache
-
         count = NumberWithLeadingZeros(total)
-        manga_epub_path = self.path / (merged_name + '.epub')
+        manga_epub_path = self.path / (merged_name + self.file_ext)
 
         # Check if exist or not
         if manga_epub_path.exists():
@@ -498,11 +485,12 @@ class EpubSingle(Epub):
                 delete_file(manga_epub_path)
             else:
                 log.info(f"{manga_epub_path.name} is exist and replace is False, cancelling download...")
+                self.add_fi(merged_name, None, manga_epub_path, chapters)
                 return
 
         path = create_directory(merged_name, self.path)
 
-        for chap_class, chap_images in cache:
+        for chap_class, chap_images in chapters:
             images = []
             # Begin downloading
             images.extend(self.get_images(chap_class, chap_images, path, count))
@@ -524,5 +512,4 @@ class EpubSingle(Epub):
         # Remove downloaded images
         shutil.rmtree(path, ignore_errors=True)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
+        self.add_fi(merged_name, None, manga_epub_path, chapters)
