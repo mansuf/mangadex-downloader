@@ -25,6 +25,8 @@ import json
 import logging
 import os
 import re
+import threading
+import time
 
 from enum import Enum
 from ..downloader import FileDownloader
@@ -206,3 +208,95 @@ def write_tachiyomi_details(manga, path):
     ]
     with open(path, 'w') as writer:
         writer.write(json.dumps(data))
+
+class QueueWorkerReadMarker(threading.Thread):
+    """A queue-based worker run in another thread for ChapterReadMarker
+    
+    This class will mark chapter as read for every 20 chapters
+    and will be done asynchronously (in another thread)
+    """
+    def __init__(self, manga_id) -> None:
+        threading.Thread.__init__(self)
+
+        # "Circular Imports" problem
+        from ..network import Net, base_url
+
+        self.net = Net
+        self.base_url = base_url
+
+        self._shutdown = threading.Event()
+        self._chapters = []
+        self._max_size = 20
+
+        self.manga_id = manga_id
+
+        cls_name = self.__class__.__name__
+        # Thread to check if mainthread is alive or not
+        # if not, then thread queue must be shutted down too
+        self._thread_wait_mainthread = threading.Thread(
+            target=self._wait_mainthread, 
+            name=f'{cls_name}-wait-mainthread, {cls_name}_id={self.ident}'
+        )
+
+    def start(self):
+        super().start()
+        self._thread_wait_mainthread.start()
+
+    def _wait_mainthread(self):
+        """Wait for mainthread to exit and then shutdown :class:`QueueWorker` thread"""
+        main_thread = threading.main_thread()
+
+        while True:
+            main_thread.join(timeout=1)
+            if not self.is_alive():
+                # QueueWorker already shutted down
+                # Possibly because of QueueWorker.shutdown() is called
+                return
+            elif not main_thread.is_alive():
+                # Main thread already shutted down
+                # and QueueWorker still alive, terminate it
+                self._shutdown.set()
+
+    def submit(self, chapter_id):
+        """Submit a chapter id that will marked as read"""
+        self._chapters.append(chapter_id)
+
+    def shutdown(self, blocking=False):
+        self._shutdown.set()
+
+        if blocking:
+            self.join()
+
+    def run(self):
+        while True:
+            if self._shutdown.is_set() and not self._chapters:
+                # Shutdown signal is received
+                # make sure there is nothing left in queue
+                return
+
+            # We're trying to get 20 chapter_ids while shutdown signal has not been received yet
+            # If somehow shutdown signal received, it should send whatever last in queue
+            if len(self._chapters) < self._max_size and not self._shutdown.is_set():
+                time.sleep(0.5)
+                continue
+
+            chapter_ids = self._chapters[:self._max_size - 1]
+            del self._chapters[:self._max_size - 1]
+
+            data = {
+                "chapterIdsRead": chapter_ids
+            }
+
+            url = f"{self.base_url}/manga/{self.manga_id}/read"
+            r = self.net.mangadex.post(url, json=data)
+
+            if not r.ok:
+                log.error(
+                    "An error occured when marking chapters as read, " \
+                    f"exception raised: {r.content}. Re-adding failed chapters to queue"
+                )
+                # obviously we don't wanna flood the screen with bunch of chapter ids
+                log.debug(f"Failed chapters to marked as read: {chapter_ids}")
+
+                self._chapters.extend(chapter_ids)
+                continue

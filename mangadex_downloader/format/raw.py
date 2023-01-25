@@ -74,6 +74,7 @@ class Raw(BaseFormat):
                     delete_file(im_path)
             elif file_info.completed:
                 log.info(f"'{chap_name}' is verified. no need to re-download")
+                self.mark_read_chapter(chap_class)
                 continue
 
             count = NumberWithLeadingZeros(chap_class.pages)
@@ -88,6 +89,11 @@ class Raw(BaseFormat):
                 )
 
             manga.tracker.toggle_complete(chap_name, True)
+
+            self.mark_read_chapter(chap_class)
+        
+        log.info("Waiting for chapter read marker to finish")
+        self.chapter_read_marker.shutdown(blocking=True)
 
 class RawVolume(BaseFormat):
     def main(self):
@@ -148,6 +154,7 @@ class RawVolume(BaseFormat):
                     delete_file(im_path)
             elif file_info.completed:
                 log.info(f"'{volume_name}' is verified. no need to re-download")
+                self.mark_read_chapter(*chapters)
                 continue
 
             # Chapters that have images that are failed to verify
@@ -184,8 +191,13 @@ class RawVolume(BaseFormat):
                         im_hash,
                         chap_class.id
                     )
+                
+                self.mark_read_chapter(chap_class)
 
             tracker.toggle_complete(volume_name, True)
+        
+        log.info("Waiting for chapter read marker to finish")
+        self.chapter_read_marker.shutdown(blocking=True)
 
 class RawSingle(BaseFormat):
     def main(self):
@@ -204,6 +216,8 @@ class RawSingle(BaseFormat):
         if result_cache is None:
             # The chapters is empty
             # there is nothing we can download
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
         
         cache, total, name = result_cache
@@ -239,6 +253,10 @@ class RawSingle(BaseFormat):
                 delete_file(im_path)
         elif file_info.completed:
             log.info(f"'{name}' is verified. no need to re-download")
+            self.mark_read_chapter(*cache)
+
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
 
         # Chapters that have images that are failed to verify
@@ -275,5 +293,10 @@ class RawSingle(BaseFormat):
                     im_hash,
                     chap_class.id
                 )
+            
+            self.mark_read_chapter(chap_class)
         
         tracker.toggle_complete(name, True)
+
+        log.info("Waiting for chapter read marker to finish")
+        self.chapter_read_marker.shutdown(blocking=True)

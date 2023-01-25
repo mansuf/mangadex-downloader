@@ -27,6 +27,7 @@ import requests
 
 from .utils import get_key_value, check_group_all
 from .command import registered_commands
+from ..config import config
 from ..network import Net
 from ..fetcher import get_chapter, get_list, get_manga
 from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
@@ -81,6 +82,9 @@ def download_manga(url, args, legacy=False):
         if args.range and value:
             raise MangaDexException(f'--range cannot be used together with {arg}')
 
+    if config.download_mode == "unread" and not Net.mangadex.check_login():
+        raise MangaDexException("You must logged in, in order to use --download-mode=unread")
+
     args = (
         url,
         args.replace,
@@ -104,6 +108,9 @@ def download_chapter(url, args, legacy=False):
 
     if args.range:
         raise MangaDexException('--range option is not available for chapter download')
+
+    if config.download_mode == "unread" and not Net.mangadex.check_login():
+        raise MangaDexException("You must logged in, in order to use --download-mode=unread")
 
     args = (
         url,
@@ -136,6 +143,9 @@ def download_list(url, args):
 
     if args.group and args.no_group_name:
         raise MangaDexException("--group cannot be used together with --no-group-name")
+
+    if config.download_mode == "unread" and not Net.mangadex.check_login():
+        raise MangaDexException("You must logged in, in order to use --download-mode=unread")
 
     dl_list(
         url,

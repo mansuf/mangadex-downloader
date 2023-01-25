@@ -26,7 +26,8 @@ from .utils import (
     verify_sha256,
     write_tachiyomi_details,
     get_md_file_hash,
-    create_file_hash_sha256
+    create_file_hash_sha256,
+    QueueWorkerReadMarker
 )
 from ..downloader import ChapterPageDownloader
 from ..utils import QueueWorker, delete_file
@@ -51,6 +52,16 @@ class BaseFormat:
         self.replace = replace
         self.no_chapter_info = config.no_chapter_info
         self.kwargs_iter = kwargs_iter_chapter_img
+
+        self.chapter_read_marker = QueueWorkerReadMarker(manga.id)
+
+        # Only start worker for chapter read marker
+        # if user is logged in and --download-mode is set to unread
+        if (
+            self.config.download_mode == "unread" and
+            self.chapter_read_marker.net.mangadex.check_login()
+        ):
+            self.chapter_read_marker.start()
 
     def get_images(self, chap_class, images, path, count):
         imgs = []
@@ -131,6 +142,23 @@ class BaseFormat:
             
             if not error:
                 return imgs
+
+    def mark_read_chapter(self, *chapters):
+        """Mark a chapter as read"""
+        if (
+            self.config.download_mode == "unread" and
+            self.chapter_read_marker.net.mangadex.check_login()
+        ):
+            for chapter in chapters:
+                # Dynamic type data at it's finest
+                # (I'm just lazy that's it)
+                if isinstance(chapter, list) or isinstance(chapter, tuple):
+                    chapter = chapter[0]
+
+                if isinstance(chapter, str):
+                    self.chapter_read_marker.submit(chapter)
+                else:
+                    self.chapter_read_marker.submit(chapter.id)
 
     def get_fmt_single_cache(self, manga):
         """Get cached all chapters, total pages, 
@@ -301,6 +329,10 @@ class BaseConvertedFormat(BaseFormat):
             null_chapters=False if chapters else True
         )
 
+        # Single chapter
+        if not chapters and id is not None:
+            self.mark_read_chapter(id)
+
         if chapters:
             for ch, _ in chapters:
                 self.manga.tracker.add_chapter_info(
@@ -308,6 +340,7 @@ class BaseConvertedFormat(BaseFormat):
                     chapter_name=ch.name,
                     chapter_id=ch.id
                 )
+                self.mark_read_chapter(ch.id)
         
         self.manga.tracker.toggle_complete(name, True)
 
@@ -344,6 +377,9 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         # Download all of them
         if tracker.empty:
             self.download_chapters(worker, cache)
+
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
 
         chapters = []
@@ -386,6 +422,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                 delete_file(self.path / chap_name)
             else:
                 log.info(f"'{chap_name}' is verified and no need to re-download")
+                self.mark_read_chapter(chap_class)
 
         if chapters:
             log.warning(
@@ -398,6 +435,9 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
         # Shutdown queue-based thread process
         worker.shutdown()
+
+        log.info("Waiting for chapter read marker to finish")
+        self.chapter_read_marker.shutdown(blocking=True)
 
 class ConvertedVolumesFormat(BaseConvertedFormat):
     def main(self):
@@ -419,6 +459,9 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         # Download all of them
         if tracker.empty:
             self.download_volumes(worker, cache)
+
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
 
         volumes = {}
@@ -468,7 +511,8 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 delete_file(path)
             else:
                 log.info(f"'{volume_name}' is verified and no need to re-download")
-        
+                self.mark_read_chapter(*chapters)
+
         if volumes:
             log.warning(
                 f"Found {len(volumes)} missing or unverified volumes, " \
@@ -481,6 +525,9 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         # Shutdown queue-based thread process
         worker.shutdown()
 
+        log.info("Waiting for chapter read marker to finish")
+        self.chapter_read_marker.shutdown(blocking=True)
+
 class ConvertedSingleFormat(BaseConvertedFormat):
     def main(self):
         manga = self.manga
@@ -492,6 +539,9 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             # The chapters is empty
             # there is nothing we can download
             worker.shutdown()
+
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
 
         # Steps for existing (downloaded) file (single format):
@@ -508,6 +558,9 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         # Download all of them
         if tracker.empty:
             self.download_single(worker, total, merged_name, cache)
+
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
 
         filename = merged_name + self.file_ext
@@ -516,6 +569,9 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         if not fi:
             # We assume the file has not been downloaded yet
             self.download_single(worker, total, merged_name, cache)
+
+            log.info("Waiting for chapter read marker to finish")
+            self.chapter_read_marker.shutdown(blocking=True)
             return
 
         chapters = []
@@ -544,6 +600,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             delete_file(self.path / filename)
         else:
             log.info(f"'{filename}' is verified and no need to re-download")
+            self.mark_read_chapter(*cache)
 
         # Download missing or unverified chapters
         if not passed:
@@ -551,3 +608,6 @@ class ConvertedSingleFormat(BaseConvertedFormat):
 
         # Shutdown queue-based thread process
         worker.shutdown()
+
+        log.info("Waiting for chapter read marker to finish")
+        self.chapter_read_marker.shutdown(blocking=True)

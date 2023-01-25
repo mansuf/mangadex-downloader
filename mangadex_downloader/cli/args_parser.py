@@ -130,6 +130,15 @@ def get_args(argv):
         help='Apply filter to search and random manga',
         action='append'
     )
+    parser.add_argument(
+        '--download-mode',
+        '-dm',
+        help="Set download mode, you can set to 'default' or 'unread'. " \
+             "If you set to 'unread', the app will download unread chapters only " \
+             "(require authentication). If you set to 'default' the app will download all chapters",
+        choices=("default", "unread"),
+        default=config.download_mode
+    )
 
     # Search related
     search_group = parser.add_argument_group('Search')
@@ -403,9 +412,9 @@ def get_args(argv):
 
     args = parser.parse_args(argv)
 
-    # ##########################
-    # #  Finalization Process  #
-    # ##########################
+    ##########################
+    #  Finalization Process  #
+    ##########################
 
     urls: str = sys.stdin.read() if args.pipe else args.URL
 

@@ -159,3 +159,8 @@ def get_bulk_chapters(chap_ids):
     }
     r = Net.mangadex.get(url, params=params)
     return r.json()
+
+def get_unread_chapters(manga_id):
+    url = f"{base_url}/manga/{manga_id}/read"
+    r = Net.mangadex.get(url)
+    return r.json()

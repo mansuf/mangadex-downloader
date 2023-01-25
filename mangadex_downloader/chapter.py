@@ -31,7 +31,8 @@ from .fetcher import (
     get_bulk_chapters,
     get_chapter_images,
     get_chapter,
-    get_all_chapters
+    get_all_chapters,
+    get_unread_chapters
 )
 from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
@@ -405,6 +406,8 @@ class IteratorChapter:
         log_cache = kwargs.get('log_cache')
         self.log_cache = True if log_cache else False
 
+        self._unread_chapters = get_unread_chapters(manga.id)["data"]
+
         self._fill_data()
 
     def _parse_groups(self, ids):
@@ -500,6 +503,16 @@ class IteratorChapter:
 
     def _check_chapter(self, chap):
         num_chap = chap.chapter
+
+        if (
+            Net.mangadex.check_login() and 
+            config.download_mode == "unread" and
+            chap.id in self._unread_chapters
+        ):
+            log.warning(
+                f"Ignoring chapter {chap.get_simplified_name()} because it's marked as read"
+            )
+            return False
 
         if not self.all_group and not self.groups and self._check_duplicate(chap):
             log.warning(

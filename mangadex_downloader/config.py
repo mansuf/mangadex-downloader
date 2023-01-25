@@ -174,6 +174,16 @@ def _validate_http_retries(val):
     
     return val
 
+def _validate_download_mode(val):
+    val = val.lower().strip()
+
+    if val not in ["default", "unread"]:
+        raise ConfigTypeError(
+            f"'{val}' is not valid 'download_mode' value, it must be 'default' or 'unread'"
+        )
+    
+    return val
+
 def _load_env(env_key, env_value, validator):
     try:
         return validator(env_value)
@@ -376,6 +386,10 @@ class _Config:
         "write_tachiyomi_info": [
             False,
             _validate_bool
+        ],
+        "download_mode": [
+            "default",
+            _validate_download_mode
         ]
     }
     default_conf = {

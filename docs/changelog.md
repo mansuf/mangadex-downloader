@@ -7,6 +7,7 @@
 - Added ability to add more groups or users in `--group` option
 - Added ability to set retries for failed HTTP requests (`--http-retries`)
 - Added OAuth2 login support (`--login-method oauth2`)
+- Added ability to download unread chapters (`--download-mode unread`, require authentication)
 
 ### Fix bugs
 
