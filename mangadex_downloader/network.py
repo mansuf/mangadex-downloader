@@ -166,6 +166,7 @@ class requestsMangaDexSession(ModifiedSession):
             # Session token is expired and refresh token is exist
             # Renew login with refresh token
             self._refresh_token = refresh_token
+            self.api_auth.update_token(refresh=refresh_token)
             self.refresh_login()
         else:
             # Session and refresh token are still valid in cache
@@ -286,6 +287,8 @@ class requestsMangaDexSession(ModifiedSession):
 
         self._login_cache.set_refresh_token(refresh_token)
         self._login_cache.set_session_token(session_token)
+
+        self.api_auth.update_token(session_token, refresh_token)
 
     def _is_token_cached(self):
         return bool(self._login_cache.get_session_token or self._login_cache.get_refresh_token())
