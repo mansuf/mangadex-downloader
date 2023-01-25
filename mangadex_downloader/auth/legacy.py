@@ -9,13 +9,25 @@ class LegacyAuth(MangaDexAuthBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.token = None
+        self.token = {
+            "token": {
+                "session": None,
+                "refresh": None,
+            }
+        }
 
     def _make_ready_token(self, token):
         return {
             "session": token["token"]["session"],
             "refresh": token["token"]["refresh"]
         }
+
+    def update_token(self, session=None, refresh=None):
+        if session:
+            self.token["token"]["session"] = session
+        
+        if refresh:
+            self.token["token"]["refresh"] = refresh
 
     def login(self, username, email, password):
         if not username and not email:
