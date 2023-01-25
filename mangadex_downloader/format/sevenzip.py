@@ -170,7 +170,7 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFileExt):
 
             self.add_fi(volume, None, volume_zip_path, chapters)
 
-class SevenZipSingle(SevenZipVolume):
+class SevenZipSingle(ConvertedSingleFormat, SevenZipFileExt):
     def download_single(self, worker, total, merged_name, chapters):
         images = []
         manga = self.manga
