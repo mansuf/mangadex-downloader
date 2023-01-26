@@ -14,6 +14,10 @@ class MangaDexAuthBase:
         """
         pass
 
+    def update_token(self, session=None, refresh=None):
+        """Update token internally for this class"""
+        pass
+
     def refresh_token(self):
         """Get new `session_token` using `refresh_token`"""
         pass

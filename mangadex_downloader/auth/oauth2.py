@@ -206,7 +206,7 @@ class OAuth2(MangaDexAuthBase):
         # Authentication result from OAuth2
         self.session_state = None
         self.authorization_code = None
-        self.token = None
+        self.token = {}
 
     def run_callback_handler(self, n, e):
         self.callback_handler = HTTPServer(
@@ -280,6 +280,13 @@ class OAuth2(MangaDexAuthBase):
         r = self.session.get(url)
 
         return r.json()['isAuthenticated']
+
+    def update_token(self, session=None, refresh=None):
+        if session:
+            self.token["access_token"] = session
+
+        if refresh:
+            self.token["refresh_token"] = refresh
 
     def _revoke_token(self, type_token):
         response = self.client.revoke_token(
