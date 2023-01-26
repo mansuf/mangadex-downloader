@@ -288,8 +288,6 @@ class requestsMangaDexSession(ModifiedSession):
         self._login_cache.set_refresh_token(refresh_token)
         self._login_cache.set_session_token(session_token)
 
-        self.api_auth.update_token(session_token, refresh_token)
-
     def _is_token_cached(self):
         return bool(self._login_cache.get_session_token or self._login_cache.get_refresh_token())
 
