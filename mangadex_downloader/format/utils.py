@@ -262,6 +262,9 @@ class QueueWorkerReadMarker(threading.Thread):
         self._chapters.append(chapter_id)
 
     def shutdown(self, blocking=False):
+        if not self.is_alive():
+            return
+
         self._shutdown.set()
 
         if blocking:

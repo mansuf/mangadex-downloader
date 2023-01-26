@@ -406,7 +406,10 @@ class IteratorChapter:
         log_cache = kwargs.get('log_cache')
         self.log_cache = True if log_cache else False
 
-        self._unread_chapters = get_unread_chapters(manga.id)["data"]
+        if Net.mangadex.check_login():
+            self._unread_chapters = get_unread_chapters(manga.id)["data"]
+        else:
+            self._unread_chapters = []
 
         self._fill_data()
 
