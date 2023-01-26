@@ -24,18 +24,16 @@ import argparse
 import logging
 import sys
 from requests_doh import get_all_dns_provider
-from pathlib import Path
 from gettext import gettext
 
 from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
 from ..cover import valid_cover_types
-from ..iterator import IteratorUserLibraryManga
 from ..update import update_app
 from ..utils import validate_group_url as _validate_group_url
 from ..language import get_language, Language
 from ..format import formats
-from ..config import config, _validate_http_retries
+from ..config import config
 from ..errors import InvalidURL
 from ..network import Net
 from .. import __description__, __version__

@@ -25,14 +25,14 @@ import sys
 
 from .utils import get_key_value
 from ..config import (
-    set_config_from_cli_opts,
+    config, 
+    _conf, 
     config_enabled,
-    config, # High-level access config
-    _conf, # Low-level access config for debugging
-    ConfigTypeError,
+    set_config_from_cli_opts,
     reset_config,
     get_all_configs
 )
+from ..config.utils import ConfigTypeError
 
 log = logging.getLogger(__name__)
 

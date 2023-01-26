@@ -4,7 +4,7 @@ from typing import Callable
 
 from .errors import MangaDexException, InvalidURL
 from .utils import validate_url
-from .config import _validate_bool as validate_boolean, ConfigTypeError
+from .config.utils import validate_bool, ConfigTypeError
 from .manga import ContentRating
 from .language import get_language
 from .tag import get_all_tags
@@ -263,7 +263,7 @@ class Filter:
     def _validate_has_chapters(self, value):
         if value:
             try:
-                validate_boolean(value)
+                validate_bool(value)
             except ConfigTypeError as e:
                 raise FilterError("has_available_chapters", e)
         
