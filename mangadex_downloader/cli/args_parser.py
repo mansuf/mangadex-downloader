@@ -26,11 +26,10 @@ import sys
 from requests_doh import get_all_dns_provider
 from gettext import gettext
 
-from .url import valid_types
 from .utils import dynamic_bars, setup_logging, sys_argv, print_version_info
 from ..cover import valid_cover_types
 from ..update import update_app
-from ..utils import validate_group_url as _validate_group_url
+from ..utils import validate_group_url as _validate_group_url, valid_url_types
 from ..language import get_language, Language
 from ..format import formats
 from ..config import config
@@ -105,7 +104,7 @@ def get_args(argv):
         '--type',
         '-t',
         help='Override type MangaDex url. By default, it auto detect given url',
-        choices=valid_types
+        choices=valid_url_types
     )
     parser.add_argument(
         '--path',

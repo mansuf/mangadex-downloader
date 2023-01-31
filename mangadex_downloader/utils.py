@@ -268,3 +268,35 @@ def get_cover_art_url(manga, cover, quality):
         cover.file,
         additional_file_ext
     )
+
+def _build_url_regex(type):
+    # Legacy support
+    if 'legacy-manga' in type:
+        regex = r'mangadex\.org\/(title|manga)\/(?P<id>[0-9]{1,})'
+    elif 'legacy-chapter' in type:
+        regex = r'mangadex\.org\/chapter\/(?P<id>[0-9]{1,})'
+    elif type == 'manga':
+        regex = r'mangadex\.org\/(title|manga)\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
+    else:
+        regex = r"mangadex\.org\/%s\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})" % type
+    return regex
+
+valid_url_types = [
+    "manga",
+    "list",
+    "chapter",
+    "legacy-manga",
+    "legacy-chapter"
+]
+
+_urL_regexs = {i: _build_url_regex(i) for i in valid_url_types}
+
+def find_md_urls(text):
+    for type, regex in _urL_regexs.items():
+        # Match pattern regex
+        result = re.search(regex, text)
+        if result is None:
+            continue
+        
+        id = result.group("id")
+        return id, type

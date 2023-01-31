@@ -31,7 +31,11 @@ from ..config import config
 from ..network import Net
 from ..fetcher import get_chapter, get_list, get_manga
 from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
-from ..utils import validate_url as get_uuid
+from ..utils import (
+    validate_url as get_uuid,
+    find_md_urls,
+    valid_url_types
+)
 from ..main import (
     download as dl_manga,
     download_chapter as dl_chapter,
@@ -157,17 +161,7 @@ def download_list(url, args):
 download_legacy_manga = lambda url, args: download_manga(url, args, True)
 download_legacy_chapter = lambda url, args: download_chapter(url, args, True)
 
-valid_types = [
-    "manga",
-    "list",
-    "chapter",
-    "legacy-manga",
-    "legacy-chapter"
-]
-
-funcs = {i: globals()['download_%s' % i.replace('-', '_')] for i in valid_types}
-
-regexs = {i: _build_re(i) for i in valid_types}
+funcs = {i: globals()['download_%s' % i.replace('-', '_')] for i in valid_url_types}
 
 class URL:
     def __init__(self, func, _id):
@@ -191,29 +185,17 @@ def build_URL_from_type(_type, _id):
 def smart_select_url(url):
     """Wisely determine type url. The process is checking given url one by one"""
     log.info(f"Checking url = {url}")
-    found = False
     func = None
     _id = None
-    for _type, regex in regexs.items():
-        # Match pattern regex
-        match = re.search(regex, url)
-        if match is None:
-            continue
-
-        # Get UUID
-        _id = match.group('id')
-
-        # Get download function
+    
+    result = find_md_urls(url)
+    if result:
+        _id, _type = result
         func = funcs[_type]
-
-        found = True
-        
-        if found:
-            break
     
     # If none of patterns is match, grab UUID instantly and then
     # fetch one by one, starting from manga, list, and then chapter.
-    if not found:
+    if func is None and _id is None:
         _id = get_uuid(url)
 
         # Manga
