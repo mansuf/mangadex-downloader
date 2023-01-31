@@ -31,6 +31,7 @@ from .fetcher import get_list
 from .user import User
 from .filters import Filter
 from .utils import check_blacklisted_tags_manga
+from .cover import CoverArt
 
 log = logging.getLogger(__name__)
 
@@ -428,3 +429,63 @@ def iter_random_manga(**filters):
             yield manga
 
         continue
+
+# For some reason, "/cover" endpoint has result limit for each responses.
+# This class is used for getting all covers while respecting result limit.
+# Of course, the results will be cached to prevent repeated requests.
+class CoverArtIterator(BaseIterator):
+    cache = {}
+
+    def __init__(self, manga_id):
+        super().__init__()
+
+        self.limit = 100
+        self.manga_id = manga_id
+        
+        if self.cache.get(manga_id) is None:
+            # Data is not cached
+            self.cache[manga_id] = []
+    
+    def _make_cache_iterator(self):
+        for item in self.cache.get(self.manga_id):
+            yield item
+
+    def __iter__(self):
+        cache = self.cache.get(self.manga_id)
+        if cache:
+            # Return cached data instead
+            return self._make_cache_iterator()
+        else:
+            return self
+
+    def fill_data(self):
+        # If it's already cached
+        # DO NOT FETCH IT AGAIN
+        if self.cache.get(self.manga_id):
+            return
+
+        # One-shot filling covers in single function call
+        # So cache can be used
+        while True:
+            params = {
+                "manga[]": self.manga_id,
+                "offset": self.offset,
+                "limit": self.limit
+            }
+
+            url = f"{base_url}/cover"
+            r = Net.mangadex.get(url, params=params)
+            items = r.json()["data"]
+
+            if not items:
+                break
+
+            for item in items:
+                cover = CoverArt(data=item)
+                self.queue.put(cover)
+
+                # Add it to cache
+                self.cache[self.manga_id].append(cover)
+            
+            self.offset += len(items)
+        

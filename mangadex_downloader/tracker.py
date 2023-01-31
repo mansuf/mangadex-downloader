@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .utils import delete_file
 from .errors import MangaDexException
-from . import __repository__
+from . import __repository__, __url_repository__
 
 log = logging.getLogger(__name__)
 
@@ -270,7 +270,7 @@ class DownloadTracker:
             if found is None:
                 raise Exception(
                     f"An error occurred when getting page from filename '{im_info.name}'. " \
-                    f"Please report it to {__repository__}/issues"
+                    f"Please report it to {__url_repository__}/{__repository__}/issues"
                 )
             
             page = int(found.group("page"))

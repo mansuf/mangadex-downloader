@@ -35,7 +35,8 @@ from .base import (
 from .utils import (
     get_chapter_info,
     NumberWithLeadingZeros,
-    verify_sha256
+    verify_sha256,
+    get_volume_cover
 )
 from ..utils import create_directory, delete_file
 
@@ -102,7 +103,7 @@ def generate_Comicinfo(manga, chapter):
 
     return xml_root
 
-class CBZFileExt:
+class CBZFile:
     file_ext = ".cbz"
 
     def convert(self, zip_obj, images):
@@ -134,7 +135,41 @@ class CBZFileExt:
             compresslevel=env.zip_compression_level
         )
 
-class ComicBookArchive(ConvertedChaptersFormat, CBZFileExt):
+    def insert_ch_info_img(self, zip_obj, worker, chapter, count, path):
+        img_name = count.get() + '.png'
+        img_path = path / img_name
+
+        # Make sure we never duplicated it
+        write_ch_info_image = False
+        try:
+            zip_obj.getinfo(img_name)
+        except KeyError:
+            write_ch_info_image = self.config.use_chapter_cover
+
+        # Insert chapter info (cover) image
+        if write_ch_info_image:
+            get_chapter_info(chapter, img_path, self.replace)
+            worker.submit(lambda: zip_obj.write(img_path, img_name))
+            count.increase()
+
+    def insert_vol_cover_img(self, zip_obj, worker, volume, count, path):
+        # Insert volume cover
+        # Make sure we never duplicate it
+        img_name = count.get() + ".png"
+        img_path = path / img_name
+
+        write_vol_cover = False
+        try:
+            zip_obj.getinfo(img_name)
+        except KeyError:
+            write_vol_cover = self.config.use_volume_cover
+        
+        if write_vol_cover:
+            get_volume_cover(self.manga, volume, img_path, self.replace)
+            worker.submit(lambda: zip_obj.write(img_path, img_name))
+            count.increase()
+
+class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
     def download_chapters(self, worker, chapters):
         manga = self.manga
 
@@ -182,21 +217,14 @@ class ComicBookArchive(ConvertedChaptersFormat, CBZFileExt):
 
             self.add_fi(chap_name, chap_class.id, chapter_zip_path)
 
-class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFileExt):
+class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
     def download_volumes(self, worker, volumes):
         # Begin downloading
         for volume, chapters in volumes.items():
-            num = 0
+            total = self.get_total_pages_for_volume_fmt(chapters)
             images = []
 
-            for chap_class, _ in chapters:
-                # Each chapters has one page that has "Chapter n"
-                # This is called "start of the chapter" image
-                num += 1
-
-                num += chap_class.pages
-
-            count = NumberWithLeadingZeros(num)
+            count = NumberWithLeadingZeros(total)
 
             volume_name = self.get_volume_name(volume)
 
@@ -219,26 +247,10 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFileExt):
 
             volume_zip = self.make_zip(volume_zip_path)
 
+            self.insert_vol_cover_img(volume_zip, worker, volume, count, volume_path)
+
             for chap_class, chap_images in chapters:
-                img_name = count.get() + '.png'
-                img_path = volume_path / img_name
-
-                # Make sure we never duplicated it
-                write_start_image = False
-                try:
-                    volume_zip.getinfo(img_name)
-                except KeyError:
-                    write_start_image = True
-
-                if self.no_chapter_info:
-                    write_start_image = False
-
-                # Insert "start of the chapter" image
-                if write_start_image:
-                    get_chapter_info(chap_class, img_path, self.replace)
-                    worker.submit(lambda: volume_zip.write(img_path, img_name))
-
-                count.increase()
+                self.insert_ch_info_img(volume_zip, worker, chap_class, count, volume_path)
 
                 images.extend(self.get_images(chap_class, chap_images, volume_path, count))
 
@@ -251,7 +263,7 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFileExt):
 
             self.add_fi(volume_name, None, volume_zip_path, chapters)
 
-class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFileExt):
+class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
     def download_single(self, worker, total, merged_name, chapters):
         images = []
         count = NumberWithLeadingZeros(total)
@@ -272,25 +284,7 @@ class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFileExt):
         path = create_directory(merged_name, self.path)
 
         for chap_class, chap_images in chapters:
-            img_name = count.get() + '.png'
-            img_path = path / img_name
-
-            # Make sure we never duplicated it
-            write_start_image = False
-            try:
-                manga_zip.getinfo(img_name)
-            except KeyError:
-                write_start_image = True
-
-            if self.no_chapter_info:
-                write_start_image = False
-
-            # Insert "start of the chapter" image
-            if write_start_image:
-                get_chapter_info(chap_class, img_path, self.replace)
-                worker.submit(lambda: manga_zip.write(img_path, img_name))
-
-            count.increase()
+            self.insert_ch_info_img(manga_zip, worker, chap_class, count, path)
 
             # Begin downloading
             images.extend(self.get_images(chap_class, chap_images, path, count))

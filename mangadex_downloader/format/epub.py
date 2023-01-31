@@ -359,7 +359,7 @@ class EpubPlugin:
 
                 progress_bar.update(1)
 
-class EPUBFileExt:
+class EPUBFile:
     file_ext = ".epub"
 
     def check_dependecies(self):
@@ -374,7 +374,7 @@ class EPUBFileExt:
         
         epub.write(path)
 
-class Epub(ConvertedChaptersFormat, EPUBFileExt):
+class Epub(ConvertedChaptersFormat, EPUBFile):
     def download_chapters(self, worker, chapters):
         manga = self.manga
 
@@ -415,23 +415,16 @@ class Epub(ConvertedChaptersFormat, EPUBFileExt):
 
             self.add_fi(chap_name, chap_class.id, chapter_epub_path)
 
-class EpubVolume(ConvertedVolumesFormat, EPUBFileExt):
+class EpubVolume(ConvertedVolumesFormat, EPUBFile):
     def download_volumes(self, worker, volumes):
         manga = self.manga
 
         # Begin downloading
         for volume, chapters in volumes.items():
-            num = 0
+            total = self.get_total_pages_for_volume_fmt(chapters)
             epub_chapters = []
 
-            for chap_class, _ in chapters:
-                # Each chapters has one page that has "Chapter n"
-                # This is called "start of the chapter" image
-                num += 1
-
-                num += chap_class.pages
-
-            count = NumberWithLeadingZeros(num)
+            count = NumberWithLeadingZeros(total)
 
             # Build volume folder name
             volume = self.get_volume_name(volume)
@@ -472,7 +465,7 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFileExt):
 
             self.add_fi(volume, None, volume_epub_path, chapters)
 
-class EpubSingle(ConvertedSingleFormat, EPUBFileExt):
+class EpubSingle(ConvertedSingleFormat, EPUBFile):
     def download_single(self, worker, total, merged_name, chapters):
         epub_chapters = []
         manga = self.manga

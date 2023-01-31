@@ -36,6 +36,7 @@ from .base import (
 from .utils import (
     NumberWithLeadingZeros,
     get_chapter_info,
+    get_volume_cover
 )
 from ..errors import PillowNotInstalled
 from ..utils import create_directory, delete_file
@@ -365,7 +366,7 @@ class PDFPlugin:
 
         Image.register_mime("PDF", "application/pdf")
 
-class PDFFileExt:
+class PDFFile:
     file_ext = ".pdf"
 
     def check_dependecies(self):
@@ -394,7 +395,27 @@ class PDFFileExt:
 
         pdf_plugin.close_progress_bar()
 
-class PDF(ConvertedChaptersFormat, PDFFileExt):
+    def insert_ch_info_img(self, images, chapter, path, count):
+        """Insert chapter info (cover) image"""
+        img_name = count.get() + '.png'
+        img_path = path / img_name
+
+        if self.config.use_chapter_cover:
+            get_chapter_info(chapter, img_path, self.replace)
+            images.append(img_path)
+            count.increase()
+
+    def insert_vol_cover_img(self, images, volume, path, count):
+        """Insert volume cover"""
+        img_name = count.get() + '.png'
+        img_path = path / img_name
+
+        if self.config.use_volume_cover:
+            get_volume_cover(self.manga, volume, img_path, self.replace)
+            images.append(img_path)
+            count.increase()
+
+class PDF(ConvertedChaptersFormat, PDFFile):
     def download_chapters(self, worker, chapters):
         # Begin downloading
         for chap_class, chap_images in chapters:
@@ -433,7 +454,7 @@ class PDF(ConvertedChaptersFormat, PDFFileExt):
                 path=pdf_file,
             )
 
-class PDFVolume(ConvertedVolumesFormat, PDFFileExt):
+class PDFVolume(ConvertedVolumesFormat, PDFFile):
     def download_volumes(self, worker, volumes):
         # Begin downloading
         for volume, chapters in volumes.items():
@@ -457,16 +478,10 @@ class PDFVolume(ConvertedVolumesFormat, PDFFileExt):
             # Create volume folder
             volume_path = create_directory(vol_name, self.path)
 
+            self.insert_vol_cover_img(images, volume, volume_path, count)
+
             for chap_class, chap_images in chapters:
-
-                # Insert "start of the chapter" image
-                img_name = count.get() + '.png'
-                img_path = volume_path / img_name
-
-                if not self.no_chapter_info:
-                    get_chapter_info(chap_class, img_path, self.replace)
-                    images.append(img_path)
-                    count.increase()
+                self.insert_ch_info_img(images, chap_class, volume_path, count)
 
                 images.extend(self.get_images(chap_class, chap_images, volume_path, count))
 
@@ -480,7 +495,7 @@ class PDFVolume(ConvertedVolumesFormat, PDFFileExt):
 
             self.add_fi(vol_name, None, pdf_file, chapters)
 
-class PDFSingle(ConvertedSingleFormat, PDFFileExt):
+class PDFSingle(ConvertedSingleFormat, PDFFile):
     def download_single(self, worker, total, merged_name, chapters):
         manga = self.manga
         images = []
@@ -498,14 +513,7 @@ class PDFSingle(ConvertedSingleFormat, PDFFileExt):
         path = create_directory(merged_name, self.path)
 
         for chap_class, chap_images in chapters:
-            # Insert "start of the chapter" image
-            img_name = count.get() + '.png'
-            img_path = path / img_name
-
-            if not self.no_chapter_info:
-                get_chapter_info(chap_class, img_path, self.replace)
-                images.append(img_path)
-                count.increase()
+            self.insert_ch_info_img(images, chap_class, path, count)
 
             images.extend(self.get_images(chap_class, chap_images, path, count))
 

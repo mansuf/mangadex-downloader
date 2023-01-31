@@ -30,7 +30,9 @@ import time
 
 from enum import Enum
 from ..downloader import FileDownloader
-from .. import __repository__
+from ..errors import MangaDexException
+from ..utils import get_cover_art_url
+from .. import __repository__, __url_repository__
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +52,44 @@ def get_chapter_info(chapter, path, replace):
     fd.cleanup()
 
     return path
+
+def get_volume_cover(manga, volume, path, replace):
+    # "Circular Imports" problem
+    from ..config import config
+    from ..iterator import CoverArtIterator
+
+    # Find volume
+    def find_volume_cover(cover):
+        if volume is None:
+            # There is higher change
+            # that "null" volume is "volume 0"
+            return cover.volume == 0
+        
+        return volume == cover.volume
+
+    f = filter(find_volume_cover, CoverArtIterator(manga.id))
+
+    try:
+        cover = next(f)
+    except StopIteration:
+        raise MangaDexException(
+            f"Failed to find volume cover for volume {volume} " \
+            f"(manga_id: {manga.id}). " \
+            f"Please report this issue to {__url_repository__}/{__repository__}/issues"
+        )
+
+    log.info(f"Getting volume cover for \"Volume {volume}\"")
+    url = get_cover_art_url(manga, cover, "original")
+    fd = FileDownloader(
+        url,
+        path,
+        progress_bar=not config.no_progress_bar,
+        replace=replace
+    )
+    fd.download()
+    fd.cleanup()
+
+    return cover
 
 class NumberWithLeadingZeros:
     """A helper class for parsing numbers with leading zeros
@@ -102,7 +142,7 @@ def get_md_file_hash(server_file):
     if match is None:
         raise Sha256RegexError(
             f'Failed to grab sha256 hash from server_file = {server_file}. ' \
-            f'Please report it to {__repository__}/issues'
+            f'Please report it to {__url_repository__}/{__repository__}/issues'
         )
     
     server_hash = match.group('hash')

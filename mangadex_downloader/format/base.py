@@ -50,7 +50,6 @@ class BaseFormat:
         self.manga = manga
         self.compress_img = config.use_compressed_image
         self.replace = replace
-        self.no_chapter_info = config.no_chapter_info
         self.kwargs_iter = kwargs_iter_chapter_img
 
         self.chapter_read_marker = QueueWorkerReadMarker(manga.id)
@@ -172,10 +171,6 @@ class BaseFormat:
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
         for chap_class, chap_images in manga.chapters.iter(**self.kwargs_iter):
-            # Fix #10
-            # Some programs wouldn't display images correctly
-            total += 1
-
             total += chap_class.pages
 
             item = [chap_class, chap_images]
@@ -184,9 +179,26 @@ class BaseFormat:
         if not cache:
             return None
 
+        if self.config.use_chapter_cover:
+            total += len(cache)
+
         name = "All chapters"
 
         return cache, total, name
+
+    def get_total_pages_for_volume_fmt(self, chapters):
+        total = 0
+
+        if self.config.use_volume_cover:
+            total += 1
+
+        if self.config.use_chapter_cover:
+            total += len(chapters)
+
+        for chap_class, _ in chapters:
+            total += chap_class.pages
+        
+        return total
 
     def get_fmt_volume_cache(self, manga):
         """Get all cached volumes"""

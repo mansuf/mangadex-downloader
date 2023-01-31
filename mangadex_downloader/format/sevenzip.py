@@ -31,7 +31,11 @@ from .base import (
     ConvertedVolumesFormat,
     ConvertedSingleFormat
 )
-from .utils import get_chapter_info, NumberWithLeadingZeros
+from .utils import (
+    get_chapter_info,
+    NumberWithLeadingZeros,
+    get_volume_cover
+)
 from ..utils import create_directory, delete_file
 from ..errors import MangaDexException
 
@@ -48,7 +52,7 @@ class py7zrNotInstalled(MangaDexException):
 
 log = logging.getLogger(__name__)
 
-class SevenZipFileExt:
+class SevenZipFile:
     file_ext = ".cb7"
 
     def check_dependecies(self):
@@ -59,14 +63,14 @@ class SevenZipFileExt:
         progress_bar = None
         if pb:
             # Don't mind me
-            pb = self.config.no_progress_bar
+            pb = not self.config.no_progress_bar
 
         progress_bar = tqdm.tqdm(
             desc='cb7_progress',
             total=len(images),
             initial=0,
             unit='item',
-            disable=pb
+            disable=not pb
         )
 
         for im_path in images:
@@ -84,7 +88,27 @@ class SevenZipFileExt:
         with py7zr.SevenZipFile(path, 'r') as zip_obj:
             return target not in zip_obj.getnames()
 
-class SevenZip(ConvertedChaptersFormat, SevenZipFileExt):
+    def insert_ch_info_img(self, images, chapter, path, count):
+        """Insert chapter info (cover) image"""
+        img_name = count.get() + '.png'
+        img_path = path / img_name
+
+        if self.config.use_chapter_cover:
+            get_chapter_info(chapter, img_path, self.replace)
+            images.append(img_path)
+            count.increase()
+
+    def insert_vol_cover_img(self, images, volume, path, count):
+        """Insert volume cover"""
+        img_name = count.get() + '.png'
+        img_path = path / img_name
+
+        if self.config.use_volume_cover:
+            get_volume_cover(self.manga, volume, img_path, self.replace)
+            images.append(img_path)
+            count.increase()
+
+class SevenZip(ConvertedChaptersFormat, SevenZipFile):
     def download_chapters(self, worker, chapters):
         # Begin downloading
         for chap_class, chap_images in chapters:
@@ -112,52 +136,34 @@ class SevenZip(ConvertedChaptersFormat, SevenZipFileExt):
 
             self.add_fi(chap_name, chap_class.id, chapter_zip_path)
 
-class SevenZipVolume(ConvertedVolumesFormat, SevenZipFileExt):
+class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
     def download_volumes(self, worker, volumes):
         # Begin downloading
         for volume, chapters in volumes.items():
             images = []
-            num = 0
-            for chap_class, _ in chapters:
-                # Each chapters has one page that has "Chapter n"
-                # This is called "start of the chapter" image
-                num += 1
+            total = self.get_total_pages_for_volume_fmt(chapters)
 
-                num += chap_class.pages
-
-            count = NumberWithLeadingZeros(num)
+            count = NumberWithLeadingZeros(total)
 
             # Build volume folder name
-            volume = self.get_volume_name(volume)
+            volume_name = self.get_volume_name(volume)
 
-            volume_zip_path = self.path / (volume + self.file_ext)
+            volume_zip_path = self.path / (volume_name + self.file_ext)
             if volume_zip_path.exists():
                 if self.replace:
                     delete_file(volume_zip_path)
                 else:
                     log.info(f"'{volume_zip_path.name}' is exist and replace is False, cancelling download...")
-                    self.add_fi(volume, None, volume_zip_path, chapters)
+                    self.add_fi(volume_name, None, volume_zip_path, chapters)
                     continue
 
             # Create volume folder
-            volume_path = create_directory(volume, self.path)
+            volume_path = create_directory(volume_name, self.path)
+
+            self.insert_vol_cover_img(images, volume, volume_path, count)
 
             for chap_class, chap_images in chapters:
-                # Insert "start of the chapter" image
-                img_name = count.get() + '.png'
-
-                # Make sure we never duplicated it
-                write_start_image = self.check_write_chapter_info(volume_zip_path, img_name)
-
-                if self.no_chapter_info:
-                    write_start_image = False
-
-                if write_start_image:
-                    img_path = volume_path / img_name
-                    get_chapter_info(chap_class, img_path, self.replace)
-                    worker.submit(lambda: self.convert([img_path], volume_zip_path, False))
-
-                count.increase()
+                self.insert_ch_info_img(images, chap_class, volume_path, count)
 
                 images.extend(self.get_images(chap_class, chap_images, volume_path, count))
             
@@ -168,9 +174,9 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFileExt):
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
 
-            self.add_fi(volume, None, volume_zip_path, chapters)
+            self.add_fi(volume_name, None, volume_zip_path, chapters)
 
-class SevenZipSingle(ConvertedSingleFormat, SevenZipFileExt):
+class SevenZipSingle(ConvertedSingleFormat, SevenZipFile):
     def download_single(self, worker, total, merged_name, chapters):
         images = []
         manga = self.manga
@@ -188,21 +194,7 @@ class SevenZipSingle(ConvertedSingleFormat, SevenZipFileExt):
         path = create_directory(merged_name, self.path)
 
         for chap_class, chap_images in chapters:
-            # Insert "start of the chapter" image
-            img_name = count.get() + '.png'
-
-            # Make sure we never duplicated it
-            write_start_image = self.check_write_chapter_info(manga_zip_path, img_name)
-
-            if self.no_chapter_info:
-                write_start_image = False
-
-            if write_start_image:
-                img_path = path / img_name
-                get_chapter_info(chap_class, img_path, self.replace)
-                worker.submit(lambda: self.convert([img_path], manga_zip_path, False))
-
-            count.increase()
+            self.insert_ch_info_img(images, chap_class, path, count)
 
             images.extend(self.get_images(chap_class, chap_images, path, count))
         

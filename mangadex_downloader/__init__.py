@@ -8,6 +8,7 @@ __author__ = "Rahman Yusuf"
 __author_email__ = "danipart4@gmail.com"
 __license__ = "MIT"
 __repository__ = "mansuf/mangadex-downloader"
+__url_repository__ = "https://github.com"
 
 import logging
 

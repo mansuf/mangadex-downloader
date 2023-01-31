@@ -29,7 +29,8 @@ from .utils import (
     NumberWithLeadingZeros,
     get_chapter_info,
     verify_sha256,
-    create_file_hash_sha256
+    create_file_hash_sha256,
+    get_volume_cover
 )
 from ..utils import create_directory, delete_file
 
@@ -111,13 +112,9 @@ class RawVolume(BaseFormat):
         # Begin downloading
         for volume, chapters in cache.items():
             failed_images = []
-            num = 0
-            for chap_class, images in chapters:
-                num += 1
+            total = self.get_total_pages_for_volume_fmt(chapters)
 
-                num += chap_class.pages
-
-            count = NumberWithLeadingZeros(num)
+            count = NumberWithLeadingZeros(total)
 
             # Build volume folder name
             if volume is not None:
@@ -128,6 +125,14 @@ class RawVolume(BaseFormat):
             volume_path = create_directory(volume_name, base_path)
             file_info = self.get_fi_volume_or_single_fmt(volume_name, null_images=False)
             new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
+
+            # Create volume cover
+            if self.config.use_volume_cover:
+                img_name = count.get() + ".png"
+                img_path = volume_path / img_name
+
+                get_volume_cover(manga, volume, img_path, self.replace)
+                count.increase()
 
             # Only checks if ``file_info.complete`` state is True
             if new_chapters and file_info.completed:
@@ -166,11 +171,11 @@ class RawVolume(BaseFormat):
                     count.increase(chap_class.pages)
                     continue
 
-                # Insert "start of the chapter" image
                 img_name = count.get() + '.png'
                 img_path = volume_path / img_name
 
-                if not self.no_chapter_info:
+                # Insert chapter info (cover) image
+                if self.config.use_chapter_cover:
                     get_chapter_info(chap_class, img_path, self.replace)
                     count.increase()
 
@@ -268,11 +273,11 @@ class RawSingle(BaseFormat):
                 count.increase(chap_class.pages)
                 continue
 
-            # Insert "start of the chapter" image
+            # Insert chapter info (cover) image
             img_name = count.get() + '.png'
             img_path = path / img_name
 
-            if not self.no_chapter_info:
+            if self.config.use_chapter_cover:
                 get_chapter_info(chap_class, img_path, self.replace)
                 count.increase()
 

@@ -142,40 +142,9 @@ class Manga:
         return self._chapters
 
     @property
-    def cover_art(self):
-        """:class:`str`: Original cover manga"""
-        if self._cover is None:
-            return
-
-        return '{0}/covers/{1}/{2}'.format(
-            uploads_url,
-            self.id,
-            self._cover.file
-        )
-    
-    @property
-    def cover_art_512px(self):
-        """:class:`str`: 512px wide thumbnail cover manga"""
-        if self._cover is None:
-            return
-
-        return '{0}/covers/{1}/{2}.512.jpg'.format(
-            uploads_url,
-            self.id,
-            self._cover.file
-        )
-
-    @property
-    def cover_art_256px(self):
-        """:class:`str`: 256px wide thumbnail cover manga"""
-        if self._cover is None:
-            return
-
-        return '{0}/covers/{1}/{2}.256.jpg'.format(
-            uploads_url,
-            self.id,
-            self._cover.file
-        )
+    def cover(self):
+        """:class:`CoverArt`: Volume cover"""
+        return self._cover
 
     @property
     def genres(self):

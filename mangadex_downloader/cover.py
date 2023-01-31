@@ -22,12 +22,13 @@
 
 from .fetcher import get_cover_art
 from .language import get_language
+from .utils import convert_int_or_float
 
 valid_cover_types = [
-    'original',
-    '512px',
-    '256px',
-    'none'
+    "original",
+    "512px",
+    "256px",
+    "none"
 ]
 
 default_cover_type = "original"
@@ -35,21 +36,37 @@ default_cover_type = "original"
 class CoverArt:
     def __init__(self, cover_id=None, data=None):
         if not data:
-            self.data = get_cover_art(cover_id)['data']
+            self.data = get_cover_art(cover_id)["data"]
         else:
             self.data = data
 
-        self.id = self.data['id']
-        attr = self.data['attributes']
+        self.id = self.data["id"]
+        attr = self.data["attributes"]
 
         # Description
-        self.description = attr['description']
-
-        # Volume
-        self.volume = attr['volume']
+        self.description = attr["description"]
 
         # File cover
-        self.file = attr['fileName']
+        self.file = attr["fileName"]
 
         # Locale
-        self.locale = get_language(attr['locale'])
+        self.locale = get_language(attr["locale"])
+
+    @property
+    def volume(self):
+        vol = self.data["attributes"]["volume"]
+        if vol is not None:
+            # As far as i know
+            # Volume manga are integer numbers, not float
+            try:
+                return convert_int_or_float(vol)
+            except ValueError:
+                pass
+
+            # Weird af volume name
+            # Example: https://api.mangadex.org/manga/485a777b-e395-4ab1-b262-2a87f53e23c0/aggregate
+            # (Take a look volume "3Cxx")
+            return vol
+
+        # No volume
+        return vol

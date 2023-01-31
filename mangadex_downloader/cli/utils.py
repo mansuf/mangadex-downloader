@@ -24,7 +24,7 @@ import logging
 import signal
 import sys
 
-from .. import __version__, __repository__
+from .. import __version__, __repository__, __url_repository__
 from ..update import architecture, executable
 from ..network import Net
 from ..downloader import _cleanup_jobs
@@ -203,7 +203,7 @@ class Paginator:
 def print_version_info():
     bundled_executable = 'yes' if executable else 'no'
 
-    print(f"mangadex-downloader v{__version__} (https://github.com/{__repository__})")
+    print(f"mangadex-downloader v{__version__} ({__url_repository__}/{__repository__})")
     print("Python: {0[0]}.{0[1]}.{0[2]}".format(sys.version_info))
     print(f"arch: {architecture}")
     print(f"bundled executable: {bundled_executable}")

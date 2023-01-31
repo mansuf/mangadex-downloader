@@ -247,3 +247,24 @@ def check_blacklisted_tags_manga(manga):
         return True, found_tags
     else:
         return False, found_tags
+
+def get_cover_art_url(manga, cover, quality):
+    if quality == "none" or cover is None:
+        return None
+
+    # "Circular Imports" problem
+    from .network import uploads_url
+
+    if quality == "original":
+        additional_file_ext = ""
+    elif quality == "512px":
+        additional_file_ext = ".512.jpg"
+    elif quality == "256px":
+        additional_file_ext = ".256.jpg"
+    
+    return "{0}/covers/{1}/{2}{3}".format(
+        uploads_url,
+        manga.id,
+        cover.file,
+        additional_file_ext
+    )

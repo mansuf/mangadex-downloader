@@ -83,10 +83,6 @@ class _Config:
             None,
             lambda x: validate_value_from_iterator(x, _doh_providers)
         ],
-        "no_chapter_info": [
-            False,
-            validate_bool
-        ],
         "no_group_name": [
             False,
             validate_bool
@@ -110,6 +106,14 @@ class _Config:
         "download_mode": [
             "default",
             validate_download_mode
+        ],
+        "use_chapter_cover": [
+            False,
+            validate_bool
+        ],
+        "use_volume_cover": [
+            False,
+            validate_bool
         ]
     }
     default_conf = {

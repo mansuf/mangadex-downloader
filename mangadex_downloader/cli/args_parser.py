@@ -227,10 +227,11 @@ def get_args(argv):
         '--no-chapter-info',
         '-nci',
         action='store_true',
-        help='Disable creation of chapter info for any `single` and `volume` formats. ' \
-             "NOTE: `epub-volume` and `epub-single` formats is not affected, " \
-             "because creation of chapter info is totally disabled for any `epub` formats",
-        default=config.no_chapter_info
+        help="[Deprecated] Use --use-chapter-cover to enable creation of chapter info. " \
+             "Previously, this option is used to disable creation of chapter info. " \
+             "Because it was automatically enabled when you downloading with any single or volume formats. " \
+             "Now, by default it was disabled. You must use --use-chapter-cover to enable " \
+             "creation of chapter info."
     )
     chap_group.add_argument(
         '--range',
@@ -241,6 +242,24 @@ def get_args(argv):
         '--sort-by',
         help='Download sorting method, by default it\'s selected to "volume"',
         default=config.sort_by
+    ),
+    chap_group.add_argument(
+        "--use-chapter-cover",
+        "-ucc",
+        action="store_true",
+        help="Enable creation of chapter info (cover) for any single or volume formats. " \
+             "See https://mangadex-dl.mansuf.link/en/stable/cli_ref/chapter_info.html for more info. " \
+             "NOTE: chapter info creation are not enabled if you are using any chapter format (cbz, pdf, raw, etc)",
+        default=config.use_chapter_cover
+    )
+    chap_group.add_argument(
+        "--use-volume-cover",
+        "-uvc",
+        action="store_true",
+        help="Enable creation of volume cover for any volume formats. " \
+             "Volume cover will be placed in first page in each volume files. " \
+             "NOTE: Volume cover will be not created in chapter (cbz, pdf, raw, etc) and single formats)",
+        default=config.use_volume_cover
     )
 
     # Chapter page related

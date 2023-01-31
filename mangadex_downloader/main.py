@@ -24,7 +24,8 @@ import logging
 from .utils import (
     comma_separated_text,
     create_directory,
-    check_blacklisted_tags_manga
+    check_blacklisted_tags_manga,
+    get_cover_art_url
 )
 from .language import Language, get_language
 from .fetcher import *
@@ -87,15 +88,8 @@ def download(
     log.info('Downloading cover manga %s' % manga.title)
 
     # Determine cover art quality
-    if cover == "original":
-        cover_url = manga.cover_art
-    elif cover == "512px":
-        cover_url = manga.cover_art_512px
-    elif cover == "256px":
-        cover_url = manga.cover_art_256px
-    elif cover == 'none':
-        cover_url = None
-
+    cover_url = get_cover_art_url(manga, manga.cover, cover)
+    
     # Download the cover art
     if cover == 'none':
         log.info('Not downloading cover manga, since "cover" is none')
