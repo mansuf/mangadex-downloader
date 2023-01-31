@@ -7,7 +7,8 @@
 - Added ability to add more groups or users in `--group` option
 - Added ability to set retries for failed HTTP requests (`--http-retries`)
 - Added OAuth2 login support (`--login-method oauth2`)
-- Added ability to download unread chapters (`--download-mode unread`, require authentication)
+- Added ability to download unread chapters (`--download-mode unread`, require authentication) [#39](https://github.com/mansuf/mangadex-downloader/issues/39)
+- Added ability to add volume cover for volume formats [#41](https://github.com/mansuf/mangadex-downloader/issues/41)
 
 ### Fix bugs
 
@@ -23,10 +24,15 @@
 
 - Bump orjson to v3.8.3
 
+### Breaking changes
+
+- Chapter info (cover) creation are be disabled by default. Use `--use-chapter-cover` to enable it.
+
 ### Deprecated
 
 - Removed `--search-filter` and `-sf` option as it's deprecated from v2.4.0
 - Format `tachiyomi` and `tachiyomi-zip` are now deprecated, please use `raw` and `cbz` with `--write-tachiyomi-info` instead
+- `--no-chapter-info` are now deprecated in favor of `--use-chapter-cover` and will be removed in v2.9.0
 
 ## v2.5.4
 
