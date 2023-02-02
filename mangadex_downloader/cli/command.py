@@ -41,7 +41,7 @@ from ..iterator import (
     iter_random_manga
 )
 from .. import __repository__
-from ..utils import input_handle, validate_url
+from ..utils import input_handle, validate_url, get_cover_art_url
 from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
 from ..network import Net
 from ..manga import ContentRating
@@ -53,7 +53,8 @@ def preview_cover_manga(manga):
     except ImportError:
         raise PillowNotInstalled("Pillow is not installed") from None
 
-    r = Net.mangadex.get(manga.cover_art, stream=True)
+    cover_art_url = get_cover_art_url(manga, manga.cover, "original")
+    r = Net.mangadex.get(cover_art_url, stream=True)
     im = Image.open(r.raw)
 
     print("\nCLOSE THE IMAGE PREVIEW TO CONTINUE\n")
