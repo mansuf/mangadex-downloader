@@ -173,9 +173,9 @@ class FileDownloader:
 
             # Try to check if the server support `Range` header
             content_range = resp.headers.get("content-range", "")
-            cr_match = re.match("bytes %s\-[0-9]{1,}\/[0-9]{1,}", content_range)
+            cr_match = re.match("bytes %s\-[0-9]{1,}\/[0-9]{1,}" % initial_file_sizes, content_range)
             accept_range = resp.headers.get('accept-ranges')
-            if accept_range is None and cr_match and os.path.exists(self.file):
+            if accept_range is None and not cr_match and os.path.exists(self.file):
                 # Server didn't support `Range` header
                 log.warning(
                     f"Server didn't support resume download, deleting '{os.path.basename(self.file)}'"

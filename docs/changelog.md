@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed resume download is not working properly
+
 ## v2.6.0
 
 ### New features
