@@ -173,7 +173,11 @@ class FileDownloader:
 
             # Try to check if the server support `Range` header
             content_range = resp.headers.get("content-range", "")
-            cr_match = re.match("bytes %s\-[0-9]{1,}\/[0-9]{1,}" % initial_file_sizes, content_range)
+            if initial_file_sizes:
+                cr_match = re.match("bytes %s\-[0-9]{1,}\/[0-9]{1,}" % initial_file_sizes, content_range)
+            else:
+                # This is hack, trust me
+                cr_match = True
             accept_range = resp.headers.get('accept-ranges')
             if accept_range is None and not cr_match and os.path.exists(self.file):
                 # Server didn't support `Range` header
