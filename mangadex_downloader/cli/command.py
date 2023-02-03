@@ -256,9 +256,13 @@ class MangaDexCommand(BaseCommand):
     def prompt(self, input_pos=None):
         answer = super().prompt(input_pos=input_pos)
 
+        def yield_ids():
+            for item in answer:
+                yield item.id
+
         # "input_pos" argument from prompt() is used
         if input_pos:
-            return answer
+            return yield_ids()
         else:
             return [answer.id]
 
