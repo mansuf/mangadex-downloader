@@ -6,6 +6,7 @@
 
 - Fixed resume download is not working properly
 - Fixed download forum thread is not working when option `--input-pos "*"` is used
+- Fixed `--replace` option is not working when using converted formats (cbz, pdf, epub, epub-volume, etc)
 
 ## v2.6.0
 

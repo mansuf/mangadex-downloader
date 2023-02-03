@@ -371,6 +371,10 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         worker = self.create_worker()
         tracker = manga.tracker
 
+        # Recreate DownloadTracker JSON file if --replace is present
+        if self.replace:
+            manga.tracker.recreate()
+
         # Steps for existing (downloaded) chapters:
         # - Check for new chapters.
         # - Download the new chapters (if available)
@@ -456,6 +460,10 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         manga = self.manga
         worker = self.create_worker()
         tracker = manga.tracker
+
+        # Recreate DownloadTracker JSON file if --replace is present
+        if self.replace:
+            manga.tracker.recreate()
 
         # Steps for existing (downloaded) volumes:
         # - Check for new chapters.
@@ -555,6 +563,10 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             log.info("Waiting for chapter read marker to finish")
             self.chapter_read_marker.shutdown(blocking=True)
             return
+
+        # Recreate DownloadTracker JSON file if --replace is present
+        if self.replace:
+            manga.tracker.recreate()
 
         # Steps for existing (downloaded) file (single format):
         # - Check for new chapters.
