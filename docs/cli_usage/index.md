@@ -49,6 +49,17 @@ mangadex-dl "34"
 ```
 ````
 
+## Download from a forums thread
+
+```sh
+mangadex-dl "https://forums.mangadex.org/threads/..."
+
+# An example
+mangadex-dl "https://forums.mangadex.org/threads/whats-your-top-3-manga.1082493/"
+```
+
+For more info, you can see it here -> {doc}`../cli_ref/forums`
+
 ## Batch download
 
 mangadex-downloader support batch downloading. Just type a file and you're good to go !.

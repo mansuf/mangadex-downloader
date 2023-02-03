@@ -27,6 +27,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 - Download manga, chapter, or list directly from MangaDex
 - Download manga or list from user library
+- Find and download MangaDex URLs from MangaDex forums ([https://forums.mangadex.org/](https://forums.mangadex.org/))
 - Batch download support
 - Old MangaDex url support
 - Scanlation groups filter support
@@ -69,8 +70,7 @@ You can also install optional dependencies
 
 - [py7zr](https://pypi.org/project/py7zr/) for cb7 support
 - [orjson](https://pypi.org/project/orjson/) for maximum performance (fast JSON library)
-- [Pillow](https://pypi.org/project/pillow/), 
-[beautifulsoup4](https://pypi.org/project/beautifulsoup4/), 
+- [Pillow](https://pypi.org/project/pillow/) and
 [lxml](https://pypi.org/project/lxml/) for EPUB and PDF support
 
 Or you can install all optional dependencies

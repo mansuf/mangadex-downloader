@@ -320,6 +320,7 @@ For more info, see {doc}`./auth_cache`
 :maxdepth: 2
 
 file_command
+forums
 chapter_info
 filters
 random
