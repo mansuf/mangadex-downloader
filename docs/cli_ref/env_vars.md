@@ -142,19 +142,19 @@ export MANGADEXDL_TAGS_BLACKLIST=blocked_tags.txt
 
 ```shell
 # For Windows
-set MANGADEXDL_GROUP_BLACKLIST=gore, girls' love
+set MANGADEXDL_TAGS_BLACKLIST=gore, girls' love
 
 # For Linux / Mac OS
-export MANGADEXDL_GROUP_BLACKLIST=gore, girls' love
+export MANGADEXDL_TAGS_BLACKLIST=gore, girls' love
 ```
 
 **Example usage (uuid)**
 
 ```shell
 # For Windows
-set MANGADEXDL_GROUP_BLACKLIST=b29d6a3d-1569-4e7a-8caf-7557bc92cd5d, a3c67850-4684-404e-9b7f-c69850ee5da6
+set MANGADEXDL_TAGS_BLACKLIST=b29d6a3d-1569-4e7a-8caf-7557bc92cd5d, a3c67850-4684-404e-9b7f-c69850ee5da6
 
 # For Linux / Mac OS
-export MANGADEXDL_GROUP_BLACKLIST=b29d6a3d-1569-4e7a-8caf-7557bc92cd5d, a3c67850-4684-404e-9b7f-c69850ee5da6
+export MANGADEXDL_TAGS_BLACKLIST=b29d6a3d-1569-4e7a-8caf-7557bc92cd5d, a3c67850-4684-404e-9b7f-c69850ee5da6
 ```
 ````
