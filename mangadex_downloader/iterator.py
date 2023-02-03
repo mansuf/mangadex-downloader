@@ -27,11 +27,16 @@ from .mdlist import MangaDexList
 from .errors import HTTPException, MangaDexException, NotLoggedIn
 from .network import Net, base_url
 from .manga import Manga
-from .fetcher import get_list
+from .fetcher import (
+    get_list,
+    get_legacy_id
+)
 from .user import User
 from .filters import Filter
 from .utils import check_blacklisted_tags_manga
 from .cover import CoverArt
+from .forums import iter_md_urls_from_forum_thread
+from .chapter import Chapter
 
 log = logging.getLogger(__name__)
 
@@ -488,4 +493,61 @@ class CoverArtIterator(BaseIterator):
                 self.cache[self.manga_id].append(cover)
             
             self.offset += len(items)
+
+class ForumThreadMangaDexURLIterator(BaseIterator):
+    """If `Fetch` parameter is `True`, it will return object based on returned type URLs. 
+    For example:
+
+    - manga = :class:`mangadex_downloader.manga.Manga`
+    - chapter = :class:`mangadex_downloader.chapter.Chapter`
+    - list = :class:`mangadex_downloader.mdlist.MangaDexList`
+    - etc
+    
+    Otherwise it will return the ids only.
+    """
+    def __init__(self, thread_id, fetch=False):
+        super().__init__()
+
+        self.thread_id = thread_id
+        self.fetch = fetch
+        self.limit = 5 # We don't want to slow down the application
+
+        self.iterator = iter_md_urls_from_forum_thread(thread_id)
+
+    def _make_item_obj(self, item_id, item_type):
+        if item_type == "legacy-manga":
+            new_id = get_legacy_id("manga", item_id)
+            obj = Manga(_id=new_id)
+        elif item_type == "legacy-chapter":
+            new_id = get_legacy_id("chapter", item_id)
+            obj = Chapter(_id=new_id)
+        elif item_type == "list":
+            obj = MangaDexList(_id=item_id)
+        elif item_type == "manga":
+            obj = Manga(_id=item_id)
+        elif item_type == "chapter":
+            obj = Chapter(_id=item_id)
+        else:
+            # This should be impossible
+            # because `item_type` value is from `utils.valid_url_types`
+            raise RuntimeError(f"item_type '{item_type}' unknown, item_id = {item_id}")
         
+        return obj
+
+    def fill_data(self):
+        current_limit = 0
+        while current_limit < self.limit:
+            try:
+                raw_item = next(self.iterator)
+            except StopIteration:
+                return
+
+            item_id, item_type = raw_item
+
+            if self.fetch:
+                item = self._make_item_obj(item_id, item_type)
+            else:
+                item = item_id
+            
+            self.queue.put(item)
+            current_limit += 1

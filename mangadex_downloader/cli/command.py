@@ -38,14 +38,39 @@ from ..iterator import (
     IteratorUserLibraryList,
     IteratorUserLibraryManga,
     IteratorUserList,
-    iter_random_manga
+    iter_random_manga,
+    ForumThreadMangaDexURLIterator
+)
+from ..forums import (
+    get_thread_title_owner_and_post_owner,
+    get_post_id_forum_thread
 )
 from .. import __repository__
 from ..utils import input_handle, validate_url, get_cover_art_url
 from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
 from ..network import Net
-from ..manga import ContentRating
+from ..manga import Manga
+from ..chapter import Chapter
+from ..mdlist import MangaDexList
 from ..group import Group
+
+def preview_chapter(chapter: Chapter):
+    try:
+        from PIL import Image
+    except ImportError:
+        raise PillowNotInstalled("Pillow is not installed") from None
+
+    # we're just gonna use chapter info (cover)
+    url = f"https://og.mangadex.org/og-image/chapter/{chapter.id}"
+    r = Net.mangadex.get(url, stream=True)
+    im = Image.open(r.raw)
+
+    print("\nCLOSE THE IMAGE PREVIEW TO CONTINUE\n")
+
+    im.show(str(chapter))
+    im.close()
+
+    pass
 
 def preview_cover_manga(manga):
     try:
@@ -228,28 +253,14 @@ class BaseCommand:
 
 class MangaDexCommand(BaseCommand):
     """Command specialized for MangaDex"""
-    def prompt(self, *args, **kwargs):
-        answer = super().prompt(*args, **kwargs)
-        ids = []
-
-        # Make sure results are never duplicated
-        def iter_answer():
-            for item in answer:
-                if item.id not in ids:
-                    ids.append(item.id)
-                    yield item.id
-                else:
-                    continue
+    def prompt(self, input_pos=None):
+        answer = super().prompt(input_pos=input_pos)
 
         # "input_pos" argument from prompt() is used
-        try:
-            iter(answer)
-        except TypeError:
-            return [answer.id]
+        if input_pos:
+            return answer
         else:
-            return iter_answer()
-
-                
+            return [answer.id]
 
 class MangaCommand(MangaDexCommand):
     """Command specialized for manga related"""
@@ -514,6 +525,48 @@ class SeasonalMangaCommand(MangaCommand):
         # This should never happened
         self.args_parser.error('Unknown error when fetching seasonal manga')
 
+class ForumThreadCommand(MangaDexCommand):
+    def preview(self):
+        return True
+
+    def on_preview(self, item):
+        if isinstance(item, Manga):
+            preview_cover_manga(item)
+        elif isinstance(item, Chapter):
+            preview_chapter(item)
+        elif isinstance(item, MangaDexList):
+            preview_list(item)
+
+    def __init__(self, parser, args, input_text):
+        iterator = ForumThreadMangaDexURLIterator(input_text, True)
+
+        post_id = get_post_id_forum_thread(input_text)
+        result = get_thread_title_owner_and_post_owner(thread_url=input_text, post_id=post_id)
+        thread_title, thread_owner, post_owner = result
+
+        text = f"List of URLs from thread '{thread_title}' by '{thread_owner}'"
+
+        if post_owner:
+            text += f" post by '{post_owner}'"
+
+        super().__init__(
+            parser,
+            args,
+            iterator,
+            text,
+            limit=5
+        )
+
+    def _return_from(self, pos):
+        # We don't want to fetch the entire URLs returned from forum thread
+        # when --input-pos is used
+        self.paginator.iterator.fetch = False
+
+        return super()._return_from(pos)
+    
+    def on_empty_error(self):
+        self.args_parser.error("No MangaDex urls found in the forum thread")
+
 registered_commands = {
     "search": SearchMangaCommand,
     "fetch_library_manga": MangaLibraryCommand,
@@ -521,5 +574,6 @@ registered_commands = {
     "fetch_library_follows_list": FollowedListLibraryCommand,
     "random": RandomMangaCommand,
     "fetch_group": GroupMangaCommand,
-    "seasonal": SeasonalMangaCommand
+    "seasonal": SeasonalMangaCommand,
+    "thread": ForumThreadCommand
 }

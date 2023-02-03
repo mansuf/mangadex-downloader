@@ -228,6 +228,13 @@ def download_legacy_manga(legacy_id, *args, **kwargs):
     
     The rest of parameters will be passed to :meth:`download`.
     """
+    # Mark it as deprecated
+    # bye bye :(
+    log.warning(
+        'Old MangaDex URL are deprecated and will be removed any time soon. ' \
+        'Please use the new MangaDex URL'
+    )
+
     new_id = get_legacy_id('manga', legacy_id)
     manga = download(new_id, *args, **kwargs)
     return manga
@@ -237,6 +244,13 @@ def download_legacy_chapter(legacy_id, *args, **kwargs):
     
     The rest of parameters will be passed to :meth:`download_chapter`
     """
+    # Mark it as deprecated
+    # bye bye :(
+    log.warning(
+        'Old MangaDex URL are deprecated and will be removed any time soon. ' \
+        'Please use the new MangaDex URL'
+    )
+
     new_id = get_legacy_id('chapter', legacy_id)
     manga = download_chapter(new_id, *args, **kwargs)
     return manga

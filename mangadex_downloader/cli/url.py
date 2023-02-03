@@ -46,19 +46,6 @@ from ..main import (
 
 log = logging.getLogger(__name__)
 
-# Helper for building smart select url regex
-def _build_re(_type):
-    # Legacy support
-    if 'legacy-manga' in _type:
-        regex = r'mangadex\.org\/(title|manga)\/(?P<id>[0-9]{1,})'
-    elif 'legacy-chapter' in _type:
-        regex = r'mangadex\.org\/chapter\/(?P<id>[0-9]{1,})'
-    elif _type == 'manga':
-        regex = r'mangadex\.org\/(title|manga)\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
-    else:
-        regex = r"mangadex\.org\/%s\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})" % _type
-    return regex
-
 def download_manga(url, args, legacy=False):
     check_group_all(args)
 

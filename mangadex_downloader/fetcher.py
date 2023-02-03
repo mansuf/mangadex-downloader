@@ -46,13 +46,6 @@ def get_manga(manga_id):
     return r.json()
 
 def get_legacy_id(_type, _id):
-    # Mark it as deprecated
-    # bye bye :(
-    log.warning(
-        'Old MangaDex URL are deprecated and will be removed any time soon. ' \
-        'Please use the new MangaDex URL'
-    )
-
     supported_types = ['manga', 'chapter', 'title']
 
     # Alias for title
@@ -110,7 +103,7 @@ def get_cover_art(cover_id):
 def get_chapter(chapter_id):
     url = '{0}/chapter/{1}'.format(base_url, chapter_id)
     params = {
-        'includes[]': ['scanlation_group', 'user']
+        'includes[]': ['scanlation_group', 'user', 'manga']
     }
     r = Net.mangadex.get(url, params=params)
     if r.status_code == 404:

@@ -38,7 +38,7 @@ from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config, env
-from .utils import convert_int_or_float
+from .utils import convert_int_or_float, get_local_attr
 # from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
@@ -164,6 +164,7 @@ class Chapter:
 
         groups = []
         manga_id = None
+        manga_title = None
         user = None
         for rel in rels:
             rel_id = rel['id']
@@ -172,6 +173,7 @@ class Chapter:
                 groups.append(Group(data=rel))
             elif rel_type == 'manga':
                 manga_id = rel_id
+                manga_title = get_local_attr(rel["attributes"]["title"])
             elif rel_type == 'user':
                 user = User(data=rel)
         
@@ -182,6 +184,7 @@ class Chapter:
         self.groups = groups
         self.groups_id = [group.id for group in groups]
         self.manga_id = manga_id
+        self.manga_title = manga_title
         self._name = None
         self._simpl_name = None
         self.oneshot = False
@@ -216,6 +219,9 @@ class Chapter:
 
         # No volume
         return vol
+
+    def __str__(self) -> str:
+        return f"'{self.manga_title}' {self.name}"
 
     @property
     def chapter(self):
@@ -316,7 +322,8 @@ class Chapter:
 def iter_chapters_feed(manga_id, lang):
     includes = [
         'scanlation_group',
-        'user'
+        'user',
+        'manga'
     ]
     content_ratings = [
         'safe',

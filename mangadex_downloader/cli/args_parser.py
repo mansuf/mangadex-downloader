@@ -36,6 +36,7 @@ from ..config import config
 from ..errors import InvalidURL
 from ..network import Net
 from .. import __description__, __version__
+from ..forums import validate_forum_thread_url
 
 log = logging.getLogger(__name__)
 
@@ -434,6 +435,12 @@ def get_args(argv):
 
     urls: str = sys.stdin.read() if args.pipe else args.URL
 
+    try:
+        validate_forum_thread_url(urls)
+        is_forum_thread = True
+    except InvalidURL:
+        is_forum_thread = False
+
     fetch_library_manga = urls.startswith('library')
     fetch_library_list = urls.startswith('list')
     fetch_library_follows_list = urls.startswith('followed-list')
@@ -441,6 +448,7 @@ def get_args(argv):
     group = urls.startswith('group')
     file = urls.startswith('file')
     seasonal = urls.startswith('seasonal')
+    thread = is_forum_thread
 
     # TODO: Add extra checking for -pipe and --search options
 
@@ -456,5 +464,6 @@ def get_args(argv):
     setattr(args, 'fetch_group', group)
     setattr(args, 'file', file)
     setattr(args, 'seasonal', seasonal)
+    setattr(args, 'thread', thread)
 
     return parser, args

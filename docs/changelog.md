@@ -9,6 +9,7 @@
 - Added OAuth2 login support (`--login-method oauth2`)
 - Added ability to download unread chapters (`--download-mode unread`, require authentication) [#39](https://github.com/mansuf/mangadex-downloader/issues/39)
 - Added ability to add volume cover for volume formats [#41](https://github.com/mansuf/mangadex-downloader/issues/41)
+- Added ability to download MangaDex URLs from forum thread ([https://forums.mangadex.org](https://forums.mangadex.org))
 
 ### Fix bugs
 
@@ -23,6 +24,7 @@
 ### Dependecies
 
 - Bump orjson to v3.8.3
+- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) are now required dependecies (no longer optional)
 
 ### Breaking changes
 

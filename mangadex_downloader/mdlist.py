@@ -52,10 +52,10 @@ class MangaDexList:
         return count
 
     def __str__(self) -> str:
-        return f'{self.name} ({self.total()} total)'
+        return f'MDList: {self.name} ({self.total()} total)'
 
     def __repr__(self) -> str:
-        return f'{self.name} ({self.total()} total)'
+        return f'MDList: {self.name} ({self.total()} total)'
 
     def iter_manga(self):
         """Yield :class:`Manga` from a list"""

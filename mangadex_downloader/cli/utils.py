@@ -114,6 +114,8 @@ class Paginator:
         self.iterator = iter(iterator)
         self.limit = limit
 
+        self.duplicates = []
+
     @property
     def pos(self):
         """"Return current position"""
@@ -126,8 +128,19 @@ class Paginator:
                 item = next(self.iterator)
             except StopIteration:
                 break
-            
+
+            # To prevent duplicated results
+            item_id = getattr(item, "id", None)
+            if item_id is None:
+                is_duplicate = item in self.duplicates
+            else:
+                is_duplicate = item_id in self.duplicates
+
+            if is_duplicate:
+                continue
+
             items.append(item)
+            self.duplicates.append(item if item_id is None else item_id)
         
         return items
 

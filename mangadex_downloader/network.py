@@ -71,6 +71,7 @@ base_url = 'https://api.mangadex.org'
 auth_url = 'https://auth.mangadex.org'
 origin_url = 'https://mangadex.org'
 uploads_url = 'https://uploads.mangadex.org'
+forums_url = 'https://forums.mangadex.org'
 
 # A utility to get shortened url from full URL
 # (scheme, netloc, and path only)
@@ -98,6 +99,7 @@ class requestsMangaDexSession(ModifiedSession):
     auth_url = auth_url
     origin_url = origin_url
     uploads_url = uploads_url
+    forums_url = forums_url
 
     """A requests session for MangaDex only. 
 

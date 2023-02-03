@@ -1,5 +1,5 @@
 *__pycache__
-test.py
+test*.py
 mangadex_downloader.egg-info/*
 docs/_build
 *.code-workspace
