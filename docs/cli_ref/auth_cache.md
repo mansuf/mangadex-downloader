@@ -39,6 +39,12 @@ Show cached authentication tokens
 
 ```shell
 mangadex-dl "conf:login_cache=1"
+
+# You must login first in order to get cached
+mangadex-dl "tamamo no koi" --login -s
+
+# After that you won't need to use --login anymore
+mangadex-dl "another manga lmao" -s
 ```
 
 ### Invalidate and purge cached authentication tokens
