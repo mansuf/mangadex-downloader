@@ -5,6 +5,7 @@
 ### Fix bugs
 
 - Fixed resume download is not working properly
+- Fixed download forum thread is not working when option `--input-pos "*"` is used
 
 ## v2.6.0
 

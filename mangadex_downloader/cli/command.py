@@ -258,7 +258,11 @@ class MangaDexCommand(BaseCommand):
 
         def yield_ids():
             for item in answer:
-                yield item.id
+                item_id = getattr(item, "id", None)
+                if item_id:
+                    yield item_id
+                else:
+                    yield item
 
         # "input_pos" argument from prompt() is used
         if input_pos:
