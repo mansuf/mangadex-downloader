@@ -33,9 +33,9 @@ from . import __repository__, __url_repository__
 try:
     import orjson
 except ImportError:
-    HAVE_ORJSON = True
-else:
     HAVE_ORJSON = False
+else:
+    HAVE_ORJSON = True
 
 log = logging.getLogger(__name__)
 
@@ -248,8 +248,9 @@ class DownloadTracker:
         kwargs = {}
         kwargs["default" if HAVE_ORJSON else "cls"] = DownloadTrackerJSONEncoder
         lib = orjson if HAVE_ORJSON else json
+        func_write = self.file.write_bytes if HAVE_ORJSON else self.file.write_text
 
-        job = lambda: self.file.write_text(
+        job = lambda: func_write(
             lib.dumps(data, **kwargs)
         )
 
