@@ -62,6 +62,11 @@ class BaseFormat:
         ):
             self.chapter_read_marker.start()
 
+    def cleanup(self):
+        # Shutdown some worker threads
+        self.manga.tracker.shutdown()
+        self.chapter_read_marker.shutdown(blocking=True)
+
     def get_images(self, chap_class, images, path, count):
         imgs = []
         chap = chap_class.chapter
@@ -395,7 +400,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
             self.download_chapters(worker, cache)
 
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
 
         chapters = []
@@ -453,7 +458,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         worker.shutdown()
 
         log.info("Waiting for chapter read marker to finish")
-        self.chapter_read_marker.shutdown(blocking=True)
+        self.cleanup()
 
 class ConvertedVolumesFormat(BaseConvertedFormat):
     def main(self):
@@ -481,7 +486,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
             self.download_volumes(worker, cache)
 
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
 
         volumes = {}
@@ -546,7 +551,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         worker.shutdown()
 
         log.info("Waiting for chapter read marker to finish")
-        self.chapter_read_marker.shutdown(blocking=True)
+        self.cleanup()
 
 class ConvertedSingleFormat(BaseConvertedFormat):
     def main(self):
@@ -561,7 +566,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             worker.shutdown()
 
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
 
         # Recreate DownloadTracker JSON file if --replace is present
@@ -584,7 +589,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             self.download_single(worker, total, merged_name, cache)
 
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
 
         filename = merged_name + self.file_ext
@@ -595,7 +600,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             self.download_single(worker, total, merged_name, cache)
 
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
 
         chapters = []
@@ -634,4 +639,4 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         worker.shutdown()
 
         log.info("Waiting for chapter read marker to finish")
-        self.chapter_read_marker.shutdown(blocking=True)
+        self.cleanup()

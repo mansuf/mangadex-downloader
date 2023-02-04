@@ -94,7 +94,7 @@ class Raw(BaseFormat):
             self.mark_read_chapter(chap_class)
         
         log.info("Waiting for chapter read marker to finish")
-        self.chapter_read_marker.shutdown(blocking=True)
+        self.cleanup()
 
 class RawVolume(BaseFormat):
     def main(self):
@@ -202,7 +202,7 @@ class RawVolume(BaseFormat):
             tracker.toggle_complete(volume_name, True)
         
         log.info("Waiting for chapter read marker to finish")
-        self.chapter_read_marker.shutdown(blocking=True)
+        self.cleanup()
 
 class RawSingle(BaseFormat):
     def main(self):
@@ -222,7 +222,7 @@ class RawSingle(BaseFormat):
             # The chapters is empty
             # there is nothing we can download
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
         
         cache, total, name = result_cache
@@ -261,7 +261,7 @@ class RawSingle(BaseFormat):
             self.mark_read_chapter(*cache)
 
             log.info("Waiting for chapter read marker to finish")
-            self.chapter_read_marker.shutdown(blocking=True)
+            self.cleanup()
             return
 
         # Chapters that have images that are failed to verify
@@ -304,4 +304,4 @@ class RawSingle(BaseFormat):
         tracker.toggle_complete(name, True)
 
         log.info("Waiting for chapter read marker to finish")
-        self.chapter_read_marker.shutdown(blocking=True)
+        self.cleanup()

@@ -23,11 +23,19 @@
 import json
 import re
 import logging
+import sys
 from pathlib import Path
 
-from .utils import delete_file
+from .utils import delete_file, QueueWorker
 from .errors import MangaDexException
 from . import __repository__, __url_repository__
+
+try:
+    import orjson
+except ImportError:
+    HAVE_ORJSON = True
+else:
+    HAVE_ORJSON = False
 
 log = logging.getLogger(__name__)
 
@@ -104,12 +112,21 @@ class _FileInfo(_BasicInfo):
     def __eq__(self, o) -> bool:
         return self.data == o.data
 
-class DownloadTrackerJSONEncoder(json.JSONEncoder):
-    def default(self, o):
+# Use orjson custom encoder
+if HAVE_ORJSON:
+    def DownloadTrackerJSONEncoder(o):
         if isinstance(o, _BasicInfo):
             return o.data
-        
-        return super().default(o)
+
+        raise TypeError(f'Object of type {o.__class__.__name__} '
+                        f'is not JSON serializable')
+else:
+    class DownloadTrackerJSONEncoder(json.JSONEncoder):
+        def default(self, o):
+            if isinstance(o, _BasicInfo):
+                return o.data
+            
+            return super().default(o)
 
 class DownloadTracker:
     """An tracker for downloaded manga
@@ -196,8 +213,16 @@ class DownloadTracker:
         self.file = self.path / f"downloaded-{fmt}.json"
 
         self.data = None
+        self.queue = QueueWorker()
+        self.queue.start()
 
         self._load()
+
+    def shutdown_queue_worker(self):
+        """Since :class:`DownloadTracker` is working in a asynchronous mode. 
+        The thread need to be shutdown manually
+        """
+        self.queue.shutdown()
 
     def recreate(self):
         """Remove the old file and re-create new one"""
@@ -220,9 +245,16 @@ class DownloadTracker:
         return default_data
 
     def _write(self, data):
-        self.file.write_text(
-            json.dumps(data, cls=DownloadTrackerJSONEncoder, indent=4)
+        kwargs = {}
+        kwargs["default" if HAVE_ORJSON else "cls"] = DownloadTrackerJSONEncoder
+        lib = orjson if HAVE_ORJSON else json
+
+        job = lambda: self.file.write_text(
+            lib.dumps(data, **kwargs)
         )
+
+        # Write data asynchronously to improve performance
+        self.queue.submit(job, blocking=False)
 
     @property
     def empty(self):

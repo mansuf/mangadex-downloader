@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed app is slowing down after downloading 200+ chapters
+
 ## v2.6.1
 
 ### Fix bugs
