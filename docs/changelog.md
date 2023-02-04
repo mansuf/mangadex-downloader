@@ -4,7 +4,7 @@
 
 ### Fix bugs
 
-- Fixed app is slowing down after downloading 200+ chapters
+- Fixed app is slowing down after downloading 100+ chapters
 
 ## v2.6.1
 
