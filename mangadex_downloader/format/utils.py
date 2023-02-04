@@ -58,6 +58,8 @@ def get_volume_cover(manga, volume, path, replace):
     from ..config import config
     from ..iterator import CoverArtIterator
 
+    log.info(f"Getting volume cover for \"Volume {volume}\"")
+
     # Find volume
     def find_volume_cover(cover):
         if volume is None:
@@ -72,13 +74,12 @@ def get_volume_cover(manga, volume, path, replace):
     try:
         cover = next(f)
     except StopIteration:
-        raise MangaDexException(
-            f"Failed to find volume cover for volume {volume} " \
-            f"(manga_id: {manga.id}). " \
-            f"Please report this issue to {__url_repository__}/{__repository__}/issues"
+        log.warning(
+            f"Failed to find volume cover for volume {volume}. " \
+            "Falling back to manga cover..."
         )
+        cover = manga.cover
 
-    log.info(f"Getting volume cover for \"Volume {volume}\"")
     url = get_cover_art_url(manga, cover, "original")
     fd = FileDownloader(
         url,

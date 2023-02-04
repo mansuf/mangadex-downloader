@@ -218,7 +218,7 @@ class DownloadTracker:
 
         self._load()
 
-    def shutdown_queue_worker(self):
+    def shutdown(self):
         """Since :class:`DownloadTracker` is working in a asynchronous mode. 
         The thread need to be shutdown manually
         """
