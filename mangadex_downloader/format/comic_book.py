@@ -183,7 +183,7 @@ class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
             if chapter_zip_path.exists():
                 if self.replace:
                     delete_file(chapter_zip_path)
-                else:
+                elif self.check_fi_completed(chap_name):
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
 
                     # Store file_info tracker for existing chapter
@@ -235,7 +235,7 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
                 
                 if self.replace:
                     delete_file(volume_zip_path)
-                else:
+                elif self.check_fi_completed(volume_name):
                     log.info(f"{volume_zip_path.name} is exist and replace is False, cancelling download...")
 
                     # Store file_info tracker for existing volume
@@ -273,7 +273,7 @@ class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
         if manga_zip_path.exists():
             if self.replace:
                 delete_file(manga_zip_path)
-            else:
+            elif self.check_fi_completed(merged_name):
                 log.info(f"{manga_zip_path.name} is exist and replace is False, cancelling download...")
 
                 # Store file_info tracker for existing manga

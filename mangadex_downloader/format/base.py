@@ -361,6 +361,14 @@ class BaseConvertedFormat(BaseFormat):
         
         self.manga.tracker.toggle_complete(name, True)
 
+    def check_fi_completed(self, name):
+        tracker = self.manga.tracker
+        fi = tracker.get(name)
+        if fi is None:
+            return False
+        
+        return fi.completed
+
     def download_chapters(self, worker, chapters):
         raise NotImplementedError
     

@@ -410,7 +410,7 @@ class Epub(ConvertedChaptersFormat, EPUBFile):
 
                 if self.replace:
                     delete_file(chapter_epub_path)
-                else:
+                elif self.check_fi_completed(chap_name):
                     log.info(f"'{chapter_epub_path.name}' is exist and replace is False, cancelling download...")
                     self.add_fi(chap_name, chap_class.id, chapter_epub_path)
                     continue
@@ -458,7 +458,7 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
                 
                 if self.replace:
                     delete_file(volume_epub_path)
-                else:
+                elif self.check_fi_completed(volume):
                     log.info(f"{volume_epub_path.name} is exist and replace is False, cancelling download...")
                     self.add_fi(volume, None, volume_epub_path, chapters)
                     continue
@@ -498,7 +498,7 @@ class EpubSingle(ConvertedSingleFormat, EPUBFile):
         if manga_epub_path.exists():
             if self.replace:
                 delete_file(manga_epub_path)
-            else:
+            elif self.check_fi_completed(merged_name):
                 log.info(f"{manga_epub_path.name} is exist and replace is False, cancelling download...")
                 self.add_fi(merged_name, None, manga_epub_path, chapters)
                 return

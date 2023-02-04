@@ -119,7 +119,7 @@ class SevenZip(ConvertedChaptersFormat, SevenZipFile):
             if chapter_zip_path.exists():
                 if self.replace:
                     delete_file(chapter_zip_path)
-                else:
+                elif self.check_fi_completed(chap_name):
                     log.info(f"'{chapter_zip_path.name}' is exist and replace is False, cancelling download...")
                     self.add_fi(chap_name, chap_class.id, chapter_zip_path)
                     continue
@@ -152,7 +152,7 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
             if volume_zip_path.exists():
                 if self.replace:
                     delete_file(volume_zip_path)
-                else:
+                elif self.check_fi_completed(volume_name):
                     log.info(f"'{volume_zip_path.name}' is exist and replace is False, cancelling download...")
                     self.add_fi(volume_name, None, volume_zip_path, chapters)
                     continue
@@ -186,7 +186,7 @@ class SevenZipSingle(ConvertedSingleFormat, SevenZipFile):
         if manga_zip_path.exists():
             if self.replace:
                 delete_file(manga_zip_path)
-            else:
+            elif self.check_fi_completed(merged_name):
                 log.info(f"'{manga_zip_path.name}' is exist and replace is False, cancelling download...")
                 self.add_fi(merged_name, None, manga_zip_path, chapters)
                 return

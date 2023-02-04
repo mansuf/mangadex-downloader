@@ -427,7 +427,7 @@ class PDF(ConvertedChaptersFormat, PDFFile):
 
                 if self.replace:
                     delete_file(pdf_file)
-                else:
+                elif self.check_fi_completed(chap_name):
                     log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
 
                     self.add_fi(
@@ -470,7 +470,7 @@ class PDFVolume(ConvertedVolumesFormat, PDFFile):
             if pdf_file.exists():
                 if self.replace:
                     delete_file(pdf_file)
-                else:
+                elif self.check_fi_completed(vol_name):
                     log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
                     self.add_fi(vol_name, None, pdf_file, chapters)
                     return
@@ -505,7 +505,7 @@ class PDFSingle(ConvertedSingleFormat, PDFFile):
         if pdf_file.exists():
             if self.replace:
                 delete_file(pdf_file)
-            else:
+            elif self.check_fi_completed(merged_name):
                 log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
                 self.add_fi(merged_name, None, pdf_file, chapters)
                 return
