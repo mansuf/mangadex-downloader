@@ -6,6 +6,7 @@
 
 - Fixed app is slowing down after downloading 100+ chapters
 - Fixed files are automatically verified if previous download is not complete
+- Fixed `--use-volume-cover` is not working if manga doesn't have "No volume" cover [#46](https://github.com/mansuf/mangadex-downloader/issues/46)
 
 ## v2.6.1
 
