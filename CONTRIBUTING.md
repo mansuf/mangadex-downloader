@@ -23,8 +23,7 @@ Because minimum Python version for developing this app are 3.8
 
 Donations are welcome too. Currently [@mansuf](https://github.com/mansuf) support these types of donation.
 
-- [Ko-fi](https://ko-fi.com/rahmanyusuf)
-- [Paypal](https://paypal.me/mansuf)
+- [Buy Me a Coffee](https://www.buymeacoffee.com/mansuf)
 - [Github Sponsor](https://github.com/sponsors/mansuf)
 
 For Indonesia-based donation:
