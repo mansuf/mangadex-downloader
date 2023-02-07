@@ -176,7 +176,7 @@ class RawVolume(BaseFormat):
 
                 # Insert chapter info (cover) image
                 if self.config.use_chapter_cover:
-                    get_chapter_info(chap_class, img_path, self.replace)
+                    get_chapter_info(self.manga, chap_class, img_path)
                     count.increase()
 
                 images = self.get_images(chap_class, images, volume_path, count)
@@ -278,7 +278,7 @@ class RawSingle(BaseFormat):
             img_path = path / img_name
 
             if self.config.use_chapter_cover:
-                get_chapter_info(chap_class, img_path, self.replace)
+                get_chapter_info(self.manga, chap_class, img_path)
                 count.increase()
 
             images = self.get_images(chap_class, images, path, count)

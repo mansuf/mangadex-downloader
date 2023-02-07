@@ -94,7 +94,7 @@ class SevenZipFile:
         img_path = path / img_name
 
         if self.config.use_chapter_cover:
-            get_chapter_info(chapter, img_path, self.replace)
+            get_chapter_info(self.manga, chapter, img_path)
             images.append(img_path)
             count.increase()
 

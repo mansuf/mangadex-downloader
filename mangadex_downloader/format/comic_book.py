@@ -148,7 +148,7 @@ class CBZFile:
 
         # Insert chapter info (cover) image
         if write_ch_info_image:
-            get_chapter_info(chapter, img_path, self.replace)
+            get_chapter_info(self.manga, chapter, img_path)
             worker.submit(lambda: zip_obj.write(img_path, img_name))
             count.increase()
 

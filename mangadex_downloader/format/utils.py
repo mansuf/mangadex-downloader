@@ -29,36 +29,36 @@ import threading
 import time
 
 from enum import Enum
+from .chinfo import get_chapter_info as get_chinfo
 from ..downloader import FileDownloader
-from ..errors import MangaDexException
 from ..utils import get_cover_art_url
 from .. import __repository__, __url_repository__
 
 log = logging.getLogger(__name__)
 
-def get_chapter_info(chapter, path, replace):
-    # "Circular Imports" problem
-    from ..config import config
+def get_chapter_info(manga, chapter, path):
+    log.info(f"Creating chapter info for '{chapter.get_name()}'")
 
-    log.info(f'Getting chapter info for "{chapter.get_name()}"')
-    url = f'https://og.mangadex.org/og-image/chapter/{chapter.id}'
-    fd = FileDownloader(
-        url,
-        path,
-        replace=replace,
-        progress_bar=not config.no_progress_bar
+    vol_cover = get_volume_cover(
+        manga=manga,
+        volume=chapter.volume,
+        path=None,
+        replace=False,
+        download=False
     )
-    fd.download()
-    fd.cleanup()
+
+    image = get_chinfo(manga, vol_cover, chapter)
+    image.save(path)
 
     return path
 
-def get_volume_cover(manga, volume, path, replace):
+def get_volume_cover(manga, volume, path, replace, download=True):
     # "Circular Imports" problem
     from ..config import config
     from ..iterator import CoverArtIterator
 
-    log.info(f"Getting volume cover for \"Volume {volume}\"")
+    if download:
+        log.info(f"Getting volume cover for \"Volume {volume}\"")
 
     # Find volume
     def find_volume_cover(cover):
@@ -74,21 +74,24 @@ def get_volume_cover(manga, volume, path, replace):
     try:
         cover = next(f)
     except StopIteration:
-        log.warning(
-            f"Failed to find volume cover for volume {volume}. " \
-            "Falling back to manga cover..."
-        )
+        if download:
+            log.warning(
+                f"Failed to find volume cover for volume {volume}. " \
+                "Falling back to manga cover..."
+            )
         cover = manga.cover
 
     url = get_cover_art_url(manga, cover, "original")
-    fd = FileDownloader(
-        url,
-        path,
-        progress_bar=not config.no_progress_bar,
-        replace=replace
-    )
-    fd.download()
-    fd.cleanup()
+
+    if download:
+        fd = FileDownloader(
+            url,
+            path,
+            progress_bar=not config.no_progress_bar,
+            replace=replace
+        )
+        fd.download()
+        fd.cleanup()
 
     return cover
 

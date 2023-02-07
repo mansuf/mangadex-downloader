@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Improvements
+
+- Reworked creation chapter info (cover) [#44](https://github.com/mansuf/mangadex-downloader/issues/44)
+
 ## v2.6.2
 
 ### Fix bugs

@@ -33,21 +33,25 @@ jobs:
 
       - name: Install required libraries
         run: |
-          py -3-64 -m pip install -U wheel pyinstaller setuptools tox
-          py -3-64 -m pip install -r requirements.txt
-          py -3-64 -m pip install -r requirements-docs.txt
-          py -3-64 -m pip install -r requirements-optional.txt
+          py -${{ matrix.python-version }}-64 -m pip install -U pip
+          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools tox
+          # For building lxml
+          py -${{ matrix.python-version }}-64 -m pip install -U cython
+          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements.txt
+          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements-optional.txt
 
-          py -3-32 -m pip install -U wheel pyinstaller setuptools tox
-          py -3-32 -m pip install -r requirements.txt
-          py -3-32 -m pip install -r requirements-docs.txt
-          py -3-32 -m pip install -r requirements-optional.txt
+          py -${{ matrix.python-version }}-32 -m pip install -U pip
+          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools tox
+          # For building lxml
+          py -${{ matrix.python-version }}-32 -m pip install -U cython
+          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements.txt
+          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements-optional.txt
 
       - name: Test imports (x64)
         run: |
           # Setup for venv python x64
           echo "Creating virtual environment"
-          py -3-64 -m venv test_imports_x64
+          py -${{ matrix.python-version }}-64 -m venv test_imports_x64
 
           # Install mangadex-downloader
           echo "Installing mangadex-downloader"
@@ -76,7 +80,7 @@ jobs:
         run: |
           # Setup for venv python x86
           echo "Creating virtual environment"
-          py -3-32 -m venv test_imports_x86
+          py -${{ matrix.python-version }}-32 -m venv test_imports_x86
 
           # Install mangadex-downloader
           echo "Installing mangadex-downloader"
@@ -112,8 +116,8 @@ jobs:
       - name: Compile script
         if: ${{ contains(env.python_version, '3.10') }}
         run: |
-          py -3-64 -m PyInstaller run.py -n "mangadex-dl_x64" --distpath "./dist_x64"
-          py -3-32 -m PyInstaller run.py -n "mangadex-dl_x86" --distpath "./dist_x86"
+          py -${{ matrix.python-version }}-64 -m PyInstaller "mangadex-dl_x64.spec"
+          py -${{ matrix.python-version }}-32 -m PyInstaller "mangadex-dl_x86.spec"
 
       - name: Run compiled script
         if: ${{ contains(env.python_version, '3.10') }}

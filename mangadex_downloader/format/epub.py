@@ -31,7 +31,7 @@ from .base import (
     ConvertedVolumesFormat,
     ConvertedSingleFormat
 )
-from .utils import NumberWithLeadingZeros, get_chapter_info
+from .utils import NumberWithLeadingZeros
 
 from ..utils import create_directory, delete_file
 from ..errors import MangaDexException
