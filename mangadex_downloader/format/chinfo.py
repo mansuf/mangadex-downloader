@@ -24,7 +24,7 @@ font_family = 'arial.ttf'
 text_align = "left"
 
 base_path = Path(__file__).parent.parent.resolve()
-font_path = base_path / "fonts/GNUFreeFont"
+font_path = base_path / "fonts/GNU FreeFont"
 if sys.platform == "win32":
     # According to GNUFreeFont README page
     # https://ftp.gnu.org/gnu/freefont/README
