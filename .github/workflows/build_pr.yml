@@ -116,8 +116,8 @@ jobs:
       - name: Compile script
         if: ${{ contains(env.python_version, '3.10') }}
         run: |
-          py -${{ matrix.python-version }}-64 -m PyInstaller "mangadex-dl_x64.spec"
-          py -${{ matrix.python-version }}-32 -m PyInstaller "mangadex-dl_x86.spec"
+          py -${{ matrix.python-version }}-64 -m PyInstaller "mangadex-dl_x64.spec" --distpath "./dist_x64"
+          py -${{ matrix.python-version }}-32 -m PyInstaller "mangadex-dl_x86.spec" --distpath "./dist_x86"
 
       - name: Run compiled script
         if: ${{ contains(env.python_version, '3.10') }}

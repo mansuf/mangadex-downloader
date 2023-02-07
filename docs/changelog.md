@@ -6,6 +6,10 @@
 
 - Reworked creation chapter info (cover) [#44](https://github.com/mansuf/mangadex-downloader/issues/44)
 
+### Dependecies
+
+- [Pillow](https://pypi.org/project/pillow/) is now required dependecies (no longer optional)
+
 ## v2.6.2
 
 ### Fix bugs

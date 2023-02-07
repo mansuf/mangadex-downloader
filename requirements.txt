@@ -5,3 +5,4 @@ packaging
 pyjwt
 requests-doh==0.2.3
 beautifulsoup4
+Pillow==9.3.0

@@ -71,8 +71,7 @@ You can also install optional dependencies
 
 - [py7zr](https://pypi.org/project/py7zr/) for cb7 support
 - [orjson](https://pypi.org/project/orjson/) for maximum performance (fast JSON library)
-- [Pillow](https://pypi.org/project/pillow/) and
-[lxml](https://pypi.org/project/lxml/) for EPUB and PDF support
+- [lxml](https://pypi.org/project/lxml/) for EPUB support
 
 Or you can install all optional dependencies
 
