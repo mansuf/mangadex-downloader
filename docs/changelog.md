@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed `--use-chapter-cover` is throwing error because of missing fonts (PyPI users only).
+
 ## v2.7.0
 
 ### Improvements
