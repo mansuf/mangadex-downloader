@@ -422,9 +422,7 @@ def get_args(argv):
         action='store_true',
         default=config.no_track,
         help='Disable download tracking. ' \
-             'NOTE: If you enable this, the application will not recognize existing manga. ' \
-             'So if you\'re trying to download existing manga (maybe new chapters) ' \
-             'it will re-download the entire chapters and images'
+             'NOTE: If you enable this, the application will not verify images and chapters. '
     )
 
     # Update application
