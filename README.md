@@ -20,6 +20,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
     - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
     - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
 - [Contributing](#contributing)
+- [Donation](#donation)
 - [Links](#links)
 - [Disclaimer](#disclaimer)
 
@@ -147,6 +148,15 @@ For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.
 ## Contributing <a id="contributing"></a>
 
 See [CONTRIBUTING.md](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
+
+## Donation <a id="donation"></a>
+
+If you like this project, please consider donate to one of these websites:
+
+- [Sociabuzz](https://sociabuzz.com/mansuf/donate)
+- [Github Sponsor](https://github.com/sponsors/mansuf)
+
+Any donation amount will be appreciated 💖
 
 ## Links <a id="links"></a>
 
