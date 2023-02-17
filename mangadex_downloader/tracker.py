@@ -28,6 +28,7 @@ from pathlib import Path
 
 from .utils import delete_file, QueueWorker
 from .errors import MangaDexException
+from .config import config
 from . import __repository__, __url_repository__
 
 try:
@@ -212,20 +213,42 @@ class DownloadTracker:
         self.format = fmt
         self.file = self.path / f"downloaded-{fmt}.json"
 
-        self.data = None
+        self.data = {}
         self.queue = QueueWorker()
-        self.queue.start()
 
+        if config.no_track:
+            # Do not start queue worker if no track is enabled
+            # We wasting a thread if we start the queue worker
+
+            # This won't write a file
+            self.data = self._write_new()
+            return
+
+        self.queue.start()
         self._load()
+
+    @property
+    def disabled(self):
+        """Is download tracker disabled ?
+        
+        This is just to prevent 'circular imports' problem
+        """
+        return config.no_track
 
     def shutdown(self):
         """Since :class:`DownloadTracker` is working in a asynchronous mode. 
         The thread need to be shutdown manually
         """
+        if self.disabled:
+            return
+
         self.queue.shutdown()
 
     def recreate(self):
         """Remove the old file and re-create new one"""
+        if self.disabled:
+            return
+
         delete_file(self.file)
         data = self._write_new()
 
@@ -238,13 +261,17 @@ class DownloadTracker:
             "files": []
         }
 
-        self.file.write_text(
-            json.dumps(default_data)
-        )
+        if not self.disabled:
+            self.file.write_text(
+                json.dumps(default_data)
+            )
 
         return default_data
 
     def _write(self, data):
+        if self.disabled:
+            return
+
         kwargs = {}
         kwargs["default" if HAVE_ORJSON else "cls"] = DownloadTrackerJSONEncoder
         lib = orjson if HAVE_ORJSON else json

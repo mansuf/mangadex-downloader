@@ -417,6 +417,15 @@ def get_args(argv):
         default=config.write_tachiyomi_info,
         help='Write manga details to tachiyomi `details.json` file'
     )
+    misc_group.add_argument(
+        '--no-track',
+        action='store_true',
+        default=config.no_track,
+        help='Disable download tracking. ' \
+             'NOTE: If you enable this, the application will not recognize existing manga. ' \
+             'So if you\'re trying to download existing manga (maybe new chapters) ' \
+             'it will re-download the entire chapters and images'
+    )
 
     # Update application
     update_group = parser.add_argument_group('Update application')

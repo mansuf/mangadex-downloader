@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.8.0 alpha 0
+
+### New features
+
+- Add ability to disable tracking downloads [#45](https://github.com/mansuf/mangadex-downloader/issues/45)
+
 ## v2.7.1
 
 ### Fix bugs
