@@ -35,17 +35,15 @@ jobs:
         run: |
           py -${{ matrix.python-version }}-64 -m pip install -U pip
           py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools tox
-          # For building lxml
-          py -${{ matrix.python-version }}-64 -m pip install -U cython
           py -${{ matrix.python-version }}-64 -m pip install -U -r requirements.txt
           py -${{ matrix.python-version }}-64 -m pip install -U -r requirements-optional.txt
+          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements-docs.txt
 
           py -${{ matrix.python-version }}-32 -m pip install -U pip
           py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools tox
-          # For building lxml
-          py -${{ matrix.python-version }}-32 -m pip install -U cython
           py -${{ matrix.python-version }}-32 -m pip install -U -r requirements.txt
           py -${{ matrix.python-version }}-32 -m pip install -U -r requirements-optional.txt
+          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements-docs.txt
 
       - name: Test imports (x64)
         run: |
