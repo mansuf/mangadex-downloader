@@ -331,6 +331,9 @@ class BaseConvertedFormat(BaseFormat):
 
     def add_fi(self, name, id, path, chapters=None):
         """Add new DownloadTracker._FileInfo to the tracker"""
+        if self.manga.tracker.disabled:
+            return
+
         file_hash = create_file_hash_sha256(path)
 
         name = f"{name}{self.file_ext}"
@@ -362,6 +365,9 @@ class BaseConvertedFormat(BaseFormat):
         self.manga.tracker.toggle_complete(name, True)
 
     def check_fi_completed(self, name):
+        if self.manga.tracker.disabled:
+            return True
+
         tracker = self.manga.tracker
         fi = tracker.get(name)
         if fi is None:
@@ -404,7 +410,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
         # There is no existing (downloaded) chapters
         # Download all of them
-        if tracker.empty:
+        if tracker.disabled or tracker.empty:
             self.download_chapters(worker, cache)
 
             log.info("Waiting for chapter read marker to finish")
@@ -490,7 +496,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
         # There is not existing (downloaded) volumes
         # Download all of them
-        if tracker.empty:
+        if tracker.disabled or tracker.empty:
             self.download_volumes(worker, cache)
 
             log.info("Waiting for chapter read marker to finish")
@@ -593,7 +599,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
 
         # There is no existing (downloaded) file
         # Download all of them
-        if tracker.empty:
+        if tracker.disabled or tracker.empty:
             self.download_single(worker, total, merged_name, cache)
 
             log.info("Waiting for chapter read marker to finish")

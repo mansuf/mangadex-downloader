@@ -114,6 +114,10 @@ class _Config:
         "use_volume_cover": [
             False,
             validate_bool
+        ],
+        "no_track": [
+            False,
+            validate_bool
         ]
     }
     default_conf = {
