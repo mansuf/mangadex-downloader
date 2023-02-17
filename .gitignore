@@ -5,3 +5,4 @@ docs/_build
 *.code-workspace
 bugs.txt
 ideas.txt
+*.db
