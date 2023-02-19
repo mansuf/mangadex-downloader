@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed download tracker are not tracking chapters properly [#51](https://github.com/mansuf/mangadex-downloader/issues/51)
+
 ## v2.7.1
 
 ### Fix bugs
