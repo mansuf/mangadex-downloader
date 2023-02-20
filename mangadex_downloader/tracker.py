@@ -129,6 +129,8 @@ else:
             
             return super().default(o)
 
+json_lib = orjson if HAVE_ORJSON else json
+
 class DownloadTracker:
     """An tracker for downloaded manga
     
@@ -225,6 +227,15 @@ class DownloadTracker:
             return
 
         self.queue.start()
+
+        if HAVE_ORJSON:
+            type_data = "bytes"
+        else:
+            type_data = "text"
+        
+        self.func_write = getattr(self.file, f"write_{type_data}")
+        self.func_read = getattr(self.file, f"read_{type_data}")
+
         self._load()
 
     @property
@@ -274,11 +285,9 @@ class DownloadTracker:
 
         kwargs = {}
         kwargs["default" if HAVE_ORJSON else "cls"] = DownloadTrackerJSONEncoder
-        lib = orjson if HAVE_ORJSON else json
-        func_write = self.file.write_bytes if HAVE_ORJSON else self.file.write_text
 
-        job = lambda: func_write(
-            lib.dumps(data, **kwargs)
+        job = lambda: self.func_write(
+            json_lib.dumps(data, **kwargs)
         )
 
         # Write data asynchronously to improve performance
@@ -436,7 +445,7 @@ class DownloadTracker:
             return
         
         try:
-            data = json.loads(self.file.read_text())
+            data = json_lib.loads(self.func_read())
         except json.JSONDecodeError:
             self._write_new()
             return

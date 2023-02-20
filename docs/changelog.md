@@ -6,6 +6,12 @@
 
 - Add ability to disable tracking downloads [#45](https://github.com/mansuf/mangadex-downloader/issues/45)
 
+## v2.7.2
+
+### Fix bugs
+
+- Fixed download tracker are not tracking chapters properly [#51](https://github.com/mansuf/mangadex-downloader/issues/51)
+
 ## v2.7.1
 
 ### Fix bugs
