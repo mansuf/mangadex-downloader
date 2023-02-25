@@ -1,10 +1,18 @@
 # Changelog
 
-## v2.8.0 alpha 0
+## v2.8.0 alpha 1
 
 ### New features
 
 - Add ability to disable tracking downloads [#45](https://github.com/mansuf/mangadex-downloader/issues/45)
+
+### Fix bugs
+
+- Fixed high CPU usage when downloading large chapters [#48](https://github.com/mansuf/mangadex-downloader/issues/48)
+
+### Improvements
+
+- File hash creation for download tracker are now asynchronous to improve performance
 
 ## v2.7.2
 
