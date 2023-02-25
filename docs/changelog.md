@@ -14,6 +14,10 @@
 
 - File hash creation for download tracker are now asynchronous to improve performance
 
+### Dependencies
+
+- Bump [requests-doh](https://github.com/mansuf/requests-doh) to v0.3.0
+
 ## v2.7.2
 
 ### Fix bugs

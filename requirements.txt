@@ -3,6 +3,6 @@ tqdm
 pathvalidate
 packaging
 pyjwt
-requests-doh==0.2.3
+requests-doh==0.3.0
 beautifulsoup4
 Pillow==9.3.0
