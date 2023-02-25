@@ -194,7 +194,7 @@ def validate_doh_provider(val):
         parsed = urlparse(val)
     except Exception as e:
         log.debug("Failed to parse url from validate_doh_provider", exc_info=e, stack_info=True)
-        raise ConfigTypeError(f"'{val}' is not valid value, available values are {providers}")
+        raise ConfigTypeError(f"'{val}' is not valid DoH providers, available values are {providers}")
 
     # Validate HTTP(s) URL
     # https://stackoverflow.com/a/38020041
@@ -203,7 +203,7 @@ def validate_doh_provider(val):
         parsed.netloc
     ]
     if not any(valid_http):
-        raise ConfigTypeError(f"'{val}' is not valid value, available values are {providers}")
+        raise ConfigTypeError(f"'{val}' is not valid DoH providers, available values are {providers}")
 
     # Create new DoH provider
     add_dns_provider("custom-doh", val, switch=True)
