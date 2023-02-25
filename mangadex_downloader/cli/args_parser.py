@@ -372,7 +372,6 @@ def get_args(argv):
         '-doh',
         help='Enable DNS-over-HTTPS (DoH)',
         metavar="PROVIDER",
-        choices=get_all_dns_provider()
     )
     network_group.add_argument(
         '--timeout',
