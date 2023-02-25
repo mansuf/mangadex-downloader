@@ -43,17 +43,44 @@ class _ResultValidationForumThreadURL:
 def get_post_id_forum_thread(url):
     post_id = None
 
-    post_id_re = r"\/(#|)post-(?P<post_id>[0-9]+)"
+    post_id_re = r"(#|)post-(?P<post_id>[0-9]+)"
     result = re.search(post_id_re, url)
     if result:
         post_id = result.group("post_id")
     
     return post_id
 
+def validate_legacy_forum_thread_url(url):
+    thread_id = None
+    page = None
+
+    legacy_url_re = r"mangadex\.org\/thread\/(?P<thread_id>[0-9]{1,})"
+    result = re.search(legacy_url_re, url)
+    if result:
+        try:
+            thread_id = result.group("thread_id")
+        except IndexError:
+            # No need to raise error
+            # since it's old url
+            return thread_id, page
+    
+    return thread_id, page
+
 def validate_forum_thread_url(url):
     """Validate MangaDex forum thread url"""
     thread_id = None
     page = None
+
+    # Check legacy URL
+    legacy_result = validate_legacy_forum_thread_url(url)
+    if any(legacy_result):
+        thread_id, page = legacy_result
+        return _ResultValidationForumThreadURL(
+            url=f"{forums_url}/threads/{thread_id}",
+            thread_id=thread_id,
+            page=page,
+            post_id=None
+        )
 
     # Find post id first
     post_id = get_post_id_forum_thread(url)
@@ -200,7 +227,7 @@ def iter_md_urls_from_forum_thread(url):
                 next_pages_num.append(int(link_nav_text))
 
         # min_page = Current page
-        min_page = min(next_pages_num) if result.page is None else result.page
+        min_page = min(next_pages_num) if result.page is None else int(result.page)
         max_page = max(next_pages_num)
 
         # Because range() is starting at 0 
