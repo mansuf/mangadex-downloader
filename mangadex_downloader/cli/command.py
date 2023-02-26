@@ -549,7 +549,6 @@ class ForumThreadCommand(MangaDexCommand):
     def __init__(self, parser, args, input_text):
         iterator = ForumThreadMangaDexURLIterator(input_text, True)
 
-        input_text = validate_forum_thread_url(input_text).url
         post_id = get_post_id_forum_thread(input_text)
         result = get_thread_title_owner_and_post_owner(thread_url=input_text, post_id=post_id)
         thread_title, thread_owner, post_owner = result
