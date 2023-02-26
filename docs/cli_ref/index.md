@@ -56,6 +56,12 @@ Apply filter to search and random manga
 For more information, see {doc}`./filters`
 ```
 
+```{option} --download-mode -dm
+Set download mode, you can set to `default` or `unread`. 
+If you set to `unread`, the app will download unread chapters only 
+(require authentication). If you set to `default` the app will download all chapters
+```
+
 ```{option} --verbose
 Enable verbose output
 ```
@@ -112,12 +118,31 @@ Use chapter title for each chapters. **NOTE:** This option is useless if used wi
 
 ````{option} --no-chapter-info -nci
 
-```{note}
-`epub-volume` and `epub-single` formats is not affected, 
-because creation of chapter info is totally disabled for any `epub` formats
+```{warning}
+Deprecated, chapter info creation are disabled by default. 
+Use `--use-chapter-info` to enable chapter info creation
 ```
 
-Disable creation of chapter info for any `single` and `volume` formats
+Do nothing. 
+Previously, it was used to disable creation of chapter info for any `single` and `volume` formats
+````
+
+````{option} --use-chapter-cover -ucc
+```{note}
+Chapter info creation are not enabled if you are using any chapter format (cbz, pdf, raw, etc)
+```
+
+Enable creation of chapter info (cover) for any single or volume formats. 
+See {doc}`./chapter_info` for more info. 
+````
+
+````{option} --use-volume-cover -uvc
+```{note}
+Volume cover will be not created in chapter (cbz, pdf, raw, etc) and single formats)
+```
+
+Enable creation of volume cover for any volume formats. 
+Volume cover will be placed in first page in each volume files. 
 ````
 
 ```{option} --sort-by
