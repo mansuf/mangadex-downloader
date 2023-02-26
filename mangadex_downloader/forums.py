@@ -50,21 +50,22 @@ def get_post_id_forum_thread(url):
     
     return post_id
 
-def validate_legacy_forum_thread_url(url):
-    thread_id = None
-    page = None
+def check_legacy_forum_thread_url(url):
+    result = False
 
     legacy_url_re = r"mangadex\.org\/thread\/(?P<thread_id>[0-9]{1,})"
     result = re.search(legacy_url_re, url)
     if result:
         try:
-            thread_id = result.group("thread_id")
+            result.group("thread_id")
         except IndexError:
             # No need to raise error
             # since it's old url
-            return thread_id, page
+            return False
     
-    return thread_id, page
+        result = True
+
+    return result
 
 def validate_forum_thread_url(url):
     """Validate MangaDex forum thread url"""
@@ -72,15 +73,10 @@ def validate_forum_thread_url(url):
     page = None
 
     # Check legacy URL
-    legacy_result = validate_legacy_forum_thread_url(url)
-    if any(legacy_result):
-        thread_id, page = legacy_result
-        return _ResultValidationForumThreadURL(
-            url=f"{forums_url}/threads/{thread_id}",
-            thread_id=thread_id,
-            page=page,
-            post_id=None
-        )
+    legacy = check_legacy_forum_thread_url(url)
+    if legacy:
+        r = Net.mangadex.get(url)
+        return validate_forum_thread_url(r.url)
 
     # Find post id first
     post_id = get_post_id_forum_thread(url)
