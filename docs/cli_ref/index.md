@@ -271,6 +271,15 @@ Print mangadex-downloader version
 Disable progress bar when downloading or converting
 ```
 
+````{option} --no-track
+```{note}
+If you enable this, the application will not verify images and chapters. 
+Also file `download.db` will not created.
+```
+
+Disable download tracking
+````
+
 ### Update application
 
 ```{option} --update
