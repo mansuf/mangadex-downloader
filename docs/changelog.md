@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.8.0 alpha 3
+## v2.8.0
 
 ### New features
 
