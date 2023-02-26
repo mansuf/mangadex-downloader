@@ -355,6 +355,7 @@ For more info, see {doc}`./auth_cache`
 
 file_command
 forums
+download_tracker
 chapter_info
 filters
 random
