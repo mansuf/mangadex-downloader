@@ -16,6 +16,7 @@
 ### Improvements
 
 - File hash creation for download tracker are now asynchronous to improve performance
+- Added more metadata (tags and authors) to any `epub` formats
 
 ### Dependencies
 
