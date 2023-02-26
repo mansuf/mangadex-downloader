@@ -61,10 +61,15 @@ class BaseFormat:
             self.chapter_read_marker.net.mangadex.check_login()
         ):
             self.chapter_read_marker.start()
+        
+        self.tracker_worker = QueueWorker()
+
+        if not config.no_track:
+            self.tracker_worker.start()
 
     def cleanup(self):
         # Shutdown some worker threads
-        self.manga.tracker.shutdown()
+        self.tracker_worker.shutdown()
         self.chapter_read_marker.shutdown(blocking=True)
 
     def get_images(self, chap_class, images, path, count):
@@ -240,7 +245,7 @@ class BaseFormat:
             log.info("Writing tachiyomi `details.json` file")
             write_tachiyomi_details(self.manga, (self.path / "details.json"))
 
-    def get_fi_chapter_fmt(self, name, id, hash=None, null_images=False):
+    def get_fi_chapter_fmt(self, name, id, hash=None):
         """Get DownloadTracker._FileInfo for chapter format (raw, cbz, epub, etc..)
         
         Create one if it doesn't exist
@@ -248,16 +253,17 @@ class BaseFormat:
         tracker = self.manga.tracker
         file_info = tracker.get(name)
         if file_info is None:
-            file_info = tracker.add_file_info(
+            tracker.add_file_info(
                 name=name,
-                id=id,
+                manga_id=self.manga.id,
+                ch_id=None,
                 hash=hash,
-                null_images=null_images,
             )
+            file_info = tracker.get(name)
 
         return file_info
 
-    def get_fi_volume_or_single_fmt(self, name, hash=None, null_images=True):
+    def get_fi_volume_or_single_fmt(self, name, hash=None):
         """Get DownloadTracker._FileInfo for volume or single format
         
         Create one if it doesn't exist
@@ -265,13 +271,13 @@ class BaseFormat:
         tracker = self.manga.tracker
         file_info = tracker.get(name)
         if file_info is None:
-            file_info = tracker.add_file_info(
+            tracker.add_file_info(
                 name=name,
-                id=None,
+                manga_id=self.manga.id,
+                ch_id=None,
                 hash=hash,
-                null_images=null_images,
-                null_chapters=False
             )
+            file_info = tracker.get(name)
         
         return file_info
 
@@ -329,8 +335,7 @@ class BaseConvertedFormat(BaseFormat):
 
         super().__init__(*args, **kwargs)
 
-    def add_fi(self, name, id, path, chapters=None):
-        """Add new DownloadTracker._FileInfo to the tracker"""
+    def _add_fi_job(self, name, id, path, chapters=None):
         file_hash = create_file_hash_sha256(path)
 
         name = f"{name}{self.file_ext}"
@@ -340,10 +345,9 @@ class BaseConvertedFormat(BaseFormat):
 
         self.manga.tracker.add_file_info(
             name=name,
-            id=id,
+            manga_id=self.manga.id,
+            ch_id=id,
             hash=file_hash,
-            null_images=True,
-            null_chapters=False if chapters else True
         )
 
         # Single chapter
@@ -351,17 +355,24 @@ class BaseConvertedFormat(BaseFormat):
             self.mark_read_chapter(id)
 
         if chapters:
-            for ch, _ in chapters:
-                self.manga.tracker.add_chapter_info(
-                    name=name,
-                    chapter_name=ch.name,
-                    chapter_id=ch.id
-                )
-                self.mark_read_chapter(ch.id)
+            chaps_data = [(ch.name, ch.id, name) for ch, _ in chapters]
+            self.manga.tracker.add_chapters_info(chaps_data)
+            self.mark_read_chapter(chapters)
         
         self.manga.tracker.toggle_complete(name, True)
 
+    def add_fi(self, *args, **kwargs):
+        """Add new DownloadTracker._FileInfo to the tracker"""
+        if self.config.no_track:
+            return
+
+        job = lambda: self._add_fi_job(*args, **kwargs)
+        self.tracker_worker.submit(job, blocking=True)
+
     def check_fi_completed(self, name):
+        if self.manga.tracker.disabled:
+            return True
+
         tracker = self.manga.tracker
         fi = tracker.get(name)
         if fi is None:
@@ -404,7 +415,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
         # There is no existing (downloaded) chapters
         # Download all of them
-        if tracker.empty:
+        if tracker.disabled or tracker.empty:
             self.download_chapters(worker, cache)
 
             log.info("Waiting for chapter read marker to finish")
@@ -490,7 +501,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
         # There is not existing (downloaded) volumes
         # Download all of them
-        if tracker.empty:
+        if tracker.disabled or tracker.empty:
             self.download_volumes(worker, cache)
 
             log.info("Waiting for chapter read marker to finish")
@@ -593,7 +604,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
 
         # There is no existing (downloaded) file
         # Download all of them
-        if tracker.empty:
+        if tracker.disabled or tracker.empty:
             self.download_single(worker, total, merged_name, cache)
 
             log.info("Waiting for chapter read marker to finish")

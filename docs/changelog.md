@@ -1,5 +1,27 @@
 # Changelog
 
+## v2.8.0 alpha 3
+
+### New features
+
+- Add ability to disable tracking downloads [#45](https://github.com/mansuf/mangadex-downloader/issues/45)
+- Add ability to add custom DoH (DNS over HTTPS) provider
+- Added support for legacy URL forums thread ([https://mangadex.org/threads/...](https://mangadex.org/threads/...))
+
+### Fix bugs
+
+- Fixed high CPU usage when downloading large chapters [#48](https://github.com/mansuf/mangadex-downloader/issues/48)
+- Fixed download from forum threads are not working if the URL containing page (page-123) with post-id (post-123)
+
+### Improvements
+
+- File hash creation for download tracker are now asynchronous to improve performance
+- Added more metadata (tags and authors) to any `epub` formats
+
+### Dependencies
+
+- Bump [requests-doh](https://github.com/mansuf/requests-doh) to v0.3.0
+
 ## v2.7.2
 
 ### Fix bugs

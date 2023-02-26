@@ -43,7 +43,8 @@ from ..iterator import (
 )
 from ..forums import (
     get_thread_title_owner_and_post_owner,
-    get_post_id_forum_thread
+    get_post_id_forum_thread,
+    validate_forum_thread_url
 )
 from .. import __repository__
 from ..utils import input_handle, validate_url, get_cover_art_url

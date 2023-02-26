@@ -164,6 +164,10 @@ Same as `-npb` or `--no-progress-bar`
 Same as `--http-retries`
 ```
 
+```{option} no_track
+Same as `--no-track`
+```
+
 ```{option} reset [config]
 Reset config back to default value
 ```

@@ -213,6 +213,7 @@ class QueueWorker(threading.Thread):
             try:
                 job()
             except Exception as err:
+                log.error("We have problem in queue worker", exc_info=err, stack_info=True)
                 fut.set_exception(err)
             else:
                 fut.set_result(None)

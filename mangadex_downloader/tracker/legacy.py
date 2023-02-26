@@ -23,12 +23,17 @@
 import json
 import re
 import logging
-import sys
 from pathlib import Path
 
-from .utils import delete_file, QueueWorker
-from .errors import MangaDexException
-from . import __repository__, __url_repository__
+from .info_data.legacy import (
+    BaseInfo,
+    ImageInfo,
+    ChapterInfo,
+    FileInfo
+)
+from ..utils import delete_file
+from ..config import config
+from .. import __repository__, __url_repository__
 
 try:
     import orjson
@@ -39,83 +44,10 @@ else:
 
 log = logging.getLogger(__name__)
 
-class _BasicInfo:
-    @property
-    def data(self):
-        raise NotImplementedError
-
-class _ImageInfo(_BasicInfo):
-    def __init__(self, data) -> None:
-        self.name = data["name"]
-        self.hash = data["hash"]
-        self.chapter_id = data["chapter_id"]
-
-    @property
-    def data(self):
-        return {
-            "name": self.name,
-            "hash": self.hash,
-            "chapter_id": self.chapter_id
-        }
-    
-    def __eq__(self, o) -> bool:
-        return self.data == o.data
-
-class _ChapterInfo(_BasicInfo):
-    def __init__(self, data):
-        self.name = data["name"]
-        self.id = data["id"]
-    
-    @property
-    def data(self):
-        return {
-            "name": self.name,
-            "id": self.id
-        }
-    
-    def __eq__(self, o) -> bool:
-        if isinstance(o, str):
-            return self.id == o
-        elif isinstance(o, _ChapterInfo):
-            return self.data == o.data
-
-class _FileInfo(_BasicInfo):
-    def __init__(self, data):
-        self.name = data["name"]
-        self.id = data["id"]
-        self.hash = data["hash"]
-        self.completed = data["completed"]
-
-        images = data["images"]
-        if images is not None:
-            self.images = [_ImageInfo(i) for i in data["images"]]
-        else:
-            self.images = images
-
-        chapters = data["chapters"]
-        if chapters is not None:
-            self.chapters = [_ChapterInfo(i) for i in data["chapters"]]
-        else:
-            self.chapters = chapters
-
-    @property
-    def data(self):
-        return {
-            "name": self.name,
-            "id": self.id,
-            "hash": self.hash,
-            "completed": self.completed,
-            "images": self.images,
-            "chapters": self.chapters
-        }
-
-    def __eq__(self, o) -> bool:
-        return self.data == o.data
-
 # Use orjson custom encoder
 if HAVE_ORJSON:
     def DownloadTrackerJSONEncoder(o):
-        if isinstance(o, _BasicInfo):
+        if isinstance(o, BaseInfo):
             return o.data
 
         raise TypeError(f'Object of type {o.__class__.__name__} '
@@ -123,15 +55,15 @@ if HAVE_ORJSON:
 else:
     class DownloadTrackerJSONEncoder(json.JSONEncoder):
         def default(self, o):
-            if isinstance(o, _BasicInfo):
+            if isinstance(o, BaseInfo):
                 return o.data
             
             return super().default(o)
 
 json_lib = orjson if HAVE_ORJSON else json
 
-class DownloadTracker:
-    """An tracker for downloaded manga
+class DownloadTrackerJSON:
+    """[Deprecated] An tracker for downloaded manga, data is written to JSON format
     
     This will track downloaded volume and chapters from a manga. 
     The tracker will be put in downloaded manga directory, named `downloaded-{format}.json`. 
@@ -212,11 +144,14 @@ class DownloadTracker:
     def __init__(self, fmt, path):
         self.path = Path(path)
         self.format = fmt
-        self.file = self.path / f"downloaded-{fmt}.json"
+        self.file = self.get_tracker_path(fmt, path)
 
-        self.data = None
-        self.queue = QueueWorker()
-        self.queue.start()
+        self.data = {}
+
+        if config.no_track:
+            # This won't write a file
+            self.data = self._write_new()
+            return
 
         if HAVE_ORJSON:
             type_data = "bytes"
@@ -228,14 +163,14 @@ class DownloadTracker:
 
         self._load()
 
-    def shutdown(self):
-        """Since :class:`DownloadTracker` is working in a asynchronous mode. 
-        The thread need to be shutdown manually
-        """
-        self.queue.shutdown()
+    @classmethod
+    def get_tracker_path(cls, fmt, path) -> Path:
+        return path / f"downloaded-{fmt}.json"
 
     def recreate(self):
-        """Remove the old file and re-create new one"""
+        if config.no_track:
+            return
+
         delete_file(self.file)
         data = self._write_new()
 
@@ -248,28 +183,29 @@ class DownloadTracker:
             "files": []
         }
 
-        self.file.write_text(
-            json.dumps(default_data)
-        )
+        if not config.no_track:
+            self.file.write_text(
+                json.dumps(default_data)
+            )
 
         return default_data
 
     def _write(self, data):
+        if config.no_track:
+            return
+
         kwargs = {}
         kwargs["default" if HAVE_ORJSON else "cls"] = DownloadTrackerJSONEncoder
 
-        job = lambda: self.func_write(
+        self.func_write(
             json_lib.dumps(data, **kwargs)
         )
-
-        # Write data asynchronously to improve performance
-        self.queue.submit(job, blocking=False)
 
     @property
     def empty(self):
         return len(self.data["files"]) == 0
 
-    def get(self, name) -> _FileInfo:
+    def get(self, name) -> FileInfo:
         """Retrieve file_info from given name"""
         files = self.data["files"]
         file_info = None
@@ -296,8 +232,8 @@ class DownloadTracker:
     ):
         files = self.data["files"]
 
-        file_info = _FileInfo(
-            {
+        file_info = FileInfo(
+            **{
                 "name": name,
                 "id": id,
                 "hash": hash,
@@ -315,8 +251,8 @@ class DownloadTracker:
     def add_image_info(self, name, img_name, hash, chap_id):
         file_info = self.get(name)
 
-        im_info = _ImageInfo(
-            {"name": img_name, "hash": hash, "chapter_id": chap_id}
+        im_info = ImageInfo(
+            **{"name": img_name, "hash": hash, "chapter_id": chap_id}
         )
         try:
             file_info.images.remove(im_info) # to prevent duplicate
@@ -349,8 +285,8 @@ class DownloadTracker:
             # To prevent duplicate
             return
         
-        ch_info = _ChapterInfo(
-            {"name": chapter_name, "id": chapter_id}
+        ch_info = ChapterInfo(
+            **{"name": chapter_name, "id": chapter_id}
         )
 
         file_info.chapters.append(ch_info)
@@ -378,7 +314,7 @@ class DownloadTracker:
         new_files = []
         for index, file in enumerate(files):
             try:
-                fi = _FileInfo(file)
+                fi = FileInfo(**file)
             except KeyError as e:
                 log.error(
                     f"Malformed tracker file structure in '{self.path}' at index {index}. " \
@@ -395,7 +331,7 @@ class DownloadTracker:
                     "Removing duplicates..."
                 )
 
-                # Ignored, the _FileInfo won't be written
+                # Ignored, the FileInfo won't be written
                 continue
             
             new_files.append(fi)

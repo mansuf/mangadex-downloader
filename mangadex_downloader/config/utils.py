@@ -20,10 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import logging
 import zipfile
 import os
 import typing
 from dataclasses import dataclass
+from urllib.parse import urlparse
+from requests_doh import get_all_dns_provider, add_dns_provider
 
 from .. import format as fmt
 from ..errors import MangaDexException, InvalidURL
@@ -35,8 +38,11 @@ __all__ = (
     "validate_format", "dummy_validator", "validate_zip_compression_type",
     "validate_int", "validate_tag", "validate_blacklist",
     "validate_sort_by", "validate_http_retries", "validate_download_mode",
+    "validate_doh_provider",
     "load_env", "LazyLoadEnv", "ConfigTypeError"
 )
+
+log = logging.getLogger(__name__)
 
 class ConfigTypeError(MangaDexException):
     pass
@@ -173,6 +179,36 @@ def validate_download_mode(val):
         )
     
     return val
+
+def validate_doh_provider(val):
+    providers = [None]
+    providers.extend(get_all_dns_provider())
+    try:
+        validate_value_from_iterator(val, providers)
+    except ConfigTypeError:
+        pass
+    else:
+        return val
+
+    try:
+        parsed = urlparse(val)
+    except Exception as e:
+        log.debug("Failed to parse url from validate_doh_provider", exc_info=e, stack_info=True)
+        raise ConfigTypeError(f"'{val}' is not valid DoH providers, available values are {providers}")
+
+    # Validate HTTP(s) URL
+    # https://stackoverflow.com/a/38020041
+    valid_http = [
+        parsed.scheme in ["http", "https"],
+        parsed.netloc
+    ]
+    if not any(valid_http):
+        raise ConfigTypeError(f"'{val}' is not valid DoH providers, available values are {providers}")
+
+    # Create new DoH provider
+    add_dns_provider("custom-doh", val, switch=True)
+
+    return "custom-doh"
 
 def load_env(env_key, env_value, validator):
     try:

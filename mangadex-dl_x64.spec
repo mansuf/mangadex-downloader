@@ -8,7 +8,11 @@ a = Analysis(
     ['run.py'],
     pathex=[],
     binaries=[],
-    datas=[('mangadex_downloader/fonts', 'mangadex_downloader/fonts'), ('mangadex_downloader/images', 'mangadex_downloader/images')],
+    datas=[
+        ('mangadex_downloader/fonts', 'mangadex_downloader/fonts'), 
+        ('mangadex_downloader/images', 'mangadex_downloader/images'),
+        ('mangadex_downloader/tracker/sql_files', 'mangadex_downloader/tracker/sql_files')
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

@@ -372,7 +372,6 @@ def get_args(argv):
         '-doh',
         help='Enable DNS-over-HTTPS (DoH)',
         metavar="PROVIDER",
-        choices=get_all_dns_provider()
     )
     network_group.add_argument(
         '--timeout',
@@ -416,6 +415,13 @@ def get_args(argv):
         action='store_true',
         default=config.write_tachiyomi_info,
         help='Write manga details to tachiyomi `details.json` file'
+    )
+    misc_group.add_argument(
+        '--no-track',
+        action='store_true',
+        default=config.no_track,
+        help='Disable download tracking. ' \
+             'NOTE: If you enable this, the application will not verify images and chapters. '
     )
 
     # Update application

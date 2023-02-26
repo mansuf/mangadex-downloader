@@ -35,7 +35,7 @@ from .chapter import Chapter
 from .format import get_format
 from .downloader import FileDownloader
 from .config import config
-from .tracker import DownloadTracker
+from .tracker import get_tracker
 
 log = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ def download(
 
         log.info("Using %s format" % save_as)
 
-        m.tracker = DownloadTracker(save_as, path)
+        m.tracker = get_tracker(save_as, path)
 
         fmt = fmt_class(
             path,
@@ -193,7 +193,7 @@ def download_chapter(
     }
 
     log.info(f'Using {save_as} format')
-    manga.tracker = DownloadTracker(save_as, base_path)
+    manga.tracker = get_tracker(save_as, base_path)
 
     fmt = fmt_class(
         base_path,

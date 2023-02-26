@@ -81,7 +81,7 @@ class _Config:
         ],
         "dns_over_https": [
             None,
-            lambda x: validate_value_from_iterator(x, _doh_providers)
+            validate_doh_provider
         ],
         "no_group_name": [
             False,
@@ -112,6 +112,10 @@ class _Config:
             validate_bool
         ],
         "use_volume_cover": [
+            False,
+            validate_bool
+        ],
+        "no_track": [
             False,
             validate_bool
         ]
@@ -255,7 +259,9 @@ def set_config_from_cli_opts(args):
     for key in _conf.default_conf.keys():
         value = getattr(args, key)
         _, validator = _conf.confs[key]
-        data[key] = validator(value)
+        value = validator(value)
+        data[key] = value
+        setattr(args, key, value)
     
     _conf._write(data, write_to_path=False)
     _conf.no_read = True

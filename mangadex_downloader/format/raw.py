@@ -82,13 +82,18 @@ class Raw(BaseFormat):
 
             images = self.get_images(chap_class, images, chapter_path, count)
 
+            # I don't know why
+            # but for whatever reason, i cannot make this process (download tracker) asynchronously
+            # If i force to do it, the process become broken
+            data = []
             for im in images:
                 basename = os.path.basename(im)
                 im_hash = create_file_hash_sha256(im)
-                manga.tracker.add_image_info(
-                    chap_name, basename, im_hash, chap_class.id
+                data.append(
+                    (basename, im_hash, chap_class.id, chap_name)
                 )
-
+            
+            manga.tracker.add_images_info(data)
             manga.tracker.toggle_complete(chap_name, True)
 
             self.mark_read_chapter(chap_class)
@@ -111,6 +116,7 @@ class RawVolume(BaseFormat):
 
         # Begin downloading
         for volume, chapters in cache.items():
+            success_images = {}
             failed_images = []
             total = self.get_total_pages_for_volume_fmt(chapters)
 
@@ -123,7 +129,7 @@ class RawVolume(BaseFormat):
                 volume_name = 'No Volume'
 
             volume_path = create_directory(volume_name, base_path)
-            file_info = self.get_fi_volume_or_single_fmt(volume_name, null_images=False)
+            file_info = self.get_fi_volume_or_single_fmt(volume_name)
             new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
 
             # Create volume cover
@@ -180,26 +186,28 @@ class RawVolume(BaseFormat):
                     count.increase()
 
                 images = self.get_images(chap_class, images, volume_path, count)
+                success_images[chap_class] = images
 
-                tracker.add_chapter_info(
-                    volume_name,
-                    chap_class.name,
-                    chap_class.id,
-                )
-
-                for im in images:
-                    basename = os.path.basename(im)
-                    im_hash = create_file_hash_sha256(im)
-                    manga.tracker.add_image_info(
-                        volume_name,
-                        basename,
-                        im_hash,
-                        chap_class.id
+            def job():
+                chaps_data = []
+                imgs_data = []
+                for chap_cls, images in success_images.items():
+                    chaps_data.append(
+                        (chap_cls.name, chap_cls.id, volume_name)
                     )
-                
-                self.mark_read_chapter(chap_class)
 
-            tracker.toggle_complete(volume_name, True)
+                    for im in images:
+                        basename = os.path.basename(im)
+                        im_hash = create_file_hash_sha256(im)
+                        imgs_data.append(
+                            (basename, im_hash, chap_cls.id, volume_name)
+                        )
+
+                tracker.add_chapters_info(chaps_data)
+                tracker.add_images_info(imgs_data)
+                tracker.toggle_complete(volume_name, True)
+
+            self.tracker_worker.submit(job, blocking=False)
         
         log.info("Waiting for chapter read marker to finish")
         self.cleanup()
@@ -210,6 +218,7 @@ class RawSingle(BaseFormat):
         manga = self.manga
         tracker = manga.tracker
         file_info = None
+        success_images = {}
         failed_images = []
 
         # Recreate DownloadTracker JSON file if --replace is present
@@ -230,7 +239,7 @@ class RawSingle(BaseFormat):
         count = NumberWithLeadingZeros(total)
 
         path = create_directory(name, base_path)
-        file_info = self.get_fi_volume_or_single_fmt(name, null_images=False)
+        file_info = self.get_fi_volume_or_single_fmt(name)
         new_chapters = self.get_new_chapters(file_info, cache, name)
 
         # Only checks if ``file_info.complete`` state is True
@@ -282,26 +291,31 @@ class RawSingle(BaseFormat):
                 count.increase()
 
             images = self.get_images(chap_class, images, path, count)
+            success_images[chap_class] = images
 
-            tracker.add_chapter_info(
-                name,
-                chap_class.name,
-                chap_class.id,
-            )
-
-            for im in images:
-                basename = os.path.basename(im)
-                im_hash = create_file_hash_sha256(im)
-                manga.tracker.add_image_info(
-                    name,
-                    basename,
-                    im_hash,
-                    chap_class.id
-                )
-            
             self.mark_read_chapter(chap_class)
         
-        tracker.toggle_complete(name, True)
+        def job():
+            chaps_data = []
+            imgs_data = []
+            for chap_cls, images in success_images.items():
+                chaps_data.append(
+                    (chap_cls.name, chap_cls.id, name)
+                )
+
+                for im in images:
+                    basename = os.path.basename(im)
+                    im_hash = create_file_hash_sha256(im)
+                    imgs_data.append(
+                        (basename, im_hash, chap_cls.id, name)
+                    )
+
+            tracker.add_chapters_info(chaps_data)
+            tracker.add_images_info(imgs_data)
+            tracker.toggle_complete(name, True)
+
+        log.info("Waiting for download tracker to finish")
+        self.tracker_worker.submit(job, blocking=True)
 
         log.info("Waiting for chapter read marker to finish")
         self.cleanup()
