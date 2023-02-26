@@ -55,9 +55,10 @@ log = logging.getLogger(__name__)
 # Inspired from https://github.com/manga-download/hakuneko/blob/master/src/web/mjs/engine/EbookGenerator.mjs
 # TODO: Add doc for this class
 class EpubPlugin:
-    def __init__(self, _id, title, lang):
-        self.id = _id
-        self.title = title
+    def __init__(self, manga, lang):
+        self.manga = manga
+        self.id = manga.id
+        self.title = manga.title
         self.lang = lang
 
         self._pos = 0
@@ -151,6 +152,25 @@ class EpubPlugin:
             }
         )
         dc_id.string = self.id
+
+        # Tags
+        for tag in self.manga.tags:
+            dc_tag = root.new_tag('dc:subject')
+            dc_tag.string = tag.name
+            metadata.append(dc_tag)
+
+        # Authors
+        authors = ""
+        for index, author in enumerate(self.manga.authors):
+            if index < (len(self.manga.authors) - 1):
+                authors += author + ","
+            else:
+                # If this is last index, append author without comma
+                authors += author
+        dc_authors = root.new_tag('dc:creator')
+        dc_authors.string = authors
+        metadata.append(dc_authors)
+
         metadata.append(dc_title)
         metadata.append(dc_language)
         metadata.append(dc_id)
@@ -388,8 +408,8 @@ class EPUBFile:
         if not epub_ready:
             raise EpubMissingDependencies()
 
-    def convert(self, id, title, lang, chapters, path):
-        epub = EpubPlugin(id, title, lang)
+    def convert(self, manga, lang, chapters, path):
+        epub = EpubPlugin(manga, lang)
 
         for chapter, images in chapters:
             epub.create_page(chapter.get_name(), images)
@@ -424,8 +444,7 @@ class Epub(ConvertedChaptersFormat, EPUBFile):
 
             # KeyboardInterrupt safe
             job = lambda: self.convert(
-                manga.id,
-                manga.title,
+                manga,
                 chap_class.language.value,
                 [(chap_class, images)],
                 chapter_epub_path
@@ -474,8 +493,7 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
             log.info(f"{volume} has finished download, converting to epub...")
 
             job = lambda: self.convert(
-                manga.id,
-                manga.title,
+                manga,
                 manga.chapters.language.value,
                 epub_chapters,
                 volume_epub_path
@@ -516,8 +534,7 @@ class EpubSingle(ConvertedSingleFormat, EPUBFile):
         log.info(f"Manga '{manga.title}' has finished download, converting to epub...")
 
         job = lambda: self.convert(
-            manga.id,
-            manga.title,
+            manga,
             manga.chapters.language.value,
             epub_chapters,
             manga_epub_path
