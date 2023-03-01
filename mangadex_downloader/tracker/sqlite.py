@@ -52,11 +52,30 @@ class DownloadTrackerSQLite:
         self._lock = threading.Lock()
 
         self.db = None
+
+        self._kwargs_sqlite_con = {
+            "database": self.file,
+            "check_same_thread": False,
+        }
         if not config.no_track:
-            self.db = sqlite3.connect(self.file, check_same_thread=False)
+            self.db = sqlite3.connect(**self._kwargs_sqlite_con)
 
         self._cache = {}
-        self._load()
+
+        try:
+            self._load()
+        except sqlite3.OperationalError as e:
+            msg = str(e)
+            if "database is locked" not in msg:
+                raise e
+
+            # https://github.com/mansuf/mangadex-downloader/issues/52
+            self.db.close()
+            self._kwargs_sqlite_con["uri"] = True
+            self._kwargs_sqlite_con["database"] = self.file.as_uri() + "?nolock=1"
+            self.db = sqlite3.connect(**self._kwargs_sqlite_con)
+            
+            self._load()
 
         # Table names for SQL query
         # Because sqlite3.Cursor.exceute() parameters doesn't support 
