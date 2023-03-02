@@ -79,9 +79,9 @@ class DownloadTrackerSQLite:
 
     def _check_db_locked(self):
         # https://github.com/mansuf/mangadex-downloader/issues/52
+        db = sqlite3.connect(**self._kwargs_sqlite_con)
         with self._lock:
             try:
-                db = sqlite3.connect(**self._kwargs_sqlite_con)
                 db.execute("CREATE TABLE IF NOT EXISTS 'test' ('test' TEXT NOT NULL)")
                 db.execute("INSERT INTO 'test' ('test') VALUES ('123')")
                 db.commit()
@@ -92,6 +92,8 @@ class DownloadTrackerSQLite:
                 msg = str(e)
                 if "database is locked" in msg:
                     return True
+            finally:
+                db.close()
             
             return False
 
