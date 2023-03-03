@@ -52,8 +52,19 @@ class DownloadTrackerSQLite:
         self._lock = threading.Lock()
 
         self.db = None
+
+        self._kwargs_sqlite_con = {
+            "database": self.file,
+            "check_same_thread": False,
+        }
+
+        locked = self._check_db_locked()
+        if locked:
+            self._kwargs_sqlite_con["uri"] = True
+            self._kwargs_sqlite_con["database"] = self.file.as_uri() + "?nolock=1"
+
         if not config.no_track:
-            self.db = sqlite3.connect(self.file, check_same_thread=False)
+            self.db = sqlite3.connect(**self._kwargs_sqlite_con)
 
         self._cache = {}
         self._load()
@@ -65,6 +76,26 @@ class DownloadTrackerSQLite:
         self._fi_name = f"file_info_{fmt_table}"
         self._img_name = f"img_info_{fmt_table}"
         self._ch_name = f"ch_info_{fmt_table}"
+
+    def _check_db_locked(self):
+        # https://github.com/mansuf/mangadex-downloader/issues/52
+        db = sqlite3.connect(**self._kwargs_sqlite_con)
+        with self._lock:
+            try:
+                db.execute("CREATE TABLE IF NOT EXISTS 'test' ('test' TEXT NOT NULL)")
+                db.execute("INSERT INTO 'test' ('test') VALUES ('123')")
+                db.commit()
+                db.execute("DROP TABLE 'test'")
+                db.commit()
+                db.close()
+            except sqlite3.OperationalError as e:
+                msg = str(e)
+                if "database is locked" in msg:
+                    return True
+            finally:
+                db.close()
+            
+            return False
 
     def recreate(self):
         if config.no_track:
