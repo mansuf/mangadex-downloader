@@ -1,5 +1,9 @@
 # Changelog
 
+## UNRELEASED
+
+- Fixed "database is locked" when `--path` is set to network shared directory
+
 ## v2.8.0
 
 ### New features
