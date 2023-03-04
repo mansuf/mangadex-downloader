@@ -3,6 +3,8 @@
 ## UNRELEASED
 
 - Fixed "database is locked" when `--path` is set to network shared directory
+- Fixed "image file is truncated (xx bytes not processed)" error when using any `pdf` formats 
+[#54](https://github.com/mansuf/mangadex-downloader/issues/54)
 
 ## v2.8.0
 

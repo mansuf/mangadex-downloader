@@ -92,12 +92,9 @@ class PDFPlugin:
             err = e
         else:
             return False
-        
-        if err and 'broken data stream' in str(err):
+
+        if err:
             ImageFile.LOAD_TRUNCATED_IMAGES = True
-        elif err:
-            # Other error
-            raise err
         
         # Load it again
         img.load()
