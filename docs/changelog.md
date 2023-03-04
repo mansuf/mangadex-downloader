@@ -1,6 +1,6 @@
 # Changelog
 
-## UNRELEASED
+## v2.8.1
 
 - Fixed "database is locked" when `--path` is set to network shared directory
 [#52](https://github.com/mansuf/mangadex-downloader/issues/52)
