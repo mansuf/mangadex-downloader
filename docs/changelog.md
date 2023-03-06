@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed duplicated results when using any commands (`random`, `library`, etc) or search with `--input-pos "*"` used
+
 ## v2.8.1
 
 - Fixed "database is locked" when `--path` is set to network shared directory
