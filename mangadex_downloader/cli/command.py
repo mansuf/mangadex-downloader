@@ -256,7 +256,6 @@ class MangaDexCommand(BaseCommand):
     """Command specialized for MangaDex"""
     def prompt(self, input_pos=None):
         answer = super().prompt(input_pos=input_pos)
-        print(answer)
 
         def yield_ids():
             for item in answer:
