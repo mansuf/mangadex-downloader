@@ -4,7 +4,8 @@
 
 # mangadex-downloader
 
-[![tr](https://img.shields.io/badge/lang-tr-yellow.svg)](https://github.com/mansuf/mangadex-downloader/blob/main/README.tr.md)
+[![Indonesian](https://img.shields.io/badge/Language-Indonesian-blue.svg)](https://github.com/mansuf/mangadex-downloader/blob/main/README.id.md)
+[![Turkish](https://img.shields.io/badge/Language-Turkish-blue.svg)](https://github.com/mansuf/mangadex-downloader/blob/main/README.tr.md)
 
 A command-line tool to download manga from [MangaDex](https://mangadex.org/), written in [Python](https://www.python.org/).
 
@@ -13,12 +14,12 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - [Key Features](#key-features)
 - [Supported formats](#supported-formats)
 - [Installation](#installation)
-    - [How to (PyPI)](#how-to-pypi)
-    - [How to (bundled executable)](#how-to-bundled-executable)
-    - [How to (Development version)](#how-to-development-version)
+    - [Python Package Index (PyPI)](#installation-pypi)
+    - [Bundled executable](#installation-bundled-executable)
+    - [Development version](#installation-development-version)
 - [Usage](#usage)
-    - [Command-Line Interface (PyPI version)](#command-line-interface-pypi-version)
-    - [Command-Line Interface (bundled executable version)](#command-line-interface-bundled-executable-version)
+    - [PyPI version](#usage-pypi-version)
+    - [Bundled executable version](#usage-bundled-executable-version)
 - [Contributing](#contributing)
 - [Donation](#donation)
 - [Links](#links)
@@ -38,8 +39,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - HTTP / SOCKS proxy support
 - DNS-over-HTTPS support
 - Multi languages support
-- Save as raw images, EPUB, PDF, Comic Book Archive (.cbz or .cb7) or
-[Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) local manga
+- Save as raw images, EPUB, PDF, Comic Book Archive (.cbz or .cb7)
 
 ***And ability to not download oneshot chapter***
 
@@ -51,11 +51,11 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 What will you need:
 
-- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#how-to-bundled-executable))
+- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#installation-bundled-executable))
 
 That's it.
 
-### How to (PyPI) <a id="how-to-pypi"></a>
+### Python Package Index (PyPI) <a id="installation-pypi"></a>
 
 Installing mangadex-downloader is easy, as long as you have requirements above.
 
@@ -85,7 +85,7 @@ python3 -m pip install mangadex-downloader[optional]
 
 There you go, easy ain't it ?.
 
-### How to (bundled executable) <a id="how-to-bundled-executable"></a>
+### Bundled executable <a id="installation-bundled-executable"></a>
 
 **NOTE:** This installation only apply to Windows.
 
@@ -95,9 +95,10 @@ Steps:
 
 - Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
 - Extract it.
-- [See this instructions to run mangadex-downloader](#command-line-interface-bundled-executable-version)
+- That's it ! You have successfully install mangadex-downloader. 
+[See this instructions to run mangadex-downloader](#usage-bundled-executable-version)
 
-### How to (Development version) <a id="how-to-development-version"></a>
+### Development version <a id="installation-development-version"></a>
 
 **NOTE:** You must have git installed. If you don't have it, install it from here https://git-scm.com/.
 
@@ -109,7 +110,7 @@ python setup.py install # or "pip install ."
 
 ## Usage <a id="usage"></a>
 
-### Command-Line Interface (PyPI version) <a id="command-line-interface-pypi-version"></a>
+### PyPI version <a id="usage-pypi-version"></a>
 
 ```shell
 
@@ -126,7 +127,7 @@ py -3 -m mangadex_downloader "insert MangaDex URL here"
 python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
 
-### Command-Line Interface (bundled executable version) <a id="command-line-interface-bundled-executable-version"></a>
+### Bundled executable version <a id="usage-bundled-executable-version"></a>
 
 - Navigate to folder where you downloaded mangadex-downloader
 - Open "start cmd.bat" (don't worry it's not a virus, it will open a command prompt)
@@ -147,7 +148,7 @@ For more info about CLI options, you can [read here](https://mangadex-dl.mansuf.
 
 ## Contributing <a id="contributing"></a>
 
-See [CONTRIBUTING.md](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/mansuf/mangadex-downloader/blob/main/CONTRIBUTING.md) for more info
 
 ## Donation <a id="donation"></a>
 
@@ -166,5 +167,3 @@ Any donation amount will be appreciated 💖
 ## Disclaimer <a id="disclaimer"></a>
 
 mangadex-downloader are not affiliated with MangaDex. Also, the current maintainer ([@mansuf](https://github.com/mansuf)) is not a MangaDex dev
-
-
