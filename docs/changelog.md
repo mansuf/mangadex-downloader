@@ -4,6 +4,7 @@
 
 ### Fix bugs
 
+- `download.db` are no longer exist when `--no-track` is used
 - Fixed download tracker are not tracking chapters properly in `raw-single` and `raw-volume` formats
 - Fixed duplicated results when using any commands (`random`, `library`, etc) or search with `--input-pos "*"` used
 

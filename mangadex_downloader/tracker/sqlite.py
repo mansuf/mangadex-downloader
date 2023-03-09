@@ -66,7 +66,6 @@ class DownloadTrackerSQLite:
         if not config.no_track:
             self.db = sqlite3.connect(**self._kwargs_sqlite_con)
 
-        self._cache = {}
         self._load()
 
         # Table names for SQL query
@@ -78,6 +77,9 @@ class DownloadTrackerSQLite:
         self._ch_name = f"ch_info_{fmt_table}"
 
     def _check_db_locked(self):
+        if config.no_track:
+            return False
+
         # https://github.com/mansuf/mangadex-downloader/issues/52
         db = sqlite3.connect(**self._kwargs_sqlite_con)
         with self._lock:
