@@ -1,6 +1,6 @@
 # Changelog
 
-## UNRELEASED
+## v2.8.2
 
 ### Fix bugs
 
