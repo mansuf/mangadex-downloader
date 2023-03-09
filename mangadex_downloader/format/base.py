@@ -62,14 +62,8 @@ class BaseFormat:
         ):
             self.chapter_read_marker.start()
         
-        self.tracker_worker = QueueWorker()
-
-        if not config.no_track:
-            self.tracker_worker.start()
-
     def cleanup(self):
         # Shutdown some worker threads
-        self.tracker_worker.shutdown()
         self.chapter_read_marker.shutdown(blocking=True)
 
     def get_images(self, chap_class, images, path, count):
@@ -335,7 +329,7 @@ class BaseConvertedFormat(BaseFormat):
 
         super().__init__(*args, **kwargs)
 
-    def _add_fi_job(self, name, id, path, chapters=None):
+    def add_fi(self, name, id, path, chapters=None):
         file_hash = create_file_hash_sha256(path)
 
         name = f"{name}{self.file_ext}"
@@ -360,14 +354,6 @@ class BaseConvertedFormat(BaseFormat):
             self.mark_read_chapter(chapters)
         
         self.manga.tracker.toggle_complete(name, True)
-
-    def add_fi(self, *args, **kwargs):
-        """Add new DownloadTracker._FileInfo to the tracker"""
-        if self.config.no_track:
-            return
-
-        job = lambda: self._add_fi_job(*args, **kwargs)
-        self.tracker_worker.submit(job, blocking=True)
 
     def check_fi_completed(self, name):
         if self.manga.tracker.disabled:

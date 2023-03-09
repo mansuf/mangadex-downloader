@@ -82,9 +82,6 @@ class Raw(BaseFormat):
 
             images = self.get_images(chap_class, images, chapter_path, count)
 
-            # I don't know why
-            # but for whatever reason, i cannot make this process (download tracker) asynchronously
-            # If i force to do it, the process become broken
             data = []
             for im in images:
                 basename = os.path.basename(im)
@@ -188,27 +185,24 @@ class RawVolume(BaseFormat):
                 images = self.get_images(chap_class, images, volume_path, count)
                 success_images[chap_class] = images
 
-            def job():
-                chaps_data = []
-                imgs_data = []
-                for chap_cls, images in success_images.items():
-                    chaps_data.append(
-                        (chap_cls.name, chap_cls.id, volume_name)
+            chaps_data = []
+            imgs_data = []
+            for chap_cls, images in success_images.items():
+                chaps_data.append(
+                    (chap_cls.name, chap_cls.id, volume_name)
+                )
+
+                for im in images:
+                    basename = os.path.basename(im)
+                    im_hash = create_file_hash_sha256(im)
+                    imgs_data.append(
+                        (basename, im_hash, chap_cls.id, volume_name)
                     )
 
-                    for im in images:
-                        basename = os.path.basename(im)
-                        im_hash = create_file_hash_sha256(im)
-                        imgs_data.append(
-                            (basename, im_hash, chap_cls.id, volume_name)
-                        )
+            tracker.add_chapters_info(chaps_data)
+            tracker.add_images_info(imgs_data)
+            tracker.toggle_complete(volume_name, True)
 
-                tracker.add_chapters_info(chaps_data)
-                tracker.add_images_info(imgs_data)
-                tracker.toggle_complete(volume_name, True)
-
-            self.tracker_worker.submit(job, blocking=False)
-        
         log.info("Waiting for chapter read marker to finish")
         self.cleanup()
 
@@ -295,27 +289,23 @@ class RawSingle(BaseFormat):
 
             self.mark_read_chapter(chap_class)
         
-        def job():
-            chaps_data = []
-            imgs_data = []
-            for chap_cls, images in success_images.items():
-                chaps_data.append(
-                    (chap_cls.name, chap_cls.id, name)
+        chaps_data = []
+        imgs_data = []
+        for chap_cls, images in success_images.items():
+            chaps_data.append(
+                (chap_cls.name, chap_cls.id, name)
+            )
+
+            for im in images:
+                basename = os.path.basename(im)
+                im_hash = create_file_hash_sha256(im)
+                imgs_data.append(
+                    (basename, im_hash, chap_cls.id, name)
                 )
 
-                for im in images:
-                    basename = os.path.basename(im)
-                    im_hash = create_file_hash_sha256(im)
-                    imgs_data.append(
-                        (basename, im_hash, chap_cls.id, name)
-                    )
-
-            tracker.add_chapters_info(chaps_data)
-            tracker.add_images_info(imgs_data)
-            tracker.toggle_complete(name, True)
-
-        log.info("Waiting for download tracker to finish")
-        self.tracker_worker.submit(job, blocking=True)
+        tracker.add_chapters_info(chaps_data)
+        tracker.add_images_info(imgs_data)
+        tracker.toggle_complete(name, True)
 
         log.info("Waiting for chapter read marker to finish")
         self.cleanup()

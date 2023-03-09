@@ -4,6 +4,7 @@
 
 ### Fix bugs
 
+- Fixed download tracker are not tracking chapters properly in `raw-single` and `raw-volume` formats
 - Fixed duplicated results when using any commands (`random`, `library`, etc) or search with `--input-pos "*"` used
 
 ## v2.8.1
