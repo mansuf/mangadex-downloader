@@ -277,13 +277,20 @@ class BaseFormat:
 
     def get_new_chapters(self, file_info, chapters, name, log_output=True):
         """Retrieve new chapters for volume and single formats"""
+        if file_info is None:
+            fi_chapters = []
+            fi_completed = False
+        else:
+            fi_chapters = file_info.chapters
+            fi_completed = file_info.completed
+
         # Check for new chapters in volume
         new_chapters = []
         for chap_class, _ in chapters:
-            if chap_class.id not in file_info.chapters:
+            if chap_class.id not in fi_chapters:
                 new_chapters.append(chap_class.name)
 
-        if new_chapters and file_info.completed and log_output:
+        if new_chapters and fi_completed and log_output:
             log.info(
                 f"There is new {len(new_chapters)} chapters in {name}. " \
                 f"Re-downloading {name}..."

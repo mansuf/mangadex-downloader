@@ -41,7 +41,6 @@ class Raw(BaseFormat):
     def main(self):
         base_path = self.path
         manga = self.manga
-
         self.write_tachiyomi_info()
 
         # Recreate DownloadTracker JSON file if --replace is present
@@ -56,12 +55,19 @@ class Raw(BaseFormat):
             file_info = self.get_fi_chapter_fmt(chap_name, chap_class.id)
             chapter_path = create_directory(chap_name, base_path)
 
-            for im_info in file_info.images:
+            if file_info is None:
+                fi_images = []
+                fi_completed = False
+            else:
+                fi_images = file_info.images
+                fi_completed = file_info.completed
+
+            for im_info in fi_images:
                 verified = verify_sha256(im_info.hash, chapter_path / im_info.name)
                 if not verified:
                     failed_images.append(im_info)
                 
-            if failed_images and file_info.completed:
+            if failed_images and fi_completed:
                 log.warning(
                     f"Found {len(failed_images)} unverified or missing images from {chap_name}. " \
                     "Re-downloading..."
@@ -73,7 +79,7 @@ class Raw(BaseFormat):
 
                     log.debug(f"Removing unverified image '{im_path.resolve()}'")
                     delete_file(im_path)
-            elif file_info.completed:
+            elif fi_completed:
                 log.info(f"'{chap_name}' is verified. no need to re-download")
                 self.mark_read_chapter(chap_class)
                 continue
@@ -129,6 +135,13 @@ class RawVolume(BaseFormat):
             file_info = self.get_fi_volume_or_single_fmt(volume_name)
             new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
 
+            if file_info is None:
+                fi_images = []
+                fi_completed = False
+            else:
+                fi_images = file_info.images
+                fi_completed = file_info.completed
+
             # Create volume cover
             if self.config.use_volume_cover:
                 img_name = count.get() + ".png"
@@ -138,17 +151,17 @@ class RawVolume(BaseFormat):
                 count.increase()
 
             # Only checks if ``file_info.complete`` state is True
-            if new_chapters and file_info.completed:
+            if new_chapters and fi_completed:
                 # Re-create directory to prevent error
                 shutil.rmtree(volume_path, ignore_errors=True)
                 volume_path = create_directory(volume_name, base_path)
 
-            for im_info in file_info.images:
+            for im_info in fi_images:
                 verified = verify_sha256(im_info.hash, volume_path / im_info.name)
                 if not verified:
                     failed_images.append(im_info)
                 
-            if failed_images and file_info.completed and not new_chapters:
+            if failed_images and fi_completed and not new_chapters:
                 log.warning(
                     f"Found {len(failed_images)} unverified or missing images from {volume_name}. " \
                     "Re-downloading..."
@@ -160,7 +173,7 @@ class RawVolume(BaseFormat):
 
                     log.debug(f"Removing unverified image '{im_path.resolve()}'")
                     delete_file(im_path)
-            elif file_info.completed:
+            elif fi_completed:
                 log.info(f"'{volume_name}' is verified. no need to re-download")
                 self.mark_read_chapter(*chapters)
                 continue
@@ -170,7 +183,7 @@ class RawVolume(BaseFormat):
             chapter_failed_images = set(i.chapter_id for i in failed_images)
 
             for chap_class, images in chapters:
-                if chap_class.id not in chapter_failed_images and file_info.completed:
+                if chap_class.id not in chapter_failed_images and fi_completed:
                     count.increase(chap_class.pages)
                     continue
 
@@ -236,18 +249,25 @@ class RawSingle(BaseFormat):
         file_info = self.get_fi_volume_or_single_fmt(name)
         new_chapters = self.get_new_chapters(file_info, cache, name)
 
+        if file_info is None:
+            fi_images = []
+            fi_completed = False
+        else:
+            fi_images = file_info.images
+            fi_completed = file_info.completed
+
         # Only checks if ``file_info.complete`` state is True
-        if new_chapters and file_info.completed:
+        if new_chapters and fi_completed:
             # Re-create directory to prevent error
             shutil.rmtree(path, ignore_errors=True)
             path = create_directory(name, base_path)
 
-        for im_info in file_info.images:
+        for im_info in fi_images:
             verified = verify_sha256(im_info.hash, path / im_info.name)
             if not verified:
                 failed_images.append(im_info)
             
-        if failed_images and file_info.completed and not new_chapters:
+        if failed_images and fi_completed and not new_chapters:
             log.warning(
                 f"Found {len(failed_images)} unverified or missing images from {name}. " \
                 "Re-downloading..."
@@ -259,7 +279,7 @@ class RawSingle(BaseFormat):
 
                 log.debug(f"Removing unverified image '{im_path.resolve()}'")
                 delete_file(im_path)
-        elif file_info.completed:
+        elif fi_completed:
             log.info(f"'{name}' is verified. no need to re-download")
             self.mark_read_chapter(*cache)
 
@@ -272,7 +292,7 @@ class RawSingle(BaseFormat):
         chapter_failed_images = [i.chapter_id for i in failed_images]
 
         for chap_class, images in cache:
-            if chap_class.id not in chapter_failed_images and file_info.completed:
+            if chap_class.id not in chapter_failed_images and fi_completed:
                 count.increase(chap_class.pages)
                 continue
 

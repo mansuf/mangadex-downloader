@@ -91,6 +91,11 @@ class FileInfo:
     images: Union[None, List[ImageInfo]]
     chapters: Union[None, List[ChapterInfo]]
 
+    @classmethod
+    def dummy(cls):
+        """Create dummy FileInfo for all formats if --no-track is used"""
+        return cls()
+
     def __post_init__(self):
         if self.images is not None:
             self.images = [ImageInfo(*(i[0], i[1], i[2])) for i in self.images]
