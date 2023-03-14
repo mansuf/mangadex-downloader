@@ -1,5 +1,9 @@
 # Changelog
 
+## UNRELEASED
+
+- Fixed `--no-track` is not working in version 2.8.x [#56](https://github.com/mansuf/mangadex-downloader/issues/56)
+
 ## v2.8.2
 
 ### Fix bugs
