@@ -98,7 +98,7 @@ def _migrate_legacy_tracker(fmt, path):
         delete_file(legacy_tracker.file)
         del legacy_tracker
 
-        return
+        return new_tracker
 
     log.info("Legacy download tracker detected, migrating to new one...")
     log.warning(
