@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+### Fix bugs
+
+- Fix error message is not showing when chapters with specified langauge is not found
+
 ### Dependencies
 
 - Bump [Pillow](https://github.com/python-pillow/Pillow) to v9.5.0

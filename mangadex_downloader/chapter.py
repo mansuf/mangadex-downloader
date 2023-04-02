@@ -418,6 +418,9 @@ class IteratorChapter:
         else:
             self._unread_chapters = []
 
+        # To show error message when chapters in specified language is not found
+        self._first_run = True
+
         self._fill_data()
 
     def _parse_groups(self, ids):
@@ -596,8 +599,14 @@ class IteratorChapter:
         try:
             chap = self.queue.get_nowait()
         except queue.Empty:
+            if self._first_run:
+                raise ChapterNotFound(
+                    f"Manga '{self.manga.title}' has no {self.language.name} chapters"
+                )
+
             raise StopIteration()
 
+        self._first_run = False
         return chap
 
     def __iter__(self) -> "IteratorChapter":
