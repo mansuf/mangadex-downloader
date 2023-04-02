@@ -6,6 +6,7 @@
 
 - Bump [Pillow](https://github.com/python-pillow/Pillow) to v9.5.0
 - Bump [py7zr](https://github.com/miurahr/py7zr) to v0.20.4
+- Bump [orjson](https://github.com/ijl/orjson) to v3.8.9
 
 ## v2.8.3
 
