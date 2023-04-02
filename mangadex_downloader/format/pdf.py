@@ -104,7 +104,7 @@ class PDFPlugin:
     def _save_all(self, im, fp, filename):
         self._save(im, fp, filename, save_all=True)
 
-    # This was modified version of Pillow/PdfImagePlugin.py version 9.3.0
+    # This was modified version of Pillow/PdfImagePlugin.py version 9.5.0
     # The images will be automatically converted to RGB and closed when done converting to PDF
     def _save(self, im, fp, filename, save_all=False):
         is_appending = im.encoderinfo.get("append", False)
@@ -113,7 +113,12 @@ class PDFPlugin:
         else:
             existing_pdf = PdfParser.PdfParser(f=fp, filename=filename, mode="w+b")
 
-        resolution = im.encoderinfo.get("resolution", 72.0)
+        dpi = im.encoderinfo.get("dpi")
+        if dpi:
+            x_resolution = dpi[0]
+            y_resolution = dpi[1]
+        else:
+            x_resolution = y_resolution = im.encoderinfo.get("resolution", 72.0)
 
         info = {
             "title": None
@@ -253,13 +258,18 @@ class PDFPlugin:
                     filter = "DCTDecode"
                     colorspace = PdfParser.PdfName("DeviceRGB")
                     procset = "ImageC"  # color images
+                elif im.mode == "RGBA":
+                    filter = "JPXDecode"
+                    colorspace = PdfParser.PdfName("DeviceRGB")
+                    procset = "ImageC"  # color images
                 elif im.mode == "CMYK":
                     filter = "DCTDecode"
                     colorspace = PdfParser.PdfName("DeviceCMYK")
                     procset = "ImageC"  # color images
                     decode = [1, 0, 1, 0, 1, 0, 1, 0]
                 else:
-                    raise ValueError(f"cannot save mode {im.mode}")
+                    msg = f"cannot save mode {im.mode}"
+                    raise ValueError(msg)
 
                 #
                 # image
@@ -278,12 +288,15 @@ class PDFPlugin:
                     )
                 elif filter == "DCTDecode":
                     Image.SAVE["JPEG"](im, op, filename)
+                elif filter == "JPXDecode":
+                    Image.SAVE["JPEG2000"](im, op, filename)
                 elif filter == "FlateDecode":
                     ImageFile._save(im, op, [("zip", (0, 0) + im.size, 0, im.mode)])
                 elif filter == "RunLengthDecode":
                     ImageFile._save(im, op, [("packbits", (0, 0) + im.size, 0, im.mode)])
                 else:
-                    raise ValueError(f"unsupported PDF filter ({filter})")
+                    msg = f"unsupported PDF filter ({filter})"
+                    raise ValueError(msg)
 
                 stream = op.getvalue()
                 if filter == "CCITTFaxDecode":
@@ -297,8 +310,8 @@ class PDFPlugin:
                     stream=stream,
                     Type=PdfParser.PdfName("XObject"),
                     Subtype=PdfParser.PdfName("Image"),
-                    Width=width,  # * 72.0 / resolution,
-                    Height=height,  # * 72.0 / resolution,
+                    Width=width,  # * 72.0 / x_resolution,
+                    Height=height,  # * 72.0 / y_resolution,
                     Filter=filter,
                     BitsPerComponent=bits,
                     Decode=decode,
@@ -318,8 +331,8 @@ class PDFPlugin:
                     MediaBox=[
                         0,
                         0,
-                        width * 72.0 / resolution,
-                        height * 72.0 / resolution,
+                        width * 72.0 / x_resolution,
+                        height * 72.0 / y_resolution,
                     ],
                     Contents=contents_refs[page_number],
                 )
@@ -328,8 +341,8 @@ class PDFPlugin:
                 # page contents
 
                 page_contents = b"q %f 0 0 %f 0 0 cm /image Do Q\n" % (
-                    width * 72.0 / resolution,
-                    height * 72.0 / resolution,
+                    width * 72.0 / x_resolution,
+                    height * 72.0 / y_resolution,
                 )
 
                 existing_pdf.write_obj(contents_refs[page_number], stream=page_contents)

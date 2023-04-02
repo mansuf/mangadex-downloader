@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Dependencies
+
+- Bump [Pillow](https://github.com/python-pillow/Pillow) to v9.5.0
+
 ## v2.8.3
 
 - Fixed `--no-track` is not working in version 2.8.x [#56](https://github.com/mansuf/mangadex-downloader/issues/56)
