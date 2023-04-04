@@ -155,6 +155,7 @@ See [CONTRIBUTING.md](https://github.com/mansuf/mangadex-downloader/blob/main/CO
 If you like this project, please consider donate to one of these websites:
 
 - [Sociabuzz](https://sociabuzz.com/mansuf/donate)
+- [Ko-fi](https://ko-fi.com/rahmanyusuf)
 - [Github Sponsor](https://github.com/sponsors/mansuf)
 
 Any donation amount will be appreciated 💖
