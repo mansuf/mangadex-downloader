@@ -22,7 +22,6 @@
 
 import threading
 import base64
-import json
 import binascii
 import logging
 import traceback
@@ -33,6 +32,7 @@ from datetime import datetime
 from .env import *
 from .config import *
 from ..errors import MangaDexException
+from .. import json_op
 
 log = logging.getLogger(__name__)
 
@@ -87,12 +87,12 @@ class AuthCacheManager:
 
     def _read(self):
         if not self.path.exists():
-            data = base64.b64encode(json.dumps(self.default).encode())
+            data = base64.b64encode(json_op.dumps(self.default).encode())
             self.path.write_bytes(data)
 
         data = self.path.read_bytes()
         decoded = base64.b64decode(data)
-        final_data = json.loads(decoded)
+        final_data = json_op.loads(decoded)
         self._parse_expired_time(final_data)
         return final_data
 
@@ -114,7 +114,7 @@ class AuthCacheManager:
 
     def _write(self, obj):
         self._serialize_exp_time(obj)
-        data = json.dumps(obj).encode()
+        data = json_op.dumps(obj).encode()
         self.path.write_bytes(base64.b64encode(data))
         self._parse_expired_time(obj)
         self._data = obj
@@ -139,7 +139,7 @@ class AuthCacheManager:
                     "Authentication cache file will be re-created and previous auth cached will be lost. " \
                     f"Recreating... (attempt: {attempt})"
                 )
-            except json.JSONDecodeError as e:
+            except json_op.JSONDecodeError as e:
                 err = e
                 # Failed to deserialize json
                 log.error(

@@ -22,12 +22,11 @@
 
 import threading
 import logging
-import json
 from requests_doh import get_all_dns_provider
 
 from .env import base_path, config_enabled, init
 from .utils import *
-from .. import format as fmt
+from .. import format as fmt, json_op
 from ..cover import default_cover_type, valid_cover_types
 from ..language import Language
 from ..errors import MangaDexException
@@ -173,7 +172,7 @@ class _Config:
         self._data = data
 
         if config_enabled and write_to_path:
-            self.path.write_text(json.dumps(data))
+            self.path.write_text(json_op.dumps(data))
 
     def _write_default(self):
         self._write(self.default_conf)
@@ -204,8 +203,8 @@ class _Config:
                     if not self.path.exists():
                         self._write_default()
 
-                    data = json.loads(self.path.read_bytes())
-                except json.JSONDecodeError as e:
+                    data = json_op.loads(self.path.read_bytes())
+                except json_op.JSONDecodeError as e:
                     err = e
                     log.error(
                         f'Failed to decode json data from config file = {self.path.resolve()} ' \

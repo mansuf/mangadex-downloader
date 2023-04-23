@@ -29,7 +29,7 @@ import time
 import logging
 import sys
 import threading
-from . import __version__, __repository__
+from . import __version__, __repository__, json_op
 from .errors import (
     AlreadyLoggedIn,
     HTTPException,
@@ -43,19 +43,11 @@ from .utils import QueueWorker
 from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
 
-try:
-    import orjson
-except ImportError:
-    have_orjson = False
-else:
-    have_orjson = True
-
-# Apply json loader into :class:`requests.Response`
 def loads_json(self):
-    return orjson.loads(self.content)
+    return json_op.loads(self.content)
 
-if have_orjson:
-    requests.Response.json = loads_json
+# Apply custom json loader into :class:`requests.Response`
+requests.Response.json = loads_json
 
 DEFAULT_RATE_LIMITED_TIMEOUT = 120
 

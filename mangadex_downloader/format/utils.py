@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 import hashlib
-import json
 import logging
 import os
 import re
@@ -32,7 +31,7 @@ from enum import Enum
 from .chinfo import get_chapter_info as get_chinfo
 from ..downloader import FileDownloader
 from ..utils import get_cover_art_url
-from .. import __repository__, __url_repository__
+from .. import __repository__, __url_repository__, json_op
 
 log = logging.getLogger(__name__)
 
@@ -251,7 +250,7 @@ def write_tachiyomi_details(manga, path):
         "6 = On hiatus"
     ]
     with open(path, 'w') as writer:
-        writer.write(json.dumps(data))
+        writer.write(json_op.dumps(data))
 
 class QueueWorkerReadMarker(threading.Thread):
     """A queue-based worker run in another thread for ChapterReadMarker

@@ -6,3 +6,4 @@ pyjwt
 requests-doh==0.3.0
 beautifulsoup4
 Pillow==9.5.0
+chardet
