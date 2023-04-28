@@ -21,6 +21,10 @@
 # SOFTWARE.
 
 import logging
+import re
+import os
+from pathlib import Path
+from .errors import UnhandledException
 from .utils import (
     comma_separated_text,
     create_directory,
@@ -29,6 +33,7 @@ from .utils import (
 )
 from .language import Language, get_language
 from .fetcher import *
+from .iterator import CoverArtIterator
 from .mdlist import MangaDexList
 from .manga import Manga
 from .chapter import Chapter
@@ -88,7 +93,7 @@ def download(
     log.info('Downloading cover manga %s' % manga.title)
 
     # Determine cover art quality
-    cover_url = get_cover_art_url(manga, manga.cover, cover)
+    cover_url = get_cover_art_url(manga.id, manga.cover, cover)
     
     # Download the cover art
     if cover == 'none':
@@ -254,3 +259,59 @@ def download_legacy_chapter(legacy_id, *args, **kwargs):
     new_id = get_legacy_id('chapter', legacy_id)
     manga = download_chapter(new_id, *args, **kwargs)
     return manga
+
+def download_cover_art_manga(url, replace=False):
+    # This is hack actually
+    # Since the covers URL are not including cover id
+    # (https://mangadex.org/covers/{manga_id}/{filename})
+    # We gonna find filename cover in list of covers
+    log.info("Getting manga id from cover url")
+    regex = r".+(mangadex\.org|uploads\.mangadex\.org)\/covers\/" \
+            r"(?P<manga_id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\/" \
+            r"(?P<filename>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}\.[a-zA-Z]{1,}.+)"
+    result = re.search(regex, url)
+    if result is None:
+        raise UnhandledException(f"Cannot find manga id in cover URL = {url}")
+
+    log.info("Finding matching cover from filename")
+    iterator = CoverArtIterator(result.group("manga_id"))
+    cover = None
+    filename = result.group("filename")
+
+    for cv in iterator:
+        if cv.file in filename:
+            cover = cv
+            break
+
+    if cover is None:
+        raise MangaDexException(f"Cannot find matching cover from filename {filename}")
+
+    manga = Manga(_id=cover.manga_id)
+    if cover.volume is None:
+        cover_name = "No volume cover"
+    else:
+        cover_name = f"Volume {cover.volume} cover"
+    log.info(f"Found {cover_name} from '{manga.title}', downloading...")
+
+    # Merge file ext with new filename
+    _, file_ext = filename.split(".", maxsplit=1)
+    filename = cover_name + "." +  file_ext
+    base_path = create_directory(manga.title, path=config.path)
+    path = base_path / filename
+    log.info(f"Download directory is set to {base_path}")
+
+    def handle_error(err, resp):
+        if not resp.ok:
+            filename = result.group("filename")
+            raise MangaDexException(f"Cover file '{filename}' is not found on MangaDex")
+
+    log.info(f"Downloading file '{filename}'")
+    fd = FileDownloader(
+        url=url,
+        file=path,
+        progress_bar=not config.no_progress_bar,
+        replace=replace
+    )
+    fd.on_error = handle_error
+    fd.download()
+    fd.cleanup()

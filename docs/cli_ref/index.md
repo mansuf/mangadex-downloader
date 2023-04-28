@@ -353,6 +353,7 @@ For more info, see {doc}`./auth_cache`
 ```{toctree}
 :maxdepth: 2
 
+cover
 file_command
 forums
 download_tracker

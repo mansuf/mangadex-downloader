@@ -249,7 +249,7 @@ def check_blacklisted_tags_manga(manga):
     else:
         return False, found_tags
 
-def get_cover_art_url(manga, cover, quality):
+def get_cover_art_url(manga_id, cover, quality):
     if quality == "none" or cover is None:
         return None
 
@@ -265,7 +265,7 @@ def get_cover_art_url(manga, cover, quality):
     
     return "{0}/covers/{1}/{2}{3}".format(
         uploads_url,
-        manga.id,
+        manga_id,
         cover.file,
         additional_file_ext
     )
@@ -278,6 +278,11 @@ def _build_url_regex(type):
         regex = r'mangadex\.org\/chapter\/(?P<id>[0-9]{1,})'
     elif type == 'manga':
         regex = r'mangadex\.org\/(title|manga)\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
+    elif type == 'cover':
+        regex = r'(?P<id>.+(mangadex\.org|uploads\.mangadex\.org)\/covers\/' \
+                r'([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}' \
+                r'-[a-z0-9]{12})\/([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]' \
+                r'{4}-[a-z0-9]{12})(\.[a-zA-Z]{1,})(\..+|))'
     else:
         regex = r"mangadex\.org\/%s\/(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})" % type
     return regex
@@ -287,7 +292,8 @@ valid_url_types = [
     "list",
     "chapter",
     "legacy-manga",
-    "legacy-chapter"
+    "legacy-chapter",
+    "cover",
 ]
 
 _urL_regexs = {i: _build_url_regex(i) for i in valid_url_types}

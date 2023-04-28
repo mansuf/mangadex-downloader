@@ -26,8 +26,7 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from typing import Union
 
-from . import __repository__, __url_repository__
-from .errors import InvalidURL, MangaDexException
+from .errors import InvalidURL, MangaDexException, UnhandledException
 from .network import Net, forums_url
 from .utils import find_md_urls
 
@@ -131,9 +130,8 @@ def get_thread_title_owner_and_post_owner(parser=None, thread_url=None, post_id=
     thread_owner = parser.find("a", attrs={"class": ["username"], "data-xf-init": "member-tooltip"})
     if thread_owner is None:
         # Hmmmm, there is no thread owner in a forum thread ? sus
-        raise MangaDexException(
-            f"No thread owner in forum thread {thread_url}. " \
-            f"Please report this issue to {__url_repository__}/{__repository__}/issues"
+        raise UnhandledException(
+            f"No thread owner in forum thread {thread_url}"
         )
     thread_owner = thread_owner.get_text(strip=True)
 
@@ -141,9 +139,8 @@ def get_thread_title_owner_and_post_owner(parser=None, thread_url=None, post_id=
     thread_title = parser.find("h1", attrs={"class": ["p-title-value"]})
     if thread_title is None:
         # No thread title ? VERY SUS
-        raise MangaDexException(
-            f"No thread title in forum thread {thread_url}. " \
-            f"Please report this issue to {__url_repository__}/{__repository__}/issues"
+        raise UnhandledException(
+            f"No thread title in forum thread {thread_url}"
         )
     thread_title = thread_title.get_text(strip=True)
 

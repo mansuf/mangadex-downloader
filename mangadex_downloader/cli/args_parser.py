@@ -456,6 +456,16 @@ def get_args(argv):
     seasonal = urls.startswith('seasonal')
     thread = is_forum_thread
 
+    cover_art_512px = None
+    cover_art_256px = None
+    cover_art = None
+
+    # Lifehack
+    if urls.startswith('cover'):
+        cover_art_512px = urls.startswith('cover-512px')
+        cover_art_256px = urls.startswith('cover-256px')
+        cover_art = not any([cover_art_256px, cover_art_512px])
+
     # TODO: Add extra checking for -pipe and --search options
 
     setattr(args, "URL", urls)
@@ -471,5 +481,8 @@ def get_args(argv):
     setattr(args, 'file', file)
     setattr(args, 'seasonal', seasonal)
     setattr(args, 'thread', thread)
+    setattr(args, 'cover_art', cover_art)
+    setattr(args, 'cover_art_512px', cover_art_512px)
+    setattr(args, 'cover_art_256px', cover_art_256px)
 
     return parser, args
