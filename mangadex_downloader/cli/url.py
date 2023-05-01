@@ -171,7 +171,8 @@ class URL:
         )
 
 def build_URL_from_type(_type, _id):
-    return URL(funcs[_type], _id)
+    parsed_id = get_uuid(_id)
+    return URL(funcs[_type], parsed_id)
 
 def smart_select_url(url):
     """Wisely determine type url. The process is checking given url one by one"""

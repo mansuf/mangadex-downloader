@@ -9,6 +9,7 @@
 ### Fix bugs
 
 - Fix error message is not showing when chapters with specified langauge is not found
+- Fixed `--type` are not respecting full URL
 
 ### Dependencies
 
