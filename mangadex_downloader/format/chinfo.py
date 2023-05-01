@@ -92,7 +92,7 @@ def draw_multiline_text(font, image, text, width_pos, height_pos, split_size):
     return draw.multiline_textbbox((width_pos, height_pos), new_text, font, align="left")
 
 def get_chapter_info(manga, cover, chapter):
-    cover_url = get_cover_art_url(manga, cover, "original")
+    cover_url = get_cover_art_url(manga.id, cover, "original")
     r = Net.mangadex.get(cover_url, stream=True)
     image = Image.open(r.raw)
     image = image.convert("RGBA")

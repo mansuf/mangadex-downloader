@@ -1,10 +1,13 @@
 # Usage
 
-## Download manga, chapter or list
+## Download manga, cover manga, chapter or list
 
 ```shell
 # Manga
 mangadex-dl "https://mangadex.org/title/..."
+
+# Cover manga
+mangadex-dl "https://mangadex.org/covers/..."
 
 # Chapter
 mangadex-dl "https://mangadex.org/chapter/..."

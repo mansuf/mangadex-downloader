@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import sys
-
+import re
 import requests
 from .utils import (
     Paginator, 
@@ -39,7 +39,8 @@ from ..iterator import (
     IteratorUserLibraryManga,
     IteratorUserList,
     iter_random_manga,
-    ForumThreadMangaDexURLIterator
+    ForumThreadMangaDexURLIterator,
+    CoverArtIterator
 )
 from ..forums import (
     get_thread_title_owner_and_post_owner,
@@ -48,12 +49,13 @@ from ..forums import (
 )
 from .. import __repository__
 from ..utils import input_handle, validate_url, get_cover_art_url
-from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
+from ..errors import InvalidURL, MangaDexException, PillowNotInstalled, UnhandledException
 from ..network import Net
 from ..manga import Manga
 from ..chapter import Chapter
 from ..mdlist import MangaDexList
 from ..group import Group
+from ..cover import CoverArt, cover_qualities
 
 def preview_chapter(chapter: Chapter):
     try:
@@ -73,19 +75,19 @@ def preview_chapter(chapter: Chapter):
 
     pass
 
-def preview_cover_manga(manga):
+def preview_cover_manga(manga_id, manga_cover, manga_title=None, quality="original"):
     try:
         from PIL import Image
     except ImportError:
         raise PillowNotInstalled("Pillow is not installed") from None
 
-    cover_art_url = get_cover_art_url(manga, manga.cover, "original")
+    cover_art_url = get_cover_art_url(manga_id, manga_cover, quality)
     r = Net.mangadex.get(cover_art_url, stream=True)
     im = Image.open(r.raw)
 
     print("\nCLOSE THE IMAGE PREVIEW TO CONTINUE\n")
 
-    im.show(manga.title)
+    im.show(manga_title)
     im.close()
 
 def preview_list(mdlist):
@@ -277,7 +279,7 @@ class MangaCommand(MangaDexCommand):
         return True
 
     def on_preview(self, item):
-        preview_cover_manga(item)
+        preview_cover_manga(item.id, item.cover, item.title)
 
 class MDListCommand(MangaDexCommand):
     """Command specialized for MangaDex list related"""
@@ -540,7 +542,7 @@ class ForumThreadCommand(MangaDexCommand):
 
     def on_preview(self, item):
         if isinstance(item, Manga):
-            preview_cover_manga(item)
+            preview_cover_manga(item.id, item.cover, item.title)
         elif isinstance(item, Chapter):
             preview_chapter(item)
         elif isinstance(item, MangaDexList):
@@ -576,6 +578,90 @@ class ForumThreadCommand(MangaDexCommand):
     def on_empty_error(self):
         self.args_parser.error("No MangaDex urls found in the forum thread")
 
+# The reason i made this to get full URL from cover art iterator rather than just the id
+# (The command only accept manga id)
+# Because for some reason covers structure in MangaDex is complicated (in my opinion)
+# I cannot retrieve just the id, it would become questions for the application
+# - What's the manga id ?
+# - What's the quality ?
+# - What's the cover filename ?
+# =======================================
+# Q: "Then why you don't fetch the cover art id and retrieve information from there ?"
+# A: See the questions from above.
+# - The application don't know what the user want for quality of the cover
+# - The application don't know what the manga id, because each commands only yield 1 result 
+# (in this case cover id)
+# Technically, it's possible to rewrite the commands to yield more than 1 results
+# but it would take too much time and efforts (besides this is just a hobby project)
+class CoverArtURLIterator(CoverArtIterator):
+    def __init__(self, manga_id, quality="original"):
+        super().__init__(manga_id)
+
+        self.quality = quality
+
+    def __next__(self):
+        cover = super().__next__()
+        return get_cover_art_url(cover.manga_id, cover, self.quality)
+
+class CoverArtCommand(MangaDexCommand):
+    def preview(self):
+        return True
+
+    def on_preview(self, item: CoverArt):
+        preview_cover_manga(item.manga_id, item, quality=self.quality)
+
+    def __init__(self, parser, args, input_text):
+        cover, manga_id = get_key_value(input_text, sep=":")
+
+        regex = r".+(mangadex\.org|uploads\.mangadex\.org)\/covers\/ " \
+                r"(?P<manga_id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\/"
+        result = re.search(regex, manga_id)
+        if result is not None:
+            manga_id = result.group("manga_id")
+
+        manga_id = validate_url(manga_id)
+        
+        # Determine quality cover
+        try:
+            _, quality = cover.split("-", maxsplit=1)
+        except ValueError:
+            # not enough values to unpack
+            quality = "original"
+
+        if quality not in cover_qualities:
+            parser.error(f"{quality} is not valid quality covers")
+
+        manga = Manga(_id=manga_id)
+        iterator = CoverArtURLIterator(manga_id, quality)
+        text = f"List of covers art from manga '{manga.title}' in {quality} quality"
+
+        super().__init__(
+            parser,
+            args,
+            iterator,
+            text,
+        )
+
+        self.manga_id = manga_id
+        self.quality = quality
+        self.limit = 10
+
+    def prompt(self, input_pos=None):
+        if input_pos is None:
+            # We don't wanna display full URL as prompt choices
+            iterator = CoverArtIterator(self.manga_id)
+            self.paginator = Paginator(iterator, self.limit)
+        
+        result = super().prompt(input_pos)
+
+        if input_pos is None:
+            # Because "CoverArtIterator" are returning "CoverArt" object
+            # We need convert it to full cover URL
+            cover = CoverArt(cover_id=result[0])
+            return [get_cover_art_url(cover.manga_id, cover, self.quality)]
+
+        return result
+
 registered_commands = {
     "search": SearchMangaCommand,
     "fetch_library_manga": MangaLibraryCommand,
@@ -584,5 +670,8 @@ registered_commands = {
     "random": RandomMangaCommand,
     "fetch_group": GroupMangaCommand,
     "seasonal": SeasonalMangaCommand,
-    "thread": ForumThreadCommand
+    "thread": ForumThreadCommand,
+    "cover_art": CoverArtCommand,
+    "cover_art_512px": CoverArtCommand,
+    "cover_art_256px": CoverArtCommand
 }

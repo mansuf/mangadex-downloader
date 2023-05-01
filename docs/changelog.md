@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+### New features
+
+- Added ability to download covers manga [#60](https://github.com/mansuf/mangadex-downloader/issues/60)
+
 ### Fix bugs
 
 - Fix error message is not showing when chapters with specified langauge is not found

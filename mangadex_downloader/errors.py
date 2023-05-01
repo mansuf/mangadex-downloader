@@ -20,6 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from . import __repository__, __url_repository__
+
+class UnhandledException(Exception):
+    """Some errors that the application are unable to handle"""
+    def __init__(self, msg):
+        super().__init__(str(msg) + 
+                        f". Please report this issue to {__url_repository__}/{__repository__}/issues")
+
 class MangaDexException(Exception):
     """Base exception for MangaDex errors"""
     pass

@@ -24,12 +24,13 @@ from .fetcher import get_cover_art
 from .language import get_language
 from .utils import convert_int_or_float
 
-valid_cover_types = [
+cover_qualities = [
     "original",
     "512px",
     "256px",
-    "none"
 ]
+
+valid_cover_types = cover_qualities + ["none"]
 
 default_cover_type = "original"
 
@@ -51,6 +52,23 @@ class CoverArt:
 
         # Locale
         self.locale = get_language(attr["locale"])
+
+        # Manga and user id
+        self.manga_id = None
+        self.user_id = None
+        try:
+            rels = self.data["relationships"]
+            for rel in rels:
+                if rel["type"] == "manga":
+                    self.manga_id = rel["id"]
+                elif rel["type"] == "user":
+                    self.user_id = rel["id"]
+        except KeyError:
+            # There is no relationships in API data
+            pass
+
+    def __str__(self) -> str:
+        return f"Cover volume {self.volume}"
 
     @property
     def volume(self):

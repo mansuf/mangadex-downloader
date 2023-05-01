@@ -80,7 +80,7 @@ def get_volume_cover(manga, volume, path, replace, download=True):
             )
         cover = manga.cover
 
-    url = get_cover_art_url(manga, cover, "original")
+    url = get_cover_art_url(manga.id, cover, "original")
 
     if download:
         fd = FileDownloader(

@@ -41,7 +41,8 @@ from ..main import (
     download_chapter as dl_chapter,
     download_list as dl_list,
     download_legacy_chapter as dl_legacy_chapter,
-    download_legacy_manga as dl_legacy_manga
+    download_legacy_manga as dl_legacy_manga,
+    download_cover_art_manga as dl_cover_art
 )
 
 log = logging.getLogger(__name__)
@@ -143,6 +144,9 @@ def download_list(url, args):
         args.replace,
         args.group,
     )
+
+def download_cover(url, args):
+    dl_cover_art(url, args.replace)
 
 # Legacy support
 download_legacy_manga = lambda url, args: download_manga(url, args, True)
