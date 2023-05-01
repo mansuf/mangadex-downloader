@@ -87,7 +87,7 @@ class AuthCacheManager:
 
     def _read(self):
         if not self.path.exists():
-            data = base64.b64encode(json_op.dumps(self.default).encode())
+            data = base64.b64encode(json_op.dumps(self.default, convert_str=False))
             self.path.write_bytes(data)
 
         data = self.path.read_bytes()
@@ -114,7 +114,7 @@ class AuthCacheManager:
 
     def _write(self, obj):
         self._serialize_exp_time(obj)
-        data = json_op.dumps(obj).encode()
+        data = json_op.dumps(obj, convert_str=False)
         self.path.write_bytes(base64.b64encode(data))
         self._parse_expired_time(obj)
         self._data = obj
