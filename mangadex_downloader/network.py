@@ -283,7 +283,7 @@ class requestsMangaDexSession(ModifiedSession):
         self._login_cache.set_session_token(session_token)
 
     def _is_token_cached(self):
-        return bool(self._login_cache.get_session_token or self._login_cache.get_refresh_token())
+        return bool(self._login_cache.get_session_token() or self._login_cache.get_refresh_token())
 
     def _reset_token(self):
         self._refresh_token = None
