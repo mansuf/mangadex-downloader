@@ -38,7 +38,7 @@ if not, then it will download from public and private list from logged in user.
 Type `followed-list` to download followed MangaDex list from logged in user
 ```
 
-```{option} --type -t manga|list|chapter|legacy-manga|legacy-chapter
+```{option} --type -t manga|cover|list|chapter|legacy-manga|legacy-chapter
 Override type MangaDex url. By default, it auto detect given url
 ```
 
