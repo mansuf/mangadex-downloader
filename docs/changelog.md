@@ -18,6 +18,10 @@
 - Bump [orjson](https://github.com/ijl/orjson) to v3.8.9
 - Bump [lxml](https://github.com/lxml/lxml) to v4.9.2
 
+### Deprecated
+
+- Removed `--no-chapter-info` as it's deprecated from v2.6.0
+
 ## v2.8.3
 
 - Fixed `--no-track` is not working in version 2.8.x [#56](https://github.com/mansuf/mangadex-downloader/issues/56)

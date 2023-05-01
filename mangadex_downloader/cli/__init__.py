@@ -21,8 +21,6 @@ _deprecated_opts = {
     # I know this isn't deprecated
     # But i need the warning feature, hehe
     "range": "--range is disabled, because it's broken and need to rework",
-    "no_chapter_info": "--no-chapter-info is deprecated and will be removed in v2.9.0. " \
-                       "Please use --use-chapter-cover to enable chapter info (cover) creation"
 }
 
 def check_deprecated_options(log, args):

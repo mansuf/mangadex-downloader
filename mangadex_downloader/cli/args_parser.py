@@ -224,16 +224,6 @@ def get_args(argv):
         default=config.use_chapter_title
     )
     chap_group.add_argument(
-        '--no-chapter-info',
-        '-nci',
-        action='store_true',
-        help="[Deprecated] Use --use-chapter-cover to enable creation of chapter info. " \
-             "Previously, this option is used to disable creation of chapter info. " \
-             "Because it was automatically enabled when you downloading with any single or volume formats. " \
-             "Now, by default it was disabled. You must use --use-chapter-cover to enable " \
-             "creation of chapter info."
-    )
-    chap_group.add_argument(
         '--range',
         '-rg',
         help='[DISABLED] A range pattern to download specific chapters'
