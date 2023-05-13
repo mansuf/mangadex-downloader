@@ -249,8 +249,8 @@ def write_tachiyomi_details(manga, path):
         "5 = Cancelled",
         "6 = On hiatus"
     ]
-    with open(path, 'w') as writer:
-        writer.write(json_op.dumps(data))
+    with open(path, 'wb') as writer:
+        writer.write(json_op.dumps(data, convert_str=False))
 
 class QueueWorkerReadMarker(threading.Thread):
     """A queue-based worker run in another thread for ChapterReadMarker
