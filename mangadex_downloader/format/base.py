@@ -490,6 +490,8 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         # Steps for new (not downloaded) volumes:
         # - Download all of them, yes
 
+        self.write_tachiyomi_info()
+
         cache = self.get_fmt_volume_cache(manga)
 
         # There is not existing (downloaded) volumes
@@ -592,6 +594,8 @@ class ConvertedSingleFormat(BaseConvertedFormat):
 
         # Steps for new (not downloaded) file (single format):
         # - Download all of them, yes
+
+        self.write_tachiyomi_info()
 
         cache, total, merged_name = result_cache
 

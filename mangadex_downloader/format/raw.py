@@ -110,6 +110,7 @@ class RawVolume(BaseFormat):
         manga = self.manga
         tracker = manga.tracker
         file_info = None
+        self.write_tachiyomi_info()
 
         # Recreate DownloadTracker JSON file if --replace is present
         if self.replace:
@@ -227,6 +228,7 @@ class RawSingle(BaseFormat):
         file_info = None
         success_images = {}
         failed_images = []
+        self.write_tachiyomi_info()
 
         # Recreate DownloadTracker JSON file if --replace is present
         if self.replace:
