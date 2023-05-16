@@ -1,5 +1,12 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed `--write-tachiyomi-info` is not working when system locale is set to other language (not English)
+[#62](https://github.com/mansuf/mangadex-downloader/issues/62)
+
 ## v2.9.0
 
 ### New features
