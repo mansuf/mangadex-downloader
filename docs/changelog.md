@@ -6,6 +6,8 @@
 
 - Fixed `--write-tachiyomi-info` is not working when system locale is set to other language (not English)
 [#62](https://github.com/mansuf/mangadex-downloader/issues/62)
+- Fixed `--write-tachiyomi-info` is not working when any single or volume formats is used
+[#63](https://github.com/mansuf/mangadex-downloader/issues/63)
 
 ## v2.9.0
 
