@@ -187,6 +187,9 @@ class PDFPlugin:
 
         page_number = 0
         for im_ref in ims:
+            # The reason i did this is to prevent error in Unix-based OS
+            # If the application is opening too much files,
+            # the OS will throw an error "OSError: Too many open files"
             im = im_ref() if isinstance(im_ref, _PageRef) else im_ref
 
             truncated = self.check_truncated(im)
