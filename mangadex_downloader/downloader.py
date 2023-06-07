@@ -28,6 +28,7 @@ import re
 from .utils import delete_file
 from .network import Net
 from .errors import HTTPException
+from .progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
 
@@ -67,30 +68,16 @@ class FileDownloader:
 
     def _build_progres_bar(self, initial_size, file_sizes, desc='file_sizes'):
         if self.progress_bar:
-            kwargs = {
-                'initial': initial_size or 0,
-                'total': file_sizes,
-                'unit': 'B',
-                'unit_scale': True
-            }
+            pbm.set_file_sizes_initial(initial_size or 0)
+            pbm.set_file_sizes_total(file_sizes)
+            self._tqdm = pbm.get_file_sizes_pb(recreate=not pbm.stacked)
 
-            # Determine ncols progress bar
-            length = len(desc)
-            if length < 20:
-                kwargs.setdefault('ncols', 80)
-            elif length > 20 and length < 50:
-                kwargs.setdefault('dynamic_ncols', True)
-            # Length desc is more than 40 or 50
-            elif length >= 50:
-                desc = desc[:20] + '...'
-                kwargs.setdefault('ncols', 90)
-
-            kwargs.setdefault('desc', desc)
-
-            self._tqdm = tqdm.tqdm(**kwargs)
+            # We're gonna reset it
+            if pbm.stacked:
+                self._tqdm.reset()
 
     def _update_progress_bar(self, n):
-        if self._tqdm:
+        if self._tqdm is not None:
             self._tqdm.update(n)
 
     def _get_file_size(self, file):
@@ -181,7 +168,7 @@ class FileDownloader:
             accept_range = resp.headers.get('accept-ranges')
             if accept_range is None and not cr_match and os.path.exists(self.file):
                 # Server didn't support `Range` header
-                log.warning(
+                pbm.logger.warning(
                     f"Server didn't support resume download, deleting '{os.path.basename(self.file)}'"
                 )
                 delete_file(self.file)
@@ -197,7 +184,7 @@ class FileDownloader:
             real_file_sizes = self._get_file_size(self.real_file)
             if real_file_sizes:
                 if file_sizes == real_file_sizes and not self.replace:
-                    log.info('File exist and replace is False, cancelling download...')
+                    pbm.logger.info('File exist and replace is False, cancelling download...')
                     self.on_finish()
                     return True
 
@@ -221,7 +208,7 @@ class FileDownloader:
             # Download is not finished but marked as "finished"
             if current_size < file_sizes:
                 self.cleanup()
-                log.warning(
+                pbm.logger.warning(
                     f"File download is incomplete, restarting download... (attempt: {attempt})"
                 )
                 continue
@@ -255,8 +242,8 @@ class FileDownloader:
         delete_file(self.file)
 
     def cleanup(self):
-        # Close the progress bar
-        if self._tqdm:
+        # Close the progress bar (only if the progress bar is not stacked)
+        if self._tqdm is not None and not pbm.stacked:
             self._tqdm.close()
 
 class ChapterPageDownloader(FileDownloader):
@@ -307,7 +294,7 @@ class ChapterPageDownloader(FileDownloader):
         # domain that not from mangadex.network are not allowed to report
         # so skip it
         if 'uploads.mangadex.org' in self.url:
-            log.debug('Endpoint are not from mangadex.network, skipping report')
+            pbm.logger.debug('Endpoint are not from mangadex.network, skipping report')
             return
 
         # Check if cached

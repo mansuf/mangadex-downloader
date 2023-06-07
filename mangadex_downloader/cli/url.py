@@ -25,7 +25,7 @@ import os
 import re
 import requests
 
-from .utils import get_key_value, check_group_all
+from .utils import check_group_all
 from .command import registered_commands
 from ..config import config
 from ..network import Net
@@ -34,7 +34,8 @@ from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, Invalid
 from ..utils import (
     validate_url as get_uuid,
     find_md_urls,
-    valid_url_types
+    valid_url_types,
+    get_key_value
 )
 from ..main import (
     download as dl_manga,

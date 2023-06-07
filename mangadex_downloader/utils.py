@@ -62,7 +62,7 @@ def validate_group_url(url):
     else:
         return "all"
 
-def create_directory(name, path=None):
+def create_directory(name, path=None) -> Path:
     """Create directory with ability to sanitize name to prevent error"""
     base_path = Path(".")
 
@@ -197,9 +197,12 @@ class QueueWorker(threading.Thread):
         
         return fut.result()
 
-    def shutdown(self):
+    def shutdown(self, blocking=False):
         """Shutdown the thread by passing ``None`` value to queue"""
         self._queue.put(None)
+
+        if blocking:
+            self.join()
 
     def run(self):
         while True:
@@ -307,3 +310,9 @@ def find_md_urls(text):
         
         id = result.group("id")
         return id, type
+
+def get_key_value(text, sep='='):
+    splitted = text.strip().split(sep, maxsplit=1)
+    key = splitted[0].lower()
+    value = "".join(splitted[1:])
+    return key, value

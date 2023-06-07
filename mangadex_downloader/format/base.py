@@ -22,7 +22,9 @@
 
 import logging
 import os
+import shutil
 from .utils import (
+    NumberWithLeadingZeros,
     verify_sha256,
     write_tachiyomi_details,
     get_md_file_hash,
@@ -30,7 +32,8 @@ from .utils import (
     QueueWorkerReadMarker
 )
 from ..downloader import ChapterPageDownloader
-from ..utils import QueueWorker, delete_file
+from ..utils import QueueWorker, create_directory, delete_file
+from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
 
@@ -61,10 +64,22 @@ class BaseFormat:
             self.chapter_read_marker.net.mangadex.check_login()
         ):
             self.chapter_read_marker.start()
+
+        self.worker = None
+
+        if config.progress_bar_layout == "stacked":
+            pbm.stacked = True
         
     def cleanup(self):
         # Shutdown some worker threads
         self.chapter_read_marker.shutdown(blocking=True)
+
+        if self.worker:
+            self.worker.shutdown(blocking=True)
+
+        if pbm.stacked:
+            pbm.close_all()
+            pbm.stacked = False
 
     def get_images(self, chap_class, images, path, count):
         imgs = []
@@ -72,11 +87,18 @@ class BaseFormat:
         chap_name = chap_class.get_name()
 
         # Fetching chapter images
-        log.info('Getting %s from chapter %s' % (
+        pbm.logger.info('Getting %s from chapter %s' % (
             'compressed images' if self.compress_img else 'images',
             chap
         ))
         images.fetch()
+
+        total = 0
+        for _ in images.iter():
+            total += 1
+
+        pbm.set_pages_total(total)
+        pages_pb = pbm.get_pages_pb()
 
         while True:
             error = False
@@ -102,18 +124,19 @@ class BaseFormat:
                 # If file still in intact and same as the server
                 # Continue to download the others
                 if verified and not self.replace:
-                    log.debug(f"Page {page} ({img_name}) is exist and verified, cancelling download...")
+                    pbm.logger.debug(f"Page {page} ({img_name}) is exist and verified, cancelling download...")
                     count.increase()
                     imgs.append(img_path)
+                    pages_pb.update(1)
                     continue
                 elif verified == False and not self.replace:
                     # File is not same server, probably modified
-                    log.warning(
+                    pbm.logger.warning(
                         f"Page {page} ({img_name}) is exist but failed to verify (hash is not matching), " \
                         "re-downloading..."
                     )
                 
-                log.info('Downloading %s page %s' % (
+                pbm.logger.info('Downloading %s page %s' % (
                     chap_name,
                     page
                 ))
@@ -130,17 +153,19 @@ class BaseFormat:
                 # One of MangaDex network are having problem
                 # Fetch the new one, and start re-downloading
                 if not success:
-                    log.error('One of MangaDex network are having problem, re-fetching the images...')
-                    log.info('Getting %s from chapter %s' % (
+                    pbm.logger.error('One of MangaDex network are having problem, re-fetching the images...')
+                    pbm.logger.info('Getting %s from chapter %s' % (
                         'compressed images' if self.compress_img else 'images',
                         chap
                     ))
                     error = True
                     images.fetch()
+                    pages_pb.reset()
                     break
                 else:
                     imgs.append(img_path)
                     count.increase()
+                    pages_pb.update(1)
                     continue
             
             if not error:
@@ -204,23 +229,23 @@ class BaseFormat:
         
         return total
 
+    def append_cache_volumes(self, cache, volume, item):
+        try:
+            data = cache[volume]
+        except KeyError:
+            cache[volume] = [item]
+        else:
+            data.append(item)
+
     def get_fmt_volume_cache(self, manga):
         """Get all cached volumes"""
         # Sorting volumes
         log.info("Preparing to download")
         cache = {}
-        def append_cache(volume, item):
-            try:
-                data = cache[volume]
-            except KeyError:
-                cache[volume] = [item]
-            else:
-                data.append(item)
-
         kwargs_iter = self.kwargs_iter.copy()
         kwargs_iter['log_cache'] = True
         for chap_class, chap_images in manga.chapters.iter(**kwargs_iter):
-            append_cache(chap_class.volume, [chap_class, chap_images])
+            self.append_cache_volumes(cache, chap_class.volume, [chap_class, chap_images])
         
         return cache
 
@@ -307,9 +332,8 @@ class BaseFormat:
         # corrupted files.
         # The purpose of this function is to prevent interrupt from CTRL+C
         # Let the job done safely and then shutdown gracefully
-        worker = QueueWorker()
-        worker.start()
-        return worker
+        self.worker = QueueWorker()
+        self.worker.start()
 
     def main(self):
         """Execute main format
@@ -333,6 +357,9 @@ class BaseConvertedFormat(BaseFormat):
         # Each formats must implement this
         # to check if optional packages is installed or not
         self.check_dependecies()
+
+        self.total_volumes = 0
+        self.total_chapters_per_volume = 0
 
         super().__init__(*args, **kwargs)
 
@@ -383,9 +410,75 @@ class BaseConvertedFormat(BaseFormat):
         raise NotImplementedError
 
 class ConvertedChaptersFormat(BaseConvertedFormat):
+    def on_prepare(self, file_path, chapter, images):
+        """This function is called after creating a directory to store downloaded images"""
+        pass
+
+    def on_finish(self, file_path, chapter, images):
+        """"This function is called after download is finished"""
+        pass
+
+    def download_chapters(self, data):
+        volumes = {}
+        for chap_class, images in data:
+            self.append_cache_volumes(volumes, chap_class.volume, (chap_class, images))
+
+        pbm.set_volumes_total(len(volumes.keys()))
+        # Begin downloading
+        for _, chapters in volumes.items():
+            pbm.set_chapters_total(len(chapters))
+            
+            chapters_pb = pbm.get_chapters_pb()
+            volumes_pb = pbm.get_volumes_pb()
+
+            for index, (chap_class, images) in enumerate(chapters, start=1):
+                chap_name = chap_class.get_simplified_name()
+
+                file_path = self.path / (chap_name + self.file_ext)
+
+                # Check if file is exist or not
+                if file_path.exists():
+                    if self.replace:
+                        delete_file(file_path)
+                    elif self.check_fi_completed(chap_name):
+                        pbm.logger.info(f"'{file_path.name}' is exist and replace is False, cancelling download...")
+
+                        # Store file_info tracker for existing chapter
+                        self.add_fi(chap_name, chap_class.id, file_path)
+
+                        chapters_pb.update(1)
+                        continue
+
+                chapter_path = create_directory(chap_name, self.path)
+
+                self.on_prepare(file_path, chap_class, images)
+
+                count = NumberWithLeadingZeros(chap_class.pages)
+                images = self.get_images(chap_class, images, chapter_path, count)
+                pbm.get_pages_pb().reset()
+
+                pbm.set_convert_total(len(images))
+                chapters_pb.update(1)
+
+                self.on_finish(file_path, chap_class, images)
+
+                if index != len(chapters) and pbm.stacked:
+                    pbm.get_convert_pb().reset()
+                elif not pbm.stacked:
+                    pbm.get_convert_pb().close()
+
+                # Remove original chapter folder
+                shutil.rmtree(chapter_path, ignore_errors=True)
+
+                self.add_fi(chap_name, chap_class.id, file_path)
+
+            chapters_pb.reset()
+            volumes_pb.update(1)
+
     def main(self):
+        self.create_worker()
+
         manga = self.manga
-        worker = self.create_worker()
         tracker = manga.tracker
 
         # Recreate DownloadTracker JSON file if --replace is present
@@ -409,9 +502,9 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         # There is no existing (downloaded) chapters
         # Download all of them
         if tracker.disabled or tracker.empty:
-            self.download_chapters(worker, cache)
+            self.download_chapters(cache)
 
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
@@ -427,6 +520,8 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
             # There is new chapters
             chapters.append((chap_class, images))
 
+        pbm.logger.info(f"There is {len(chapters)} new chapters, downloading...")
+
         # If somehow there is downloaded chapters
         # and it's not in the tracker
         # it's sus, re-download them
@@ -437,11 +532,12 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
             delete_file(path)
 
         # Download the new chapters first 
-        self.download_chapters(worker, chapters)
+        self.download_chapters(chapters)
 
         chapters = []
 
         # Verify downloaded chapters
+        pbm.logger.info("Verifying downloaded chapters...")
         for chap_class, images in cache:
             chap_name = chap_class.get_simplified_name() + self.file_ext
             
@@ -449,33 +545,105 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
             passed = verify_sha256(fi.hash, (self.path / chap_name))
             if not passed:
-                log.warning(f"'{chap_name}' is missing or unverified (hash is not matching)")
+                pbm.logger.warning(f"'{chap_name}' is missing or unverified (hash is not matching)")
                 # Either missing file or hash is not matching
                 chapters.append((chap_class, images))
                 delete_file(self.path / chap_name)
             else:
-                log.info(f"'{chap_name}' is verified and no need to re-download")
+                pbm.logger.info(f"'{chap_name}' is verified and no need to re-download")
                 self.mark_read_chapter(chap_class)
 
         if chapters:
-            log.warning(
+            pbm.logger.warning(
                 f"Found {len(chapters)} missing or unverified chapters, " \
                 f"re-downloading {len(chapters)} chapters..."
             )
 
         # Download missing or unverified chapters
-        self.download_chapters(worker, chapters)
+        self.download_chapters(chapters)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
-
-        log.info("Waiting for chapter read marker to finish")
+        pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()
 
 class ConvertedVolumesFormat(BaseConvertedFormat):
+    def on_prepare(self, file_path, volume, count):
+        """This function is called after creating a directory to store downloaded images"""
+        pass
+
+    def on_iter_chapter(self, file_path, chapter, count):
+        """This function is called when iterating chapters"""
+        pass
+
+    def on_received_images(self, file_path, chapter, images):
+        """This function is called when format has successfully received images"""
+        pass
+
+    def on_finish(self, file_path, volume, images):
+        """"This function is called after download is finished"""
+        pass
+
+    def download_volumes(self, volumes):
+        # Begin downloading
+        pbm.set_volumes_total(len(volumes.keys()))        
+        for volume, chapters in volumes.items():
+            pbm.set_chapters_total(len(chapters))
+            total = self.get_total_pages_for_volume_fmt(chapters)
+            images = []
+
+            chapters_pb = pbm.get_chapters_pb()
+            volumes_pb = pbm.get_volumes_pb()
+
+            count = NumberWithLeadingZeros(total)
+
+            volume_name = self.get_volume_name(volume)
+            file_path = self.path / (volume_name + self.file_ext)
+
+            # Check if exist or not
+            if file_path.exists():
+                
+                if self.replace:
+                    delete_file(file_path)
+                elif self.check_fi_completed(volume_name):
+                    pbm.logger.info(f"{file_path.name} is exist and replace is False, cancelling download...")
+
+                    # Store file_info tracker for existing volume
+                    self.add_fi(volume_name, None, file_path, chapters)
+                    continue
+
+            # Create volume folder
+            volume_path = create_directory(volume_name, self.path)
+
+            self.on_prepare(file_path, volume, count)
+
+            for chap_class, chap_images in chapters:
+                self.on_iter_chapter(file_path, chap_class, count)
+
+                ims = self.get_images(chap_class, chap_images, volume_path, count)
+                images.extend(ims)
+
+                self.on_received_images(file_path, chap_class, ims)
+                chapters_pb.update(1)
+                pbm.get_pages_pb().reset()
+
+            chapters_pb.reset()
+            pbm.set_convert_total(len(images))
+            self.on_finish(file_path, volume, images)
+                
+            # Remove original chapter folder
+            shutil.rmtree(volume_path, ignore_errors=True)
+
+            self.add_fi(volume_name, None, file_path, chapters)
+            volumes_pb.update(1)
+
+        if pbm.stacked:
+            pbm.get_convert_pb().reset()
+        else:
+            pbm.get_convert_pb().close()
+
     def main(self):
+        self.create_worker()
+
         manga = self.manga
-        worker = self.create_worker()
         tracker = manga.tracker
 
         # Recreate DownloadTracker JSON file if --replace is present
@@ -497,9 +665,9 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         # There is not existing (downloaded) volumes
         # Download all of them
         if tracker.disabled or tracker.empty:
-            self.download_volumes(worker, cache)
+            self.download_volumes(cache)
 
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
@@ -531,7 +699,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
             delete_file(path)
         
         # Re-download the volumes
-        self.download_volumes(worker, volumes)
+        self.download_volumes(volumes)
 
         volumes = {}
 
@@ -544,27 +712,24 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
             passed = verify_sha256(fi.hash, path)
             if not passed:
-                log.warning(f"'{volume_name}' is missing or unverified (hash is not matching)")
+                pbm.logger.warning(f"'{volume_name}' is missing or unverified (hash is not matching)")
                 # Either missing file or hash is not matching
                 volumes[volume] = chapters
                 delete_file(path)
             else:
-                log.info(f"'{volume_name}' is verified and no need to re-download")
+                pbm.logger.info(f"'{volume_name}' is verified and no need to re-download")
                 self.mark_read_chapter(*chapters)
 
         if volumes:
-            log.warning(
+            pbm.logger.warning(
                 f"Found {len(volumes)} missing or unverified volumes, " \
                 f"re-downloading {len(volumes)} volumes..."
             )
 
         # Download missing or unverified volumes
-        self.download_volumes(worker, volumes)
+        self.download_volumes(volumes)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
-
-        log.info("Waiting for chapter read marker to finish")
+        pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()
 
 class ConvertedSingleFormat(BaseConvertedFormat):

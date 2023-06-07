@@ -23,7 +23,7 @@
 import logging
 import sys
 
-from .utils import get_key_value
+from ..utils import get_key_value
 from ..config import (
     config, 
     _conf, 

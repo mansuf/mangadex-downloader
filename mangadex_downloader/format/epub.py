@@ -35,6 +35,7 @@ from .utils import NumberWithLeadingZeros
 
 from ..utils import create_directory, delete_file
 from ..errors import MangaDexException
+from ..progress_bar import progress_bar_manager as pbm
 
 class EpubMissingDependencies(MangaDexException):
     """Raised when `lxml` and `bs4` is not installed"""
@@ -359,15 +360,9 @@ class EpubPlugin:
         self._container = root
     
     def write(self, path):
-        from ..config import env, config
+        from ..config import env
 
-        progress_bar = tqdm.tqdm(
-            total=len(self._pages),
-            initial=0,
-            desc='epub_progress',
-            unit='item',
-            disable=config.no_progress_bar
-        )
+        progress_bar = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         with zipfile.ZipFile(
             path, 
@@ -399,7 +394,7 @@ class EpubPlugin:
                         f'OEBPS/images/{page}_{os.path.basename(image)}'
                     )
 
-                progress_bar.update(1)
+                    progress_bar.update(1)
 
 class EPUBFile:
     file_ext = ".epub"
@@ -417,93 +412,38 @@ class EPUBFile:
         epub.write(path)
 
 class Epub(ConvertedChaptersFormat, EPUBFile):
-    def download_chapters(self, worker, chapters):
-        manga = self.manga
+    def on_finish(self, file_path, chapter, images):
+        chap_name = chapter.get_simplified_name()
 
-        # Begin downloading
-        for chap_class, images in chapters:
-            chap_name = chap_class.get_simplified_name()
-
-            # Check if .epub file is exist or not
-            chapter_epub_path = self.path / (chap_name + self.file_ext)
-            if chapter_epub_path.exists():
-
-                if self.replace:
-                    delete_file(chapter_epub_path)
-                elif self.check_fi_completed(chap_name):
-                    log.info(f"'{chapter_epub_path.name}' is exist and replace is False, cancelling download...")
-                    self.add_fi(chap_name, chap_class.id, chapter_epub_path)
-                    continue
-
-            chapter_path = create_directory(chap_name, self.path)
-
-            count = NumberWithLeadingZeros(chap_class.pages)
-            images = self.get_images(chap_class, images, chapter_path, count)
-
-            log.info(f"{chap_name} has finished download, converting to epub...")
-
-            # KeyboardInterrupt safe
-            job = lambda: self.convert(
-                manga,
-                chap_class.language.value,
-                [(chap_class, images)],
-                chapter_epub_path
-            )
-            worker.submit(job)
-
-            # Remove original chapter folder
-            shutil.rmtree(chapter_path, ignore_errors=True)
-
-            self.add_fi(chap_name, chap_class.id, chapter_epub_path)
+        pbm.logger.info(f"{chap_name} has finished download, converting to epub...")
+        # KeyboardInterrupt safe
+        job = lambda: self.convert(
+            self.manga,
+            chapter.language.value,
+            [(chapter, images)],
+            file_path
+        )
+        self.worker.submit(job)
 
 class EpubVolume(ConvertedVolumesFormat, EPUBFile):
-    def download_volumes(self, worker, volumes):
-        manga = self.manga
+    def on_prepare(self, file_path, volume, count):
+        self.epub_chapters = []
 
-        # Begin downloading
-        for volume, chapters in volumes.items():
-            total = self.get_total_pages_for_volume_fmt(chapters)
-            epub_chapters = []
+    def on_finish(self, file_path, volume, images):
+        volume_name = self.get_volume_name(volume)
 
-            count = NumberWithLeadingZeros(total)
+        pbm.logger.info(f"{volume_name} has finished download, converting to epub...")
 
-            # Build volume folder name
-            volume = self.get_volume_name(volume)
+        job = lambda: self.convert(
+            self.manga,
+            self.manga.chapters.language.value,
+            self.epub_chapters,
+            file_path
+        )
+        self.worker.submit(job)
 
-            volume_epub_path = self.path / (volume + self.file_ext)
-
-            # Check if exist or not
-            if volume_epub_path.exists():
-                
-                if self.replace:
-                    delete_file(volume_epub_path)
-                elif self.check_fi_completed(volume):
-                    log.info(f"{volume_epub_path.name} is exist and replace is False, cancelling download...")
-                    self.add_fi(volume, None, volume_epub_path, chapters)
-                    continue
-
-            # Create volume folder
-            volume_path = create_directory(volume, self.path)
-
-            for chap_class, chap_images in chapters:
-                images = []
-                images.extend(self.get_images(chap_class, chap_images, volume_path, count))
-                epub_chapters.append((chap_class, images))
-
-            log.info(f"{volume} has finished download, converting to epub...")
-
-            job = lambda: self.convert(
-                manga,
-                manga.chapters.language.value,
-                epub_chapters,
-                volume_epub_path
-            )
-            worker.submit(job)
-                
-            # Remove original chapter folder
-            shutil.rmtree(volume_path, ignore_errors=True)
-
-            self.add_fi(volume, None, volume_epub_path, chapters)
+    def on_received_images(self, file_path, chapter, images):
+        self.epub_chapters.append((chapter, images))
 
 class EpubSingle(ConvertedSingleFormat, EPUBFile):
     def download_single(self, worker, total, merged_name, chapters):

@@ -40,6 +40,7 @@ from .errors import (
 )
 from .auth import OAuth2, LegacyAuth
 from .utils import QueueWorker
+from .progress_bar import progress_bar_manager as pbm
 from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
 
@@ -181,14 +182,14 @@ class requestsMangaDexSession(ModifiedSession):
         try:
             resp = super().request(*args, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            log.error("Failed connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
+            pbm.logger.error("Failed connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
                 _get_netloc(e.request.url),
                 str(e),
                 attempt
             ))
             return None
         except requests.exceptions.ReadTimeout as e:
-            log.error("Failed connect to '%s', reason: Connection timed out. Trying... (attempt: %s)" % (
+            pbm.logger.error("Failed connect to '%s', reason: Connection timed out. Trying... (attempt: %s)" % (
                 _get_netloc(e.request.url),
                 attempt
             ))
@@ -211,7 +212,7 @@ class requestsMangaDexSession(ModifiedSession):
                 # the app is sleeping for 120 seconds if happened like this, 
                 delay = DEFAULT_RATE_LIMITED_TIMEOUT
 
-            log.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
+            pbm.logger.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
             time.sleep(delay)
             return None
 
@@ -222,7 +223,7 @@ class requestsMangaDexSession(ModifiedSession):
                 # Return here anyway to not wasting time to retry to faulty node
                 return resp
 
-            log.info(
+            pbm.logger.info(
                 f"Failed to connect to \"{url}\", " \
                 f"reason: Server throwing error code {resp.status_code}. "  \
                 f"Trying... (attempt: {attempt})"
@@ -383,13 +384,13 @@ class requestsMangaDexSession(ModifiedSession):
         log.info("Logged out from MangaDex")
 
     def _report(self, data):
-        log.debug('Reporting %s to MangaDex network' % data)
+        pbm.logger.debug('Reporting %s to MangaDex network' % data)
         r = self.post('https://api.mangadex.network/report', json=data)
 
         if r.status_code != 200:
-            log.debug('Failed to report %s to MangaDex network' % data)
+            pbm.logger.debug('Failed to report %s to MangaDex network' % data)
         else:
-            log.debug('Successfully send report %s to MangaDex network' % data)
+            pbm.logger.debug('Successfully send report %s to MangaDex network' % data)
 
     def report(self, data):
         """Report to MangaDex network"""
