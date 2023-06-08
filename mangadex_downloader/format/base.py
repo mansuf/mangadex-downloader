@@ -145,7 +145,6 @@ class BaseFormat:
                     img_url,
                     img_path,
                     replace=replace,
-                    progress_bar=not self.config.no_progress_bar
                 )
                 success = downloader.download()
                 downloader.cleanup()
@@ -457,7 +456,6 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                 images = self.get_images(chap_class, images, chapter_path, count)
                 pbm.get_pages_pb().reset()
 
-                pbm.set_convert_total(len(images))
                 chapters_pb.update(1)
 
                 self.on_finish(file_path, chap_class, images)
@@ -626,7 +624,6 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 pbm.get_pages_pb().reset()
 
             chapters_pb.reset()
-            pbm.set_convert_total(len(images))
             self.on_finish(file_path, volume, images)
                 
             # Remove original chapter folder
@@ -733,18 +730,83 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         self.cleanup()
 
 class ConvertedSingleFormat(BaseConvertedFormat):
+    def on_prepare(self, file_path, base_path):
+        pass
+
+    def on_iter_chapter(self, file_path, chapter, count):
+        """This function is called when iterating chapters"""
+        pass
+
+    def on_received_images(self, file_path, chapter, images):
+        """This function is called when format has successfully received images"""
+        pass
+
+    def on_finish(self, file_path, images):
+        pass
+
+    def download_single(self, total, merged_name, data):
+        images = []
+        count = NumberWithLeadingZeros(total)
+        file_path = self.path / (merged_name + self.file_ext)
+
+        # Check if exist or not
+        if file_path.exists():
+            if self.replace:
+                delete_file(file_path)
+            elif self.check_fi_completed(merged_name):
+                pbm.logger.info(f"{file_path.name} is exist and replace is False, cancelling download...")
+
+                # Store file_info tracker for existing manga
+                self.add_fi(merged_name, None, file_path, data)
+                return
+
+        path = create_directory(merged_name, self.path)
+
+        self.on_prepare(file_path, path)
+
+        volumes = {}
+        for chap_class, chap_images in data:
+            self.append_cache_volumes(volumes, chap_class.volume, (chap_class, chap_images))
+
+        pbm.set_volumes_total(len(volumes.keys()))
+        # Begin downloading
+        for _, chapters in volumes.items():
+            pbm.set_chapters_total(len(chapters))
+
+            chapters_pb = pbm.get_chapters_pb()
+            volumes_pb = pbm.get_volumes_pb()
+
+            for chap_class, chap_images in chapters:
+                self.on_iter_chapter(file_path, chap_class, count)
+
+                ims = self.get_images(chap_class, chap_images, path, count)
+                self.on_received_images(file_path, chap_class, ims)
+                images.extend(ims)
+
+                chapters_pb.update(1)
+                pbm.get_pages_pb().reset()
+
+            chapters_pb.reset()
+            volumes_pb.update(1)
+
+        self.on_finish(file_path, images)
+        pbm.get_convert_pb().close()
+
+        # Remove downloaded images
+        shutil.rmtree(path, ignore_errors=True)
+
+        self.add_fi(merged_name, None, file_path, data)
+
     def main(self):
         manga = self.manga
-        worker = self.create_worker()
         tracker = self.manga.tracker
         result_cache = self.get_fmt_single_cache(manga)
+        self.create_worker()
 
         if result_cache is None:
             # The chapters is empty
             # there is nothing we can download
-            worker.shutdown()
-
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
@@ -767,9 +829,9 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         # There is no existing (downloaded) file
         # Download all of them
         if tracker.disabled or tracker.empty:
-            self.download_single(worker, total, merged_name, cache)
+            self.download_single(total, merged_name, cache)
 
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
@@ -778,9 +840,9 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         fi = tracker.get(filename)
         if not fi:
             # We assume the file has not been downloaded yet
-            self.download_single(worker, total, merged_name, cache)
+            self.download_single(total, merged_name, cache)
 
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
@@ -796,28 +858,25 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         # Download the new chapters first 
         if chapters:
             delete_file(self.path / filename)
-            self.download_single(worker, total, merged_name, cache)
+            self.download_single(total, merged_name, cache)
 
         # Verify downloaded file
         fi = tracker.get(filename)
 
         passed = verify_sha256(fi.hash, (self.path / filename))
         if not passed:
-            log.warning(
+            pbm.logger.warning(
                 f"'{filename}' is missing or unverified (hash is not matching), " \
                 "re-downloading..."
             )
             delete_file(self.path / filename)
         else:
-            log.info(f"'{filename}' is verified and no need to re-download")
+            pbm.logger.info(f"'{filename}' is verified and no need to re-download")
             self.mark_read_chapter(*cache)
 
         # Download missing or unverified chapters
         if not passed:
-            self.download_single(worker, total, merged_name, cache)
+            self.download_single(total, merged_name, cache)
 
-        # Shutdown queue-based thread process
-        worker.shutdown()
-
-        log.info("Waiting for chapter read marker to finish")
+        pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()

@@ -33,6 +33,7 @@ from ..config import (
     get_all_configs
 )
 from ..config.utils import ConfigTypeError
+from ..progress_bar import progress_bar_manager
 
 log = logging.getLogger(__name__)
 
@@ -120,6 +121,11 @@ def build_config(parser, args):
     # if args.login_cache is True and config.login_cache is False
     if not config.login_cache and args.login_cache:
         config.login_cache = args.login_cache
+
+    # Compatibility configs
+    # Workaround for "--no-progress-bar"
+    if args.no_progress_bar:
+        progress_bar_manager.disabled = True
 
     # Print all config to debug
     if config_enabled:

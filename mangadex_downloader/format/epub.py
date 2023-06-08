@@ -362,6 +362,12 @@ class EpubPlugin:
     def write(self, path):
         from ..config import env
 
+        # Calculate all images and set it to progress bar convert total
+        total_images = 0
+        for _, (_, images) in self._pages.items():
+            total_images += len(images)
+
+        pbm.set_convert_total(total_images)
         progress_bar = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         with zipfile.ZipFile(
@@ -446,42 +452,19 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
         self.epub_chapters.append((chapter, images))
 
 class EpubSingle(ConvertedSingleFormat, EPUBFile):
-    def download_single(self, worker, total, merged_name, chapters):
-        epub_chapters = []
-        manga = self.manga
-        count = NumberWithLeadingZeros(total)
-        manga_epub_path = self.path / (merged_name + self.file_ext)
+    def on_prepare(self, file_path, base_path):
+        self.epub_chapters = []
 
-        # Check if exist or not
-        if manga_epub_path.exists():
-            if self.replace:
-                delete_file(manga_epub_path)
-            elif self.check_fi_completed(merged_name):
-                log.info(f"{manga_epub_path.name} is exist and replace is False, cancelling download...")
-                self.add_fi(merged_name, None, manga_epub_path, chapters)
-                return
-
-        path = create_directory(merged_name, self.path)
-
-        for chap_class, chap_images in chapters:
-            images = []
-            # Begin downloading
-            images.extend(self.get_images(chap_class, chap_images, path, count))
-
-            epub_chapters.append((chap_class, images))
-
-        # Convert
-        log.info(f"Manga '{manga.title}' has finished download, converting to epub...")
+    def on_finish(self, file_path, images):
+        pbm.logger.info(f"Manga '{self.manga.title}' has finished download, converting to epub...")
 
         job = lambda: self.convert(
-            manga,
-            manga.chapters.language.value,
-            epub_chapters,
-            manga_epub_path
+            self.manga,
+            self.manga.chapters.language.value,
+            self.epub_chapters,
+            file_path
         )
-        worker.submit(job)
+        self.worker.submit(job)
 
-        # Remove downloaded images
-        shutil.rmtree(path, ignore_errors=True)
-
-        self.add_fi(merged_name, None, manga_epub_path, chapters)
+    def on_received_images(self, file_path, chapter, images):
+        self.epub_chapters.append((chapter, images))

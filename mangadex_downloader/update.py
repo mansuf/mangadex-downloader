@@ -35,6 +35,7 @@ from pathlib import Path
 
 from .network import Net
 from .downloader import FileDownloader
+from .progress_bar import progress_bar_manager
 from . import __version__
 
 current_version = parse_version(__version__)
@@ -120,6 +121,9 @@ def update_app():
         current_path = Path(sys.executable).parent
 
         if executable:
+            # Why do we need stacked progress bar in update mode ?
+            progress_bar_manager.stacked = False
+
             try:
                 temp_folder = Path(tempfile.mkdtemp(suffix='md_downloader_update'))
             except Exception as e:

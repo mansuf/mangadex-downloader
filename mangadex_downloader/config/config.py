@@ -124,7 +124,7 @@ class _Config:
             validate_stacked_progress_bar_order
         ],
         "log_level": [
-            logging.INFO,
+            "INFO",
             validate_log_level
         ],
         "progress_bar_layout": [

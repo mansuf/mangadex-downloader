@@ -72,6 +72,7 @@ class PDFPlugin:
         # "Circular Imports" problem
         from ..config import config
 
+        pbm.set_convert_total(len(ims))
         self.tqdm = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         self.register_pdf_handler()
@@ -456,33 +457,21 @@ class PDFVolume(ConvertedVolumesFormat, PDFFile):
         self.images.extend(images)
 
 class PDFSingle(ConvertedSingleFormat, PDFFile):
-    def download_single(self, worker, total, merged_name, chapters):
-        manga = self.manga
-        images = []
-        count = NumberWithLeadingZeros(0)
-        pdf_file = self.path / (merged_name + self.file_ext)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        if pdf_file.exists():
-            if self.replace:
-                delete_file(pdf_file)
-            elif self.check_fi_completed(merged_name):
-                log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
-                self.add_fi(merged_name, None, pdf_file, chapters)
-                return
+        # See `PDFVolume.__init__()` for more info
+        self.images = []
 
-        path = create_directory(merged_name, self.path)
+    def on_prepare(self, file_path, base_path):
+        self.images_directory = base_path
 
-        for chap_class, chap_images in chapters:
-            self.insert_ch_info_img(images, chap_class, path, count)
+    def on_iter_chapter(self, file_path, chapter, count):
+        self.insert_ch_info_img(self.images, chapter, self.images_directory, count)
 
-            images.extend(self.get_images(chap_class, chap_images, path, count))
+    def on_finish(self, file_path, images):
+        pbm.logger.info(f"Manga '{self.manga.title}' has finished download, converting to pdf...")
+        self.worker.submit(lambda: self.convert(self.images, file_path))
 
-        log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
-
-        # Save it as pdf
-        worker.submit(lambda: self.convert(images, pdf_file))
-
-        # Remove downloaded images
-        shutil.rmtree(path, ignore_errors=True)
-
-        self.add_fi(merged_name, None, pdf_file, chapters)
+    def on_received_images(self, file_path, chapter, images):
+        self.images.extend(images)

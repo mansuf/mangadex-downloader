@@ -64,6 +64,9 @@ class ProgressBarManager:
         # Do the user want to use stacked progress bar ?
         self._stacked = False
 
+        # No progress bar ?
+        self._disabled = False
+
         # Dummy logger
         self._dummy_logger = logging.getLogger("dummy_logger")
         self._dummy_logger.addHandler(logging.NullHandler())
@@ -118,6 +121,14 @@ class ProgressBarManager:
         return tqdm(disable=True)
 
     @property
+    def disabled(self):
+        return self._disabled
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        self._disabled = value
+
+    @property
     def stacked(self):
         return self._stacked
     
@@ -126,6 +137,11 @@ class ProgressBarManager:
         self._stacked = value
 
     def _get_progress_bar(self, var, recreate=False) -> tqdm:
+        if self.disabled:
+            # Well the progress bar is disabled
+            # What are you gonna do ? 
+            return self._create_dummy_progress_bar()
+
         value_var = getattr(self, var)
 
         # If stacked progress bar is not enabled

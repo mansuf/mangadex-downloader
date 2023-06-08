@@ -106,7 +106,6 @@ def download(
             cover_url,
             cover_path,
             replace=replace,
-            progress_bar=not config.no_progress_bar
         )
         fd.download()
         fd.cleanup()
@@ -309,7 +308,6 @@ def download_cover_art_manga(url, replace=False):
     fd = FileDownloader(
         url=url,
         file=path,
-        progress_bar=not config.no_progress_bar,
         replace=replace
     )
     fd.on_error = handle_error

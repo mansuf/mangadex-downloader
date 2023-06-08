@@ -36,11 +36,10 @@ log = logging.getLogger(__name__)
 _cleanup_jobs = []
 
 class FileDownloader:
-    def __init__(self, url, file, progress_bar=True, replace=False, use_requests=False, **headers) -> None:
+    def __init__(self, url, file, replace=False, use_requests=False, **headers) -> None:
         self.url = url
         self.file = str(file) + '.temp'
         self.real_file = file
-        self.progress_bar = progress_bar
         self.replace = replace
         self.headers_request = headers
         self.chunk_size = 2 ** 13
@@ -67,14 +66,13 @@ class FileDownloader:
         _cleanup_jobs.append(lambda: self.cleanup())
 
     def _build_progres_bar(self, initial_size, file_sizes, desc='file_sizes'):
-        if self.progress_bar:
-            pbm.set_file_sizes_initial(initial_size or 0)
-            pbm.set_file_sizes_total(file_sizes)
-            self._tqdm = pbm.get_file_sizes_pb(recreate=not pbm.stacked)
+        pbm.set_file_sizes_initial(initial_size or 0)
+        pbm.set_file_sizes_total(file_sizes)
+        self._tqdm = pbm.get_file_sizes_pb(recreate=not pbm.stacked)
 
-            # We're gonna reset it
-            if pbm.stacked:
-                self._tqdm.reset()
+        # We're gonna reset it
+        if pbm.stacked and self._tqdm is not None:
+            self._tqdm.reset()
 
     def _update_progress_bar(self, n):
         if self._tqdm is not None:

@@ -273,7 +273,7 @@ class RawSingle(BaseFormat):
         if result_cache is None:
             # The chapters is empty
             # there is nothing we can download
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
         
@@ -304,7 +304,7 @@ class RawSingle(BaseFormat):
                 failed_images.append(im_info)
             
         if failed_images and fi_completed and not new_chapters:
-            log.warning(
+            pbm.logger.warning(
                 f"Found {len(failed_images)} unverified or missing images from {name}. " \
                 "Re-downloading..."
             )
@@ -313,13 +313,13 @@ class RawSingle(BaseFormat):
             for im_info in failed_images:
                 im_path = path / im_info.name
 
-                log.debug(f"Removing unverified image '{im_path.resolve()}'")
+                pbm.logger.debug(f"Removing unverified image '{im_path.resolve()}'")
                 delete_file(im_path)
         elif fi_completed:
-            log.info(f"'{name}' is verified. no need to re-download")
+            pbm.logger.info(f"'{name}' is verified. no need to re-download")
             self.mark_read_chapter(*cache)
 
-            log.info("Waiting for chapter read marker to finish")
+            pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
@@ -327,23 +327,41 @@ class RawSingle(BaseFormat):
         # (hash is not matching)
         chapter_failed_images = [i.chapter_id for i in failed_images]
 
-        for chap_class, images in cache:
-            if chap_class.id not in chapter_failed_images and fi_completed:
-                count.increase(chap_class.pages)
-                continue
+        volumes = {}
+        for chap_class, chap_images in cache:
+            self.append_cache_volumes(volumes, chap_class.volume, (chap_class, chap_images))
 
-            # Insert chapter info (cover) image
-            img_name = count.get() + '.png'
-            img_path = path / img_name
+        pbm.set_volumes_total(len(volumes.keys()))
+        for _, chapters in volumes.items():
+            pbm.set_chapters_total(len(chapters))
 
-            if self.config.use_chapter_cover:
-                get_chapter_info(self.manga, chap_class, img_path)
-                count.increase()
+            chapters_pb = pbm.get_chapters_pb()
+            volumes_pb = pbm.get_volumes_pb()
 
-            images = self.get_images(chap_class, images, path, count)
-            success_images[chap_class] = images
+            for chap_class, images in cache:
+                if chap_class.id not in chapter_failed_images and fi_completed:
+                    count.increase(chap_class.pages)
+                    chapters_pb.update(1)
+                    continue
 
-            self.mark_read_chapter(chap_class)
+                # Insert chapter info (cover) image
+                img_name = count.get() + '.png'
+                img_path = path / img_name
+
+                if self.config.use_chapter_cover:
+                    get_chapter_info(self.manga, chap_class, img_path)
+                    count.increase()
+
+                images = self.get_images(chap_class, images, path, count)
+                success_images[chap_class] = images
+
+                self.mark_read_chapter(chap_class)
+
+                pbm.get_pages_pb().reset()
+                chapters_pb.update(1)
+            
+            chapters_pb.reset()
+            volumes_pb.update(1)
         
         chaps_data = []
         imgs_data = []
@@ -363,5 +381,5 @@ class RawSingle(BaseFormat):
         tracker.add_images_info(imgs_data)
         tracker.toggle_complete(name, True)
 
-        log.info("Waiting for chapter read marker to finish")
+        pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()

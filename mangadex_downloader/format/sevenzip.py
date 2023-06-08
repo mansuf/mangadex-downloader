@@ -61,6 +61,7 @@ class SevenZipFile:
             raise py7zrNotInstalled("py7zr is not installed")
 
     def convert(self, images, path):
+        pbm.set_convert_total(len(images))
         progress_bar = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         for im_path in images:

@@ -108,6 +108,7 @@ class CBZFile:
     file_ext = ".cbz"
 
     def convert(self, zip_obj, images):
+        pbm.set_convert_total(len(images))
         progress_bar = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         for im_path in images:
@@ -165,79 +166,53 @@ class CBZFile:
 
 class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
     def on_prepare(self, file_path, chapter, images):
-        chapter_zip = self.make_zip(file_path)
+        self.chapter_zip = self.make_zip(file_path)
 
         # Generate 'ComicInfo.xml' data
         xml_data = generate_Comicinfo(self.manga, chapter)
 
         # Write 'ComicInfo.xml' to .cbz file
         # And make sure that we don't write it twice or more
-        if 'ComicInfo.xml' not in chapter_zip.namelist():
-            wrap = lambda: chapter_zip.writestr('ComicInfo.xml', ET.tostring(xml_data))
+        if 'ComicInfo.xml' not in self.chapter_zip.namelist():
+            wrap = lambda: self.chapter_zip.writestr('ComicInfo.xml', ET.tostring(xml_data))
             # KeyboardInterrupt safe
             self.worker.submit(wrap)
 
-        chapter_zip.close()
+        self.chapter_zip.close()
 
     def on_finish(self, file_path, chapter, images):
         chap_name = chapter.get_simplified_name()
-        chapter_zip = self.make_zip(file_path)
 
         pbm.logger.info(f"{chap_name} has finished download, converting to cbz...")
-        self.worker.submit(lambda: self.convert(chapter_zip, images))
+        self.worker.submit(lambda: self.convert(self.chapter_zip, images))
 
 class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
     def on_prepare(self, file_path, volume, count):
-        volume_zip = self.make_zip(file_path)
         volume_name = self.get_volume_name(volume)
+        self.volume_zip = self.make_zip(file_path)
         self.volume_path = create_directory(volume_name, self.path)
 
-        self.insert_vol_cover_img(volume_zip, self.worker, volume, count, self.volume_path)
-        volume_zip.close()
+        self.insert_vol_cover_img(self.volume_zip, self.worker, volume, count, self.volume_path)
 
     def on_iter_chapter(self, file_path, chapter, count):
-        volume_zip = self.make_zip(file_path)
-        self.insert_ch_info_img(volume_zip, self.worker, chapter, count, self.volume_path)
-        volume_zip.close()
+        self.insert_ch_info_img(self.volume_zip, self.worker, chapter, count, self.volume_path)
 
     def on_finish(self, file_path, volume, images):
-        volume_zip = self.make_zip(file_path)
         volume_name = self.get_volume_name(volume)
         pbm.logger.info(f"{volume_name} has finished download, converting to cbz...")
 
-        self.worker.submit(lambda: self.convert(volume_zip, images))
+        self.worker.submit(lambda: self.convert(self.volume_zip, images))
 
 class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
-    def download_single(self, worker, total, merged_name, chapters):
-        images = []
-        count = NumberWithLeadingZeros(total)
-        manga_zip_path = self.path / (merged_name + self.file_ext)
+    def on_prepare(self, file_path, base_path):
+        self.images_directory = base_path
+        self.zip = self.make_zip(file_path)
 
-        # Check if exist or not
-        if manga_zip_path.exists():
-            if self.replace:
-                delete_file(manga_zip_path)
-            elif self.check_fi_completed(merged_name):
-                log.info(f"{manga_zip_path.name} is exist and replace is False, cancelling download...")
+    def on_iter_chapter(self, file_path, chapter, count):
+        self.insert_ch_info_img(self.zip, self.worker, chapter, count, self.images_directory)
 
-                # Store file_info tracker for existing manga
-                self.add_fi(merged_name, None, manga_zip_path, chapters)
-                return
+    def on_finish(self, file_path, images):
+        pbm.logger.info(f"Manga '{self.manga.title}' has finished download, converting to cbz...")
 
-        manga_zip = self.make_zip(manga_zip_path)
-        path = create_directory(merged_name, self.path)
-
-        for chap_class, chap_images in chapters:
-            self.insert_ch_info_img(manga_zip, worker, chap_class, count, path)
-
-            # Begin downloading
-            images.extend(self.get_images(chap_class, chap_images, path, count))
-
-        # Convert
-        log.info(f"Manga '{self.manga.title}' has finished download, converting to cbz...")
-        worker.submit(lambda: self.convert(manga_zip, images))
-
-        # Remove downloaded images
-        shutil.rmtree(path, ignore_errors=True)
-
-        self.add_fi(merged_name, None, manga_zip_path, chapters)
+        self.worker.submit(lambda: self.convert(self.zip, images))
+        

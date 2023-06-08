@@ -87,7 +87,6 @@ def get_volume_cover(manga, volume, path, replace, download=True):
         fd = FileDownloader(
             url,
             path,
-            progress_bar=not config.no_progress_bar,
             replace=replace
         )
         fd.download()
