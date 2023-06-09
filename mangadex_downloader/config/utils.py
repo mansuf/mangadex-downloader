@@ -255,7 +255,7 @@ def validate_log_level(val):
     if log_level == f"Level {val}":
         # Instead of raising exception, 
         # logging.getLevelName will return string "Level {level}"
-        raise ConfigTypeError(f"'{val}' is not valid logger level")
+        raise ConfigTypeError(f"{val!r} is not valid logger level")
 
     log = logging.getLogger("mangadex_downloader")
     log.setLevel(log_level)
@@ -269,7 +269,8 @@ def validate_progress_bar_layout(val):
     return val
 
 def validate_stacked_progress_bar_order(val):
-    values = [i.strip() for i in val.split(",")]
+    values = (i.strip() for i in val.split(","))
+    values = [value for value in values if value]
     for value in values:
         if value not in progress_bar_manager.valid_types_order:
             raise ConfigTypeError(f"'{val}' is not valid stacked progress bar order")

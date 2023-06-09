@@ -93,9 +93,7 @@ class BaseFormat:
         ))
         images.fetch()
 
-        total = 0
-        for _ in images.iter():
-            total += 1
+        total = sum(1 for _ in images.iter())
 
         pbm.set_pages_total(total)
         pages_pb = pbm.get_pages_pb()
@@ -152,7 +150,7 @@ class BaseFormat:
                 # One of MangaDex network are having problem
                 # Fetch the new one, and start re-downloading
                 if not success:
-                    pbm.logger.error('One of MangaDex network are having problem, re-fetching the images...')
+                    pbm.logger.error('One of MangaDex network is failing, re-fetching the images...')
                     pbm.logger.info('Getting %s from chapter %s' % (
                         'compressed images' if self.compress_img else 'images',
                         chap
@@ -440,7 +438,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                     if self.replace:
                         delete_file(file_path)
                     elif self.check_fi_completed(chap_name):
-                        pbm.logger.info(f"'{file_path.name}' is exist and replace is False, cancelling download...")
+                        pbm.logger.info(f"{file_path.name!r} already exists, cancelling download...")
 
                         # Store file_info tracker for existing chapter
                         self.add_fi(chap_name, chap_class.id, file_path)
@@ -518,7 +516,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
             # There is new chapters
             chapters.append((chap_class, images))
 
-        pbm.logger.info(f"There is {len(chapters)} new chapters, downloading...")
+        pbm.logger.info(f"Found {len(chapters)} new chapter(s), downloading...")
 
         # If somehow there is downloaded chapters
         # and it's not in the tracker
@@ -543,12 +541,12 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
             passed = verify_sha256(fi.hash, (self.path / chap_name))
             if not passed:
-                pbm.logger.warning(f"'{chap_name}' is missing or unverified (hash is not matching)")
+                pbm.logger.warning(f"{chap_name!r} is missing or unverified (hash is not matching)")
                 # Either missing file or hash is not matching
                 chapters.append((chap_class, images))
                 delete_file(self.path / chap_name)
             else:
-                pbm.logger.info(f"'{chap_name}' is verified and no need to re-download")
+                pbm.logger.info(f"{chap_name!r} is verified and no need to re-download")
                 self.mark_read_chapter(chap_class)
 
         if chapters:
@@ -582,7 +580,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
     def download_volumes(self, volumes):
         # Begin downloading
-        pbm.set_volumes_total(len(volumes.keys()))        
+        pbm.set_volumes_total(len(volumes))        
         for volume, chapters in volumes.items():
             pbm.set_chapters_total(len(chapters))
             total = self.get_total_pages_for_volume_fmt(chapters)
@@ -602,7 +600,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 if self.replace:
                     delete_file(file_path)
                 elif self.check_fi_completed(volume_name):
-                    pbm.logger.info(f"{file_path.name} is exist and replace is False, cancelling download...")
+                    pbm.logger.info(f"{file_path.name!r} is exist and replace is False, cancelling download...")
 
                     # Store file_info tracker for existing volume
                     self.add_fi(volume_name, None, file_path, chapters)
@@ -709,12 +707,12 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
             passed = verify_sha256(fi.hash, path)
             if not passed:
-                pbm.logger.warning(f"'{volume_name}' is missing or unverified (hash is not matching)")
+                pbm.logger.warning(f"{volume_name!r} is missing or unverified (hash is not matching)")
                 # Either missing file or hash is not matching
                 volumes[volume] = chapters
                 delete_file(path)
             else:
-                pbm.logger.info(f"'{volume_name}' is verified and no need to re-download")
+                pbm.logger.info(f"{volume_name!r} is verified and no need to re-download")
                 self.mark_read_chapter(*chapters)
 
         if volumes:
@@ -754,7 +752,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             if self.replace:
                 delete_file(file_path)
             elif self.check_fi_completed(merged_name):
-                pbm.logger.info(f"{file_path.name} is exist and replace is False, cancelling download...")
+                pbm.logger.info(f"{file_path.name!r} already exists, cancelling download...")
 
                 # Store file_info tracker for existing manga
                 self.add_fi(merged_name, None, file_path, data)
@@ -866,12 +864,12 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         passed = verify_sha256(fi.hash, (self.path / filename))
         if not passed:
             pbm.logger.warning(
-                f"'{filename}' is missing or unverified (hash is not matching), " \
+                f"{filename!r} is missing or unverified (hash is not matching), " \
                 "re-downloading..."
             )
             delete_file(self.path / filename)
         else:
-            pbm.logger.info(f"'{filename}' is verified and no need to re-download")
+            pbm.logger.info(f"{filename!r} is verified and no need to re-download")
             self.mark_read_chapter(*cache)
 
         # Download missing or unverified chapters

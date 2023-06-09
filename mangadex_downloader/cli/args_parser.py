@@ -419,6 +419,7 @@ def get_args(argv):
         '--progress-bar-layout',
         '-pbl',
         default=config.progress_bar_layout,
+        choices=["default", "stacked", "none"],
         help="Set progress bar layout, available options: " \
              "default, stacked, none"
     )
