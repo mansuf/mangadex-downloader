@@ -117,6 +117,10 @@ class _Config:
         "no_track": [
             False,
             validate_bool
+        ],
+        "volume_cover_language": [
+            None,
+            validate_language
         ]
     }
     default_conf = {

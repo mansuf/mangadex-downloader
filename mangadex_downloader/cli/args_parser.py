@@ -185,6 +185,13 @@ def get_args(argv):
         help='List all available languages',
         nargs=0
     )
+    lang_group.add_argument(
+        '-vcl',
+        '--volume-cover-language',
+        help='Override volume cover language. If this option is not set, it will follow --language option',
+        type=validate_language,
+        default=config.volume_cover_language,
+    )
 
     # Chapter related
     chap_group = parser.add_argument_group('Chapter')

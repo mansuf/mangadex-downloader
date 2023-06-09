@@ -37,6 +37,7 @@ from .utils import check_blacklisted_tags_manga
 from .cover import CoverArt
 from .forums import iter_md_urls_from_forum_thread
 from .chapter import Chapter
+from .config import config
 
 log = logging.getLogger(__name__)
 
@@ -469,13 +470,17 @@ class CoverArtIterator(BaseIterator):
         if self.cache.get(self.manga_id):
             return
 
+        vol_cover_lang = config.volume_cover_language
+        cover_locale = vol_cover_lang if vol_cover_lang else config.language
+
         # One-shot filling covers in single function call
         # So cache can be used
         while True:
             params = {
                 "manga[]": self.manga_id,
                 "offset": self.offset,
-                "limit": self.limit
+                "limit": self.limit,
+                "locales[]": cover_locale
             }
 
             url = f"{base_url}/cover"
