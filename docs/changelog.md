@@ -1,5 +1,15 @@
 # Changelog
 
+## UNRELEASED
+
+### New features
+
+- Added `--volume-cover-language` to change volume cover locale [#66](https://github.com/mansuf/mangadex-downloader/issues/66)
+
+### Fix bugs
+
+- Fix inconsistent volume cover locale [#66](https://github.com/mansuf/mangadex-downloader/issues/66)
+
 ## v2.9.1
 
 ### Fix bugs
