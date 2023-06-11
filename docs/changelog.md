@@ -10,6 +10,10 @@
 
 - Fix inconsistent volume cover locale [#66](https://github.com/mansuf/mangadex-downloader/issues/66)
 
+### Dependencies
+
+- Bump [requests-doh](https://github.com/mansuf/requests-doh) to v0.3.1
+
 ## v2.9.1
 
 ### Fix bugs
