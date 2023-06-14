@@ -72,7 +72,7 @@ class ProgressBarManager:
         self._dummy_logger.addHandler(logging.NullHandler())
 
         # Types order
-        self._types_order = self.set_types_order(*self.valid_types_order)
+        self.set_types_order(*self.valid_types_order)
 
         # Progress bars that are only allowed to showed up
         # if stacked mode is not enabled
