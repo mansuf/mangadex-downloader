@@ -266,6 +266,9 @@ def validate_progress_bar_layout(val):
     if val not in valid_progress_bar_layouts:
         raise ConfigTypeError(f"'{val}' is not valid progress bar layout")
 
+    if val == "none":
+        progress_bar_manager.disabled = True
+
     return val
 
 def validate_stacked_progress_bar_order(val):
