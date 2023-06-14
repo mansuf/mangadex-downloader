@@ -122,7 +122,7 @@ class BaseFormat:
                 # If file still in intact and same as the server
                 # Continue to download the others
                 if verified and not self.replace:
-                    pbm.logger.debug(f"Page {page} ({img_name}) is exist and verified, cancelling download...")
+                    pbm.logger.debug(f"Page {page} ({img_name}) exists and is verified, cancelling download...")
                     count.increase()
                     imgs.append(img_path)
                     pages_pb.update(1)
@@ -130,7 +130,7 @@ class BaseFormat:
                 elif verified == False and not self.replace:
                     # File is not same server, probably modified
                     pbm.logger.warning(
-                        f"Page {page} ({img_name}) is exist but failed to verify (hash is not matching), " \
+                        f"Page {page} ({img_name}) exists but failed to verify (hash is not matching), " \
                         "re-downloading..."
                     )
                 
