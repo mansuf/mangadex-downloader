@@ -121,7 +121,12 @@ def get_args(argv):
         help='Replace manga if exist',
         action='store_true'
     )
-    parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
+    parser.add_argument(
+        '--verbose', 
+        help='[DEPRECATED] Use `--log-level=DEBUG` instead. ' \
+             'Enable verbose output', 
+        action='store_true'
+    )
     parser.add_argument(
         '--filter',
         '-ft',

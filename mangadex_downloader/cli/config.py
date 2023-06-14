@@ -122,10 +122,16 @@ def build_config(parser, args):
     if not config.login_cache and args.login_cache:
         config.login_cache = args.login_cache
 
+    # ======================
     # Compatibility configs
+    # ======================
     # Workaround for "--no-progress-bar"
     if args.no_progress_bar:
         progress_bar_manager.disabled = True
+
+    # Workaround for "--verbose"
+    if args.verbose:
+        args.log_level = "DEBUG"
 
     # Print all config to debug
     if config_enabled:
