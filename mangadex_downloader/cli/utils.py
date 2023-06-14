@@ -231,12 +231,6 @@ def dynamic_bars(length):
     
     return bar
 
-def get_key_value(text, sep='='):
-    splitted = text.split(sep, maxsplit=1)
-    key = splitted[0]
-    value = "".join(splitted[1:])
-    return key, value
-
 def split_comma_separated(text, single_value_to_list=False):
     if ',' not in text:
         return [text] if single_value_to_list else  text

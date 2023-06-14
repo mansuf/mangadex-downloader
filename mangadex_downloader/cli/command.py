@@ -27,7 +27,6 @@ from .utils import (
     Paginator, 
     dynamic_bars, 
     IteratorEmpty, 
-    get_key_value, 
     split_comma_separated
 )
 from ..iterator import (
@@ -48,7 +47,7 @@ from ..forums import (
     validate_forum_thread_url
 )
 from .. import __repository__
-from ..utils import input_handle, validate_url, get_cover_art_url
+from ..utils import input_handle, validate_url, get_cover_art_url, get_key_value
 from ..errors import InvalidURL, MangaDexException, PillowNotInstalled, UnhandledException
 from ..network import Net
 from ..manga import Manga

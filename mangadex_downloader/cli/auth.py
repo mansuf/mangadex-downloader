@@ -24,9 +24,9 @@ import logging
 import re
 import sys
 
-from .utils import dynamic_bars, get_key_value
+from .utils import dynamic_bars
 from ..config import config, login_cache
-from ..utils import getpass_handle, input_handle
+from ..utils import getpass_handle, input_handle, get_key_value
 from ..errors import HTTPException, LoginFailed
 from ..network import Net
 

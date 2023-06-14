@@ -31,14 +31,16 @@ from requests_doh import get_all_dns_provider, add_dns_provider
 from .. import format as fmt
 from ..errors import MangaDexException, InvalidURL
 from ..language import get_language
-from ..utils import validate_url
+from ..utils import validate_url, get_key_value
+from ..progress_bar import progress_bar_manager
 
 __all__ = (
     "validate_bool", "validate_language", "validate_value_from_iterator",
     "validate_format", "dummy_validator", "validate_zip_compression_type",
     "validate_int", "validate_tag", "validate_blacklist",
     "validate_sort_by", "validate_http_retries", "validate_download_mode",
-    "validate_doh_provider",
+    "validate_doh_provider", "validate_log_level", "validate_progress_bar_layout",
+    "validate_stacked_progress_bar_order",
     "load_env", "LazyLoadEnv", "ConfigTypeError"
 )
 
@@ -233,5 +235,48 @@ class LazyLoadEnv:
             self.validator
         )
 
+valid_output_modes = [
+    "logger",
+    "stacked-progress-bar",
+    "progress-bar"
+]
 
+valid_stacked_progress_bar_types = [
+    "volumes",
+    "chapters",
+    "pages",
+    "file sizes",
+    "converted files"
+]
 
+def validate_log_level(val):
+    val = val if isinstance(val, int) else val.upper()
+    log_level = logging.getLevelName(val)
+    if log_level == f"Level {val}":
+        # Instead of raising exception, 
+        # logging.getLevelName will return string "Level {level}"
+        raise ConfigTypeError(f"{val!r} is not valid logger level")
+
+    log = logging.getLogger("mangadex_downloader")
+    log.setLevel(log_level)
+    return val
+
+def validate_progress_bar_layout(val):
+    valid_progress_bar_layouts = ["default", "stacked", "none"]
+    if val not in valid_progress_bar_layouts:
+        raise ConfigTypeError(f"'{val}' is not valid progress bar layout")
+
+    if val == "none":
+        progress_bar_manager.disabled = True
+
+    return val
+
+def validate_stacked_progress_bar_order(val):
+    values = (i.strip() for i in val.split(","))
+    values = [value for value in values if value]
+    for value in values:
+        if value not in progress_bar_manager.valid_types_order:
+            raise ConfigTypeError(f"'{val}' is not valid stacked progress bar order")
+
+    progress_bar_manager.set_types_order(*values)
+    return values

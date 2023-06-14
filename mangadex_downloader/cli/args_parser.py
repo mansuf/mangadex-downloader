@@ -121,7 +121,12 @@ def get_args(argv):
         help='Replace manga if exist',
         action='store_true'
     )
-    parser.add_argument('--verbose', help='Enable verbose output', action='store_true')
+    parser.add_argument(
+        '--verbose', 
+        help='[DEPRECATED] Use `--log-level=DEBUG` instead. ' \
+             'Enable verbose output', 
+        action='store_true'
+    )
     parser.add_argument(
         '--filter',
         '-ft',
@@ -399,13 +404,7 @@ def get_args(argv):
         nargs=0,
         help='Print mangadex-downloader version'
     )
-    misc_group.add_argument(
-        '--no-progress-bar',
-        '-npb',
-        action='store_true',
-        default=config.no_progress_bar,
-        help='Disable progress bar when downloading or converting'
-    )
+
     misc_group.add_argument(
         '--write-tachiyomi-info',
         '-wti',
@@ -419,6 +418,38 @@ def get_args(argv):
         default=config.no_track,
         help='Disable download tracking. ' \
              'NOTE: If you enable this, the application will not verify images and chapters. '
+    )
+
+    console_group = parser.add_argument_group("Console output")
+    console_group.add_argument(
+        '--log-level',
+        default=config.log_level,
+        help="Set logger level, available options: " \
+             "CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET"
+    )
+    console_group.add_argument(
+        '--progress-bar-layout',
+        '-pbl',
+        default=config.progress_bar_layout,
+        choices=["default", "stacked", "none"],
+        help="Set progress bar layout, available options: " \
+             "default, stacked, none"
+    )
+    console_group.add_argument(
+        '--stacked-progress-bar-order',
+        '-spb-order',
+        default=config.stacked_progress_bar_order,
+        help="Set stacked progress bar order, available options: " \
+             "volumes, chapters, pages, file sizes, convert. " \
+             "Multiple values is supported, separated by comma"
+    )
+    console_group.add_argument(
+        '--no-progress-bar',
+        '-npb',
+        action='store_true',
+        default=config.no_progress_bar,
+        help="[DEPRECATED] Use '--progress-bar-layout=none' instead. " \
+             "Disable progress bar when downloading or converting"
     )
 
     # Update application

@@ -40,6 +40,7 @@ from .utils import (
 )
 from ..errors import PillowNotInstalled
 from ..utils import create_directory, delete_file
+from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
 
@@ -71,13 +72,8 @@ class PDFPlugin:
         # "Circular Imports" problem
         from ..config import config
 
-        self.tqdm = tqdm(
-            desc='pdf_progress',
-            total=len(ims),
-            initial=0,
-            unit='item',
-            disable=config.no_progress_bar
-        )
+        pbm.set_convert_total(len(ims))
+        self.tqdm = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         self.register_pdf_handler()
 
@@ -367,9 +363,6 @@ class PDFPlugin:
             fp.flush()
         existing_pdf.close()
 
-    def close_progress_bar(self):
-        self.tqdm.close()
-
     def register_pdf_handler(self):
         Image.init()
 
@@ -406,8 +399,6 @@ class PDFFile:
             append_images=images
         )
 
-        pdf_plugin.close_progress_bar()
-
     def insert_ch_info_img(self, images, chapter, path, count):
         """Insert chapter info (cover) image"""
         img_name = count.get() + '.png'
@@ -429,113 +420,58 @@ class PDFFile:
             count.increase()
 
 class PDF(ConvertedChaptersFormat, PDFFile):
-    def download_chapters(self, worker, chapters):
-        # Begin downloading
-        for chap_class, chap_images in chapters:
-            chap_name = chap_class.get_simplified_name()
-            count = NumberWithLeadingZeros(0)
-
-            pdf_file = self.path / (chap_name + self.file_ext)
-            if pdf_file.exists():
-
-                if self.replace:
-                    delete_file(pdf_file)
-                elif self.check_fi_completed(chap_name):
-                    log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
-
-                    self.add_fi(
-                        name=chap_name,
-                        id=chap_class.id,
-                        path=pdf_file,
-                    )
-                    continue
-
-            chapter_path = create_directory(chap_name, self.path)
-
-            images = self.get_images(chap_class, chap_images, chapter_path, count)
-            log.info(f"{chap_name} has finished download, converting to pdf...")
-
-            # Save it as pdf
-            worker.submit(lambda: self.convert(images, pdf_file))
-
-            # Remove original chapter folder
-            shutil.rmtree(chapter_path, ignore_errors=True)
-
-            self.add_fi(
-                name=chap_name,
-                id=chap_class.id,
-                path=pdf_file,
-            )
+    def on_finish(self, file_path, chapter, images):
+        chap_name = chapter.get_simplified_name()
+        pbm.logger.info(f"{chap_name} has finished download, converting to pdf...")
+        self.worker.submit(lambda: self.convert(images, file_path))
 
 class PDFVolume(ConvertedVolumesFormat, PDFFile):
-    def download_volumes(self, worker, volumes):
-        # Begin downloading
-        for volume, chapters in volumes.items():
-            images = []
-            count = NumberWithLeadingZeros(0)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-            # Build volume folder name
-            vol_name = self.get_volume_name(volume)
+        # `images` variable are only filled download images from MangaDex server
+        # (look at ConvertedVolumesFormat.download_volumes() at `for chap_class, chap_images in chapters`)
+        # This is volume format, which mean user can add volume cover + chapter cover
+        # But volume cover + chapter cover are separated images
+        # and it does not get added to `images` variable
+        # also PDF library (in this case Pillow) need a argument that iterating images
+        # So we're gonna fill images to self.images and convert from that
+        # rather than depending from `images` parameter from on_finish()
+        self.images = []
 
-            pdf_name = vol_name + self.file_ext
-            pdf_file = self.path / pdf_name
+    def on_prepare(self, file_path, volume, count):
+        volume_name = self.get_volume_name(volume)
+        self.volume_path = create_directory(volume_name, self.path)
 
-            if pdf_file.exists():
-                if self.replace:
-                    delete_file(pdf_file)
-                elif self.check_fi_completed(vol_name):
-                    log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
-                    self.add_fi(vol_name, None, pdf_file, chapters)
-                    return
+        self.insert_vol_cover_img(self.images, volume, self.volume_path, count)
 
-            # Create volume folder
-            volume_path = create_directory(vol_name, self.path)
+    def on_iter_chapter(self, file_path, chapter, count):
+        self.insert_ch_info_img(self.images, chapter, self.volume_path, count)
 
-            self.insert_vol_cover_img(images, volume, volume_path, count)
+    def on_finish(self, file_path, volume, images):
+        volume_name = self.get_volume_name(volume)
+        pbm.logger.info(f"{volume_name} has finished download, converting to pdf...")
+        self.worker.submit(lambda: self.convert(self.images, file_path))
 
-            for chap_class, chap_images in chapters:
-                self.insert_ch_info_img(images, chap_class, volume_path, count)
-
-                images.extend(self.get_images(chap_class, chap_images, volume_path, count))
-
-            log.info(f"{vol_name} has finished download, converting to pdf...")
-
-            # Save it as pdf
-            worker.submit(lambda: self.convert(images, pdf_file))
-
-            # Remove original chapter folder
-            shutil.rmtree(volume_path, ignore_errors=True)
-
-            self.add_fi(vol_name, None, pdf_file, chapters)
+    def on_received_images(self, file_path, chapter, images):
+        self.images.extend(images)
 
 class PDFSingle(ConvertedSingleFormat, PDFFile):
-    def download_single(self, worker, total, merged_name, chapters):
-        manga = self.manga
-        images = []
-        count = NumberWithLeadingZeros(0)
-        pdf_file = self.path / (merged_name + self.file_ext)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        if pdf_file.exists():
-            if self.replace:
-                delete_file(pdf_file)
-            elif self.check_fi_completed(merged_name):
-                log.info(f"'{pdf_file.name}' is exist and replace is False, cancelling download...")
-                self.add_fi(merged_name, None, pdf_file, chapters)
-                return
+        # See `PDFVolume.__init__()` for more info
+        self.images = []
 
-        path = create_directory(merged_name, self.path)
+    def on_prepare(self, file_path, base_path):
+        self.images_directory = base_path
 
-        for chap_class, chap_images in chapters:
-            self.insert_ch_info_img(images, chap_class, path, count)
+    def on_iter_chapter(self, file_path, chapter, count):
+        self.insert_ch_info_img(self.images, chapter, self.images_directory, count)
 
-            images.extend(self.get_images(chap_class, chap_images, path, count))
+    def on_finish(self, file_path, images):
+        pbm.logger.info(f"Manga '{self.manga.title}' has finished download, converting to pdf...")
+        self.worker.submit(lambda: self.convert(self.images, file_path))
 
-        log.info("Manga \"%s\" has finished download, converting to pdf..." % manga.title)
-
-        # Save it as pdf
-        worker.submit(lambda: self.convert(images, pdf_file))
-
-        # Remove downloaded images
-        shutil.rmtree(path, ignore_errors=True)
-
-        self.add_fi(merged_name, None, pdf_file, chapters)
+    def on_received_images(self, file_path, chapter, images):
+        self.images.extend(images)

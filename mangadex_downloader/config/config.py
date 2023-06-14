@@ -30,6 +30,7 @@ from .. import format as fmt, json_op
 from ..cover import default_cover_type, valid_cover_types
 from ..language import Language
 from ..errors import MangaDexException
+from ..progress_bar import ProgressBarManager
 
 # Fix #28
 _doh_providers = [None]
@@ -121,7 +122,19 @@ class _Config:
         "volume_cover_language": [
             None,
             validate_language
-        ]
+        ],
+        "stacked_progress_bar_order": [
+            "volumes, chapters, pages, file sizes, convert",
+            validate_stacked_progress_bar_order
+        ],
+        "log_level": [
+            "INFO",
+            validate_log_level
+        ],
+        "progress_bar_layout": [
+            "default",
+            validate_progress_bar_layout
+        ],
     }
     default_conf = {
         x: y for x, (y, _) in confs.items()

@@ -32,11 +32,12 @@ from .chinfo import get_chapter_info as get_chinfo
 from ..downloader import FileDownloader
 from ..utils import get_cover_art_url
 from .. import __repository__, __url_repository__, json_op
+from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
 
 def get_chapter_info(manga, chapter, path):
-    log.info(f"Creating chapter info for '{chapter.get_name()}'")
+    pbm.logger.info(f"Creating chapter info for '{chapter.get_name()}'")
 
     vol_cover = get_volume_cover(
         manga=manga,
@@ -57,7 +58,7 @@ def get_volume_cover(manga, volume, path, replace, download=True):
     from ..iterator import CoverArtIterator
 
     if download:
-        log.info(f"Getting volume cover for \"Volume {volume}\"")
+        pbm.logger.info(f"Getting volume cover for \"Volume {volume}\"")
 
     # Find volume
     def find_volume_cover(cover):
@@ -74,7 +75,7 @@ def get_volume_cover(manga, volume, path, replace, download=True):
         cover = next(f)
     except StopIteration:
         if download:
-            log.warning(
+            pbm.logger.warning(
                 f"Failed to find volume cover for volume {volume}. " \
                 "Falling back to manga cover..."
             )
@@ -86,7 +87,6 @@ def get_volume_cover(manga, volume, path, replace, download=True):
         fd = FileDownloader(
             url,
             path,
-            progress_bar=not config.no_progress_bar,
             replace=replace
         )
         fd.download()

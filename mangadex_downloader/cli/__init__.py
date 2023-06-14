@@ -21,6 +21,9 @@ _deprecated_opts = {
     # I know this isn't deprecated
     # But i need the warning feature, hehe
     "range": "--range is disabled, because it's broken and need to rework",
+
+    "no_progress_bar": "--no-progress bar is deprecated, use '--progress-bar-layout=none' instead",
+    "verbose": "--verbose is deprecated, use '--log-level=DEBUG' instead",
 }
 
 def check_deprecated_options(log, args):
