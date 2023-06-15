@@ -4,7 +4,9 @@
 
 ### New features
 
+- Added stacked progress bar layout (accessible from `--progress-bar-layout=stacked`)
 - Added `--volume-cover-language` to change volume cover locale [#66](https://github.com/mansuf/mangadex-downloader/issues/66)
+- Added `--log-level` to change logging level
 
 ### Fix bugs
 
@@ -13,6 +15,11 @@
 ### Dependencies
 
 - Bump [requests-doh](https://github.com/mansuf/requests-doh) to v0.3.1
+
+### Deprecated
+
+- `--no-progress-bar` is deprecated in favor of `--progress-bar-layout`. This option will be removed in v3.0.0
+- `--verbose` is deprecated in favor of `--log-level`. This option will be removed in v3.0.0
 
 ## v2.9.1
 

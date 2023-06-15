@@ -425,7 +425,9 @@ def get_args(argv):
         '--log-level',
         default=config.log_level,
         help="Set logger level, available options: " \
-             "CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET"
+             "CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET. " \
+             "Default level is INFO",
+        metavar="LEVEL"
     )
     console_group.add_argument(
         '--progress-bar-layout',
@@ -433,7 +435,9 @@ def get_args(argv):
         default=config.progress_bar_layout,
         choices=["default", "stacked", "none"],
         help="Set progress bar layout, available options: " \
-             "default, stacked, none"
+             "default, stacked, none. " \
+             "Default layout is 'default'",
+        metavar="LAYOUT"
     )
     console_group.add_argument(
         '--stacked-progress-bar-order',
@@ -441,7 +445,9 @@ def get_args(argv):
         default=config.stacked_progress_bar_order,
         help="Set stacked progress bar order, available options: " \
              "volumes, chapters, pages, file sizes, convert. " \
-             "Multiple values is supported, separated by comma"
+             "Multiple values is supported, separated by comma. " \
+             "Default order is 'volumes, chapters, pages, file sizes, convert'",
+        metavar="ORDER"
     )
     console_group.add_argument(
         '--no-progress-bar',

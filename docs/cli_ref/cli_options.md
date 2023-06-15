@@ -32,9 +32,14 @@ If you set to `unread`, the app will download unread chapters only
 (require authentication). If you set to `default` the app will download all chapters
 ```
 
-```{option} --verbose
-Enable verbose output
+````{option} --verbose
+```{warning}
+This option is deprecated and will be removed in v3.0.0. 
+Use `--log-level` with value `DEBUG` instead.
 ```
+
+Enable verbose output
+````
 
 ## Search related
 
@@ -243,10 +248,6 @@ If set, the app will accept pipe input
 Print mangadex-downloader version
 ```
 
-```{option} -npb --no-progress-bar
-Disable progress bar when downloading or converting
-````
-
 ````{option} --no-track
 ```{note}
 If you enable this, the application will not verify images and chapters. 
@@ -254,6 +255,35 @@ Also file `download.db` will not created.
 ```
 
 Disable download tracking
+````
+
+## Console output
+
+```{option} --log-level LEVEL
+Set logger level, available options: CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET. 
+Default level is INFO.
+
+For more information, see {doc}`./log_levels`
+```
+
+```{option} -pbl --progress-bar-layout LAYOUT
+Set progress bar layout, available options: default, stacked, none. 
+Default layout is `default`. Set layout `none` to disable progress bar.
+```
+
+```{option} -spb-order --stacked-progress-bar-order ORDER
+Set stacked progress bar order, available options: volumes, chapters, pages, file sizes,
+convert. Multiple values is supported, separated by comma. Default order is `volumes,
+chapters, pages, file sizes, convert`
+```
+
+````{option} -npb --no-progress-bar
+```{warning}
+This option is deprecated and will be removed in v3.0.0. 
+Use `--progress-bar-layout` with value `none` instead
+```
+
+Disable progress bar when downloading or converting
 ````
 
 ## Update application
