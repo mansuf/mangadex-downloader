@@ -4,9 +4,9 @@
 
 ### New features
 
-- Added stacked progress bar layout (accessible from `--progress-bar-layout=stacked`)
+- Added stacked progress bar layout (accessible from `--progress-bar-layout=stacked`) [#65](https://github.com/mansuf/mangadex-downloader/issues/65)
 - Added `--volume-cover-language` to change volume cover locale [#66](https://github.com/mansuf/mangadex-downloader/issues/66)
-- Added `--log-level` to change logging level
+- Added `--log-level` to change logging level [#65](https://github.com/mansuf/mangadex-downloader/issues/65)
 
 ### Fix bugs
 
