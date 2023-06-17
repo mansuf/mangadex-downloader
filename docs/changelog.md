@@ -1,6 +1,6 @@
 # Changelog
 
-## UNRELEASED
+## v2.10.0
 
 ### New features
 
