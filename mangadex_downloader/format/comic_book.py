@@ -178,8 +178,6 @@ class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
             # KeyboardInterrupt safe
             self.worker.submit(wrap)
 
-        self.chapter_zip.close()
-
     def on_finish(self, file_path, chapter, images):
         chap_name = chapter.get_simplified_name()
 
