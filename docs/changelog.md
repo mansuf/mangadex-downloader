@@ -1,5 +1,11 @@
 # Changelog
 
+## UNRELEASED
+
+### Fix bugs
+
+- Fixed `cbz` format are not working after upgrading to v2.10.0 [#74](https://github.com/mansuf/mangadex-downloader/issues/74)
+
 ## v2.10.0
 
 ### New features
