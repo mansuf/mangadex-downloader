@@ -435,7 +435,7 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
     def on_prepare(self, file_path, volume, count):
         self.epub_chapters = []
 
-    def on_finish(self, file_path, volume, images):
+    def on_convert(self, file_path, volume, images):
         volume_name = self.get_volume_name(volume)
 
         pbm.logger.info(f"{volume_name} has finished download, converting to epub...")

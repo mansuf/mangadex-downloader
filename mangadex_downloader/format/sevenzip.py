@@ -112,6 +112,8 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
         self.images = []
 
     def on_prepare(self, file_path, volume, count):
+        self.images.clear()
+
         volume_name = self.get_volume_name(volume)
         self.volume_path = create_directory(volume_name, self.path)
 
@@ -123,7 +125,7 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
     def on_received_images(self, file_path, chapter, images):
         self.images.extend(images)
 
-    def on_finish(self, file_path, volume, images):
+    def on_convert(self, file_path, volume, images):
         volume_name = self.get_volume_name(volume)
 
         pbm.logger.info(f"{volume_name} has finished download, converting to cb7...")
