@@ -440,6 +440,9 @@ class PDFVolume(ConvertedVolumesFormat, PDFFile):
         self.images = []
 
     def on_prepare(self, file_path, volume, count):
+        # We should clear self.images, to prevent older volumes to be re-converted
+        self.images.clear()
+
         volume_name = self.get_volume_name(volume)
         self.volume_path = create_directory(volume_name, self.path)
 
@@ -448,7 +451,7 @@ class PDFVolume(ConvertedVolumesFormat, PDFFile):
     def on_iter_chapter(self, file_path, chapter, count):
         self.insert_ch_info_img(self.images, chapter, self.volume_path, count)
 
-    def on_finish(self, file_path, volume, images):
+    def on_convert(self, file_path, volume, images):
         volume_name = self.get_volume_name(volume)
         pbm.logger.info(f"{volume_name} has finished download, converting to pdf...")
         self.worker.submit(lambda: self.convert(self.images, file_path))

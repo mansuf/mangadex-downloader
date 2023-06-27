@@ -574,8 +574,8 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         """This function is called when format has successfully received images"""
         pass
 
-    def on_finish(self, file_path, volume, images):
-        """"This function is called after download is finished"""
+    def on_convert(self, file_path, volume, images):
+        """"This function is called when convert process is starting"""
         pass
 
     def download_volumes(self, volumes):
@@ -622,7 +622,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 pbm.get_pages_pb().reset()
 
             chapters_pb.reset()
-            self.on_finish(file_path, volume, images)
+            self.on_convert(file_path, volume, images)
                 
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)

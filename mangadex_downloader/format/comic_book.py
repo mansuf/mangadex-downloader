@@ -195,7 +195,7 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
     def on_iter_chapter(self, file_path, chapter, count):
         self.insert_ch_info_img(self.volume_zip, self.worker, chapter, count, self.volume_path)
 
-    def on_finish(self, file_path, volume, images):
+    def on_convert(self, file_path, volume, images):
         volume_name = self.get_volume_name(volume)
         pbm.logger.info(f"{volume_name} has finished download, converting to cbz...")
 
