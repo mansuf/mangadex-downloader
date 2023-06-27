@@ -284,10 +284,10 @@ Example usage:
 mangadex-dl "random"
 ```
 
-it also support content ratings filter
+it also support filters
 
 ```shell
-mangadex-dl "random:safe, suggestive"
+mangadex-dl "random" --filter "content_rating=safe, suggestive"
 ```
 
 For more information, see {doc}`../cli_ref/random`
