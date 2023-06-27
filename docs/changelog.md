@@ -1,10 +1,10 @@
 # Changelog
 
-## UNRELEASED
+## v2.10.2
 
 ### Fix bugs
 
-- Fixed `pdf-volume` and `cb7-volume` formats are not working after upgrading to v2.10.0 
+- Fixed `pdf-volume` and `cb7-volume` formats are not working after upgrading to v2.10.x 
 [#78](https://github.com/mansuf/mangadex-downloader/issues/78)
 
 ## v2.10.1
