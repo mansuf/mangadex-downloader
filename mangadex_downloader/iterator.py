@@ -480,8 +480,10 @@ class CoverArtIterator(BaseIterator):
                 "manga[]": self.manga_id,
                 "offset": self.offset,
                 "limit": self.limit,
-                "locales[]": cover_locale
             }
+
+            if cover_locale != "all":
+                params.update({"locales[]": cover_locale})
 
             url = f"{base_url}/cover"
             r = Net.mangadex.get(url, params=params)
