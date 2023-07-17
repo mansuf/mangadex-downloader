@@ -21,22 +21,11 @@
 # SOFTWARE.
 
 import logging
-import shutil
 import os
-import tqdm
 
-from pathvalidate import sanitize_filename
-from .base import (
-    ConvertedChaptersFormat,
-    ConvertedVolumesFormat,
-    ConvertedSingleFormat
-)
-from .utils import (
-    get_chapter_info,
-    NumberWithLeadingZeros,
-    get_volume_cover
-)
-from ..utils import create_directory, delete_file
+from .base import ConvertedChaptersFormat, ConvertedVolumesFormat, ConvertedSingleFormat
+from .utils import get_chapter_info, get_volume_cover
+from ..utils import create_directory
 from ..errors import MangaDexException
 from ..progress_bar import progress_bar_manager as pbm
 
@@ -47,11 +36,15 @@ except ImportError:
 else:
     PY7ZR_OK = True
 
+
 class py7zrNotInstalled(MangaDexException):
     """Raised when py7zr is not installed"""
+
     pass
 
+
 log = logging.getLogger(__name__)
+
 
 class SevenZipFile:
     file_ext = ".cb7"
@@ -65,8 +58,9 @@ class SevenZipFile:
         progress_bar = pbm.get_convert_pb(recreate=not pbm.stacked)
 
         for im_path in images:
-
-            with py7zr.SevenZipFile(path, "a" if os.path.exists(path) else "w") as zip_obj:
+            with py7zr.SevenZipFile(
+                path, "a" if os.path.exists(path) else "w"
+            ) as zip_obj:
                 zip_obj.write(im_path, im_path.name)
                 progress_bar.update(1)
 
@@ -74,12 +68,12 @@ class SevenZipFile:
         if not os.path.exists(path):
             return True
 
-        with py7zr.SevenZipFile(path, 'r') as zip_obj:
+        with py7zr.SevenZipFile(path, "r") as zip_obj:
             return target not in zip_obj.getnames()
 
     def insert_ch_info_img(self, images, chapter, path, count):
         """Insert chapter info (cover) image"""
-        img_name = count.get() + '.png'
+        img_name = count.get() + ".png"
         img_path = path / img_name
 
         if self.config.use_chapter_cover:
@@ -89,7 +83,7 @@ class SevenZipFile:
 
     def insert_vol_cover_img(self, images, volume, path, count):
         """Insert volume cover"""
-        img_name = count.get() + '.png'
+        img_name = count.get() + ".png"
         img_path = path / img_name
 
         if self.config.use_volume_cover:
@@ -97,12 +91,14 @@ class SevenZipFile:
             images.append(img_path)
             count.increase()
 
+
 class SevenZip(ConvertedChaptersFormat, SevenZipFile):
     def on_finish(self, file_path, chapter, images):
         chap_name = chapter.get_simplified_name()
 
         pbm.logger.info(f"{chap_name} has finished download, converting to cb7...")
         self.worker.submit(lambda: self.convert(images, file_path))
+
 
 class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
     def __init__(self, *args, **kwargs):
@@ -131,33 +127,31 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
         pbm.logger.info(f"{volume_name} has finished download, converting to cb7...")
         self.worker.submit(lambda: self.convert(self.images, file_path))
 
+
 class SevenZipSingle(ConvertedSingleFormat, SevenZipFile):
-    def download_single(self, worker, total, merged_name, chapters):
-        images = []
-        manga = self.manga
-        count = NumberWithLeadingZeros(total)
-        manga_zip_path = self.path / (merged_name + self.file_ext)
+    def __init__(self, *args, **kwargs):
+        # See `PDFVolume.__init__()` why i did this
+        self.images = []
 
-        if manga_zip_path.exists():
-            if self.replace:
-                delete_file(manga_zip_path)
-            elif self.check_fi_completed(merged_name):
-                log.info(f"'{manga_zip_path.name}' is exist and replace is False, cancelling download...")
-                self.add_fi(merged_name, None, manga_zip_path, chapters)
-                return
+        self.images_path = None
 
-        path = create_directory(merged_name, self.path)
+        super().__init__(*args, **kwargs)
 
-        for chap_class, chap_images in chapters:
-            self.insert_ch_info_img(images, chap_class, path, count)
+    def on_prepare(self, file_path, base_path):
+        self.images.clear()
 
-            images.extend(self.get_images(chap_class, chap_images, path, count))
-        
-        # Begin converting
-        log.info(f"Manga '{manga.title}' has finished download, converting to cb7...")
-        self.convert(images, manga_zip_path)
+        self.images_path = base_path
 
-        # Remove original manga folder
-        shutil.rmtree(path, ignore_errors=True)
+    def on_iter_chapter(self, file_path, chapter, count):
+        self.insert_ch_info_img(self.images, chapter, self.images_path, count)
 
-        self.add_fi(merged_name, None, manga_zip_path, chapters)
+    def on_received_images(self, file_path, chapter, images):
+        self.images.extend(images)
+        return super().on_received_images(file_path, chapter, images)
+
+    def on_finish(self, file_path, images):
+        pbm.logger.info(
+            f"Manga '{self.manga.title}' has finished download, converting to cbz..."
+        )
+
+        self.worker.submit(lambda: self.convert(self.images, file_path))

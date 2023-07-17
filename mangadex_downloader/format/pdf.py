@@ -25,52 +25,36 @@ import io
 import os
 import time
 import math
-import shutil
 
-from tqdm import tqdm
-from .base import (
-    ConvertedChaptersFormat,
-    ConvertedVolumesFormat,
-    ConvertedSingleFormat
-)
-from .utils import (
-    NumberWithLeadingZeros,
-    get_chapter_info,
-    get_volume_cover
-)
+from .base import ConvertedChaptersFormat, ConvertedVolumesFormat, ConvertedSingleFormat
+from .utils import get_chapter_info, get_volume_cover
 from ..errors import PillowNotInstalled
-from ..utils import create_directory, delete_file
+from ..utils import create_directory
 from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
 
 try:
-    from PIL import (
-        Image,
-        ImageFile,
-        ImageSequence,
-        PdfParser,
-        __version__,
-        features
-    )
+    from PIL import Image, ImageFile, ImageSequence, PdfParser, __version__, features
 except ImportError:
     pillow_ready = False
 else:
     pillow_ready = True
+
 
 class _PageRef:
     def __init__(self, func, *args, **kwargs):
         self._func = func
         self._args = args
         self._kwargs = kwargs
-    
+
     def __call__(self):
         return self._func(*self._args, **self._kwargs)
+
 
 class PDFPlugin:
     def __init__(self, ims):
         # "Circular Imports" problem
-        from ..config import config
 
         pbm.set_convert_total(len(ims))
         self.tqdm = pbm.get_convert_pb(recreate=not pbm.stacked)
@@ -91,7 +75,7 @@ class PDFPlugin:
 
         if err:
             ImageFile.LOAD_TRUNCATED_IMAGES = True
-        
+
         # Load it again
         img.load()
 
@@ -101,7 +85,7 @@ class PDFPlugin:
         self._save(im, fp, filename, save_all=True)
 
     # This was modified version of Pillow/PdfImagePlugin.py version 9.5.0
-    # The images will be automatically converted to RGB and closed when done converting to PDF
+    # The images will be automatically converted to RGB and closed when done converting to PDF  # noqa: E501
     def _save(self, im, fp, filename, save_all=False):
         is_appending = im.encoderinfo.get("append", False)
         if is_appending:
@@ -169,7 +153,7 @@ class PDFPlugin:
                 page_refs.append(existing_pdf.next_object_id(0))
                 contents_refs.append(existing_pdf.next_object_id(0))
                 existing_pdf.pages.append(page_refs[-1])
-            
+
             # Reduce Opened files
             if isinstance(im_ref, _PageRef):
                 img.close()
@@ -190,9 +174,9 @@ class PDFPlugin:
 
             truncated = self.check_truncated(im)
 
-            if im.mode != 'RGB':
+            if im.mode != "RGB":
                 # Convert to RGB mode
-                im_sequence = im.convert('RGB')
+                im_sequence = im.convert("RGB")
 
                 # Close image to save memory
                 im.close()
@@ -203,7 +187,9 @@ class PDFPlugin:
             # Copy necessary encoderinfo to new image
             im_sequence.encoderinfo = encoderinfo.copy()
 
-            im_pages = ImageSequence.Iterator(im_sequence) if save_all else [im_sequence]
+            im_pages = (
+                ImageSequence.Iterator(im_sequence) if save_all else [im_sequence]
+            )
             for im in im_pages:
                 # FIXME: Should replace ASCIIHexDecode with RunLengthDecode
                 # (packbits) or LZWDecode (tiff/lzw compression).  Note that
@@ -292,7 +278,9 @@ class PDFPlugin:
                 elif filter == "FlateDecode":
                     ImageFile._save(im, op, [("zip", (0, 0) + im.size, 0, im.mode)])
                 elif filter == "RunLengthDecode":
-                    ImageFile._save(im, op, [("packbits", (0, 0) + im.size, 0, im.mode)])
+                    ImageFile._save(
+                        im, op, [("packbits", (0, 0) + im.size, 0, im.mode)]
+                    )
                 else:
                     msg = f"unsupported PDF filter ({filter})"
                     raise ValueError(msg)
@@ -348,7 +336,7 @@ class PDFPlugin:
 
                 self.tqdm.update(1)
                 page_number += 1
-            
+
             # Close image to save memory
             im_sequence.close()
 
@@ -366,11 +354,12 @@ class PDFPlugin:
     def register_pdf_handler(self):
         Image.init()
 
-        Image.register_save('PDF', self._save)
-        Image.register_save_all('PDF', self._save_all)
-        Image.register_extension('PDF', '.pdf')
+        Image.register_save("PDF", self._save)
+        Image.register_save_all("PDF", self._save_all)
+        Image.register_extension("PDF", ".pdf")
 
         Image.register_mime("PDF", "application/pdf")
+
 
 class PDFFile:
     file_ext = ".pdf"
@@ -387,21 +376,17 @@ class PDFFile:
         images = []
         for im in imgs:
             images.append(_PageRef(Image.open, im))
-        
+
         im_ref = images.pop(0)
         im = im_ref()
 
         pdf_plugin.check_truncated(im)
 
-        im.save(
-            target,
-            save_all=True,
-            append_images=images
-        )
+        im.save(target, save_all=True, append_images=images)
 
     def insert_ch_info_img(self, images, chapter, path, count):
         """Insert chapter info (cover) image"""
-        img_name = count.get() + '.png'
+        img_name = count.get() + ".png"
         img_path = path / img_name
 
         if self.config.use_chapter_cover:
@@ -411,7 +396,7 @@ class PDFFile:
 
     def insert_vol_cover_img(self, images, volume, path, count):
         """Insert volume cover"""
-        img_name = count.get() + '.png'
+        img_name = count.get() + ".png"
         img_path = path / img_name
 
         if self.config.use_volume_cover:
@@ -419,18 +404,20 @@ class PDFFile:
             images.append(img_path)
             count.increase()
 
+
 class PDF(ConvertedChaptersFormat, PDFFile):
     def on_finish(self, file_path, chapter, images):
         chap_name = chapter.get_simplified_name()
         pbm.logger.info(f"{chap_name} has finished download, converting to pdf...")
         self.worker.submit(lambda: self.convert(images, file_path))
 
+
 class PDFVolume(ConvertedVolumesFormat, PDFFile):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # `images` variable are only filled download images from MangaDex server
-        # (look at ConvertedVolumesFormat.download_volumes() at `for chap_class, chap_images in chapters`)
+        # (look at ConvertedVolumesFormat.download_volumes() at `for chap_class, chap_images in chapters`)  # noqa: E501
         # This is volume format, which mean user can add volume cover + chapter cover
         # But volume cover + chapter cover are separated images
         # and it does not get added to `images` variable
@@ -459,6 +446,7 @@ class PDFVolume(ConvertedVolumesFormat, PDFFile):
     def on_received_images(self, file_path, chapter, images):
         self.images.extend(images)
 
+
 class PDFSingle(ConvertedSingleFormat, PDFFile):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -473,7 +461,9 @@ class PDFSingle(ConvertedSingleFormat, PDFFile):
         self.insert_ch_info_img(self.images, chapter, self.images_directory, count)
 
     def on_finish(self, file_path, images):
-        pbm.logger.info(f"Manga '{self.manga.title}' has finished download, converting to pdf...")
+        pbm.logger.info(
+            f"Manga '{self.manga.title}' has finished download, converting to pdf..."
+        )
         self.worker.submit(lambda: self.convert(self.images, file_path))
 
     def on_received_images(self, file_path, chapter, images):

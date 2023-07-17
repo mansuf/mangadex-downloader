@@ -30,12 +30,13 @@ from .utils import (
     get_chapter_info,
     verify_sha256,
     create_file_hash_sha256,
-    get_volume_cover
+    get_volume_cover,
 )
 from ..utils import create_directory, delete_file
 from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
+
 
 # TODO: PLEASE REFACTOR THIS CODE (Raw, RawVolume, RawSingle)
 class Raw(BaseFormat):
@@ -79,21 +80,25 @@ class Raw(BaseFormat):
                     verified = verify_sha256(im_info.hash, chapter_path / im_info.name)
                     if not verified:
                         failed_images.append(im_info)
-                    
+
                 if failed_images and fi_completed:
                     pbm.logger.warning(
-                        f"Found {len(failed_images)} unverified or missing images from {chap_name}. " \
-                        "Re-downloading..."
+                        f"Found {len(failed_images)} unverified or missing images "
+                        f"from {chap_name}. Re-downloading..."
                     )
 
                     # Delete unverified images
                     for im_info in failed_images:
                         im_path = chapter_path / im_info.name
 
-                        pbm.logger.debug(f"Removing unverified image '{im_path.resolve()}'")
+                        pbm.logger.debug(
+                            f"Removing unverified image '{im_path.resolve()}'"
+                        )
                         delete_file(im_path)
                 elif fi_completed:
-                    pbm.logger.info(f"'{chap_name}' is verified. no need to re-download")
+                    pbm.logger.info(
+                        f"'{chap_name}' is verified. no need to re-download"
+                    )
                     self.mark_read_chapter(chap_class)
                     chapters_pb.update(1)
                     continue
@@ -107,16 +112,14 @@ class Raw(BaseFormat):
                 for im in images:
                     basename = os.path.basename(im)
                     im_hash = create_file_hash_sha256(im)
-                    data.append(
-                        (basename, im_hash, chap_class.id, chap_name)
-                    )
-                
+                    data.append((basename, im_hash, chap_class.id, chap_name))
+
                 manga.tracker.add_images_info(data)
                 manga.tracker.toggle_complete(chap_name, True)
 
                 self.mark_read_chapter(chap_class)
                 chapters_pb.update(1)
-            
+
             chapters_pb.reset()
             volumes_pb.update(1)
 
@@ -125,6 +128,7 @@ class Raw(BaseFormat):
 
         pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()
+
 
 class RawVolume(BaseFormat):
     def main(self):
@@ -155,9 +159,9 @@ class RawVolume(BaseFormat):
 
             # Build volume folder name
             if volume is not None:
-                volume_name = f'Volume {volume}'
+                volume_name = f"Volume {volume}"
             else:
-                volume_name = 'No Volume'
+                volume_name = "No Volume"
 
             volume_path = create_directory(volume_name, base_path)
             file_info = self.get_fi_volume_or_single_fmt(volume_name)
@@ -188,11 +192,11 @@ class RawVolume(BaseFormat):
                 verified = verify_sha256(im_info.hash, volume_path / im_info.name)
                 if not verified:
                     failed_images.append(im_info)
-                
+
             if failed_images and fi_completed and not new_chapters:
                 pbm.logger.warning(
-                    f"Found {len(failed_images)} unverified or missing images from {volume_name}. " \
-                    "Re-downloading..."
+                    f"Found {len(failed_images)} unverified or missing images "
+                    f"from {volume_name}. Re-downloading..."
                 )
 
                 # Delete unverified images
@@ -216,7 +220,7 @@ class RawVolume(BaseFormat):
                     count.increase(chap_class.pages)
                     continue
 
-                img_name = count.get() + '.png'
+                img_name = count.get() + ".png"
                 img_path = volume_path / img_name
 
                 # Insert chapter info (cover) image
@@ -233,16 +237,12 @@ class RawVolume(BaseFormat):
             chaps_data = []
             imgs_data = []
             for chap_cls, images in success_images.items():
-                chaps_data.append(
-                    (chap_cls.name, chap_cls.id, volume_name)
-                )
+                chaps_data.append((chap_cls.name, chap_cls.id, volume_name))
 
                 for im in images:
                     basename = os.path.basename(im)
                     im_hash = create_file_hash_sha256(im)
-                    imgs_data.append(
-                        (basename, im_hash, chap_cls.id, volume_name)
-                    )
+                    imgs_data.append((basename, im_hash, chap_cls.id, volume_name))
 
             tracker.add_chapters_info(chaps_data)
             tracker.add_images_info(imgs_data)
@@ -253,6 +253,7 @@ class RawVolume(BaseFormat):
 
         pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()
+
 
 class RawSingle(BaseFormat):
     def main(self):
@@ -276,7 +277,7 @@ class RawSingle(BaseFormat):
             pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
-        
+
         cache, total, name = result_cache
 
         count = NumberWithLeadingZeros(total)
@@ -302,10 +303,10 @@ class RawSingle(BaseFormat):
             verified = verify_sha256(im_info.hash, path / im_info.name)
             if not verified:
                 failed_images.append(im_info)
-            
+
         if failed_images and fi_completed and not new_chapters:
             pbm.logger.warning(
-                f"Found {len(failed_images)} unverified or missing images from {name}. " \
+                f"Found {len(failed_images)} unverified or missing images from {name}. "
                 "Re-downloading..."
             )
 
@@ -329,7 +330,9 @@ class RawSingle(BaseFormat):
 
         volumes = {}
         for chap_class, chap_images in cache:
-            self.append_cache_volumes(volumes, chap_class.volume, (chap_class, chap_images))
+            self.append_cache_volumes(
+                volumes, chap_class.volume, (chap_class, chap_images)
+            )
 
         pbm.set_volumes_total(len(volumes.keys()))
         for _, chapters in volumes.items():
@@ -345,7 +348,7 @@ class RawSingle(BaseFormat):
                     continue
 
                 # Insert chapter info (cover) image
-                img_name = count.get() + '.png'
+                img_name = count.get() + ".png"
                 img_path = path / img_name
 
                 if self.config.use_chapter_cover:
@@ -359,23 +362,19 @@ class RawSingle(BaseFormat):
 
                 pbm.get_pages_pb().reset()
                 chapters_pb.update(1)
-            
+
             chapters_pb.reset()
             volumes_pb.update(1)
-        
+
         chaps_data = []
         imgs_data = []
         for chap_cls, images in success_images.items():
-            chaps_data.append(
-                (chap_cls.name, chap_cls.id, name)
-            )
+            chaps_data.append((chap_cls.name, chap_cls.id, name))
 
             for im in images:
                 basename = os.path.basename(im)
                 im_hash = create_file_hash_sha256(im)
-                imgs_data.append(
-                    (basename, im_hash, chap_cls.id, name)
-                )
+                imgs_data.append((basename, im_hash, chap_cls.id, name))
 
         tracker.add_chapters_info(chaps_data)
         tracker.add_images_info(imgs_data)

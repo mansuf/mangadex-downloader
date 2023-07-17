@@ -29,8 +29,8 @@ import sys
 import jwt
 from datetime import datetime
 
-from .env import *
-from .config import *
+from .env import base_path, config_enabled, init
+from .config import config
 from ..errors import MangaDexException
 from .. import json_op
 
@@ -38,17 +38,12 @@ log = logging.getLogger(__name__)
 
 __all__ = ("login_cache",)
 
+
 class AuthCacheManager:
-    path = base_path / 'auth.cache'
+    path = base_path / "auth.cache"
     default = {
-        "session": {
-            "token": None,
-            "exp": None
-        },
-        "refresh": {
-            "token": None,
-            "exp": None
-        }
+        "session": {"token": None, "exp": None},
+        "refresh": {"token": None, "exp": None},
     }
     fmt_exp_datetime = "%d:%m:%YT%H:%M:%S"
     delay_login_time = 30
@@ -65,25 +60,23 @@ class AuthCacheManager:
 
     def _parse_expired_time(self, data):
         """Convert string datetime to :class:`datetime.datetime` object"""
-        exp_refresh_token = data['refresh']['exp']
-        exp_session_token = data['session']['exp']
+        exp_refresh_token = data["refresh"]["exp"]
+        exp_session_token = data["session"]["exp"]
 
         parsed_exp_refresh_token = None
         if exp_refresh_token is not None:
             parsed_exp_refresh_token = datetime.strptime(
-                exp_refresh_token,
-                self.fmt_exp_datetime
+                exp_refresh_token, self.fmt_exp_datetime
             )
 
         parsed_exp_session_token = None
         if exp_session_token is not None:
             parsed_exp_session_token = datetime.strptime(
-                exp_session_token,
-                self.fmt_exp_datetime
+                exp_session_token, self.fmt_exp_datetime
             )
 
-        data['refresh']['exp'] = parsed_exp_refresh_token
-        data['session']['exp'] = parsed_exp_session_token
+        data["refresh"]["exp"] = parsed_exp_refresh_token
+        data["session"]["exp"] = parsed_exp_session_token
 
     def _read(self):
         if not self.path.exists():
@@ -98,19 +91,23 @@ class AuthCacheManager:
 
     def _serialize_exp_time(self, obj):
         """Convert :class:`datetime.datetime` to formatted string"""
-        exp_refresh_token = obj['refresh']['exp']
-        exp_session_token = obj['session']['exp']
+        exp_refresh_token = obj["refresh"]["exp"]
+        exp_session_token = obj["session"]["exp"]
 
         serialized_exp_refresh_token = None
         if exp_refresh_token is not None:
-            serialized_exp_refresh_token = exp_refresh_token.strftime(self.fmt_exp_datetime)
+            serialized_exp_refresh_token = exp_refresh_token.strftime(
+                self.fmt_exp_datetime
+            )
 
         serialized_exp_session_token = None
         if exp_session_token is not None:
-            serialized_exp_session_token = exp_session_token.strftime(self.fmt_exp_datetime)
+            serialized_exp_session_token = exp_session_token.strftime(
+                self.fmt_exp_datetime
+            )
 
-        obj['refresh']['exp'] = serialized_exp_refresh_token
-        obj['session']['exp'] = serialized_exp_session_token
+        obj["refresh"]["exp"] = serialized_exp_refresh_token
+        obj["session"]["exp"] = serialized_exp_session_token
 
     def _write(self, obj):
         self._serialize_exp_time(obj)
@@ -135,24 +132,27 @@ class AuthCacheManager:
                 err = e
                 # Failed to decode base64
                 log.error(
-                    f"Failed to decode auth cache file, reason: {e}. " \
-                    "Authentication cache file will be re-created and previous auth cached will be lost. " \
+                    f"Failed to decode auth cache file, reason: {e}. "
+                    "Authentication cache file will be re-created "
+                    "and previous auth cached will be lost. "
                     f"Recreating... (attempt: {attempt})"
                 )
             except json_op.JSONDecodeError as e:
                 err = e
                 # Failed to deserialize json
                 log.error(
-                    f"Failed to deserialize json auth cache file, reason: {e}. " \
-                    "Authentication cache file will be re-created and previous auth cached will be lost. " \
+                    f"Failed to deserialize json auth cache file, reason: {e}. "
+                    "Authentication cache file will be re-created "
+                    "and previous auth cached will be lost. "
                     f"Recreating... (attempt: {attempt})"
                 )
             except Exception as e:
                 err = e
                 # another error
                 log.warning(
-                    f"Failed to load auth cache file, reason: {e}. " \
-                    "Authentication cache file will be re-created and previous auth cached will be lost. " \
+                    f"Failed to load auth cache file, reason: {e}. "
+                    "Authentication cache file will be re-created "
+                    "and previous auth cached will be lost. "
                     f"Recreating... (attempt: {attempt})"
                 )
             else:
@@ -169,11 +169,15 @@ class AuthCacheManager:
 
         if not success:
             exc = MangaDexException(
-                f"Failed to load auth cache file ({self.path}), reason: {err}" \
+                f"Failed to load auth cache file ({self.path}), reason: {err}"
                 f"Make sure you have permission to read & write in that directory"
             )
-            print("Traceback of last error when loading auth cache file", file=sys.stderr)
-            traceback.print_exception(type(err), err, err.__traceback__, file=sys.stderr)
+            print(
+                "Traceback of last error when loading auth cache file", file=sys.stderr
+            )
+            traceback.print_exception(
+                type(err), err, err.__traceback__, file=sys.stderr
+            )
 
             raise exc
 
@@ -185,22 +189,22 @@ class AuthCacheManager:
     def _reset_session_token(self):
         data = self._data.copy()
 
-        data['session']['token'] = None
-        data['session']['exp'] = None
+        data["session"]["token"] = None
+        data["session"]["exp"] = None
 
         self._write(data)
 
     def _reset_refresh_token(self):
         data = self._data.copy()
 
-        data['refresh']['token'] = None
-        data['refresh']['exp'] = None
+        data["refresh"]["token"] = None
+        data["refresh"]["exp"] = None
 
         self._write(data)
 
     def get_expiration_time(self, token):
-        data = jwt.decode(token, options={'verify_signature': False})
-        return datetime.fromtimestamp(data['exp'])
+        data = jwt.decode(token, options={"verify_signature": False})
+        return datetime.fromtimestamp(data["exp"])
 
     def get_session_token(self):
         """Union[:class:`str`, ``None``]: A session token for authentication to MangaDex"""
@@ -209,8 +213,8 @@ class AuthCacheManager:
 
         with self._lock:
             self._load()
-            token = self._data['session']['token']
-            exp = self._data['session']['exp']
+            token = self._data["session"]["token"]
+            exp = self._data["session"]["exp"]
             now = self._get_datetime_now()
 
             if token is None and exp is None:
@@ -234,7 +238,7 @@ class AuthCacheManager:
 
     def set_session_token(self, token):
         """Write session token to cache file
-        
+
         Parameters
         -----------
         token: :class:`str`
@@ -245,8 +249,8 @@ class AuthCacheManager:
 
         with self._lock:
             data = self._data.copy()
-            data['session']['token'] = token
-            data['session']['exp'] = self.get_expiration_time(token)
+            data["session"]["token"] = token
+            data["session"]["exp"] = self.get_expiration_time(token)
             self._write(data)
 
     def get_refresh_token(self):
@@ -256,8 +260,8 @@ class AuthCacheManager:
 
         with self._lock:
             self._load()
-            token = self._data['refresh']['token']
-            exp = self._data['refresh']['exp']
+            token = self._data["refresh"]["token"]
+            exp = self._data["refresh"]["exp"]
             now = self._get_datetime_now()
 
             if token is None and exp is None:
@@ -272,7 +276,7 @@ class AuthCacheManager:
 
     def set_refresh_token(self, token):
         """Write refresh token to cache file
-        
+
         Parameters
         -----------
         token: :class:`str`
@@ -283,8 +287,8 @@ class AuthCacheManager:
 
         with self._lock:
             data = self._data.copy()
-            data['refresh']['token'] = token
-            data['refresh']['exp'] = self.get_expiration_time(token)
+            data["refresh"]["token"] = token
+            data["refresh"]["exp"] = self.get_expiration_time(token)
             self._write(data)
 
     def purge(self):
@@ -295,5 +299,6 @@ class AuthCacheManager:
         with self._lock:
             self._reset_session_token()
             self._reset_refresh_token()
+
 
 login_cache = AuthCacheManager()

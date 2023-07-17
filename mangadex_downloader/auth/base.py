@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
 class MangaDexAuthBase:
     """Base auth class for MangaDex API"""
+
     def __init__(self, session):
         self.session = session
 
@@ -31,7 +33,7 @@ class MangaDexAuthBase:
 
     def logout(self):
         """Logout from MangaDex
-        
+
         NOTE: this method only revoke `session_token` and `refresh_token`
         """
         pass

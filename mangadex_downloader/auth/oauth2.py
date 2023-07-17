@@ -47,13 +47,14 @@ else:
 if oauth_ready:
     # For `authlib.oauth2.OAuth2Client.client_auth_class`
     class OAuth2ClientAuth(AuthBase, ClientAuth):
-        """Attaches OAuth Client Authentication to the given Request object.
-        """
+        """Attaches OAuth Client Authentication to the given Request object."""
+
         def __call__(self, req):
             req.url, req.headers, req.body = self.prepare(
                 req.method, req.url, req.headers, req.body
             )
             return req
+
 
 # For callback handler (`redirect_uri`)
 class OAuth2CallbackHandler(BaseHTTPRequestHandler):
@@ -132,8 +133,8 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
             </body>
         </html>
         """.format(
-            msg=f"Login Failed (err_type: {err_type}). Description: '{message}'" \
-                ". Please check your 'mangadex-downloader' app"
+            msg=f"Login Failed (err_type: {err_type}). Description: '{message}'"
+            ". Please check your 'mangadex-downloader' app"
         )
 
         self.send_response(403)
@@ -159,7 +160,7 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
         if not state:
             self.send_invalid_request()
             return
-        
+
         state = state[0]
 
         if state != orig_state:
@@ -175,7 +176,7 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
             self.send_login_error(error, new_args["error_description"])
             self.namespace.result = {
                 "error": error,
-                "description": new_args["error_description"]
+                "description": new_args["error_description"],
             }
             self.event.set()
             return
@@ -184,6 +185,7 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
 
         self.namespace.result = new_args
         self.event.set()
+
 
 class OAuth2CallbackHandleBuilder:
     def __init__(self, namespace, event) -> None:
@@ -195,18 +197,20 @@ class OAuth2CallbackHandleBuilder:
         OAuth2CallbackHandler.event = self.event
         return OAuth2CallbackHandler(*args, **kwargs)
 
+
 class OAuth2(MangaDexAuthBase):
     callback_host = "localhost"
     callback_port = 3000
 
     def __init__(self, *args, **kwargs):
-
         if not oauth_ready:
             raise MangaDexException("Library 'authlib' is not installed")
 
         super().__init__(*args, **kwargs)
 
-        self.openid_config_url = f"{self.session.auth_url}/realms/mangadex/.well-known/openid-configuration"
+        self.openid_config_url = (
+            f"{self.session.auth_url}/realms/mangadex/.well-known/openid-configuration"
+        )
         self.openid_config = self.session.get(self.openid_config_url).json()
 
         self.authorization_endpoint = self.openid_config["authorization_endpoint"]
@@ -215,7 +219,8 @@ class OAuth2(MangaDexAuthBase):
 
         self.client = OAuth2Client(
             session=self.session,
-            # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET, PLEASE CHANGE THIS ONCE IT'S ALLOWED
+            # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET, 
+            # PLEASE CHANGE THIS ONCE IT'S ALLOWED
             client_id="thirdparty-oauth-client",
             scope="openid groups profile roles",
             redirect_uri=f"http://{self.callback_host}:{self.callback_port}",
@@ -232,16 +237,12 @@ class OAuth2(MangaDexAuthBase):
 
     def run_callback_handler(self, n, e):
         self.callback_handler = HTTPServer(
-            (self.callback_host, self.callback_port), 
-            OAuth2CallbackHandleBuilder(n, e)
+            (self.callback_host, self.callback_port), OAuth2CallbackHandleBuilder(n, e)
         )
         self.callback_handler.serve_forever()
 
     def _make_ready_token(self, token):
-        return {
-            "session": token["access_token"],
-            "refresh": token["refresh_token"]
-        }
+        return {"session": token["access_token"], "refresh": token["refresh_token"]}
 
     def login(self, username, email, password):
         log.debug("Creating Manager for multiprocessing")
@@ -249,16 +250,22 @@ class OAuth2(MangaDexAuthBase):
             namespace = manager.Namespace()
             event = manager.Event()
 
-            url, state = self.client.create_authorization_url(self.authorization_endpoint)
+            url, state = self.client.create_authorization_url(
+                self.authorization_endpoint
+            )
             namespace.state = state
 
             log.debug("Starting OAuth2 callback handler")
-            proc = Process(target=self.run_callback_handler, args=(namespace, event), daemon=True)
+            proc = Process(
+                target=self.run_callback_handler, args=(namespace, event), daemon=True
+            )
             proc.start()
 
             open_browser_success = webbrowser.open(url, new=2, autoraise=True)
             if not open_browser_success:
-                log.info(f"Failed to open browser. Please open this url to authenticate => {url}")
+                log.info(
+                    f"Failed to open browser. Please open this url to authenticate => {url}"
+                )
 
             log.info("Waiting OAuth2 callback handler response")
             time.sleep(1)
@@ -273,7 +280,9 @@ class OAuth2(MangaDexAuthBase):
             error = result_auth.get("error")
             err_description = result_auth.get("description")
             if error:
-                raise LoginFailed(f"Login to MangaDex failed, reason: {err_description}")
+                raise LoginFailed(
+                    f"Login to MangaDex failed, reason: {err_description}"
+                )
 
             self.session_state = result_auth["session_state"]
             self.authorization_code = result_auth["code"]
@@ -281,15 +290,14 @@ class OAuth2(MangaDexAuthBase):
             self.token = self.client.fetch_token(
                 url=self.token_endpoint,
                 grant_type="authorization_code",
-                code=self.authorization_code
+                code=self.authorization_code,
             )
 
             return self._make_ready_token(self.token)
 
     def refresh_token(self):
         self.token = self.client.refresh_token(
-            url=self.token_endpoint,
-            refresh_token=self.token["refresh_token"]
+            url=self.token_endpoint, refresh_token=self.token["refresh_token"]
         )
 
         return self._make_ready_token(self.token)
@@ -298,10 +306,10 @@ class OAuth2(MangaDexAuthBase):
         # TODO: Use OAuth2 introspect token instead of /auth/check
         # We don't know that '/auth/check` will be deprecated soon
 
-        url = '{0}/auth/check'.format(self.session.base_url)
+        url = "{0}/auth/check".format(self.session.base_url)
         r = self.session.get(url)
 
-        return r.json()['isAuthenticated']
+        return r.json()["isAuthenticated"]
 
     def update_token(self, session=None, refresh=None):
         if session:
@@ -314,7 +322,7 @@ class OAuth2(MangaDexAuthBase):
         response = self.client.revoke_token(
             url=self.revocation_endpoint,
             token=self.token[type_token],
-            token_type_hint=type_token
+            token_type_hint=type_token,
         )
 
         if not response.ok:

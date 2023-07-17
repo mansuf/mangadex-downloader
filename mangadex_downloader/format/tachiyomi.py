@@ -21,15 +21,15 @@
 # SOFTWARE.
 
 import logging
-import os
 from .raw import Raw
 from .comic_book import ComicBookArchive
-from .utils import write_tachiyomi_details
 
 log = logging.getLogger(__name__)
 
+
 class Tachiyomi(Raw):
     pass
+
 
 class TachiyomiZip(ComicBookArchive):
     pass

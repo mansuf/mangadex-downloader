@@ -8,7 +8,7 @@ from .utils import (
     setup_logging,
     setup_network,
     register_keyboardinterrupt_handler,
-    sys_argv
+    sys_argv,
 )
 from .config import build_config
 from .auth import login_with_err_handler, logout_with_err_handler
@@ -21,12 +21,12 @@ _deprecated_opts = {
     # I know this isn't deprecated
     # But i need the warning feature, hehe
     "range": "--range is disabled, because it's broken and need to rework",
-
-    "no_progress_bar": "--no-progress bar is deprecated and will be removed in v3.0.0" \
-                       ". Use '--progress-bar-layout=none' instead",
-    "verbose": "--verbose is deprecated and will be removed in v3.0.0. " \
-               "Use '--log-level=DEBUG' instead",
+    "no_progress_bar": "--no-progress bar is deprecated and will be removed in v3.0.0"
+    ". Use '--progress-bar-layout=none' instead",
+    "verbose": "--verbose is deprecated and will be removed in v3.0.0. "
+    "Use '--log-level=DEBUG' instead",
 }
+
 
 def check_deprecated_options(log, args):
     for arg, msg in _deprecated_opts.items():
@@ -34,15 +34,18 @@ def check_deprecated_options(log, args):
         if deprecated:
             log.warning(msg)
 
+
 def check_deprecated_formats(log, args):
     if args.save_as in deprecated_formats:
         log.warning(
-            f"format `{args.save_as}` is deprecated, " \
-             "please use `raw` or `cbz` format with `--write-tachiyomi-info` instead"
+            f"format `{args.save_as}` is deprecated, "
+            "please use `raw` or `cbz` format with `--write-tachiyomi-info` instead"
         )
 
-        # Enable `--write-tachiyomi-info` because it's using `tachiyomi` and `tachiyomi-zip` format
+        # Enable `--write-tachiyomi-info`
+        # because it's using `tachiyomi` and `tachiyomi-zip` format
         args.write_tachiyomi_info = True
+
 
 def _main(argv):
     parser = None
@@ -54,7 +57,7 @@ def _main(argv):
         parser, args = get_args(argv)
 
         # Setup logging
-        log = setup_logging('mangadex_downloader', args.verbose)
+        log = setup_logging("mangadex_downloader", args.verbose)
 
         # Check deprecated
         check_deprecated_options(log, args)
@@ -88,22 +91,23 @@ def _main(argv):
     except MangaDexException as e:
         err_msg = str(e)
         return parser, 1, err_msg
-    
+
     # Other exception
     except Exception as e:
         log.error("Unhandled exception, %s: %s" % (e.__class__.__name__, str(e)))
         traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
         return parser, 1, None
-    
+
     else:
         # We're done here
         return parser, 0, None
+
 
 def main(argv=None):
     _argv = sys_argv if argv is None else argv
 
     args_parser, exit_code, err_msg = _main(_argv)
-    
+
     if args_parser is not None and exit_code > 0 and err_msg:
         # It has error message, exit with .error()
         args_parser.error(err_msg)
@@ -112,4 +116,3 @@ def main(argv=None):
     # or an error occured during parsing arguments
     # or another error that the program itself cannot handle it
     sys.exit(exit_code)
-

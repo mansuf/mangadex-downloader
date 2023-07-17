@@ -28,7 +28,6 @@ from typing import Union
 from datetime import datetime
 
 from .info_data.sqlite import FileInfo
-from ..utils import delete_file
 from ..config import config
 
 log = logging.getLogger(__name__)
@@ -42,19 +41,15 @@ sqlfiles_base_path = Path(__file__).parent.resolve()
 
 sql_commands = {
     i: (sqlfiles_base_path / "sql_files" / f"{i}.sql").read_text()
-    for i in 
-    [
-        "create_file_info",
-        "create_ch_info",
-        "create_img_info"
-    ]
+    for i in ["create_file_info", "create_ch_info", "create_img_info"]
 }
+
 
 class DownloadTrackerSQLite:
     """An tracker for downloaded manga, data is written to SQLite format
-    
-    This will track downloaded volume and chapters from a manga. 
-    The tracker will be put in downloaded manga directory, named `download.db`. 
+
+    This will track downloaded volume and chapters from a manga.
+    The tracker will be put in downloaded manga directory, named `download.db`.
     Inside the database contain these tables:
 
     - img_info_{format}
@@ -69,7 +64,8 @@ class DownloadTrackerSQLite:
         self.file = self.get_tracker_path(fmt, path)
 
         # Somehow i don't trust sqlite3 thread-safety
-        # Sometimes it raised "sqlite3.OperationalError: cannot start a transaction within a transaction"
+        # Sometimes it raised
+        # "sqlite3.OperationalError: cannot start a transaction within a transaction"
         # out of nowhere, and when i'm trying to run it again, it works without error.
         self._lock = threading.Lock()
 
@@ -91,7 +87,7 @@ class DownloadTrackerSQLite:
         self._load()
 
         # Table names for SQL query
-        # Because sqlite3.Cursor.exceute() parameters doesn't support 
+        # Because sqlite3.Cursor.exceute() parameters doesn't support
         # putting values into tables
         fmt_table = self.format.replace("-", "_")
         self._fi_name = f"file_info_{fmt_table}"
@@ -118,7 +114,7 @@ class DownloadTrackerSQLite:
                     return True
             finally:
                 db.close()
-            
+
             return False
 
     def recreate(self):
@@ -200,9 +196,7 @@ class DownloadTrackerSQLite:
         with self._lock:
             cur = self.db.cursor()
 
-            cur.execute(
-                f"DELETE FROM '{self._fi_name}' WHERE name = ?", (name,)
-            )
+            cur.execute(f"DELETE FROM '{self._fi_name}' WHERE name = ?", (name,))
 
             self.db.commit()
             cur.close()
@@ -216,7 +210,7 @@ class DownloadTrackerSQLite:
 
             cur.executemany(
                 f"DELETE FROM '{self._ch_name}' WHERE fi_name = ? AND name = ?",
-                [(i[2], i[0]) for i in chapters]
+                [(i[2], i[0]) for i in chapters],
             )
 
             self.db.commit()
@@ -231,7 +225,7 @@ class DownloadTrackerSQLite:
 
             cur.executemany(
                 f"DELETE FROM '{self._img_name}' WHERE fi_name = ? AND name = ?",
-                [(im[3], im[0]) for im in images]
+                [(im[3], im[0]) for im in images],
             )
 
             self.db.commit()
@@ -250,22 +244,17 @@ class DownloadTrackerSQLite:
         with self._lock:
             cur = self.db.cursor()
 
-            query = f"INSERT INTO '{self._fi_name}' (" \
-                    f"'name', " \
-                    f"'manga_id', " \
-                    f"'ch_id', " \
-                    f"'hash', " \
-                    f"'last_download_time', " \
-                    f"'completed') VALUES (?,?,?,?,?,?)"
-            
-            cur.execute(query, (
-                name,
-                manga_id,
-                ch_id,
-                hash,
-                None,
-                0
-            ))
+            query = (
+                f"INSERT INTO '{self._fi_name}' ("
+                f"'name', "
+                f"'manga_id', "
+                f"'ch_id', "
+                f"'hash', "
+                f"'last_download_time', "
+                f"'completed') VALUES (?,?,?,?,?,?)"
+            )
+
+            cur.execute(query, (name, manga_id, ch_id, hash, None, 0))
 
             self.db.commit()
             cur.close()
@@ -280,12 +269,13 @@ class DownloadTrackerSQLite:
         with self._lock:
             cur = self.db.cursor()
 
-            query = f"INSERT INTO '{self._img_name}' (" \
-                    "'name', " \
-                    "'hash', " \
-                    "'chapter_id', " \
-                    "'fi_name') VALUES (?,?,?,?) " \
-
+            query = (
+                f"INSERT INTO '{self._img_name}' ("
+                "'name', "
+                "'hash', "
+                "'chapter_id', "
+                "'fi_name') VALUES (?,?,?,?) "
+            )
             cur.executemany(query, images)
 
             self.db.commit()
@@ -301,11 +291,12 @@ class DownloadTrackerSQLite:
         with self._lock:
             cur = self.db.cursor()
 
-            query = f"INSERT INTO '{self._ch_name}' (" \
-                    "'name', " \
-                    "'id', " \
-                    "'fi_name') VALUES (?,?,?) " \
-
+            query = (
+                f"INSERT INTO '{self._ch_name}' ("
+                "'name', "
+                "'id', "
+                "'fi_name') VALUES (?,?,?) "
+            )
             cur.executemany(query, chapters)
 
             self.db.commit()
@@ -322,11 +313,13 @@ class DownloadTrackerSQLite:
 
             if is_complete:
                 dt_finished = datetime.now().isoformat()
-            
-            query = f"UPDATE '{self._fi_name}' SET " \
-                    "completed = ?, " \
-                    "last_download_time = ? " \
-                    "WHERE name = ?"
+
+            query = (
+                f"UPDATE '{self._fi_name}' SET "
+                "completed = ?, "
+                "last_download_time = ? "
+                "WHERE name = ?"
+            )
 
             cur.execute(query, (complete_val, dt_finished, fi_name))
 

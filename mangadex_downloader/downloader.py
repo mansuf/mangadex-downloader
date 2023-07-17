@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import tqdm
 import os
 import time
 import logging
@@ -35,37 +34,38 @@ log = logging.getLogger(__name__)
 # For KeyboardInterrupt handler
 _cleanup_jobs = []
 
+
 class FileDownloader:
     def __init__(self, url, file, replace=False, use_requests=False, **headers) -> None:
         self.url = url
-        self.file = str(file) + '.temp'
+        self.file = str(file) + ".temp"
         self.real_file = file
         self.replace = replace
         self.headers_request = headers
-        self.chunk_size = 2 ** 13
+        self.chunk_size = 2**13
 
-        # If somehow this is used to sending HTTP requests from another websites (not mangadex)
-        # then use requests.Session instead
+        # If somehow this is used to sending HTTP requests
+        # from another websites (not mangadex) then use requests.Session instead
         if use_requests:
             self.session = Net.requests
         else:
             self.session = Net.mangadex
 
-        if headers.get('Range') is not None and self._get_file_size(self.file):
+        if headers.get("Range") is not None and self._get_file_size(self.file):
             raise ValueError('"Range" header is not supported while in resume state')
 
         self._tqdm = None
-        
+
         self._register_keyboardinterrupt_handler()
 
         # If file exist, delete it
         if self.replace:
             delete_file(self.file)
-    
+
     def _register_keyboardinterrupt_handler(self):
         _cleanup_jobs.append(lambda: self.cleanup())
 
-    def _build_progres_bar(self, initial_size, file_sizes, desc='file_sizes'):
+    def _build_progres_bar(self, initial_size, file_sizes, desc="file_sizes"):
         pbm.set_file_sizes_initial(initial_size or 0)
         pbm.set_file_sizes_total(file_sizes)
         self._tqdm = pbm.get_file_sizes_pb(recreate=not pbm.stacked)
@@ -88,7 +88,7 @@ class FileDownloader:
         headers = self.headers_request or {}
 
         if initial_sizes:
-            headers['Range'] = 'bytes=%s-' % initial_sizes
+            headers["Range"] = "bytes=%s-" % initial_sizes
         return headers
 
     def on_prepare(self):
@@ -98,7 +98,8 @@ class FileDownloader:
     def on_read(self, chunk):
         """This will be called when reading data
 
-        NOTE: this function will be called after :meth:`requests.Response.raw.read()` has been called
+        NOTE: this function will be called after
+        :meth:`requests.Response.raw.read()` has been called
         """
         pass
 
@@ -128,11 +129,13 @@ class FileDownloader:
             headers = self._parse_headers(initial_file_sizes)
 
             try:
-                resp = self.session.get(self.url, headers=headers, stream=True, timeout=15)
+                resp = self.session.get(
+                    self.url, headers=headers, stream=True, timeout=15
+                )
             except Exception as e:
                 # Other Exception
                 error = e
-            
+
             # The downloader are requesting out of range bytes file
             # Because previous download are cancelled or error and .temp file are exists
             # and fully downloaded
@@ -144,8 +147,9 @@ class FileDownloader:
 
             # Request failed
             if error is not None or (
-                resp is not None and
-                resp.status_code > 200 and not resp.status_code < 400
+                resp is not None
+                and resp.status_code > 200
+                and not resp.status_code < 400
             ):
                 self.on_error(error, resp)
                 return False
@@ -154,23 +158,26 @@ class FileDownloader:
             self.on_receive_response(resp)
 
             # Grab the file sizes
-            file_sizes = float(resp.headers.get('Content-Length'))
+            file_sizes = float(resp.headers.get("Content-Length"))
 
             # Try to check if the server support `Range` header
             content_range = resp.headers.get("content-range", "")
             if initial_file_sizes:
-                cr_match = re.match("bytes %s\-[0-9]{1,}\/[0-9]{1,}" % initial_file_sizes, content_range)
+                cr_match = re.match(
+                    "bytes %s\-[0-9]{1,}\/[0-9]{1,}" % initial_file_sizes, content_range
+                )
             else:
                 # This is hack, trust me
                 cr_match = True
-            accept_range = resp.headers.get('accept-ranges')
+            accept_range = resp.headers.get("accept-ranges")
             if accept_range is None and not cr_match and os.path.exists(self.file):
                 # Server didn't support `Range` header
                 pbm.logger.warning(
-                    f"Server didn't support resume download, deleting '{os.path.basename(self.file)}'"
+                    f"Server didn't support resume download, "
+                    f"deleting '{os.path.basename(self.file)}'"
                 )
                 delete_file(self.file)
-                
+
                 initial_file_sizes = None
 
             # If "Range" header request is present
@@ -182,7 +189,9 @@ class FileDownloader:
             real_file_sizes = self._get_file_size(self.real_file)
             if real_file_sizes:
                 if file_sizes == real_file_sizes and not self.replace:
-                    pbm.logger.info('File exist and replace is False, cancelling download...')
+                    pbm.logger.info(
+                        "File exist and replace is False, cancelling download..."
+                    )
                     self.on_finish()
                     return True
 
@@ -191,7 +200,7 @@ class FileDownloader:
 
             # Begin downloading
             current_size = 0
-            with open(self.file, 'ab' if initial_file_sizes else 'wb') as writer:
+            with open(self.file, "ab" if initial_file_sizes else "wb") as writer:
                 while True:
                     chunk = resp.raw.read(self.chunk_size)
                     current_size += len(chunk)
@@ -207,7 +216,8 @@ class FileDownloader:
             if current_size < file_sizes:
                 self.cleanup()
                 pbm.logger.warning(
-                    f"File download is incomplete, restarting download... (attempt: {attempt})"
+                    "File download is incomplete, "
+                    f"restarting download... (attempt: {attempt})"
                 )
                 continue
 
@@ -215,9 +225,12 @@ class FileDownloader:
             self._write_final_file()
             return True
 
-        # Usually this will happend if 
-        # - downloader trying to resume download but the server didn't support `Range` header
-        # - The server didn't send full content of file (received bytes and `Content-Length` header are not same)
+        # Usually this will happend if
+        # - downloader trying to resume download,
+        # but the server didn't support `Range` header
+        #
+        # - The server didn't send full content of file
+        # (received bytes and `Content-Length` header are not same)
         if resp is not None:
             self.on_error(None, resp)
         return False
@@ -226,8 +239,8 @@ class FileDownloader:
         if os.path.exists(self.real_file):
             delete_file(self.real_file)
 
-        w_fp = open(self.real_file, 'wb')
-        r_fp =  open(self.file, 'rb')
+        w_fp = open(self.real_file, "wb")
+        r_fp = open(self.file, "rb")
         while True:
             data = r_fp.read(self.chunk_size)
             if not data:
@@ -244,16 +257,20 @@ class FileDownloader:
         if self._tqdm is not None and not pbm.stacked:
             self._tqdm.close()
 
+
 class ChapterPageDownloader(FileDownloader):
-    """Same with :class:`FileDownloader` but this one is specialized for chapter page download
-    
-    When the download is finished this downloader class will report the download info to MangaDex network.
     """
+    Same with :class:`FileDownloader` but this one is specialized for chapter page download
+
+    When the download is finished,
+    this downloader class will report the download info to MangaDex network.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.on_prepare()
-    
+
     def on_prepare(self):
         self.t1 = time.perf_counter()
         self.report_total_size = 0
@@ -269,8 +286,11 @@ class ChapterPageDownloader(FileDownloader):
 
         if self.report_total_size != 0:
             # To prevent "unsupported operand" error
-            # Because if file exist and replace is `False`, on_finish() will be called (success)
-            self._report(self.resp, self.report_total_size, round((t2 - self.t1) * 1000), True)
+            # Because if file exist and replace is `False`,
+            # on_finish() will be called (success)
+            self._report(
+                self.resp, self.report_total_size, round((t2 - self.t1) * 1000), True
+            )
 
     def on_error(self, err, resp):
         if not isinstance(err, HTTPException) and resp is None:
@@ -291,8 +311,8 @@ class ChapterPageDownloader(FileDownloader):
         # According to MangaDex devs
         # domain that not from mangadex.network are not allowed to report
         # so skip it
-        if 'uploads.mangadex.org' in self.url:
-            pbm.logger.debug('Endpoint are not from mangadex.network, skipping report')
+        if "uploads.mangadex.org" in self.url:
+            pbm.logger.debug("Endpoint are not from mangadex.network, skipping report")
             return
 
         # Check if cached
@@ -302,17 +322,17 @@ class ChapterPageDownloader(FileDownloader):
         # Random NoneType error while downloading
         # Whenever downloader get server error, Response headers are not parsed properly
         if success:
-            cache_header = resp.headers.get('x-cache')
+            cache_header = resp.headers.get("x-cache")
 
             # Just in case something is happened
             if cache_header is not None:
-                cached = cache_header.startswith('HIT')
+                cached = cache_header.startswith("HIT")
 
         data = {
-            'url': self.url,
-            'success': success,
-            'cached': cached,
-            'bytes': size,
-            'duration': _time
+            "url": self.url,
+            "success": success,
+            "cached": cached,
+            "bytes": size,
+            "duration": _time,
         }
         Net.mangadex.report(data)

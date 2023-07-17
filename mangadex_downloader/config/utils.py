@@ -31,23 +31,37 @@ from requests_doh import get_all_dns_provider, add_dns_provider
 from .. import format as fmt
 from ..errors import MangaDexException, InvalidURL
 from ..language import get_language
-from ..utils import validate_url, get_key_value
+from ..utils import validate_url
 from ..progress_bar import progress_bar_manager
 
 __all__ = (
-    "validate_bool", "validate_language", "validate_value_from_iterator",
-    "validate_format", "dummy_validator", "validate_zip_compression_type",
-    "validate_int", "validate_tag", "validate_blacklist",
-    "validate_sort_by", "validate_http_retries", "validate_download_mode",
-    "validate_doh_provider", "validate_log_level", "validate_progress_bar_layout",
+    "validate_bool",
+    "validate_language",
+    "validate_value_from_iterator",
+    "validate_format",
+    "dummy_validator",
+    "validate_zip_compression_type",
+    "validate_int",
+    "validate_tag",
+    "validate_blacklist",
+    "validate_sort_by",
+    "validate_http_retries",
+    "validate_download_mode",
+    "validate_doh_provider",
+    "validate_log_level",
+    "validate_progress_bar_layout",
     "validate_stacked_progress_bar_order",
-    "load_env", "LazyLoadEnv", "ConfigTypeError"
+    "load_env",
+    "LazyLoadEnv",
+    "ConfigTypeError",
 )
 
 log = logging.getLogger(__name__)
 
+
 class ConfigTypeError(MangaDexException):
     pass
+
 
 # Utilities
 def validate_bool(val):
@@ -70,30 +84,37 @@ def validate_bool(val):
     else:
         return bool(val)
 
+
 def validate_language(val):
     lang = get_language(val)
     return lang.value
 
+
 def validate_value_from_iterator(val, iterator):
     values = [i for i in iterator]
     if val not in values:
-        raise ConfigTypeError(f"'{val}' is not valid value, available values are {values}")
-    
+        raise ConfigTypeError(
+            f"'{val}' is not valid value, available values are {values}"
+        )
+
     return val
+
 
 def validate_format(val):
     fmt.get_format(val)
     return val
 
+
 def dummy_validator(val):
     return val
 
+
 def validate_zip_compression_type(val):
     types = {
-        'stored': zipfile.ZIP_STORED,
-        'deflated': zipfile.ZIP_DEFLATED,
-        'bzip2': zipfile.ZIP_BZIP2,
-        'lzma': zipfile.ZIP_LZMA
+        "stored": zipfile.ZIP_STORED,
+        "deflated": zipfile.ZIP_DEFLATED,
+        "bzip2": zipfile.ZIP_BZIP2,
+        "lzma": zipfile.ZIP_LZMA,
     }
 
     try:
@@ -101,11 +122,13 @@ def validate_zip_compression_type(val):
     except KeyError:
         raise ConfigTypeError(f"zip compression type '{val}' is not valid")
 
+
 def validate_int(val):
     try:
         return int(val)
     except ValueError:
         raise ConfigTypeError(f"'{val}' is not valid integer")
+
 
 def validate_tag(tag):
     # "Circular imports" problem smh
@@ -124,37 +147,38 @@ def validate_tag(tag):
     # UUID
     return validate_url(tag)
 
+
 def validate_blacklist(val, validate=validate_url):
-    values = [i.strip() for i in val.split(',')]
+    values = [i.strip() for i in val.split(",")]
 
     blacklisted = []
     for url in values:
         if os.path.exists(url):
-            fp = open(url, 'r')
+            fp = open(url, "r")
             try:
                 content = [validate(i) for i in fp.read().splitlines()]
             except InvalidURL as e:
                 # Verbose error
                 # Provide more useful information rather than
                 # "invalid url, {url} is not valid MangaDex url"
-                raise MangaDexException(
-                    f'Invalid url detected in file "{url}", {e}'
-                )
+                raise MangaDexException(f'Invalid url detected in file "{url}", {e}')
             finally:
                 fp.close()
         else:
             content = [validate(url)]
 
         blacklisted.extend(content)
-    
+
     return blacklisted
+
 
 def validate_sort_by(val):
     sort_by = ["volume", "chapter"]
     if val not in sort_by:
         raise ConfigTypeError(f"'{val}' is not valid sort by value, must be {sort_by}")
-    
+
     return val
+
 
 def validate_http_retries(val):
     try:
@@ -169,8 +193,9 @@ def validate_http_retries(val):
         raise ConfigTypeError(
             f"'{val}' is not valid 'http_retries' value, it must be numbers or 'unlimited'"
         )
-    
+
     return val
+
 
 def validate_download_mode(val):
     val = val.lower().strip()
@@ -179,8 +204,9 @@ def validate_download_mode(val):
         raise ConfigTypeError(
             f"'{val}' is not valid 'download_mode' value, it must be 'default' or 'unread'"
         )
-    
+
     return val
+
 
 def validate_doh_provider(val):
     providers = [None]
@@ -195,31 +221,37 @@ def validate_doh_provider(val):
     try:
         parsed = urlparse(val)
     except Exception as e:
-        log.debug("Failed to parse url from validate_doh_provider", exc_info=e, stack_info=True)
-        raise ConfigTypeError(f"'{val}' is not valid DoH providers, available values are {providers}")
+        log.debug(
+            "Failed to parse url from validate_doh_provider",
+            exc_info=e,
+            stack_info=True,
+        )
+        raise ConfigTypeError(
+            f"'{val}' is not valid DoH providers, available values are {providers}"
+        )
 
     # Validate HTTP(s) URL
     # https://stackoverflow.com/a/38020041
-    valid_http = [
-        parsed.scheme in ["http", "https"],
-        parsed.netloc
-    ]
+    valid_http = [parsed.scheme in ["http", "https"], parsed.netloc]
     if not any(valid_http):
-        raise ConfigTypeError(f"'{val}' is not valid DoH providers, available values are {providers}")
+        raise ConfigTypeError(
+            f"'{val}' is not valid DoH providers, available values are {providers}"
+        )
 
     # Create new DoH provider
     add_dns_provider("custom-doh", val, switch=True)
 
     return "custom-doh"
 
+
 def load_env(env_key, env_value, validator):
     try:
         return validator(env_value)
     except Exception as e:
         raise MangaDexException(
-            f'An error happened when validating env {env_key}. ' \
-            f'Reason: {e}'
+            f"An error happened when validating env {env_key}. " f"Reason: {e}"
         ) from None
+
 
 # A utility class as indicator for lazy load environments in `EnvironmentVariables` class
 @dataclass
@@ -229,37 +261,32 @@ class LazyLoadEnv:
     validator: typing.Callable
 
     def load(self):
-        return load_env(
-            self.env_key,
-            self.env_value,
-            self.validator
-        )
+        return load_env(self.env_key, self.env_value, self.validator)
 
-valid_output_modes = [
-    "logger",
-    "stacked-progress-bar",
-    "progress-bar"
-]
+
+valid_output_modes = ["logger", "stacked-progress-bar", "progress-bar"]
 
 valid_stacked_progress_bar_types = [
     "volumes",
     "chapters",
     "pages",
     "file sizes",
-    "converted files"
+    "converted files",
 ]
+
 
 def validate_log_level(val):
     val = val if isinstance(val, int) else val.upper()
     log_level = logging.getLevelName(val)
     if log_level == f"Level {val}":
-        # Instead of raising exception, 
+        # Instead of raising exception,
         # logging.getLevelName will return string "Level {level}"
         raise ConfigTypeError(f"{val!r} is not valid logger level")
 
     log = logging.getLogger("mangadex_downloader")
     log.setLevel(log_level)
     return val
+
 
 def validate_progress_bar_layout(val):
     valid_progress_bar_layouts = ["default", "stacked", "none"]
@@ -270,6 +297,7 @@ def validate_progress_bar_layout(val):
         progress_bar_manager.disabled = True
 
     return val
+
 
 def validate_stacked_progress_bar_order(val):
     values = (i.strip() for i in val.split(","))

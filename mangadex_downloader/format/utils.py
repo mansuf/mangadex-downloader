@@ -36,15 +36,12 @@ from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
 
+
 def get_chapter_info(manga, chapter, path):
     pbm.logger.info(f"Creating chapter info for '{chapter.get_name()}'")
 
     vol_cover = get_volume_cover(
-        manga=manga,
-        volume=chapter.volume,
-        path=None,
-        replace=False,
-        download=False
+        manga=manga, volume=chapter.volume, path=None, replace=False, download=False
     )
 
     image = get_chinfo(manga, vol_cover, chapter)
@@ -52,13 +49,13 @@ def get_chapter_info(manga, chapter, path):
 
     return path
 
+
 def get_volume_cover(manga, volume, path, replace, download=True):
     # "Circular Imports" problem
-    from ..config import config
     from ..iterator import CoverArtIterator
 
     if download:
-        pbm.logger.info(f"Getting volume cover for \"Volume {volume}\"")
+        pbm.logger.info(f'Getting volume cover for "Volume {volume}"')
 
     # Find volume
     def find_volume_cover(cover):
@@ -66,7 +63,7 @@ def get_volume_cover(manga, volume, path, replace, download=True):
             # There is higher change
             # that "null" volume is "volume 0"
             return cover.volume == 0
-        
+
         return volume == cover.volume
 
     f = filter(find_volume_cover, CoverArtIterator(manga.id))
@@ -76,7 +73,7 @@ def get_volume_cover(manga, volume, path, replace, download=True):
     except StopIteration:
         if download:
             pbm.logger.warning(
-                f"Failed to find volume cover for volume {volume}. " \
+                f"Failed to find volume cover for volume {volume}. "
                 "Falling back to manga cover..."
             )
         cover = manga.cover
@@ -84,21 +81,19 @@ def get_volume_cover(manga, volume, path, replace, download=True):
     url = get_cover_art_url(manga.id, cover, "original")
 
     if download:
-        fd = FileDownloader(
-            url,
-            path,
-            replace=replace
-        )
+        fd = FileDownloader(url, path, replace=replace)
         fd.download()
         fd.cleanup()
 
     return cover
+
 
 class NumberWithLeadingZeros:
     """A helper class for parsing numbers with leading zeros
 
     total argument can be iterable or number
     """
+
     def __init__(self, total):
         try:
             iter_total = iter(total)
@@ -119,7 +114,7 @@ class NumberWithLeadingZeros:
 
     def increase(self, num=1):
         self._num += num
-    
+
     def decrease(self, num=1):
         self._num -= num
 
@@ -131,29 +126,33 @@ class NumberWithLeadingZeros:
         num_str = str(self._num)
         return num_str.zfill(len(str(self._total)))
 
+
 class Sha256RegexError(Exception):
     """Raised when regex_sha256 cannot grab sha256 from server_file object"""
+
     pass
+
 
 def get_md_file_hash(server_file):
     """Get sha256 hash from MangaDex image filename"""
     # Yes this is very cool regex
-    regex_sha256 = r'-(?P<hash>.{1,})\.'
+    regex_sha256 = r"-(?P<hash>.{1,})\."
 
     # Get sha256 hash from server file
     match = re.search(regex_sha256, server_file)
     if match is None:
         raise Sha256RegexError(
-            f'Failed to grab sha256 hash from server_file = {server_file}. ' \
-            f'Please report it to {__url_repository__}/{__repository__}/issues'
+            f"Failed to grab sha256 hash from server_file = {server_file}. "
+            f"Please report it to {__url_repository__}/{__repository__}/issues"
         )
-    
-    server_hash = match.group('hash')
+
+    server_hash = match.group("hash")
 
     return server_hash
 
+
 def verify_sha256(file_hash, path=None, data=None):
-    """Verify file hash with SHA256 
+    """Verify file hash with SHA256
 
     Parameters
     -----------
@@ -163,7 +162,7 @@ def verify_sha256(file_hash, path=None, data=None):
         File want to be verified
     data: Optional[:class:`bytes`]
         Image data wants to be verified
-    """    
+    """
     local_sha256 = hashlib.sha256()
 
     if path:
@@ -173,7 +172,7 @@ def verify_sha256(file_hash, path=None, data=None):
 
         # Begin verifying
         size = 8192
-        with open(path, 'rb') as reader:
+        with open(path, "rb") as reader:
             while True:
                 data = reader.read(size)
                 if not data:
@@ -182,15 +181,16 @@ def verify_sha256(file_hash, path=None, data=None):
                 local_sha256.update(data)
     elif data:
         local_sha256.update(data)
-    
+
     return local_sha256.hexdigest() == file_hash
+
 
 def create_file_hash_sha256(path):
     s = hashlib.sha256()
 
     if not os.path.exists(path):
         return None
-    
+
     size = 8192
     with open(path, "rb") as reader:
         while True:
@@ -199,8 +199,9 @@ def create_file_hash_sha256(path):
                 break
 
             s.update(data)
-    
+
     return s.hexdigest()
+
 
 # Compliance with Tachiyomi local JSON format
 class MangaStatus(Enum):
@@ -209,13 +210,14 @@ class MangaStatus(Enum):
     Hiatus = "6"
     Cancelled = "5"
 
+
 def write_tachiyomi_details(manga, path):
     """Write 'details.json' for tachiyomi format
-    
+
     See https://tachiyomi.org/help/guides/local-manga/#editing-local-manga-details
     """
     data = {}
-    data['title'] = manga.title
+    data["title"] = manga.title
 
     # Parse authors
     authors = ""
@@ -225,7 +227,7 @@ def write_tachiyomi_details(manga, path):
         else:
             # If this is last index, append author without comma
             authors += author
-    data['author'] = authors
+    data["author"] = authors
 
     # Parse artists
     artists = ""
@@ -235,29 +237,31 @@ def write_tachiyomi_details(manga, path):
         else:
             # If this is last index, append artist without comma
             artists += artist
-    data['artist'] = artists
+    data["artist"] = artists
 
-    data['description'] = manga.description
-    data['genre'] = manga.genres
-    data['status'] = MangaStatus[manga.status].value
-    data['_status values'] = [
+    data["description"] = manga.description
+    data["genre"] = manga.genres
+    data["status"] = MangaStatus[manga.status].value
+    data["_status values"] = [
         "0 = Unknown",
         "1 = Ongoing",
         "2 = Completed",
         "3 = Licensed",
         "4 = Publishing finished",
         "5 = Cancelled",
-        "6 = On hiatus"
+        "6 = On hiatus",
     ]
-    with open(path, 'wb') as writer:
+    with open(path, "wb") as writer:
         writer.write(json_op.dumps(data, convert_str=False))
+
 
 class QueueWorkerReadMarker(threading.Thread):
     """A queue-based worker run in another thread for ChapterReadMarker
-    
+
     This class will mark chapter as read for every 20 chapters
     and will be done asynchronously (in another thread)
     """
+
     def __init__(self, manga_id) -> None:
         threading.Thread.__init__(self)
 
@@ -277,8 +281,8 @@ class QueueWorkerReadMarker(threading.Thread):
         # Thread to check if mainthread is alive or not
         # if not, then thread queue must be shutted down too
         self._thread_wait_mainthread = threading.Thread(
-            target=self._wait_mainthread, 
-            name=f'{cls_name}-wait-mainthread, {cls_name}_id={self.ident}'
+            target=self._wait_mainthread,
+            name=f"{cls_name}-wait-mainthread, {cls_name}_id={self.ident}",
         )
 
     def start(self):
@@ -320,25 +324,24 @@ class QueueWorkerReadMarker(threading.Thread):
                 # make sure there is nothing left in queue
                 return
 
-            # We're trying to get 20 chapter_ids while shutdown signal has not been received yet
+            # We're trying to get 20 chapter_ids
+            # while shutdown signal has not been received yet
             # If somehow shutdown signal received, it should send whatever last in queue
             if len(self._chapters) < self._max_size and not self._shutdown.is_set():
                 time.sleep(0.5)
                 continue
 
-            chapter_ids = self._chapters[:self._max_size - 1]
-            del self._chapters[:self._max_size - 1]
+            chapter_ids = self._chapters[: self._max_size - 1]
+            del self._chapters[: self._max_size - 1]
 
-            data = {
-                "chapterIdsRead": chapter_ids
-            }
+            data = {"chapterIdsRead": chapter_ids}
 
             url = f"{self.base_url}/manga/{self.manga_id}/read"
             r = self.net.mangadex.post(url, json=data)
 
             if not r.ok:
                 log.error(
-                    "An error occured when marking chapters as read, " \
+                    "An error occured when marking chapters as read, "
                     f"exception raised: {r.content}. Re-adding failed chapters to queue"
                 )
                 # obviously we don't wanna flood the screen with bunch of chapter ids

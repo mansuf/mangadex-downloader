@@ -22,17 +22,15 @@
 
 import logging
 import re
-import os
-from pathlib import Path
-from .errors import UnhandledException
+from .errors import UnhandledException, MangaDexException
 from .utils import (
     comma_separated_text,
     create_directory,
     check_blacklisted_tags_manga,
-    get_cover_art_url
+    get_cover_art_url,
 )
 from .language import Language, get_language
-from .fetcher import *
+from .fetcher import get_legacy_id
 from .iterator import CoverArtIterator
 from .mdlist import MangaDexList
 from .manga import Manga
@@ -43,6 +41,7 @@ from .config import config
 from .tracker import get_tracker
 
 log = logging.getLogger(__name__)
+
 
 def download(
     manga_id,
@@ -74,7 +73,7 @@ def download(
 
     if blacklisted:
         log.warning(
-            f"Not downloading manga '{manga.title}', " \
+            f"Not downloading manga '{manga.title}', "
             f"since it contain one or more blacklisted tags {tags}"
         )
         return manga
@@ -89,18 +88,20 @@ def download(
     base_path = create_directory(manga.title, config.path)
 
     # Cover path
-    cover_path = base_path / 'cover.jpg'
-    log.info('Downloading cover manga %s' % manga.title)
+    cover_path = base_path / "cover.jpg"
+    log.info("Downloading cover manga %s" % manga.title)
 
     # Determine cover art quality
     cover_url = get_cover_art_url(manga.id, manga.cover, cover)
-    
+
     # Download the cover art
-    if cover == 'none':
+    if cover == "none":
         log.info('Not downloading cover manga, since "cover" is none')
     elif cover_url is None:
         # The manga doesn't have cover
-        log.info(f"Not downloading cover manga, since manga '{manga.title}' doesn\'t have cover")
+        log.info(
+            f"Not downloading cover manga, since manga '{manga.title}' doesn't have cover"
+        )
     else:
         fd = FileDownloader(
             cover_url,
@@ -126,12 +127,7 @@ def download(
 
         m.tracker = get_tracker(save_as, path)
 
-        fmt = fmt_class(
-            path,
-            m,
-            replace,
-            kwargs_iter_chapter_images
-        )
+        fmt = fmt_class(path, m, replace, kwargs_iter_chapter_images)
 
         # Execute main format
         fmt.main()
@@ -141,7 +137,9 @@ def download(
         # Let the users know how many translated languages available
         # in given manga
         translated_langs = [i.name for i in manga.translated_languages]
-        log.info(f"Available translated languages = {comma_separated_text(translated_langs)}")
+        log.info(
+            f"Available translated languages = {comma_separated_text(translated_langs)}"
+        )
 
         for translated_lang in manga.translated_languages:
             log.info(f"Downloading {manga.title} in {translated_lang.name} language")
@@ -160,14 +158,18 @@ def download(
             log.info(f'Download directory is set to "{new_path.resolve()}"')
             download_manga(new_manga, new_path)
 
-            log.info(f"Download finished for manga {manga.title} in {translated_lang.name} language")
-        
+            log.info(
+                f"Download finished for manga {manga.title} "
+                f"in {translated_lang.name} language"
+            )
+
     else:
         log.info(f'Download directory is set to "{base_path.resolve()}"')
         download_manga(manga, base_path)
-                
-    log.info("Download finished for manga \"%s\"" % manga.title)
+
+    log.info('Download finished for manga "%s"' % manga.title)
     return manga
+
 
 def download_chapter(
     chap_id,
@@ -196,21 +198,17 @@ def download_chapter(
         "no_oneshot": False,
     }
 
-    log.info(f'Using {save_as} format')
+    log.info(f"Using {save_as} format")
     manga.tracker = get_tracker(save_as, base_path)
 
-    fmt = fmt_class(
-        base_path,
-        manga,
-        replace,
-        kwargs_iter_chapter_images
-    )
+    fmt = fmt_class(base_path, manga, replace, kwargs_iter_chapter_images)
 
     # Execute main format
     fmt.main()
 
     log.info(f'Finished download chapter {chap.chapter} from manga "{manga.title}"')
     return manga
+
 
 def download_list(
     list_id,
@@ -227,37 +225,40 @@ def download_list(
             groups=groups,
         )
 
+
 def download_legacy_manga(legacy_id, *args, **kwargs):
     """Download manga from old MangaDex url
-    
+
     The rest of parameters will be passed to :meth:`download`.
     """
     # Mark it as deprecated
     # bye bye :(
     log.warning(
-        'Old MangaDex URL are deprecated and will be removed any time soon. ' \
-        'Please use the new MangaDex URL'
+        "Old MangaDex URL are deprecated and will be removed any time soon. "
+        "Please use the new MangaDex URL"
     )
 
-    new_id = get_legacy_id('manga', legacy_id)
+    new_id = get_legacy_id("manga", legacy_id)
     manga = download(new_id, *args, **kwargs)
     return manga
 
+
 def download_legacy_chapter(legacy_id, *args, **kwargs):
     """Download chapter from old MangaDex url
-    
+
     The rest of parameters will be passed to :meth:`download_chapter`
     """
     # Mark it as deprecated
     # bye bye :(
     log.warning(
-        'Old MangaDex URL are deprecated and will be removed any time soon. ' \
-        'Please use the new MangaDex URL'
+        "Old MangaDex URL are deprecated and will be removed any time soon. "
+        "Please use the new MangaDex URL"
     )
 
-    new_id = get_legacy_id('chapter', legacy_id)
+    new_id = get_legacy_id("chapter", legacy_id)
     manga = download_chapter(new_id, *args, **kwargs)
     return manga
+
 
 def download_cover_art_manga(url, replace=False):
     # This is hack actually
@@ -265,9 +266,11 @@ def download_cover_art_manga(url, replace=False):
     # (https://mangadex.org/covers/{manga_id}/{filename})
     # We gonna find filename cover in list of covers
     log.info("Getting manga id from cover url")
-    regex = r".+(mangadex\.org|uploads\.mangadex\.org)\/covers\/" \
-            r"(?P<manga_id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\/" \
-            r"(?P<filename>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}\.[a-zA-Z]{1,}.+)"
+    regex = (
+        r".+(mangadex\.org|uploads\.mangadex\.org)\/covers\/"
+        r"(?P<manga_id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\/"
+        r"(?P<filename>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}\.[a-zA-Z]{1,}.+)"
+    )
     result = re.search(regex, url)
     if result is None:
         raise UnhandledException(f"Cannot find manga id in cover URL = {url}")
@@ -294,7 +297,7 @@ def download_cover_art_manga(url, replace=False):
 
     # Merge file ext with new filename
     _, file_ext = filename.split(".", maxsplit=1)
-    filename = cover_name + "." +  file_ext
+    filename = cover_name + "." + file_ext
     base_path = create_directory(manga.title, path=config.path)
     path = base_path / filename
     log.info(f"Download directory is set to {base_path}")
@@ -305,11 +308,7 @@ def download_cover_art_manga(url, replace=False):
             raise MangaDexException(f"Cover file '{filename}' is not found on MangaDex")
 
     log.info(f"Downloading file '{filename}'")
-    fd = FileDownloader(
-        url=url,
-        file=path,
-        replace=replace
-    )
+    fd = FileDownloader(url=url, file=path, replace=replace)
     fd.on_error = handle_error
     fd.download()
     fd.cleanup()

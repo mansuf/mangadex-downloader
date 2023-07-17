@@ -27,10 +27,7 @@ from .mdlist import MangaDexList
 from .errors import HTTPException, MangaDexException, NotLoggedIn
 from .network import Net, base_url
 from .manga import Manga
-from .fetcher import (
-    get_list,
-    get_legacy_id
-)
+from .fetcher import get_list, get_legacy_id
 from .user import User
 from .filters import Filter
 from .utils import check_blacklisted_tags_manga
@@ -40,6 +37,7 @@ from .chapter import Chapter
 from .config import config
 
 log = logging.getLogger(__name__)
+
 
 class BaseIterator:
     def __init__(self):
@@ -68,11 +66,13 @@ class BaseIterator:
     def next(self):
         return self.queue.get_nowait()
 
+
 class MangaIterator(BaseIterator):
     """Iterator specialized for manga that has abilities like
-    
+
     - Filter tags based on environment MANGADEXDL_TAGS_BLACKLIST
     """
+
     def next(self):
         while True:
             manga = super().next()
@@ -81,12 +81,13 @@ class MangaIterator(BaseIterator):
 
             if blacklisted:
                 log.debug(
-                    f'Not showing manga "{manga.title}", ' \
-                    f'since it contain one or more blacklisted tags {tags}'
+                    f'Not showing manga "{manga.title}", '
+                    f"since it contain one or more blacklisted tags {tags}"
                 )
                 continue
 
             return manga
+
 
 class SearchFilterError(MangaDexException):
     def __init__(self, key, msg):
@@ -94,12 +95,9 @@ class SearchFilterError(MangaDexException):
 
         super().__init__(text)
 
+
 class IteratorManga(MangaIterator):
-    def __init__(
-        self,
-        title,
-        **filters
-    ):
+    def __init__(self, title, **filters):
         super().__init__()
 
         self.limit = 100
@@ -109,13 +107,13 @@ class IteratorManga(MangaIterator):
         self._param_init = f.get_request_params(**filters)
 
     def _get_params(self):
-        includes = ['author', 'artist', 'cover_art']
+        includes = ["author", "artist", "cover_art"]
 
         params = {
-            'includes[]': includes,
-            'title': self.title,
-            'limit': self.limit,
-            'offset': self.offset,
+            "includes[]": includes,
+            "title": self.title,
+            "limit": self.limit,
+            "offset": self.offset,
         }
         params.update(self._param_init.copy())
 
@@ -123,29 +121,30 @@ class IteratorManga(MangaIterator):
 
     def fill_data(self):
         params = self._get_params()
-        url = f'{base_url}/manga'
+        url = f"{base_url}/manga"
         r = Net.mangadex.get(url, params=params)
         data = r.json()
 
         if r.status_code >= 400:
-            err = data['errors'][0]['detail']
+            err = data["errors"][0]["detail"]
             raise MangaDexException(err)
 
-        items = data['data']
-        
+        items = data["data"]
+
         for item in items:
             self.queue.put(Manga(data=item))
 
         self.offset += len(items)
 
+
 class IteratorUserLibraryManga(MangaIterator):
     statuses = [
-        'reading',
-        'on_hold',
-        'plan_to_read',
-        'dropped',
-        're_reading',
-        'completed'
+        "reading",
+        "on_hold",
+        "plan_to_read",
+        "dropped",
+        "re_reading",
+        "completed",
     ]
 
     def __init__(self, status=None):
@@ -155,7 +154,9 @@ class IteratorUserLibraryManga(MangaIterator):
         self.offset = 0
 
         if status is not None and status not in self.statuses:
-            raise MangaDexException(f"{status} are not valid status, choices are {set(self.statuses)}")
+            raise MangaDexException(
+                f"{status} are not valid status, choices are {set(self.statuses)}"
+            )
 
         self.status = status
 
@@ -171,10 +172,10 @@ class IteratorUserLibraryManga(MangaIterator):
         self._parse_reading_status()
 
     def _parse_reading_status(self):
-        r = Net.mangadex.get(f'{base_url}/manga/status')
+        r = Net.mangadex.get(f"{base_url}/manga/status")
         data = r.json()
 
-        for manga_id, status in data['statuses'].items():
+        for manga_id, status in data["statuses"].items():
             self.library[status].append(manga_id)
 
     def _check_status(self, manga):
@@ -191,28 +192,27 @@ class IteratorUserLibraryManga(MangaIterator):
             if not self._check_status(manga):
                 # Filter is used
                 continue
-            
+
             return manga
 
     def fill_data(self):
-        includes = [
-            'artist', 'author', 'cover_art'
-        ]
+        includes = ["artist", "author", "cover_art"]
         params = {
-            'includes[]': includes,
-            'limit': self.limit,
-            'offset': self.offset,
+            "includes[]": includes,
+            "limit": self.limit,
+            "offset": self.offset,
         }
-        url = f'{base_url}/user/follows/manga'
+        url = f"{base_url}/user/follows/manga"
         r = Net.mangadex.get(url, params=params)
         data = r.json()
 
-        items = data['data']
+        items = data["data"]
 
         for item in items:
             self.queue.put(Manga(data=item))
-        
+
         self.offset += len(items)
+
 
 class IteratorMangaFromList(MangaIterator):
     def __init__(self, _id=None, data=None):
@@ -226,8 +226,8 @@ class IteratorMangaFromList(MangaIterator):
         self.id = _id
         self.data = data
         self.limit = 100
-        self.name = None # type: str
-        self.user = None # type: User
+        self.name = None  # type: str
+        self.user = None  # type: User
 
         self.manga_ids = []
 
@@ -235,57 +235,61 @@ class IteratorMangaFromList(MangaIterator):
 
     def _parse_list(self):
         if self.id:
-            data = get_list(self.id)['data']
+            data = get_list(self.id)["data"]
         else:
             data = self.data
 
-        self.name = data['attributes']['name']
-        
-        for rel in data['relationships']:
-            _type = rel['type']
-            _id = rel['id']
-            if _type == 'manga':
+        self.name = data["attributes"]["name"]
+
+        for rel in data["relationships"]:
+            _type = rel["type"]
+            _id = rel["id"]
+            if _type == "manga":
                 self.manga_ids.append(_id)
-            elif _type == 'user':
+            elif _type == "user":
                 self.user = User(_id)
-    
+
     def fill_data(self):
         ids = self.manga_ids
-        includes = ['author', 'artist', 'cover_art']
+        includes = ["author", "artist", "cover_art"]
         content_ratings = [
-            'safe',
-            'suggestive',
-            'erotica',
-            'pornographic' # Filter porn content will be done in next()
+            "safe",
+            "suggestive",
+            "erotica",
+            "pornographic",
         ]
 
         limit = self.limit
         if ids:
             param_ids = ids[:limit]
-            del ids[:len(param_ids)]
+            del ids[: len(param_ids)]
             params = {
-                'includes[]': includes,
-                'limit': limit,
-                'contentRating[]': content_ratings,
-                'ids[]': param_ids
+                "includes[]": includes,
+                "limit": limit,
+                "contentRating[]": content_ratings,
+                "ids[]": param_ids,
             }
-            url = f'{base_url}/manga'
+            url = f"{base_url}/manga"
             r = Net.mangadex.get(url, params=params)
             data = r.json()
 
             notexist_ids = param_ids.copy()
             copy_data = data.copy()
-            for manga_data in copy_data['data']:
+            for manga_data in copy_data["data"]:
                 manga = Manga(data=manga_data)
                 if manga.id in notexist_ids:
                     notexist_ids.remove(manga.id)
-            
+
             if notexist_ids:
                 for manga_id in notexist_ids:
-                    log.warning(f'There is ghost (not exist) manga = {manga_id} in list {self.name}')
+                    log.warning(
+                        "There is ghost (not exist) manga = "
+                        f"{manga_id} in list {self.name}"
+                    )
 
-            for manga_data in data['data']:
+            for manga_data in data["data"]:
                 self.queue.put(Manga(data=manga_data))
+
 
 class IteratorUserLibraryList(BaseIterator):
     def __init__(self):
@@ -300,19 +304,20 @@ class IteratorUserLibraryList(BaseIterator):
 
     def fill_data(self):
         params = {
-            'limit': self.limit,
-            'offset': self.offset,
+            "limit": self.limit,
+            "offset": self.offset,
         }
-        url = f'{base_url}/user/list'
+        url = f"{base_url}/user/list"
         r = Net.mangadex.get(url, params=params)
         data = r.json()
 
-        items = data['data']
+        items = data["data"]
 
         for item in items:
             self.queue.put(MangaDexList(data=item))
-        
+
         self.offset += len(items)
+
 
 class IteratorUserList(BaseIterator):
     def __init__(self, _id=None):
@@ -320,38 +325,40 @@ class IteratorUserList(BaseIterator):
 
         self.limit = 100
         self.user = User(_id)
-    
+
     def fill_data(self):
         params = {
-            'limit': self.limit,
-            'offset': self.offset,
-            
+            "limit": self.limit,
+            "offset": self.offset,
         }
-        url = f'{base_url}/user/{self.user.id}/list'
+        url = f"{base_url}/user/{self.user.id}/list"
         try:
             r = Net.mangadex.get(url, params=params)
         except HTTPException:
             # Some users are throwing server error (Bad gateway)
             # MD devs said it was cache and headers issues
             # Reference: https://api.mangadex.org/user/10dbf775-1935-4f89-87a5-a1f4e64d9d94/list
-            # For now the app will throw error and tell the user cannot be fetched until it's get fixed
+            # For now the app will throw error and
+            # tell the user cannot be fetched until it's get fixed
 
             # HTTPException from session only giving "server throwing ... code" message
             raise HTTPException(
-                f"An error occured when getting mdlists from user \"{self.user.id}\". " \
-                f"The app cannot fetch all MangaDex lists from user \"{self.user.id}\" " \
-                "because of server error. The only solution is to wait until this get fixed " \
+                f'An error occured when getting mdlists from user "{self.user.id}". '
+                f'The app cannot fetch all MangaDex lists from user "{self.user.id}" '
+                "because of server error. "
+                "The only solution is to wait until this get fixed "
                 "from MangaDex itself."
             ) from None
 
         data = r.json()
 
-        items = data['data']
+        items = data["data"]
 
         for item in items:
             self.queue.put(MangaDexList(data=item))
-        
+
         self.offset += len(items)
+
 
 class IteratorUserLibraryFollowsList(BaseIterator):
     def __init__(self):
@@ -365,22 +372,23 @@ class IteratorUserLibraryFollowsList(BaseIterator):
 
     def fill_data(self):
         params = {
-            'limit': self.limit,
-            'offset': self.offset,
+            "limit": self.limit,
+            "offset": self.offset,
         }
-        url = f'{base_url}/user/follows/list'
+        url = f"{base_url}/user/follows/list"
         r = Net.mangadex.get(url, params=params)
         data = r.json()
 
-        items = data['data']
+        items = data["data"]
 
         for item in items:
             self.queue.put(MangaDexList(data=item))
-        
+
         self.offset += len(items)
 
+
 class IteratorSeasonalManga(IteratorMangaFromList):
-    owner_list = 'd2ae45e0-b5e2-4e7f-a688-17925c2d7d6b'
+    owner_list = "d2ae45e0-b5e2-4e7f-a688-17925c2d7d6b"
 
     def __init__(self, season):
         seasons = self._get_seasons()
@@ -388,44 +396,49 @@ class IteratorSeasonalManga(IteratorMangaFromList):
         try:
             mdlist = seasons[season]
         except KeyError:
-            raise MangaDexException(f"invalid season, available choices are {list(seasons.keys())}")
-        
+            raise MangaDexException(
+                f"invalid season, available choices are {list(seasons.keys())}"
+            )
+
         super().__init__(mdlist.id)
 
     @classmethod
     def _get_seasons(self):
         seasons = {}
         for mdlist in IteratorUserList(self.owner_list):
-            name = mdlist.name.lower().replace('seasonal: ', '')
+            name = mdlist.name.lower().replace("seasonal: ", "")
             seasons[name] = mdlist
-        
+
         return seasons
+
 
 def iter_random_manga(**filters):
     ids = []
-    f = Filter([
-        'content_rating',
-        'included_tags',
-        'included_tags_mode',
-        'excluded_tags',
-        'excluded_tags_mode'
-    ])
+    f = Filter(
+        [
+            "content_rating",
+            "included_tags",
+            "included_tags_mode",
+            "excluded_tags",
+            "excluded_tags_mode",
+        ]
+    )
     filter_params = f.get_request_params(**filters)
     while True:
         params = {
-            'includes[]': ['author', 'artist', 'cover_art'],
+            "includes[]": ["author", "artist", "cover_art"],
         }
         params.update(**filter_params)
-        r = Net.mangadex.get(f'{base_url}/manga/random', params=params)
-        data = r.json()['data']
+        r = Net.mangadex.get(f"{base_url}/manga/random", params=params)
+        data = r.json()["data"]
         manga = Manga(data=data)
 
         blacklisted, tags = check_blacklisted_tags_manga(manga)
 
         if blacklisted:
             log.debug(
-                f'Not showing manga "{manga.title}", ' \
-                f'since it contain one or more blacklisted tags {tags}'
+                f"Not showing manga {manga.title!r}",
+                f"since it contain one or more blacklisted tags {tags}",
             )
             continue
 
@@ -435,6 +448,7 @@ def iter_random_manga(**filters):
             yield manga
 
         continue
+
 
 # For some reason, "/cover" endpoint has result limit for each responses.
 # This class is used for getting all covers while respecting result limit.
@@ -447,11 +461,11 @@ class CoverArtIterator(BaseIterator):
 
         self.limit = 100
         self.manga_id = manga_id
-        
+
         if self.cache.get(manga_id) is None:
             # Data is not cached
             self.cache[manga_id] = []
-    
+
     def _make_cache_iterator(self):
         for item in self.cache.get(self.manga_id):
             yield item
@@ -498,26 +512,28 @@ class CoverArtIterator(BaseIterator):
 
                 # Add it to cache
                 self.cache[self.manga_id].append(cover)
-            
+
             self.offset += len(items)
 
+
 class ForumThreadMangaDexURLIterator(BaseIterator):
-    """If `Fetch` parameter is `True`, it will return object based on returned type URLs. 
+    """If `Fetch` parameter is `True`, it will return object based on returned type URLs.
     For example:
 
     - manga = :class:`mangadex_downloader.manga.Manga`
     - chapter = :class:`mangadex_downloader.chapter.Chapter`
     - list = :class:`mangadex_downloader.mdlist.MangaDexList`
     - etc
-    
+
     Otherwise it will return the ids only.
     """
+
     def __init__(self, thread_id, fetch=False):
         super().__init__()
 
         self.thread_id = thread_id
         self.fetch = fetch
-        self.limit = 5 # We don't want to slow down the application
+        self.limit = 5  # We don't want to slow down the application
 
         self.iterator = iter_md_urls_from_forum_thread(thread_id)
 
@@ -538,7 +554,7 @@ class ForumThreadMangaDexURLIterator(BaseIterator):
             # This should be impossible
             # because `item_type` value is from `utils.valid_url_types`
             raise RuntimeError(f"item_type '{item_type}' unknown, item_id = {item_id}")
-        
+
         return obj
 
     def fill_data(self):
@@ -555,6 +571,6 @@ class ForumThreadMangaDexURLIterator(BaseIterator):
                 item = self._make_item_obj(item_id, item_type)
             else:
                 item = item_id
-            
+
             self.queue.put(item)
             current_limit += 1

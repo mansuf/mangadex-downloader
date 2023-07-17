@@ -29,14 +29,14 @@ import time
 import logging
 import sys
 import threading
-from . import __version__, __repository__, json_op
+from . import __version__, json_op
 from .errors import (
     AlreadyLoggedIn,
     HTTPException,
     LoginFailed,
     MangaDexException,
     NotLoggedIn,
-    UnhandledHTTPError
+    UnhandledHTTPError,
 )
 from .auth import OAuth2, LegacyAuth
 from .utils import QueueWorker
@@ -44,8 +44,10 @@ from .progress_bar import progress_bar_manager as pbm
 from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
 
+
 def loads_json(self):
     return json_op.loads(self.content)
+
 
 # Apply custom json loader into :class:`requests.Response`
 requests.Response.json = loads_json
@@ -55,25 +57,29 @@ DEFAULT_RATE_LIMITED_TIMEOUT = 120
 log = logging.getLogger(__name__)
 
 __all__ = (
-    'Net', 'NetworkManager',
-    'set_proxy', 'clear_proxy',
-    'base_url', 'uploads_url'
+    "Net",
+    "NetworkManager",
+    "base_url",
+    "uploads_url",
 )
 
-base_url = 'https://api.mangadex.org'
-auth_url = 'https://auth.mangadex.org'
-origin_url = 'https://mangadex.org'
-uploads_url = 'https://uploads.mangadex.org'
-forums_url = 'https://forums.mangadex.org'
+base_url = "https://api.mangadex.org"
+auth_url = "https://auth.mangadex.org"
+origin_url = "https://mangadex.org"
+uploads_url = "https://uploads.mangadex.org"
+forums_url = "https://forums.mangadex.org"
+
 
 # A utility to get shortened url from full URL
 # (scheme, netloc, and path only)
 def _get_netloc(url):
     result = urllib.parse.urlparse(url)
-    return result.scheme + '://' + result.netloc + result.path
+    return result.scheme + "://" + result.netloc + result.path
+
 
 class ModifiedSession(requests.Session):
     """Modified requests session with ability to set timeout for each requests"""
+
     def __init__(self):
         super().__init__()
 
@@ -83,8 +89,9 @@ class ModifiedSession(requests.Session):
         self._timeout = time
 
     def send(self, r, **kwargs):
-        kwargs.update({'timeout': self._timeout})
+        kwargs.update({"timeout": self._timeout})
         return super().send(r, **kwargs)
+
 
 class requestsMangaDexSession(ModifiedSession):
     # For be able inside class can access global variables in network.py module
@@ -98,6 +105,7 @@ class requestsMangaDexSession(ModifiedSession):
 
     Sending other HTTP(s) requests to other sites will break the session
     """
+
     def __init__(self, trust_env=True, auth_cls=LegacyAuth) -> None:
         # "Circular imports" problem
         from .config import login_cache, config_enabled, config
@@ -107,14 +115,13 @@ class requestsMangaDexSession(ModifiedSession):
         self.user = None
         self.delay = None
         self.config = config
-        user_agent = 'mangadex-downloader {0} (https://github.com/mansuf/mangadex-downloader) '.format(__version__)
-        user_agent += 'Python/{0[0]}.{0[1]} '.format(sys.version_info)
-        user_agent += 'requests/{0}'.format(
-            requests.__version__
+        user_agent = (
+            f"mangadex-downloader {__version__} "
+            "(https://github.com/mansuf/mangadex-downloader) "
         )
-        self.headers = {
-            "User-Agent": user_agent
-        }
+        user_agent += "Python/{0[0]}.{0[1]} ".format(sys.version_info)
+        user_agent += "requests/{0}".format(requests.__version__)
+        self.headers = {"User-Agent": user_agent}
         self._session_token = None
         self._refresh_token = None
 
@@ -139,7 +146,7 @@ class requestsMangaDexSession(ModifiedSession):
     def login_from_cache(self):
         if self.check_login():
             raise AlreadyLoggedIn("User already logged in")
-        
+
         session_token = self._login_cache.get_session_token()
         refresh_token = self._login_cache.get_refresh_token()
 
@@ -166,12 +173,7 @@ class requestsMangaDexSession(ModifiedSession):
         else:
             # Session and refresh token are still valid in cache
             # Login with this
-            self._update_token(
-                {
-                    "refresh": refresh_token,
-                    "session": session_token
-                }
-            )
+            self._update_token({"refresh": refresh_token, "session": session_token})
 
         # Start "auto-renew session token" process
         self._start_renew_login()
@@ -182,50 +184,52 @@ class requestsMangaDexSession(ModifiedSession):
         try:
             resp = super().request(*args, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            pbm.logger.error("Failed connect to \"%s\", reason: %s. Trying... (attempt: %s)" % (
-                _get_netloc(e.request.url),
-                str(e),
-                attempt
-            ))
+            pbm.logger.error(
+                'Failed connect to "%s", reason: %s. Trying... (attempt: %s)'
+                % (_get_netloc(e.request.url), str(e), attempt)
+            )
             return None
         except requests.exceptions.ReadTimeout as e:
-            pbm.logger.error("Failed connect to '%s', reason: Connection timed out. Trying... (attempt: %s)" % (
-                _get_netloc(e.request.url),
-                attempt
-            ))
+            pbm.logger.error(
+                "Failed connect to '%s', "
+                "reason: Connection timed out. Trying... (attempt: %s)"
+                % (_get_netloc(e.request.url), attempt)
+            )
             return None
 
         # We are being rate limited
         if resp.status_code == 429:
-
             # x-ratelimit-retry-after is from MangaDex and
             # Retry-After is from DDoS-Guard
-            if resp.headers.get('x-ratelimit-retry-after'):
-                delay = float(resp.headers.get('x-ratelimit-retry-after')) - time.time()
-            
-            elif resp.headers.get('Retry-After'):
-                delay = float(resp.headers.get('Retry-After'))
+            if resp.headers.get("x-ratelimit-retry-after"):
+                delay = float(resp.headers.get("x-ratelimit-retry-after")) - time.time()
+
+            elif resp.headers.get("Retry-After"):
+                delay = float(resp.headers.get("Retry-After"))
             else:
                 # Somehow `x-ratelimit-retry-after` and `Retry-After` header are not exist
                 # and they sending 429 response which should be marked as rate limited
                 # Since we have no idea how many seconds we should do for `time.sleep()`
-                # the app is sleeping for 120 seconds if happened like this, 
+                # the app is sleeping for 120 seconds if happened like this,
                 delay = DEFAULT_RATE_LIMITED_TIMEOUT
 
-            pbm.logger.info('We being rate limited, sleeping for %0.2f (attempt: %s)' % (delay, attempt))
+            pbm.logger.info(
+                "We being rate limited, sleeping for %0.2f (attempt: %s)"
+                % (delay, attempt)
+            )
             time.sleep(delay)
             return None
 
         # Server error
         elif resp.status_code >= 500:
             url = _get_netloc(resp.url)
-            if 'mangadex.network' in url and 'api.mangadex.network/report' not in url:
+            if "mangadex.network" in url and "api.mangadex.network/report" not in url:
                 # Return here anyway to not wasting time to retry to faulty node
                 return resp
 
             pbm.logger.info(
-                f"Failed to connect to \"{url}\", " \
-                f"reason: Server throwing error code {resp.status_code}. "  \
+                f'Failed to connect to "{url}", '
+                f"reason: Server throwing error code {resp.status_code}. "
                 f"Trying... (attempt: {attempt})"
             )
             return None
@@ -268,35 +272,38 @@ class requestsMangaDexSession(ModifiedSession):
         if resp is not None and resp.status_code >= 500:
             # 5 attempts request failed caused by server error
             # raise error
-            raise HTTPException('Server sending %s code' % resp.status_code, resp=resp)
+            raise HTTPException("Server sending %s code" % resp.status_code, resp=resp)
 
         raise UnhandledHTTPError("Unhandled HTTP error")
 
     def _update_token(self, token):
-        session_token = token['session']
-        refresh_token = token['refresh']
+        session_token = token["session"]
+        refresh_token = token["refresh"]
 
         self._refresh_token = refresh_token
         self._session_token = session_token
-        self.headers['Authorization'] = 'Bearer %s' % session_token
+        self.headers["Authorization"] = "Bearer %s" % session_token
 
         self._login_cache.set_refresh_token(refresh_token)
         self._login_cache.set_session_token(session_token)
 
     def _is_token_cached(self):
-        return bool(self._login_cache.get_session_token() or self._login_cache.get_refresh_token())
+        return bool(
+            self._login_cache.get_session_token()
+            or self._login_cache.get_refresh_token()
+        )
 
     def _reset_token(self):
         self._refresh_token = None
         self._session_token = None
-        self.headers.pop('Authorization')
+        self.headers.pop("Authorization")
 
     def _notify_login_fut(self):
-        """Usually this will be called when :meth:`requestsMangaDexSession.logout()` 
+        """Usually this will be called when :meth:`requestsMangaDexSession.logout()`
         is called to stop auto-renew login process
         """
         self._login_fut.set_result(True)
-    
+
     def _renew_login(self):
         """Renew login process
 
@@ -305,8 +312,8 @@ class requestsMangaDexSession(ModifiedSession):
         """
         while True:
             exp_time = (
-                self._login_cache.get_expiration_time(self._session_token) -
-                self._login_cache._get_datetime_now()
+                self._login_cache.get_expiration_time(self._session_token)
+                - self._login_cache._get_datetime_now()
             ).total_seconds()
             delay = exp_time - self._login_cache.delay_login_time
             try:
@@ -325,7 +332,7 @@ class requestsMangaDexSession(ModifiedSession):
         """Refresh login session with refresh token"""
         if self._refresh_token is None:
             raise LoginFailed("User are not logged in")
-        
+
         new_token = self.api_auth.refresh_token()
         self._update_token(new_token)
 
@@ -342,7 +349,7 @@ class requestsMangaDexSession(ModifiedSession):
         if self.check_login():
             raise AlreadyLoggedIn("User already logged in")
 
-        log.info('Logging in to MangaDex')
+        log.info("Logging in to MangaDex")
 
         token = self.api_auth.login(username, email, password)
         self._update_token(token)
@@ -356,8 +363,8 @@ class requestsMangaDexSession(ModifiedSession):
         # "Circular imports" problem
         from .user import User
 
-        r = self.get(f'{base_url}/user/me')
-        self.user = User(data=r.json()['data'])
+        r = self.get(f"{base_url}/user/me")
+        self.user = User(data=r.json()["data"])
 
         t = threading.Thread(target=self._renew_login, daemon=True)
         t.start()
@@ -384,27 +391,29 @@ class requestsMangaDexSession(ModifiedSession):
         log.info("Logged out from MangaDex")
 
     def _report(self, data):
-        pbm.logger.debug('Reporting %s to MangaDex network' % data)
-        r = self.post('https://api.mangadex.network/report', json=data)
+        pbm.logger.debug("Reporting %s to MangaDex network" % data)
+        r = self.post("https://api.mangadex.network/report", json=data)
 
         if r.status_code != 200:
-            pbm.logger.debug('Failed to report %s to MangaDex network' % data)
+            pbm.logger.debug("Failed to report %s to MangaDex network" % data)
         else:
-            pbm.logger.debug('Successfully send report %s to MangaDex network' % data)
+            pbm.logger.debug("Successfully send report %s to MangaDex network" % data)
 
     def report(self, data):
         """Report to MangaDex network"""
-        job = lambda: self._report(data)
+
+        def job():
+            return self._report(data)
+
         self._worker_report.submit(job, blocking=False)
+
 
 class NetworkManager:
     """A requests and MangaDex session manager"""
 
-    available_auth_cls = {
-        "oauth2": OAuth2,
-        "legacy": LegacyAuth
-    }
+    available_auth_cls = {"oauth2": OAuth2, "legacy": LegacyAuth}
     default_auth_method = "legacy"
+
     def __init__(self, proxy=None, trust_env=False) -> None:
         self._proxy = proxy
         self._trust_env = trust_env
@@ -453,7 +462,9 @@ class NetworkManager:
             self._update_requests_proxy(proxy)
 
     def clear_proxy(self):
-        """Remove all proxy from requests and MangaDex session and disable environments proxy"""
+        """
+        Remove all proxy from requests and MangaDex session and disable environments proxy
+        """
         self._proxy = None
         self._trust_env = False
         if self._mangadex:
@@ -465,10 +476,7 @@ class NetworkManager:
 
     def _update_mangadex_proxy(self, proxy):
         if self._mangadex:
-            pr = {
-                'http': proxy,
-                'https': proxy
-            }
+            pr = {"http": proxy, "https": proxy}
             self._mangadex.proxies.update(pr)
             self._mangadex.trust_env = self._trust_env
 
@@ -480,26 +488,24 @@ class NetworkManager:
     @property
     def mangadex(self):
         """Return proxied requests for MangaDex (if configured)
-        
-        This session only for MangaDex, sending http requests to other sites will break the session.
+
+        This session only for MangaDex,
+        sending http requests to other sites will break the session.
         """
         self._create_mangadex()
         return self._mangadex
 
     def _update_requests_proxy(self, proxy):
         if self._requests:
-            pr = {
-                'http': proxy,
-                'https': proxy
-            }
+            pr = {"http": proxy, "https": proxy}
             self._requests.proxies.update(pr)
             self._requests.trust_env = self._trust_env
-    
+
     def _create_requests(self):
         if self._requests is None:
             self._requests = ModifiedSession()
             self._update_requests_proxy(self.proxy)
-    
+
     @property
     def requests(self):
         """Return proxied requests (if configured)"""
@@ -512,9 +518,9 @@ class NetworkManager:
 
     def set_doh(self, provider):
         """Set DoH (DNS-over-HTTPS) for MangaDex and requests session
-        
+
         See https://requests-doh.mansuf.link/en/stable/doh_providers.html for all available DoH providers
-        """
+        """  # noqa: E501
         try:
             if self._doh is not None:
                 set_dns_provider(provider)
@@ -526,11 +532,11 @@ class NetworkManager:
 
         self._doh = doh
 
-        self.mangadex.mount('https://', doh)
-        self.mangadex.mount('http://', doh)
+        self.mangadex.mount("https://", doh)
+        self.mangadex.mount("http://", doh)
 
-        self.requests.mount('https://', doh)
-        self.requests.mount('http://', doh)
+        self.requests.mount("https://", doh)
+        self.requests.mount("http://", doh)
 
     def set_auth(self, auth_method):
         """Set Authentication method for MangaDex API (default to :class:`LegacyAuth`)"""
@@ -548,5 +554,6 @@ class NetworkManager:
 
         self._requests.close()
         self._requests = None
+
 
 Net = NetworkManager()
