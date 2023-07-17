@@ -28,7 +28,6 @@ import math
 
 from .base import ConvertedChaptersFormat, ConvertedVolumesFormat, ConvertedSingleFormat
 from .utils import get_chapter_info, get_volume_cover
-from ..errors import PillowNotInstalled
 from ..utils import create_directory
 from ..progress_bar import progress_bar_manager as pbm
 
@@ -40,6 +39,12 @@ except ImportError:
     pillow_ready = False
 else:
     pillow_ready = True
+
+
+class PillowNotInstalled(Exception):
+    """Raised when trying to download in PDF format but Pillow is not installed"""
+
+    pass
 
 
 class _PageRef:

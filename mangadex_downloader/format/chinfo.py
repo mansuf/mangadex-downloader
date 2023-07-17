@@ -27,10 +27,7 @@ from pathlib import Path
 from ..utils import get_cover_art_url
 from ..network import Net
 
-try:
-    from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
-except ImportError:
-    pass
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 
 # Font related
 rgb_white = (255, 255, 255)

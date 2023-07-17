@@ -39,7 +39,7 @@ from ..iterator import (
 from ..forums import get_thread_title_owner_and_post_owner, get_post_id_forum_thread
 from .. import __repository__
 from ..utils import input_handle, validate_url, get_cover_art_url, get_key_value
-from ..errors import InvalidURL, MangaDexException, PillowNotInstalled
+from ..errors import InvalidURL, MangaDexException
 from ..network import Net
 from ..manga import Manga
 from ..chapter import Chapter
@@ -47,6 +47,7 @@ from ..mdlist import MangaDexList
 from ..group import Group
 from ..cover import CoverArt, cover_qualities
 from ..language import get_language
+from ..format.pdf import PillowNotInstalled
 
 
 def preview_chapter(chapter: Chapter):

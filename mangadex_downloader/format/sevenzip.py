@@ -26,7 +26,6 @@ import os
 from .base import ConvertedChaptersFormat, ConvertedVolumesFormat, ConvertedSingleFormat
 from .utils import get_chapter_info, get_volume_cover
 from ..utils import create_directory
-from ..errors import MangaDexException
 from ..progress_bar import progress_bar_manager as pbm
 
 try:
@@ -37,7 +36,7 @@ else:
     PY7ZR_OK = True
 
 
-class py7zrNotInstalled(MangaDexException):
+class py7zrNotInstalled(Exception):
     """Raised when py7zr is not installed"""
 
     pass

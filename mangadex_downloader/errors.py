@@ -101,12 +101,6 @@ class InvalidFormat(MangaDexException):
     pass
 
 
-class PillowNotInstalled(MangaDexException):
-    """Raised when trying to download in PDF format but Pillow is not installed"""
-
-    pass
-
-
 class UserNotFound(MangaDexException):
     """Raised when user are not found in MangaDex"""
 

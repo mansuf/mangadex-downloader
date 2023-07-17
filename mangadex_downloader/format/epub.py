@@ -26,15 +26,15 @@ import logging
 from importlib.util import find_spec
 from .base import ConvertedChaptersFormat, ConvertedVolumesFormat, ConvertedSingleFormat
 
-from ..errors import MangaDexException
 from ..progress_bar import progress_bar_manager as pbm
 
 
-class EpubMissingDependencies(MangaDexException):
+class EpubMissingDependencies(Exception):
     """Raised when `lxml` and `bs4` is not installed"""
 
     def __init__(self, *args, **kwargs):
         super().__init__("`lxml`, `bs4` and `Pillow` is not installed")
+
 
 try:
     lxml_exist = find_spec("lxml")
