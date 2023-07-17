@@ -68,7 +68,13 @@ class CoverArt:
             pass
 
     def __str__(self) -> str:
-        return f"Cover volume {self.volume}"
+        from .config import config
+
+        msg = f"Cover volume {self.volume}"
+        if config.language == "all" or config.volume_cover_language == "all":
+            msg += f" in {self.locale.name} language"
+
+        return msg
 
     @property
     def volume(self):

@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.10.3
+
+### Fix bugs
+
+- Fixed `cover` command is not working if manga doesn't have covers for specified language
+[#82](https://github.com/mansuf/mangadex-downloader/issues/82)
+
 ## v2.10.2
 
 ### Fix bugs

@@ -55,6 +55,7 @@ from ..chapter import Chapter
 from ..mdlist import MangaDexList
 from ..group import Group
 from ..cover import CoverArt, cover_qualities
+from ..language import get_language
 
 def preview_chapter(chapter: Chapter):
     try:
@@ -630,9 +631,15 @@ class CoverArtCommand(MangaDexCommand):
         if quality not in cover_qualities:
             parser.error(f"{quality} is not valid quality covers")
 
+        from ..config import config
+        vcl = config.volume_cover_language
+        cover_locale = vcl if vcl else config.language
+        cover_locale = get_language(cover_locale)
+
         manga = Manga(_id=manga_id)
         iterator = CoverArtURLIterator(manga_id, quality)
         text = f"List of covers art from manga '{manga.title}' in {quality} quality"
+        text += f" ({cover_locale.name} language)"
 
         super().__init__(
             parser,
@@ -641,6 +648,8 @@ class CoverArtCommand(MangaDexCommand):
             text,
         )
 
+        self.cover_locale = cover_locale
+        self.manga = manga
         self.manga_id = manga_id
         self.quality = quality
         self.limit = 10
@@ -660,6 +669,12 @@ class CoverArtCommand(MangaDexCommand):
             return [get_cover_art_url(cover.manga_id, cover, self.quality)]
 
         return result
+
+    def on_empty_error(self):
+        self.args_parser.error(
+            f"Manga {self.manga.title!r} doesn't " \
+            f"have {self.cover_locale.name!r} covers"
+        )
 
 registered_commands = {
     "search": SearchMangaCommand,
