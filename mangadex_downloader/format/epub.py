@@ -60,7 +60,7 @@ class EpubPlugin:
         self.title = manga.title
         self.lang = lang
 
-        self._pos = 0
+        self._chapter_pos = 0
         self._pages = {}
 
         # Container.xml
@@ -187,7 +187,7 @@ class EpubPlugin:
     def _get_root(self):
         return BeautifulSoup("", "lxml")
 
-    def _create_nav(self, _id, text, src=None):
+    def _create_nav_point(self, _id, text, src=None, parent=None):
         navpoint_kwargs = {
             "id": _id,
         }
@@ -203,30 +203,30 @@ class EpubPlugin:
             toc_content = self._toc_root.new_tag("content", attrs={"src": src})
             toc.append(toc_content)
 
-        return toc
+        if parent:
+            # If "parent" parameter is given
+            # append created element to parent element
+            parent.append(toc)
+        else:
+            return toc
 
-    def _create_toc_item(self, nav, path, pos):
-        xhtml_path = f"xhtml/{path}_{pos}.xhtml"
-        nav_point = self._create_nav(f"TOC_{path}_{pos}", f"Page {pos}", xhtml_path)
-        nav.append(nav_point)
-
-    def _create_manifest_item(self, path, pos, image):
+    def _create_manifest_item(self, chapter_pos, page, image):
         im_name = os.path.basename(image)
         im = Image.open(image)
 
         xhtml_item = self._opf_root.new_tag(
             "item",
             attrs={
-                "id": f"XHTML_{path}_{pos}",
-                "href": f"xhtml/{path}_{pos}.xhtml",
+                "id": f"XHTML_{chapter_pos}_{page}",
+                "href": f"xhtml/{chapter_pos}_{page}.xhtml",
                 "media-type": "application/xhtml+xml",
             },
         )
         img_item = self._opf_root.new_tag(
             "item",
             attrs={
-                "id": f"IMAGES_{path}_{pos}",
-                "href": f"images/{path}_{im_name}",
+                "id": f"IMAGES_{chapter_pos}_{page}",
+                "href": f"images/{chapter_pos}_{im_name}",
                 "media-type": Image.MIME.get(im.format),
             },
         )
@@ -235,19 +235,22 @@ class EpubPlugin:
         self._manifest.append(xhtml_item)
         self._manifest.append(img_item)
 
-    def _create_spine_item(self, path, pos):
-        item = self._opf_root.new_tag("itemref", attrs={"idref": f"XHTML_{path}_{pos}"})
+    def _create_spine_item(self, chapter_pos, page):
+        item = self._opf_root.new_tag(
+            "itemref", attrs={"idref": f"XHTML_{chapter_pos}_{page}"}
+        )
         self._spine.append(item)
 
     def create_page(self, title, images):
-        # Create page toc
-        nav = self._create_nav(
-            f"TOC_{self._pos}_INIT", title, f"xhtml/{self._pos}_1.xhtml"
+        # This was supposed to be navigation for first page
+        # the first page was hardcoded
+        nav = self._create_nav_point(
+            f"TOC_{self._chapter_pos}_INIT", title, f"xhtml/{self._chapter_pos}_1.xhtml"
         )
         xhtml = []
 
-        for pos, im in enumerate(images, start=1):
-            image = os.path.basename(im)
+        for page, im_path in enumerate(images, start=1):
+            image = os.path.basename(im_path)
             root = self._get_root()
 
             # Make doctype
@@ -275,7 +278,7 @@ class EpubPlugin:
                 "img",
                 attrs={
                     "alt": image,
-                    "src": f"../images/{self._pos}_{image}",
+                    "src": f"../images/{self._chapter_pos}_{image}",
                 },
             )
             div_tag.append(img_tag)
@@ -286,17 +289,26 @@ class EpubPlugin:
             html_root.append(body_root)
             root.append(html_root)
 
-            self._create_manifest_item(self._pos, pos, im)
-            self._create_spine_item(self._pos, pos)
-            self._create_toc_item(nav, self._pos, pos)
+            self._create_manifest_item(self._chapter_pos, page, im_path)
+            self._create_spine_item(self._chapter_pos, page)
+
+            # Create nested "navPoint" in parent "navPoint" element
+            # For images navigation
+            xhtml_path = f"xhtml/{self._chapter_pos}_{page}"
+            self._create_nav_point(
+                _id=f"TOC_{self._chapter_pos}_{page}",
+                text=f"Page {page}",
+                src=xhtml_path,
+                parent=nav,
+            )
 
             xhtml.append(root)
 
         self._navigation.append(nav)
 
-        self._pages[self._pos] = [xhtml, images]
+        self._pages[self._chapter_pos] = [xhtml, images]
 
-        self._pos += 1
+        self._chapter_pos += 1
 
     def _make_container(self):
         root = self._get_root()
