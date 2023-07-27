@@ -61,7 +61,7 @@ class EpubPlugin:
         self.lang = lang
 
         self._chapter_pos = 0
-        self._pages = {}
+        self._chapters = {}
 
         # Container.xml
         self._container = None
@@ -306,7 +306,7 @@ class EpubPlugin:
 
         self._navigation.append(nav)
 
-        self._pages[self._chapter_pos] = [xhtml, images]
+        self._chapters[self._chapter_pos] = [xhtml, images]
 
         self._chapter_pos += 1
 
@@ -339,7 +339,7 @@ class EpubPlugin:
 
         # Calculate all images and set it to progress bar convert total
         total_images = 0
-        for _, (_, images) in self._pages.items():
+        for _, (_, images) in self._chapters.items():
             total_images += len(images)
 
         pbm.set_convert_total(total_images)
@@ -364,15 +364,15 @@ class EpubPlugin:
             zip_obj.writestr("OEBPS/content.opf", self._opf_root.prettify())
 
             # Write XHTML and images
-            for page, (xhtml, images) in self._pages.items():
-                for pos, content in enumerate(xhtml, start=1):
+            for chapter, (xhtml, images) in self._chapters.items():
+                for page, content in enumerate(xhtml, start=1):
                     zip_obj.writestr(
-                        f"OEBPS/xhtml/{page}_{pos}.xhtml", content.prettify()
+                        f"OEBPS/xhtml/{chapter}_{page}.xhtml", content.prettify()
                     )
 
-                for pos, image in enumerate(images, start=1):
+                for page, image in enumerate(images, start=1):
                     zip_obj.write(
-                        image, f"OEBPS/images/{page}_{os.path.basename(image)}"
+                        image, f"OEBPS/images/{chapter}_{os.path.basename(image)}"
                     )
 
                     progress_bar.update(1)
