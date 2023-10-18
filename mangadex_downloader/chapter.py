@@ -307,7 +307,6 @@ class Chapter:
 
     @property
     def groups_name(self):
-        
         if not self.groups:
             if not self.user:
                 return 'User is not specified'
