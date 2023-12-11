@@ -273,6 +273,7 @@ class IteratorMangaFromList(MangaIterator):
             r = Net.mangadex.get(url, params=params)
             data = r.json()
 
+            # TODO: Refactor this
             notexist_ids = param_ids.copy()
             copy_data = data.copy()
             for manga_data in copy_data["data"]:

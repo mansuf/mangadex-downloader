@@ -219,7 +219,7 @@ class OAuth2(MangaDexAuthBase):
 
         self.client = OAuth2Client(
             session=self.session,
-            # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET, 
+            # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET,
             # PLEASE CHANGE THIS ONCE IT'S ALLOWED
             client_id="thirdparty-oauth-client",
             scope="openid groups profile roles",
@@ -250,9 +250,7 @@ class OAuth2(MangaDexAuthBase):
             namespace = manager.Namespace()
             event = manager.Event()
 
-            url, state = self.client.create_authorization_url(
-                self.authorization_endpoint
-            )
+            url, state = self.client.create_authorization_url(self.authorization_endpoint)
             namespace.state = state
 
             log.debug("Starting OAuth2 callback handler")
@@ -280,9 +278,7 @@ class OAuth2(MangaDexAuthBase):
             error = result_auth.get("error")
             err_description = result_auth.get("description")
             if error:
-                raise LoginFailed(
-                    f"Login to MangaDex failed, reason: {err_description}"
-                )
+                raise LoginFailed(f"Login to MangaDex failed, reason: {err_description}")
 
             self.session_state = result_auth["session_state"]
             self.authorization_code = result_auth["code"]

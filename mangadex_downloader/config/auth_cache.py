@@ -96,15 +96,11 @@ class AuthCacheManager:
 
         serialized_exp_refresh_token = None
         if exp_refresh_token is not None:
-            serialized_exp_refresh_token = exp_refresh_token.strftime(
-                self.fmt_exp_datetime
-            )
+            serialized_exp_refresh_token = exp_refresh_token.strftime(self.fmt_exp_datetime)
 
         serialized_exp_session_token = None
         if exp_session_token is not None:
-            serialized_exp_session_token = exp_session_token.strftime(
-                self.fmt_exp_datetime
-            )
+            serialized_exp_session_token = exp_session_token.strftime(self.fmt_exp_datetime)
 
         obj["refresh"]["exp"] = serialized_exp_refresh_token
         obj["session"]["exp"] = serialized_exp_session_token
@@ -172,12 +168,8 @@ class AuthCacheManager:
                 f"Failed to load auth cache file ({self.path}), reason: {err}"
                 f"Make sure you have permission to read & write in that directory"
             )
-            print(
-                "Traceback of last error when loading auth cache file", file=sys.stderr
-            )
-            traceback.print_exception(
-                type(err), err, err.__traceback__, file=sys.stderr
-            )
+            print("Traceback of last error when loading auth cache file", file=sys.stderr)
+            traceback.print_exception(type(err), err, err.__traceback__, file=sys.stderr)
 
             raise exc
 

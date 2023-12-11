@@ -59,6 +59,12 @@ class ChapterNotFound(MangaDexException):
     pass
 
 
+class InvalidPlaceholders(MangaDexException):
+    """Raised when filename or directory placeholders is invalid"""
+
+    pass
+
+
 class InvalidMangaDexList(MangaDexException):
     """Raised when invalid MangaDex list is found"""
 

@@ -115,14 +115,6 @@ def get_args(argv):
         choices=valid_url_types,
     )
     parser.add_argument(
-        "--path",
-        "--folder",
-        "-d",
-        metavar="FOLDER",
-        help="Store manga in given folder",
-        default=config.path,
-    )
-    parser.add_argument(
         "--replace", "-r", help="Replace manga if exist", action="store_true"
     )
     parser.add_argument(
@@ -145,6 +137,35 @@ def get_args(argv):
         "the app will download all chapters",
         choices=("default", "unread"),
         default=config.download_mode,
+    )
+
+    # Path related
+    path_group = parser.add_argument_group("Path")
+    path_group.add_argument(
+        "--path",
+        "--folder",
+        "-d",
+        metavar="DIRECTORY",
+        help="Store manga / chapter to specified directory",
+        default=config.path,
+    )
+    path_group.add_argument(
+        "--filename-single",
+        "-fs",
+        help=("Set filename for single format, " "read insert_link_here for more info"),
+        default=config.filename_single,
+    )
+    path_group.add_argument(
+        "--filename-volume",
+        "-fv",
+        help=("Set filename for volume format, " "read insert_link_here for more info"),
+        default=config.filename_volume,
+    )
+    path_group.add_argument(
+        "--filename-chapter",
+        "-fc",
+        help=("Set filename for chapter format, " "read insert_link_here for more info"),
+        default=config.filename_chapter,
     )
 
     # Search related
@@ -305,9 +326,7 @@ def get_args(argv):
 
     # Authentication related
     auth_group = parser.add_argument_group("Authentication")
-    auth_group.add_argument(
-        "--login", "-l", help="Login to MangaDex", action="store_true"
-    )
+    auth_group.add_argument("--login", "-l", help="Login to MangaDex", action="store_true")
     auth_group.add_argument(
         "--login-method",
         "-lm",
@@ -408,9 +427,7 @@ def get_args(argv):
         help="Automatically select choices in selectable prompt "
         "(list, library, followed-list command)",
     )
-    misc_group.add_argument(
-        "-pipe", action="store_true", help="Download from pipe input"
-    )
+    misc_group.add_argument("-pipe", action="store_true", help="Download from pipe input")
     misc_group.add_argument(
         "-v",
         "--version",

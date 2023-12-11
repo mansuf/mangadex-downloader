@@ -198,9 +198,7 @@ class Paginator:
         # Retrieving page
         items = self._pages[pos]
         start_item_pos = pos * self.limit
-        result = [
-            (pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)
-        ]
+        result = [(pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)]
 
         self._pos += 1
 
@@ -214,9 +212,7 @@ class Paginator:
 
         items = self._pages[pos]
         start_item_pos = pos * self.limit
-        result = [
-            (pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)
-        ]
+        result = [(pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)]
 
         self._pos -= 1
 

@@ -114,19 +114,26 @@ def getpass_handle(*args, **kwargs):
         sys.exit(0)
 
 
-def comma_separated_text(array):
+def comma_separated_text(array, no_bracket=False):
+    text = ""
+
     # Opening square bracket
-    text = "["
+    if not no_bracket:
+        text += "["
 
     # Append first item
-    text += array.pop(0)
+    try:
+        text += array.pop(0)
+    except IndexError:
+        return ""
 
     # Add the rest of items
     for item in array:
         text += ", " + item
 
     # Closing square bracket
-    text += "]"
+    if not no_bracket:
+        text += "]"
 
     return text
 

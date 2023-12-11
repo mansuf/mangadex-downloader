@@ -215,6 +215,7 @@ class BaseCommand:
 
         answer = None
         while True:
+            # TODO: Refactor this
             if answer is not None:
                 if answer.startswith("preview") and self.preview():
                     answer_item = answer.split("preview", maxsplit=1)[1].strip()
@@ -436,16 +437,12 @@ class SearchMangaCommand(MangaCommand, FilterEnabled):
         filter_kwargs = self.parse_filter(args)
 
         iterator = IteratorManga(input_text, **filter_kwargs)
-        super().__init__(
-            parser, args, iterator, f'Manga search results for "{input_text}"'
-        )
+        super().__init__(parser, args, iterator, f'Manga search results for "{input_text}"')
 
         self.input_text = input_text
 
     def on_empty_error(self):
-        self.args_parser.error(
-            f'Manga search results for "{self.input_text}" are empty'
-        )
+        self.args_parser.error(f'Manga search results for "{self.input_text}" are empty')
 
 
 class GroupMangaCommand(MangaCommand):
@@ -678,8 +675,7 @@ class CoverArtCommand(MangaDexCommand):
 
     def on_empty_error(self):
         self.args_parser.error(
-            f"Manga {self.manga.title!r} doesn't "
-            f"have {self.cover_locale.name!r} covers"
+            f"Manga {self.manga.title!r} doesn't " f"have {self.cover_locale.name!r} covers"
         )
 
 

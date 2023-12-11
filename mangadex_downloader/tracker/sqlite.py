@@ -189,6 +189,26 @@ class DownloadTrackerSQLite:
 
             return FileInfo(*fi_cls_args)
 
+    def get_all_files_info(self) -> list[FileInfo]:
+        if config.no_track:
+            return []
+
+        result = []
+        with self._lock:
+            cur = self.db.cursor()
+            cur.execute(f"SELECT * FROM '{self._fi_name}'")
+
+            fi_data = cur.fetchall()
+            if not fi_data:
+                return []
+
+        for data in fi_data:
+            # We only need the filename, not the rest of data
+            # for parsing FileInfo
+            result.append(self.get(data[0]))
+
+        return result
+
     def remove_file_info_from_name(self, name):
         if config.no_track:
             return

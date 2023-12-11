@@ -141,9 +141,7 @@ class Filter:
                 ),
                 "available_translated_language": _FilterKey(
                     "availableTranslatedLanguage[]",
-                    lambda x: self._validate_language(
-                        "available_translated_language", x
-                    ),
+                    lambda x: self._validate_language("available_translated_language", x),
                 ),
                 "publication_demographic": _FilterKey(
                     "publicationDemographic[]",

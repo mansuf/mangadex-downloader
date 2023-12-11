@@ -214,8 +214,7 @@ class requestsMangaDexSession(ModifiedSession):
                 delay = DEFAULT_RATE_LIMITED_TIMEOUT
 
             pbm.logger.info(
-                "We being rate limited, sleeping for %0.2f (attempt: %s)"
-                % (delay, attempt)
+                "We being rate limited, sleeping for %0.2f (attempt: %s)" % (delay, attempt)
             )
             time.sleep(delay)
             return None
@@ -289,8 +288,7 @@ class requestsMangaDexSession(ModifiedSession):
 
     def _is_token_cached(self):
         return bool(
-            self._login_cache.get_session_token()
-            or self._login_cache.get_refresh_token()
+            self._login_cache.get_session_token() or self._login_cache.get_refresh_token()
         )
 
     def _reset_token(self):

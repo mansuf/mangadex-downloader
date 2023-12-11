@@ -55,14 +55,14 @@ def get_legacy_id(_type, _id):
     if _type not in supported_types:
         raise MangaDexException('"%s" is not supported type' % _type)
 
-    # Normally, this can be done from API url. 
+    # Normally, this can be done from API url.
     # But, somehow the API endpoint (/legacy/mapping)
     # throwing server error (500) in response. We will use this, until the API gets fixed.
     # NOTE: The error only applied to "chapter" type, "manga" type is working fine.
     url = "{0}/{1}/{2}".format(origin_url, _type, _id)
 
-    # The process is by sending request to "mangadex.org" (not "api.mangadex.org"), 
-    # if it gets redirected, the legacy id is exist. 
+    # The process is by sending request to "mangadex.org" (not "api.mangadex.org"),
+    # if it gets redirected, the legacy id is exist.
     # Otherwise the legacy id is not found in MangaDex database
     r = Net.mangadex.get(url, allow_redirects=False)
 

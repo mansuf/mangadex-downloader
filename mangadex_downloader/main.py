@@ -39,6 +39,7 @@ from .format import get_format
 from .downloader import FileDownloader
 from .config import config
 from .tracker import get_tracker
+from .path.op import get_path
 
 log = logging.getLogger(__name__)
 
@@ -84,33 +85,6 @@ def download(
         log.info("Fetching all chapters...")
         manga.fetch_chapters(lang.value, all_chapters=True)
 
-    # Create folder for downloading
-    base_path = create_directory(manga.title, config.path)
-
-    # Cover path
-    cover_path = base_path / "cover.jpg"
-    log.info("Downloading cover manga %s" % manga.title)
-
-    # Determine cover art quality
-    cover_url = get_cover_art_url(manga.id, manga.cover, cover)
-
-    # Download the cover art
-    if cover == "none":
-        log.info('Not downloading cover manga, since "cover" is none')
-    elif cover_url is None:
-        # The manga doesn't have cover
-        log.info(
-            f"Not downloading cover manga, since manga '{manga.title}' doesn't have cover"
-        )
-    else:
-        fd = FileDownloader(
-            cover_url,
-            cover_path,
-            replace=replace,
-        )
-        fd.download()
-        fd.cleanup()
-
     # Reuse is good
     def download_manga(m, path):
         kwargs_iter_chapter_images = {
@@ -124,6 +98,31 @@ def download(
         }
 
         log.info("Using %s format" % save_as)
+
+        # Cover path
+        cover_path = path / "cover.jpg"
+        log.info("Downloading cover manga %s" % manga.title)
+
+        # Determine cover art quality
+        cover_url = get_cover_art_url(manga.id, manga.cover, cover)
+
+        # Download the cover art
+        if cover == "none":
+            log.info('Not downloading cover manga, since "cover" is none')
+        elif cover_url is None:
+            # The manga doesn't have cover
+            log.info(
+                "Not downloading cover manga, "
+                f"since manga '{manga.title}' doesn't have cover"
+            )
+        else:
+            fd = FileDownloader(
+                cover_url,
+                cover_path,
+                replace=replace,
+            )
+            fd.download()
+            fd.cleanup()
 
         m.tracker = get_tracker(save_as, path)
 
@@ -152,11 +151,9 @@ def download(
             # Fetch all chapters
             new_manga.fetch_chapters(translated_lang.value, all_chapters=True)
 
-            new_path = base_path / translated_lang.name
-            new_path.mkdir(exist_ok=True)
-
-            log.info(f'Download directory is set to "{new_path.resolve()}"')
-            download_manga(new_manga, new_path)
+            formatted_path = create_directory("", get_path(new_manga))
+            log.info(f'Download directory is set to "{formatted_path.resolve()}"')
+            download_manga(new_manga, formatted_path)
 
             log.info(
                 f"Download finished for manga {manga.title} "
@@ -164,8 +161,9 @@ def download(
             )
 
     else:
-        log.info(f'Download directory is set to "{base_path.resolve()}"')
-        download_manga(manga, base_path)
+        formatted_path = create_directory("", get_path(manga))
+        log.info(f'Download directory is set to "{formatted_path.resolve()}"')
+        download_manga(manga, formatted_path)
 
     log.info('Download finished for manga "%s"' % manga.title)
     return manga

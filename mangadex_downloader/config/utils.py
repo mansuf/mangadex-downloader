@@ -93,9 +93,7 @@ def validate_language(val):
 def validate_value_from_iterator(val, iterator):
     values = [i for i in iterator]
     if val not in values:
-        raise ConfigTypeError(
-            f"'{val}' is not valid value, available values are {values}"
-        )
+        raise ConfigTypeError(f"'{val}' is not valid value, available values are {values}")
 
     return val
 

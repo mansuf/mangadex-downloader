@@ -164,7 +164,8 @@ class FileDownloader:
             content_range = resp.headers.get("content-range", "")
             if initial_file_sizes:
                 cr_match = re.match(
-                    "bytes %s\-[0-9]{1,}\/[0-9]{1,}" % initial_file_sizes, content_range
+                    "bytes %s\\-[0-9]{1,}\\/[0-9]{1,}" % initial_file_sizes,
+                    content_range,
                 )
             else:
                 # This is hack, trust me
