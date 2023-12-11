@@ -32,6 +32,7 @@ from .utils import (
     create_file_hash_sha256,
     get_volume_cover,
 )
+from ..path.op import get_filename
 from ..utils import create_directory, delete_file
 from ..progress_bar import progress_bar_manager as pbm
 
@@ -64,10 +65,10 @@ class Raw(BaseFormat):
 
             for index, (chap_class, images) in enumerate(chapters, start=1):
                 failed_images = []
-                chap_name = chap_class.get_simplified_name()
+                dir_name = get_filename(self.manga, chap_class, "", format="chapter")
 
-                file_info = self.get_fi_chapter_fmt(chap_name, chap_class.id)
-                chapter_path = create_directory(chap_name, base_path)
+                file_info = self.get_fi_chapter_fmt(dir_name, chap_class.id)
+                chapter_path = create_directory(dir_name, base_path)
 
                 if file_info is None:
                     fi_images = []
@@ -84,7 +85,7 @@ class Raw(BaseFormat):
                 if failed_images and fi_completed:
                     pbm.logger.warning(
                         f"Found {len(failed_images)} unverified or missing images "
-                        f"from {chap_name}. Re-downloading..."
+                        f"from {dir_name}. Re-downloading..."
                     )
 
                     # Delete unverified images
@@ -96,9 +97,7 @@ class Raw(BaseFormat):
                         )
                         delete_file(im_path)
                 elif fi_completed:
-                    pbm.logger.info(
-                        f"'{chap_name}' is verified. no need to re-download"
-                    )
+                    pbm.logger.info(f"'{dir_name}' is verified. no need to re-download")
                     self.mark_read_chapter(chap_class)
                     chapters_pb.update(1)
                     continue
@@ -112,10 +111,10 @@ class Raw(BaseFormat):
                 for im in images:
                     basename = os.path.basename(im)
                     im_hash = create_file_hash_sha256(im)
-                    data.append((basename, im_hash, chap_class.id, chap_name))
+                    data.append((basename, im_hash, chap_class.id, dir_name))
 
                 manga.tracker.add_images_info(data)
-                manga.tracker.toggle_complete(chap_name, True)
+                manga.tracker.toggle_complete(dir_name, True)
 
                 self.mark_read_chapter(chap_class)
                 chapters_pb.update(1)
@@ -157,11 +156,11 @@ class RawVolume(BaseFormat):
 
             count = NumberWithLeadingZeros(total)
 
-            # Build volume folder name
-            if volume is not None:
-                volume_name = f"Volume {volume}"
-            else:
-                volume_name = "No Volume"
+            placeholder_obj = self.create_placeholder_obj_for_volume_fmt(
+                volume, chapters
+            )
+
+            volume_name = get_filename(self.manga, placeholder_obj, "", format="volume")
 
             volume_path = create_directory(volume_name, base_path)
             file_info = self.get_fi_volume_or_single_fmt(volume_name)
@@ -278,7 +277,9 @@ class RawSingle(BaseFormat):
             self.cleanup()
             return
 
-        cache, total, name = result_cache
+        cache, total = result_cache
+        placeholder_obj = self.create_placeholder_obj_for_single_fmt(cache)
+        name = get_filename(self.manga, placeholder_obj, "", format="single")
 
         count = NumberWithLeadingZeros(total)
 

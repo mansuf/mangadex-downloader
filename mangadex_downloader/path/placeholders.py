@@ -21,9 +21,9 @@ def _get_volume(x):
     return f"Vol. {x}"
 
 
-def _get_or_empty_string(x):
+def _get_or_minus_one(x):
     if not x:
-        return ""
+        return "-1"
 
     return x
 
@@ -48,7 +48,8 @@ class Placeholder:
 
         if not isinstance(attr, dict):
             # It's not dict type
-            # see `Language` and `Format` in self.get_allowed_attributes()
+            # see `Format` in self.get_allowed_attributes()
+            # var "attr" in this case is modifier function
             value = attr(obj) if attr is not None else obj
 
             setattr(self, self.obj_name, value)
@@ -108,8 +109,8 @@ class Placeholder:
 
         if chapter:
             attr["Chapter"] = {
-                "chapter": _get_or_empty_string,
-                "volume": _get_volume,
+                "chapter": _get_or_minus_one,
+                "volume": _get_or_minus_one,
                 "title": sanitize_filename,
                 "pages": None,
                 "language": None,

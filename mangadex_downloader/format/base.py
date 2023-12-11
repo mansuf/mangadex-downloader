@@ -321,6 +321,20 @@ class BaseFormat:
 
         return new_chapters
 
+    def create_placeholder_obj_for_volume_fmt(self, volume, chapters):
+        placeholder_obj = VolumePlaceholder(volume)
+        placeholder_obj.chapters.first = chapters[0][0]
+        placeholder_obj.chapters.last = chapters[-1][0]
+
+        return placeholder_obj
+
+    def create_placeholder_obj_for_single_fmt(self, chapters):
+        placeholder_obj = SingleChaptersPlaceholder()
+        placeholder_obj.first = chapters[0][0]
+        placeholder_obj.last = chapters[-1][0]
+
+        return placeholder_obj
+
     def create_worker(self):
         # If CTRL+C is pressed all process is interrupted, right ?
         # Now when this happens in PDF or ZIP processing, this can cause
@@ -595,9 +609,9 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
             count = NumberWithLeadingZeros(total)
 
             # Preparing placeholders
-            placeholder_obj = VolumePlaceholder(volume)
-            placeholder_obj.chapters.first = chapters[0][0]
-            placeholder_obj.chapters.last = chapters[-1][0]
+            placeholder_obj = self.create_placeholder_obj_for_volume_fmt(
+                volume, chapters
+            )
 
             volume_name = self.get_volume_name(volume)
             filename = get_filename(
@@ -767,9 +781,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         count = NumberWithLeadingZeros(total)
 
         # Preparing placeholder
-        placeholder_obj = SingleChaptersPlaceholder()
-        placeholder_obj.first = data[0][0]
-        placeholder_obj.last = data[-1][0]
+        placeholder_obj = self.create_placeholder_obj_for_single_fmt(data)
 
         filename = get_filename(
             self.manga, placeholder_obj, self.file_ext, format="single"
@@ -858,9 +870,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         cache, total = result_cache
         file_info = tracker.get_all_files_info()
 
-        placeholder_obj = SingleChaptersPlaceholder()
-        placeholder_obj.first = cache[0][0]
-        placeholder_obj.last = cache[-1][0]
+        placeholder_obj = self.create_placeholder_obj_for_single_fmt(cache)
 
         filename = get_filename(
             self.manga, placeholder_obj, self.file_ext, format="single"
