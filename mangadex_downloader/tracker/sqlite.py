@@ -24,7 +24,7 @@ import sqlite3
 import logging
 import threading
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 from datetime import datetime
 
 from .info_data.sqlite import FileInfo
@@ -189,7 +189,7 @@ class DownloadTrackerSQLite:
 
             return FileInfo(*fi_cls_args)
 
-    def get_all_files_info(self) -> list[FileInfo]:
+    def get_all_files_info(self) -> List[FileInfo]:
         if config.no_track:
             return []
 
