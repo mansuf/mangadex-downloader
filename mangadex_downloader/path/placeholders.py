@@ -69,6 +69,9 @@ class Placeholder:
 
             setattr(self, attr, value)
 
+    def __getitem__(self, index):
+        return self.obj.__getitem__(index)
+
     def __str__(self):
         if self.has_attr:
             raise InvalidPlaceholders(

@@ -322,16 +322,21 @@ class BaseFormat:
         return new_chapters
 
     def create_placeholder_obj_for_volume_fmt(self, volume, chapters):
+        chapters = [c for c, _ in chapters]
+
         placeholder_obj = VolumePlaceholder(volume)
-        placeholder_obj.chapters.first = chapters[0][0]
-        placeholder_obj.chapters.last = chapters[-1][0]
+        placeholder_obj.chapters.extend(chapters)
+        placeholder_obj.chapters.first = chapters[0]
+        placeholder_obj.chapters.last = chapters[-1]
 
         return placeholder_obj
 
     def create_placeholder_obj_for_single_fmt(self, chapters):
-        placeholder_obj = SingleChaptersPlaceholder()
-        placeholder_obj.first = chapters[0][0]
-        placeholder_obj.last = chapters[-1][0]
+        chapters = [c for c, _ in chapters]
+
+        placeholder_obj = SingleChaptersPlaceholder(chapters)
+        placeholder_obj.first = chapters[0]
+        placeholder_obj.last = chapters[-1]
 
         return placeholder_obj
 

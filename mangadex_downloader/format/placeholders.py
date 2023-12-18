@@ -12,6 +12,8 @@ class _Base(list):
         self.first = None
         self.last = None
 
+        super().__init__(*args, **kwargs)
+
 
 # For `volume` placeholder in volume format
 class VolumePlaceholder:
