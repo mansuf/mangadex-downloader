@@ -120,6 +120,7 @@ class Placeholder:
                 "name": None,
                 "simple_name": None,
                 "groups_name": sanitize_filename,
+                "manga_title": sanitize_filename,
             }
 
         if user:
