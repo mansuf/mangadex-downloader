@@ -170,27 +170,37 @@ class DownloadTrackerSQLite:
 
         with self._lock:
             cur = self.db.cursor()
-            cur.execute(f"SELECT * FROM '{self._fi_name}' WHERE name = ?", (name,))
 
-            # Get file info data
-            fi_data = cur.fetchone()
+            try:
+                cur.execute(f"SELECT * FROM '{self._fi_name}' WHERE name = ?", (name,))
 
-            if fi_data is None:
+                # Get file info data
+                fi_data = cur.fetchone()
+
+                if fi_data is None:
+                    return None
+
+                # Get images info data
+                im_data = []
+                cur.execute(
+                    f"SELECT * FROM '{self._img_name}' WHERE fi_name = ?", (name,)
+                )
+                for data in cur.fetchall():
+                    im_data.append(data)
+
+                # Get chapters info data
+                ch_data = []
+                cur.execute(
+                    f"SELECT * FROM '{self._ch_name}' WHERE fi_name = ?", (name,)
+                )
+                for data in cur.fetchall():
+                    ch_data.append(data)
+
+            except sqlite3.OperationalError:
+                # No such table
                 return None
-
-            # Get images info data
-            im_data = []
-            cur.execute(f"SELECT * FROM '{self._img_name}' WHERE fi_name = ?", (name,))
-            for data in cur.fetchall():
-                im_data.append(data)
-
-            # Get chapters info data
-            ch_data = []
-            cur.execute(f"SELECT * FROM '{self._ch_name}' WHERE fi_name = ?", (name,))
-            for data in cur.fetchall():
-                ch_data.append(data)
-
-            cur.close()
+            finally:
+                cur.close()
 
             fi_cls_args = list(fi_data)
             fi_cls_args.append(im_data)

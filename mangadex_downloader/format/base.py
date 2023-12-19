@@ -267,6 +267,7 @@ class BaseFormat:
         tracker = self.manga.tracker
         file_info = tracker.get(name)
         if file_info is None:
+            tracker.init_write_mode()
             tracker.add_file_info(
                 name=name,
                 manga_id=self.manga.id,
@@ -285,6 +286,7 @@ class BaseFormat:
         tracker = self.manga.tracker
         file_info = tracker.get(name)
         if file_info is None:
+            tracker.init_write_mode()
             tracker.add_file_info(
                 name=name,
                 manga_id=self.manga.id,
@@ -604,7 +606,9 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
     def download_volumes(self, volumes):
         # Begin downloading
+        self.manga.tracker.init_write_mode()
         pbm.set_volumes_total(len(volumes))
+
         for volume, chapters in volumes.items():
             pbm.set_chapters_total(len(chapters))
             total = self.get_total_pages_for_volume_fmt(chapters)
@@ -727,7 +731,8 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
             delete_file(path)
 
         # Re-download the volumes
-        self.download_volumes(volumes)
+        if volumes:
+            self.download_volumes(volumes)
 
         volumes = {}
         files_info = tracker.get_all_files_info()
@@ -766,8 +771,8 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 f"re-downloading {len(volumes)} volumes..."
             )
 
-        # Download missing or unverified volumes
-        self.download_volumes(volumes)
+            # Download missing or unverified volumes
+            self.download_volumes(volumes)
 
         pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()
@@ -791,6 +796,7 @@ class ConvertedSingleFormat(BaseConvertedFormat):
     def download_single(self, total, data):
         images = []
         count = NumberWithLeadingZeros(total)
+        self.manga.tracker.init_write_mode()
 
         # Preparing placeholder
         placeholder_obj = self.create_placeholder_obj_for_single_fmt(data)
@@ -880,25 +886,22 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         self.write_tachiyomi_info()
 
         cache, total = result_cache
-        file_info = tracker.get_all_files_info()
-
-        placeholder_obj = self.create_placeholder_obj_for_single_fmt(cache)
-
-        filename = get_filename(
-            self.manga, placeholder_obj, self.file_ext, format="single"
-        )
 
         # There is no existing (downloaded) file
         # Download all of them
-        if (tracker.disabled or tracker.empty) or not file_info:
+        if tracker.disabled or tracker.empty:
             self.download_single(total, cache)
 
             pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
             return
 
+        file_info = tracker.get_all_files_info()
+        placeholder_obj = self.create_placeholder_obj_for_single_fmt(cache)
+        filename = get_filename(
+            self.manga, placeholder_obj, self.file_ext, format="single"
+        )
         file_info = tracker.get(filename)
-
         chapters = []
         # Check for new chapters in existing (downloaded) file
         for chap_class, images in cache:
