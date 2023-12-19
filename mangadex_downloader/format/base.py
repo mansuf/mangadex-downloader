@@ -521,6 +521,8 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         # There is no existing (downloaded) chapters
         # Download all of them
         if tracker.disabled or tracker.empty:
+            tracker.init_write_mode()
+
             self.download_chapters(cache)
 
             pbm.logger.info("Waiting for chapter read marker to finish")
