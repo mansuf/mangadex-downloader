@@ -734,7 +734,12 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
         # Verify downloaded volumes
         for volume, chapters in cache.items():
-            filename = get_filename(self.manga, volume, self.file_ext, format="volume")
+            placeholder_obj = self.create_placeholder_obj_for_volume_fmt(
+                volume, chapters
+            )
+            filename = get_filename(
+                self.manga, placeholder_obj, self.file_ext, format="volume"
+            )
 
             for file_info in files_info:
                 if filename != file_info.name:
