@@ -24,8 +24,10 @@ import os
 import zipfile
 import logging
 from importlib.util import find_spec
+from .utils import get_volume_cover
 from .base import ConvertedChaptersFormat, ConvertedVolumesFormat, ConvertedSingleFormat
 
+from ..utils import create_directory
 from ..progress_bar import progress_bar_manager as pbm
 
 
@@ -393,6 +395,17 @@ class EPUBFile:
 
         epub.write(path)
 
+    def get_vol_cover_img(self, volume, path, count):
+        """Insert volume cover"""
+        img_name = count.get() + ".png"
+        img_path = path / img_name
+
+        if self.config.use_volume_cover:
+            get_volume_cover(self.manga, volume, img_path, self.replace)
+            count.increase()
+
+        return img_path
+
 
 class Epub(ConvertedChaptersFormat, EPUBFile):
     def on_finish(self, file_path, chapter, images):
@@ -413,6 +426,10 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
     def on_prepare(self, file_path, volume, count):
         self.epub_chapters = []
 
+        volume_name = self.get_volume_name(volume)
+        dir_path = create_directory(volume_name, self.path)
+        self.epub_vol_cover = self.get_vol_cover_img(volume, dir_path, count)
+
     def on_convert(self, file_path, volume, images):
         volume_name = self.get_volume_name(volume)
 
@@ -429,6 +446,9 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
         self.worker.submit(job)
 
     def on_received_images(self, file_path, chapter, images):
+        if self.config.use_volume_cover:
+            images.insert(0, self.epub_vol_cover)
+
         self.epub_chapters.append((chapter, images))
 
 
