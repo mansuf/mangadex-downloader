@@ -434,6 +434,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         pass
 
     def download_chapters(self, data):
+        self.manga.tracker.init_write_mode()
         volumes = {}
         for chap_class, images in data:
             self.append_cache_volumes(volumes, chap_class.volume, (chap_class, images))
@@ -521,8 +522,6 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         # There is no existing (downloaded) chapters
         # Download all of them
         if tracker.disabled or tracker.empty:
-            tracker.init_write_mode()
-
             self.download_chapters(cache)
 
             pbm.logger.info("Waiting for chapter read marker to finish")
@@ -541,10 +540,11 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
             # There is new chapters
             chapters.append((chap_class, images))
 
-        pbm.logger.info(f"Found {len(chapters)} new chapter(s), downloading...")
+        if chapters:
+            pbm.logger.info(f"Found {len(chapters)} new chapter(s), downloading...")
 
-        # Download the new chapters first
-        self.download_chapters(chapters)
+            # Download the new chapters first
+            self.download_chapters(chapters)
 
         chapters = []
         files_info = tracker.get_all_files_info()
@@ -578,8 +578,8 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                 f"re-downloading {len(chapters)} chapters..."
             )
 
-        # Download missing or unverified chapters
-        self.download_chapters(chapters)
+            # Download missing or unverified chapters
+            self.download_chapters(chapters)
 
         pbm.logger.info("Waiting for chapter read marker to finish")
         self.cleanup()
