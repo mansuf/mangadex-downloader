@@ -77,7 +77,7 @@ class ChapterImages:
         if self.start_page is not None:
             if not (page >= self.start_page):
                 if log_info:
-                    pbm.logger.info(
+                    pbm.logger.debug(
                         'Ignoring page %s as "start_page" is %s'
                         % (page, self.start_page)
                     )
@@ -87,7 +87,7 @@ class ChapterImages:
         if self.end_page is not None:
             if not (page <= self.end_page):
                 if log_info:
-                    pbm.logger.info(
+                    pbm.logger.debug(
                         'Ignoring page %s as "end_page" is %s' % (page, self.end_page)
                     )
 
@@ -101,7 +101,7 @@ class ChapterImages:
 
         if self.range is not None and not self.range.check_page(self.chap, page):
             if log_info:
-                log.debug(
+                pbm.logger.debug(
                     f"Ignoring page {page}, because page {page} is in ignored list"
                 )
 
@@ -458,28 +458,28 @@ class IteratorChapter:
         # then we need to skip start_chapter and end_chapter checking
         if is_number and num_chap > 0.0:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
-                log.debug(
+                pbm.logger.debug(
                     f"Ignoring chapter {num_chap}, "
                     f"because chapter {num_chap} is in ignored list"
                 )
                 return False
 
             if self.end_chapter is not None and not (num_chap <= self.end_chapter):
-                log.debug(
+                pbm.logger.debug(
                     f"Ignoring chapter {num_chap}, "
                     f"because chapter {num_chap} is in ignored list"
                 )
                 return False
 
         if chap.oneshot and self.no_oneshot and not self.all_group:
-            log.debug("Ignoring oneshot chapter since it's in ignored list")
+            pbm.logger.debug("Ignoring oneshot chapter since it's in ignored list")
             return False
 
         # If chapter 0 is prologue or whatever and not oneshot
         # Re-check start_chapter
         elif not chap.oneshot and is_number:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
-                log.debug(
+                pbm.logger.debug(
                     f"Ignoring chapter {num_chap}, "
                     f"because chapter {num_chap} is in ignored list"
                 )
@@ -492,7 +492,7 @@ class IteratorChapter:
             return self._check_range_chapter_legacy(chap)
 
         if self.range is not None and not self.range.check_chapter(chap):
-            log.debug(
+            pbm.logger.debug(
                 f"Ignoring chapter {chap.chapter}, "
                 f"because chapter {chap.chapter} is in ignored list"
             )
@@ -520,13 +520,13 @@ class IteratorChapter:
             and config.download_mode == "unread"
             and chap.id in self._unread_chapters
         ):
-            log.debug(
+            pbm.logger.debug(
                 f"Ignoring chapter {chap.get_simplified_name()} because it's marked as read"
             )
             return False
 
         if not self.all_group and not self.groups and self._check_duplicate(chap):
-            log.debug(
+            pbm.logger.debug(
                 f"Found duplicate {chap.simple_name} "
                 f"from [{chap.groups_name}], ignoring... "
             )
@@ -535,7 +535,7 @@ class IteratorChapter:
         # Some manga has chapters where it has no pages / images inside of it.
         # We need to verify it, to prevent error when downloading the manga.
         if chap.pages == 0:
-            log.debug(
+            pbm.logger.debug(
                 "Chapter {0} from group {1} has no images, ignoring...".format(
                     chap.chapter, chap.groups_name
                 )
@@ -554,14 +554,14 @@ class IteratorChapter:
                 lambda x: x.id in env.group_blacklist, chap.groups
             )
             for group in blacklisted_groups:
-                log.debug(
+                pbm.logger.debug(
                     f"Ignoring chapter {chap.chapter}, "
                     f"because group '{group.name}' is blacklisted"
                 )
                 return False
 
         if chap.user and chap.user.id in env.user_blacklist:
-            log.debug(
+            pbm.logger.debug(
                 f"Ignoring chapter {chap.chapter}, "
                 f"because user '{chap.user.name}' is blacklisted"
             )
@@ -586,7 +586,7 @@ class IteratorChapter:
                         group_check = True
 
             if not group_check:
-                log.debug(
+                pbm.logger.debug(
                     f"Ignoring chapter {num_chap}, "
                     f'{group_type} "{group_names}" is not match with "{group.name}"'
                 )
@@ -617,7 +617,9 @@ class IteratorChapter:
             chap = self._get_next_chapter()
 
             if self.log_cache:
-                log.debug(f"Caching Volume. {chap.volume} Chapter. {chap.chapter}")
+                pbm.logger.debug(
+                    f"Caching Volume. {chap.volume} Chapter. {chap.chapter}"
+                )
 
             if not self._check_chapter(chap):
                 continue
