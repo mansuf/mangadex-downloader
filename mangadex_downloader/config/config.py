@@ -81,7 +81,7 @@ class _Config:
         "use_chapter_title": (False, validate_bool),
         "use_compressed_image": (False, validate_bool),
         "force_https": (False, validate_bool),
-        "path": ("./{manga.title}/{language.full}", dummy_validator),
+        "path": ("./{manga.title}", dummy_validator),
         "filename_chapter": ("{chapter.simple_name}{file_ext}", dummy_validator),
         "filename_volume": ("Vol. {volume}{file_ext}", dummy_validator),
         "filename_single": ("All chapters{file_ext}", dummy_validator),
