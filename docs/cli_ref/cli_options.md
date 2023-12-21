@@ -124,6 +124,15 @@ Volume cover will be placed in first page in each volume files.
 Download sorting method, by default it's selected to `volume`
 ```
 
+````{option} --ignore-missing-chapters -imc
+```{warning}
+This option cannot be used with `--no-track` option
+```
+
+Ignore missing chapters. 
+This will prevent the application to re-download the missing chapters.
+````
+
 ## Chapter page related
 
 ```{option} --start-page -sp PAGE

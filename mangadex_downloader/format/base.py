@@ -560,19 +560,25 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                 if filename != file_info.name:
                     continue
 
+                ignored = self.config.ignore_missing_chapters
                 passed = verify_sha256(file_info.hash, (self.path / file_info.name))
-                if not passed:
+                if not ignored and not passed:
                     pbm.logger.warning(
                         f"{file_info.name!r} is missing or unverified (hash is not matching)"
                     )
                     # Either missing file or hash is not matching
                     chapters.append((chap_class, images))
                     delete_file(self.path / file_info.name)
-                else:
+                elif passed:
                     pbm.logger.info(
                         f"{file_info.name!r} is verified and no need to re-download"
                     )
                     self.mark_read_chapter(chap_class)
+                elif ignored and not passed:
+                    pbm.logger.info(
+                        f"{file_info.name!r} is missing but got ignored, "
+                        "since --ignore-missing-chapters is set"
+                    )
 
         if chapters:
             pbm.logger.warning(
@@ -752,18 +758,24 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
                 path = self.path / file_info.name
                 passed = verify_sha256(file_info.hash, path)
-                if not passed:
+                ignored = self.config.ignore_missing_chapters
+                if not ignored and not passed:
                     pbm.logger.warning(
                         f"{filename!r} is missing or unverified (hash is not matching)"
                     )
                     # Either missing file or hash is not matching
                     volumes[volume] = chapters
                     delete_file(path)
-                else:
+                elif passed:
                     pbm.logger.info(
                         f"{filename!r} is verified and no need to re-download"
                     )
                     self.mark_read_chapter(*chapters)
+                elif ignored and not passed:
+                    pbm.logger.info(
+                        f"{file_info.name!r} is missing but got ignored, "
+                        "since --ignore-missing-chapters is set"
+                    )
 
         if volumes:
             pbm.logger.warning(
@@ -919,19 +931,25 @@ class ConvertedSingleFormat(BaseConvertedFormat):
         # Verify downloaded file
         file_info = tracker.get(filename)
 
+        ignored = self.config.ignore_missing_chapters
         passed = verify_sha256(file_info.hash, (self.path / filename))
-        if not passed:
+        if not ignored and not passed:
             pbm.logger.warning(
                 f"{filename!r} is missing or unverified (hash is not matching), "
                 "re-downloading..."
             )
             delete_file(self.path / filename)
-        else:
+        elif passed:
             pbm.logger.info(f"{filename!r} is verified and no need to re-download")
             self.mark_read_chapter(*cache)
+        elif ignored and not passed:
+            pbm.logger.info(
+                f"{file_info.name!r} is missing but got ignored, "
+                "since --ignore-missing-chapters is set"
+            )
 
         # Download missing or unverified chapters
-        if not passed:
+        if not passed and not ignored:
             self.download_single(total, cache)
 
         pbm.logger.info("Waiting for chapter read marker to finish")

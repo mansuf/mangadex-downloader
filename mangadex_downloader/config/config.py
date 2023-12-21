@@ -102,6 +102,7 @@ class _Config:
         ),
         "log_level": ("INFO", validate_log_level),
         "progress_bar_layout": ("default", validate_progress_bar_layout),
+        "ignore_missing_chapters": (False, validate_bool),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

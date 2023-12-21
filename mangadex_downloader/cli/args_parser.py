@@ -146,25 +146,36 @@ def get_args(argv):
         "--folder",
         "-d",
         metavar="DIRECTORY",
-        help="Store manga / chapter to specified directory",
+        help="Store manga / chapter to specified directory. "
+        "this option support placeholders, "
+        "read https://mangadex-dl.mansuf.link/en/stable/cli_ref/path_placeholders.html for more info",
         default=config.path,
     )
     path_group.add_argument(
         "--filename-single",
         "-fs",
-        help=("Set filename for single format, " "read insert_link_here for more info"),
+        help=(
+            "Set filename for single format, "
+            "read https://mangadex-dl.mansuf.link/en/stable/cli_ref/path_placeholders.html for more info"
+        ),
         default=config.filename_single,
     )
     path_group.add_argument(
         "--filename-volume",
         "-fv",
-        help=("Set filename for volume format, " "read insert_link_here for more info"),
+        help=(
+            "Set filename for volume format, "
+            "read https://mangadex-dl.mansuf.link/en/stable/cli_ref/path_placeholders.html for more info"
+        ),
         default=config.filename_volume,
     )
     path_group.add_argument(
         "--filename-chapter",
         "-fc",
-        help=("Set filename for chapter format, " "read insert_link_here for more info"),
+        help=(
+            "Set filename for chapter format, "
+            "read https://mangadex-dl.mansuf.link/en/stable/cli_ref/path_placeholders.html for more info"
+        ),
         default=config.filename_chapter,
     )
 
@@ -289,6 +300,14 @@ def get_args(argv):
         "(cbz, pdf, raw, etc) and single formats",
         default=config.use_volume_cover,
     )
+    chap_group.add_argument(
+        "--ignore-missing-chapters",
+        "-imc",
+        action="store_true",
+        help="Ignore missing downloaded chapters. "
+        "This will prevent the application to re-download the missing chapters.",
+        default=config.ignore_missing_chapters,
+    )
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")
@@ -326,7 +345,9 @@ def get_args(argv):
 
     # Authentication related
     auth_group = parser.add_argument_group("Authentication")
-    auth_group.add_argument("--login", "-l", help="Login to MangaDex", action="store_true")
+    auth_group.add_argument(
+        "--login", "-l", help="Login to MangaDex", action="store_true"
+    )
     auth_group.add_argument(
         "--login-method",
         "-lm",
@@ -427,7 +448,9 @@ def get_args(argv):
         help="Automatically select choices in selectable prompt "
         "(list, library, followed-list command)",
     )
-    misc_group.add_argument("-pipe", action="store_true", help="Download from pipe input")
+    misc_group.add_argument(
+        "-pipe", action="store_true", help="Download from pipe input"
+    )
     misc_group.add_argument(
         "-v",
         "--version",

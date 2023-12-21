@@ -47,6 +47,11 @@ def check_deprecated_formats(log, args):
         args.write_tachiyomi_info = True
 
 
+def check_conflict_options(args, parser):
+    if args.ignore_missing_chapters and args.no_track:
+        parser.error("--ignore-missing-chapters cannot be used when --no-track is set")
+
+
 def _main(argv):
     parser = None
     try:
@@ -62,6 +67,9 @@ def _main(argv):
         # Check deprecated
         check_deprecated_options(log, args)
         check_deprecated_formats(log, args)
+
+        # Check conflict options
+        check_conflict_options(args, parser)
 
         # Parse config
         build_config(parser, args)

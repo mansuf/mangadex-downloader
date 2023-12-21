@@ -69,6 +69,7 @@ class Raw(BaseFormat):
 
                 file_info = self.get_fi_chapter_fmt(dir_name, chap_class.id)
                 chapter_path = create_directory(dir_name, base_path)
+                ignored = self.config.ignore_missing_chapters
 
                 if file_info is None:
                     fi_images = []
@@ -82,7 +83,7 @@ class Raw(BaseFormat):
                     if not verified:
                         failed_images.append(im_info)
 
-                if failed_images and fi_completed:
+                if failed_images and fi_completed and not ignored:
                     pbm.logger.warning(
                         f"Found {len(failed_images)} unverified or missing images "
                         f"from {dir_name}. Re-downloading..."
@@ -96,10 +97,16 @@ class Raw(BaseFormat):
                             f"Removing unverified image '{im_path.resolve()}'"
                         )
                         delete_file(im_path)
-                elif fi_completed:
+                elif not failed_images and fi_completed and (not ignored or ignored):
                     pbm.logger.info(f"'{dir_name}' is verified. no need to re-download")
                     self.mark_read_chapter(chap_class)
                     chapters_pb.update(1)
+                    continue
+                elif failed_images and fi_completed and ignored:
+                    pbm.logger.info(
+                        f"{dir_name!r} is missing but got ignored, "
+                        "since --ignore-missing-chapters is set"
+                    )
                     continue
 
                 count = NumberWithLeadingZeros(chap_class.pages)
@@ -165,6 +172,7 @@ class RawVolume(BaseFormat):
             volume_path = create_directory(volume_name, base_path)
             file_info = self.get_fi_volume_or_single_fmt(volume_name)
             new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
+            ignored = self.config.ignore_missing_chapters
 
             if file_info is None:
                 fi_images = []
@@ -172,14 +180,6 @@ class RawVolume(BaseFormat):
             else:
                 fi_images = file_info.images
                 fi_completed = file_info.completed
-
-            # Create volume cover
-            if self.config.use_volume_cover:
-                img_name = count.get() + ".png"
-                img_path = volume_path / img_name
-
-                get_volume_cover(manga, volume, img_path, self.replace)
-                count.increase()
 
             # Only checks if ``file_info.complete`` state is True
             if new_chapters and fi_completed:
@@ -192,7 +192,7 @@ class RawVolume(BaseFormat):
                 if not verified:
                     failed_images.append(im_info)
 
-            if failed_images and fi_completed and not new_chapters:
+            if failed_images and fi_completed and not new_chapters and not ignored:
                 pbm.logger.warning(
                     f"Found {len(failed_images)} unverified or missing images "
                     f"from {volume_name}. Re-downloading..."
@@ -204,11 +204,25 @@ class RawVolume(BaseFormat):
 
                     pbm.logger.debug(f"Removing unverified image '{im_path.resolve()}'")
                     delete_file(im_path)
-            elif fi_completed:
+            elif not failed_images and fi_completed and (not ignored or ignored):
                 pbm.logger.info(f"'{volume_name}' is verified. no need to re-download")
                 self.mark_read_chapter(*chapters)
                 chapters_pb.update(1)
                 continue
+            elif failed_images and fi_completed and ignored:
+                pbm.logger.info(
+                    f"{volume_name!r} is missing but got ignored, "
+                    "since --ignore-missing-chapters is set"
+                )
+                continue
+
+            # Create volume cover
+            if self.config.use_volume_cover:
+                img_name = count.get() + ".png"
+                img_path = volume_path / img_name
+
+                get_volume_cover(manga, volume, img_path, self.replace)
+                count.increase()
 
             # Chapters that have images that are failed to verify
             # (hash is not matching)
@@ -286,6 +300,7 @@ class RawSingle(BaseFormat):
         path = create_directory(name, base_path)
         file_info = self.get_fi_volume_or_single_fmt(name)
         new_chapters = self.get_new_chapters(file_info, cache, name)
+        ignored = self.config.ignore_missing_chapters
 
         if file_info is None:
             fi_images = []
@@ -305,7 +320,7 @@ class RawSingle(BaseFormat):
             if not verified:
                 failed_images.append(im_info)
 
-        if failed_images and fi_completed and not new_chapters:
+        if failed_images and fi_completed and not new_chapters and not ignored:
             pbm.logger.warning(
                 f"Found {len(failed_images)} unverified or missing images from {name}. "
                 "Re-downloading..."
@@ -317,12 +332,18 @@ class RawSingle(BaseFormat):
 
                 pbm.logger.debug(f"Removing unverified image '{im_path.resolve()}'")
                 delete_file(im_path)
-        elif fi_completed:
+        elif not failed_images and fi_completed and (not ignored or ignored):
             pbm.logger.info(f"'{name}' is verified. no need to re-download")
             self.mark_read_chapter(*cache)
 
             pbm.logger.info("Waiting for chapter read marker to finish")
             self.cleanup()
+            return
+        elif failed_images and fi_completed and ignored:
+            pbm.logger.info(
+                f"{name!r} is missing but got ignored, "
+                "since --ignore-missing-chapters is set"
+            )
             return
 
         # Chapters that have images that are failed to verify
