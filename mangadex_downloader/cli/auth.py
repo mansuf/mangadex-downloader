@@ -29,6 +29,7 @@ from ..config import config, login_cache
 from ..utils import getpass_handle, input_handle, get_key_value
 from ..errors import HTTPException, LoginFailed
 from ..network import Net
+from ..auth.oauth2 import OAuth2
 
 # I know this sound stupid
 # But i only know this to check if it's email or username
@@ -107,7 +108,7 @@ def print_auth_cache_unsafe():
     print(f"Refresh token expiration time: {exp_refresh_token}")
 
 
-def purge_cache(args):
+def purge_auth_cache(args):
     string = args.URL
 
     if not string.startswith("login_cache"):
@@ -131,6 +132,35 @@ def purge_cache(args):
         print_auth_cache_expire()
 
     sys.exit(0)
+
+
+def get_username_and_password(args):
+    if not args.login_username:
+        username = input_handle("MangaDex username / email => ")
+    else:
+        username = args.login_username
+    if not args.login_password:
+        password = getpass_handle("MangaDex password => ")
+    else:
+        password = args.login_password
+
+    return username, password
+
+
+def get_client_id_and_secret(args):
+    if not args.login_api_id or not args.login_api_secret:
+        print("NOTE: Ignore client id and client secret if you want use public client")
+
+    if not args.login_api_id:
+        username = input_handle("MangaDex API client id => ")
+    else:
+        username = args.login_api_id
+    if not args.login_api_secret:
+        password = getpass_handle("MangaDex API client secret => ")
+    else:
+        password = args.login_api_secret
+
+    return username, password
 
 
 def logout_with_err_handler(args):
@@ -166,7 +196,7 @@ def logout_with_err_handler(args):
 
 
 def login_with_err_handler(args):
-    purge_cache(args)
+    purge_auth_cache(args)
 
     if not args.login and config.login_cache:
         Net.mangadex.login_from_cache()
@@ -178,16 +208,12 @@ def login_with_err_handler(args):
         email = None
         username = None
         password = None
+        client_id = None
+        client_secret = None
+        kwargs = {}
 
         if args.login_method != "oauth2":
-            if not args.login_username:
-                username = input_handle("MangaDex username / email => ")
-            else:
-                username = args.login_username
-            if not args.login_password:
-                password = getpass_handle("MangaDex password => ")
-            else:
-                password = args.login_password
+            username, password = get_username_and_password(args)
 
             # Ability to login with email
             is_email = re.match(email_regex, username)
@@ -195,12 +221,21 @@ def login_with_err_handler(args):
                 email = is_email.group()
                 username = None
 
+        elif args.login_method == "oauth2":
+            client_id, client_secret = get_client_id_and_secret(args)
+
+            if client_id or client_secret:
+                username, password = get_username_and_password(args)
+                Net.mangadex.set_auth(auth_cls=OAuth2)
+
+                kwargs = {"client_id": client_id, "client_secret": client_secret}
+
         # Logging in
         login_success = False
         for _ in range(5):
             attempt = _ + 1
             try:
-                Net.mangadex.login(password, username, email)
+                Net.mangadex.login(password, username, email, **kwargs)
             except LoginFailed as e:
                 log.error(e)
                 sys.exit(1)

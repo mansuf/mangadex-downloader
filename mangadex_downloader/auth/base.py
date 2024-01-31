@@ -27,7 +27,7 @@ class MangaDexAuthBase:
     def __init__(self, session):
         self.session = session
 
-    def login(self, username, email, password):
+    def login(self, username, email, password, **kwargs):
         """Login to MangaDex"""
         pass
 

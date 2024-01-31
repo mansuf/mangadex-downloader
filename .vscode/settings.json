@@ -6,7 +6,7 @@
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.codeActionsOnSave": {
-            "source.fixAll": true
+            "source.fixAll": "explicit"
         }
     },
     "python.formatting.provider": "none"

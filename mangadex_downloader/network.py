@@ -214,7 +214,8 @@ class requestsMangaDexSession(ModifiedSession):
                 delay = DEFAULT_RATE_LIMITED_TIMEOUT
 
             pbm.logger.info(
-                "We being rate limited, sleeping for %0.2f (attempt: %s)" % (delay, attempt)
+                "We being rate limited, sleeping for %0.2f (attempt: %s)"
+                % (delay, attempt)
             )
             time.sleep(delay)
             return None
@@ -288,7 +289,8 @@ class requestsMangaDexSession(ModifiedSession):
 
     def _is_token_cached(self):
         return bool(
-            self._login_cache.get_session_token() or self._login_cache.get_refresh_token()
+            self._login_cache.get_session_token()
+            or self._login_cache.get_refresh_token()
         )
 
     def _reset_token(self):
@@ -341,7 +343,7 @@ class requestsMangaDexSession(ModifiedSession):
 
         return self.api_auth.check_login()
 
-    def login(self, password, username=None, email=None):
+    def login(self, password, username=None, email=None, **kwargs):
         """Login to MangaDex"""
         # Raise error if already logged in
         if self.check_login():
@@ -349,7 +351,7 @@ class requestsMangaDexSession(ModifiedSession):
 
         log.info("Logging in to MangaDex")
 
-        token = self.api_auth.login(username, email, password)
+        token = self.api_auth.login(username, email, password, **kwargs)
         self._update_token(token)
 
         self._start_renew_login()

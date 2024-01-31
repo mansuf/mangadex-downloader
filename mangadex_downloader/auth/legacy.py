@@ -52,7 +52,7 @@ class LegacyAuth(MangaDexAuthBase):
         if refresh:
             self.token["token"]["refresh"] = refresh
 
-    def login(self, username, email, password):
+    def login(self, username, email, password, **kwargs):
         if not username and not email:
             raise LoginFailed('at least provide "username" or "email" to login')
 

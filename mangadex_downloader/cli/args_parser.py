@@ -371,6 +371,22 @@ def get_args(argv):
         "(you will be prompted to input username if --login-username are not present)",
     )
     auth_group.add_argument(
+        "--login-api-id",
+        "-lai",
+        metavar="API_CLIENT_ID",
+        help="Login to MangaDex with API Client. "
+        "This option is working if you use 'oauth2' login method (--login-method oauth2). "
+        "Also you will be prompted to input API client secret if --login-api-secret are not present",
+    )
+    auth_group.add_argument(
+        "--login-api-secret",
+        "-las",
+        metavar="API_CLIENT_SECRET",
+        help="Login to MangaDex with API Client. "
+        "This option is working if you use 'oauth2' login method (--login-method oauth2). "
+        "Also you will be prompted to input API client id if --login-api-id are not present",
+    )
+    auth_group.add_argument(
         "--login-cache",
         "-lc",
         action="store_true",

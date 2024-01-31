@@ -38,6 +38,8 @@ log = logging.getLogger(__name__)
 try:
     from authlib.oauth2.auth import ClientAuth
     from authlib.oauth2 import OAuth2Client
+    from authlib.common.security import generate_token
+    from authlib.oauth2.base import OAuth2Error
 except ImportError:
     oauth_ready = False
 else:
@@ -217,15 +219,8 @@ class OAuth2(MangaDexAuthBase):
         self.token_endpoint = self.openid_config["token_endpoint"]
         self.revocation_endpoint = self.openid_config["revocation_endpoint"]
 
-        self.client = OAuth2Client(
-            session=self.session,
-            # THE STABLE API ARE NOT ALLOWED TO MAKE CUSTOM ID YET,
-            # PLEASE CHANGE THIS ONCE IT'S ALLOWED
-            client_id="thirdparty-oauth-client",
-            scope="openid groups profile roles",
-            redirect_uri=f"http://{self.callback_host}:{self.callback_port}",
-        )
-        self.client.client_auth_class = OAuth2ClientAuth
+        self.client = None
+        self.code_verifier = generate_token(50)
 
         # OAuth2 callback handler
         self.callback_handler = None
@@ -234,6 +229,17 @@ class OAuth2(MangaDexAuthBase):
         self.session_state = None
         self.authorization_code = None
         self.token = {}
+
+    def _create_oauth_client(self, client_id, client_secret=None):
+        self.client = OAuth2Client(
+            session=self.session,
+            client_id=client_id,
+            client_secret=client_secret,
+            scope="openid groups profile roles",
+            redirect_uri=f"http://{self.callback_host}:{self.callback_port}",
+            code_challenge_method="S256",
+        )
+        self.client.client_auth_class = OAuth2ClientAuth
 
     def run_callback_handler(self, n, e):
         self.callback_handler = HTTPServer(
@@ -244,13 +250,15 @@ class OAuth2(MangaDexAuthBase):
     def _make_ready_token(self, token):
         return {"session": token["access_token"], "refresh": token["refresh_token"]}
 
-    def login(self, username, email, password):
+    def _auth_public_client(self):
         log.debug("Creating Manager for multiprocessing")
         with Manager() as manager:
             namespace = manager.Namespace()
             event = manager.Event()
 
-            url, state = self.client.create_authorization_url(self.authorization_endpoint)
+            url, state = self.client.create_authorization_url(
+                self.authorization_endpoint, code_verifier=self.code_verifier
+            )
             namespace.state = state
 
             log.debug("Starting OAuth2 callback handler")
@@ -278,7 +286,9 @@ class OAuth2(MangaDexAuthBase):
             error = result_auth.get("error")
             err_description = result_auth.get("description")
             if error:
-                raise LoginFailed(f"Login to MangaDex failed, reason: {err_description}")
+                raise LoginFailed(
+                    f"Login to MangaDex failed, reason: {err_description}"
+                )
 
             self.session_state = result_auth["session_state"]
             self.authorization_code = result_auth["code"]
@@ -287,9 +297,36 @@ class OAuth2(MangaDexAuthBase):
                 url=self.token_endpoint,
                 grant_type="authorization_code",
                 code=self.authorization_code,
+                state=state,
             )
 
             return self._make_ready_token(self.token)
+
+    def _auth_private_client(self, username, password):
+        try:
+            self.token = self.client.fetch_token(
+                url=self.token_endpoint, username=username, password=password
+            )
+        except OAuth2Error as e:
+            if "invalid_grant: Invalid user credentials" in str(e):
+                raise LoginFailed("Invalid username or password") from None
+            elif "unauthorized_client: Invalid client" in str(e):
+                raise LoginFailed("Invalid API client id or client secret") from None
+
+            raise e
+
+        return self._make_ready_token(self.token)
+
+    def login(self, username, email, password, **kwargs):
+        client_id = kwargs.get("client_id")
+        client_secret = kwargs.get("client_secret")
+
+        if client_id and client_secret:
+            self._create_oauth_client(client_id, client_secret)
+            return self._auth_private_client(username, password)
+        else:
+            raise LoginFailed("OAuth login with public client are not supported yet")
+            return self._auth_public_client()
 
     def refresh_token(self):
         self.token = self.client.refresh_token(
