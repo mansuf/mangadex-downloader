@@ -198,7 +198,12 @@ class requestsMangaDexSession(ModifiedSession):
             return None
 
         # We are being rate limited
-        if resp.status_code == 429:
+        if resp.status_code == 429 or (
+            # According to MangaDex devs, this behaviour is happened
+            # if user is searching manga at higher requests rate
+            resp.status_code == 400
+            and b"<p>Your browser sent an invalid request.</p>" in resp.content
+        ):
             # x-ratelimit-retry-after is from MangaDex and
             # Retry-After is from DDoS-Guard
             if resp.headers.get("x-ratelimit-retry-after"):
