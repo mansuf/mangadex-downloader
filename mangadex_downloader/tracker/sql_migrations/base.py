@@ -2,6 +2,7 @@ import sqlite3
 import logging
 import glob
 import re
+import sys
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -9,7 +10,13 @@ log = logging.getLogger(__name__)
 
 def _get_migration_files():
     migration_files = {}
-    files = glob.glob("*", root_dir=Path(__file__).parent.resolve())
+
+    root_dir = Path(__file__).parent.resolve()
+    if sys.version_info.major == 3 and sys.version_info.minor <= 8:
+        files = glob.glob(str(root_dir) + "/*")
+    else:
+        files = glob.glob("*", root_dir=root_dir)
+
     for file in files:
         result = re.match(r"(?P<migrate_id>[0-9]{1,}).{1,}\.py", file)
         if not result:
