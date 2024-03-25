@@ -616,11 +616,6 @@ class IteratorChapter:
         while True:
             chap = self._get_next_chapter()
 
-            if self.log_cache:
-                pbm.logger.debug(
-                    f"Caching Volume. {chap.volume} Chapter. {chap.chapter}"
-                )
-
             if not self._check_chapter(chap):
                 continue
 

@@ -170,7 +170,7 @@ class RawVolume(BaseFormat):
             volume_name = get_filename(self.manga, placeholder_obj, "", format="volume")
 
             volume_path = create_directory(volume_name, base_path)
-            file_info = self.get_fi_volume_or_single_fmt(volume_name)
+            file_info = self.get_fi_volume_or_single_fmt(volume_name, volume=volume)
             new_chapters = self.get_new_chapters(file_info, chapters, volume_name)
             ignored = self.config.ignore_missing_chapters
 

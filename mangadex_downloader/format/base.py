@@ -278,7 +278,7 @@ class BaseFormat:
 
         return file_info
 
-    def get_fi_volume_or_single_fmt(self, name, hash=None):
+    def get_fi_volume_or_single_fmt(self, name, hash=None, volume=None):
         """Get DownloadTracker._FileInfo for volume or single format
 
         Create one if it doesn't exist
@@ -288,10 +288,7 @@ class BaseFormat:
         if file_info is None:
             tracker.init_write_mode()
             tracker.add_file_info(
-                name=name,
-                manga_id=self.manga.id,
-                ch_id=None,
-                hash=hash,
+                name=name, manga_id=self.manga.id, ch_id=None, hash=hash, volume=volume
             )
             file_info = tracker.get(name)
 
@@ -381,17 +378,14 @@ class BaseConvertedFormat(BaseFormat):
 
         super().__init__(*args, **kwargs)
 
-    def add_fi(self, name, id, path, chapters=None):
+    def add_fi(self, name, id, path, chapters=None, volume=None):
         file_hash = create_file_hash_sha256(path)
 
         # Prevent duplicate
         self.manga.tracker.remove_file_info_from_name(name)
 
         self.manga.tracker.add_file_info(
-            name=name,
-            manga_id=self.manga.id,
-            ch_id=id,
-            hash=file_hash,
+            name=name, manga_id=self.manga.id, ch_id=id, hash=file_hash, volume=volume
         )
 
         # Single chapter
@@ -647,7 +641,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                     )
 
                     # Store file_info tracker for existing volume
-                    self.add_fi(filename, None, file_path, chapters)
+                    self.add_fi(filename, None, file_path, chapters, volume)
                     continue
 
             # Create volume folder
@@ -671,7 +665,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
             # Remove original chapter folder
             shutil.rmtree(volume_path, ignore_errors=True)
 
-            self.add_fi(filename, None, file_path, chapters)
+            self.add_fi(filename, None, file_path, chapters, volume)
             volumes_pb.update(1)
 
         if pbm.stacked:
@@ -710,25 +704,28 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
             self.cleanup()
             return
 
-        files_info = tracker.get_all_files_info()
-
         volumes = {}
         new_volumes_files_info = []
         # Check for new chapters in exsiting (downloaded) volumes
         for volume, chapters in cache.items():
+            file_info = tracker.get_file_info_from_volume(volume)
+
+            if file_info is None:
+                # This mean the volume is not downloaded yet
+                volumes[volume] = chapters
+                continue
+
             for chapter, _ in chapters:
-                # Nested for-loop is bad, i know
-                for file_info in files_info:
-                    exist_chapter_ids = [i.id for i in file_info.chapters]
+                exist_chapter_ids = [i.id for i in file_info.chapters]
 
-                    if chapter.id in exist_chapter_ids:
-                        continue
+                if chapter.id in exist_chapter_ids:
+                    continue
 
-                    # New chapters detected
-                    volumes[volume] = chapters
-                    new_volumes_files_info.append(file_info)
+                # New chapters detected
+                volumes[volume] = chapters
+                new_volumes_files_info.append(file_info)
 
-                    break
+                break
 
         # Delete existing volumes if the volumes containing new chapters
         # because we want to re-download them

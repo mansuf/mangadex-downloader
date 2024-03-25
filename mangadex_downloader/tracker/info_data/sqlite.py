@@ -109,6 +109,7 @@ class FileInfo:
     hash: str
     last_download_time: datetime
     completed: int
+    volume: int
     images: Union[None, List[ImageInfo]]
     chapters: Union[None, List[ChapterInfo]]
 

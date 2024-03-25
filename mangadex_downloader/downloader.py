@@ -313,7 +313,6 @@ class ChapterPageDownloader(FileDownloader):
         # domain that not from mangadex.network are not allowed to report
         # so skip it
         if "uploads.mangadex.org" in self.url:
-            pbm.logger.debug("Endpoint are not from mangadex.network, skipping report")
             return
 
         # Check if cached
