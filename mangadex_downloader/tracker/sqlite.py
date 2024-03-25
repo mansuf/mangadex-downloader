@@ -130,7 +130,7 @@ class DownloadTrackerSQLite:
             table_names = cur.fetchall()
 
             for table in table_names:
-                cur.execute(f"DROP TABLE IF EXISTS '{table}'")
+                cur.execute(f"DROP TABLE IF EXISTS {table[0]}")
                 self.db.commit()
 
             cur.close()
