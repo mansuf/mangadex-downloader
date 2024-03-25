@@ -12,7 +12,7 @@ def _get_migration_files():
     migration_files = {}
 
     root_dir = Path(__file__).parent.resolve()
-    if sys.version_info.major == 3 and sys.version_info.minor <= 8:
+    if sys.version_info.major == 3 and sys.version_info.minor <= 9:
         files = glob.glob(str(root_dir) + "/*")
     else:
         files = glob.glob("*", root_dir=root_dir)
