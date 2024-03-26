@@ -59,6 +59,9 @@ class Migration(SQLMigration):
                 ch_info_data = ch_info_cursor.fetchall()
                 chapter_ids = [i[0] for i in ch_info_data]
 
+                if not ch_info_data:
+                    continue
+
                 # Get: file name
                 ch_info_fi_name_ref = ch_info_data[0][1]
 
