@@ -30,7 +30,7 @@ from .utils import (
     validate_language,
     validate_value_from_iterator,
     validate_format,
-    dummy_validator,
+    validate_dummy,
     validate_doh_provider,
     validate_sort_by,
     validate_http_retries,
@@ -81,10 +81,10 @@ class _Config:
         "use_chapter_title": (False, validate_bool),
         "use_compressed_image": (False, validate_bool),
         "force_https": (False, validate_bool),
-        "path": ("./{manga.title}", dummy_validator),
-        "filename_chapter": ("{chapter.simple_name}{file_ext}", dummy_validator),
-        "filename_volume": ("Vol. {volume}{file_ext}", dummy_validator),
-        "filename_single": ("All chapters{file_ext}", dummy_validator),
+        "path": ("./{manga.title}", validate_dummy),
+        "filename_chapter": ("{chapter.simple_name}{file_ext}", validate_dummy),
+        "filename_volume": ("Vol. {volume}{file_ext}", validate_dummy),
+        "filename_single": ("All chapters{file_ext}", validate_dummy),
         "dns_over_https": (None, validate_doh_provider),
         "no_group_name": (False, validate_bool),
         "sort_by": ("volume", validate_sort_by),
@@ -103,6 +103,7 @@ class _Config:
         "log_level": ("INFO", validate_log_level),
         "progress_bar_layout": ("default", validate_progress_bar_layout),
         "ignore_missing_chapters": (False, validate_bool),
+        "create_no_volume": (False, validate_bool),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

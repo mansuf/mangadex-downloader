@@ -39,7 +39,7 @@ __all__ = (
     "validate_language",
     "validate_value_from_iterator",
     "validate_format",
-    "dummy_validator",
+    "validate_dummy",
     "validate_zip_compression_type",
     "validate_int",
     "validate_tag",
@@ -93,7 +93,9 @@ def validate_language(val):
 def validate_value_from_iterator(val, iterator):
     values = [i for i in iterator]
     if val not in values:
-        raise ConfigTypeError(f"'{val}' is not valid value, available values are {values}")
+        raise ConfigTypeError(
+            f"'{val}' is not valid value, available values are {values}"
+        )
 
     return val
 
@@ -103,7 +105,7 @@ def validate_format(val):
     return val
 
 
-def dummy_validator(val):
+def validate_dummy(val):
     return val
 
 

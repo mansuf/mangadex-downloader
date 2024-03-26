@@ -123,6 +123,7 @@ class DownloadTrackerSQLite:
         if config.no_track:
             return
 
+        log.debug("Recreating download tracker database...")
         with self._lock:
             cur = self.db.cursor()
 
@@ -378,6 +379,9 @@ class DownloadTrackerSQLite:
 
     def _load(self):
         if config.no_track:
+            return
+
+        if not check_if_there_is_migrations(self.db):
             return
 
         with self._lock:

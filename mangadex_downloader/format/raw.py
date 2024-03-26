@@ -57,7 +57,16 @@ class Raw(BaseFormat):
 
         pbm.set_volumes_total(len(volumes.keys()))
         # Begin downloading
-        for _, chapters in volumes.items():
+        for volume, chapters in volumes.items():
+
+            # This means we will only download chapters that has no volume
+            if (
+                volume is not None
+                and self.splitted_format
+                and not self._internal_vars["create_no_volume"]
+            ):
+                continue
+
             pbm.set_chapters_total(len(chapters))
 
             chapters_pb = pbm.get_chapters_pb()
@@ -153,6 +162,13 @@ class RawVolume(BaseFormat):
         # Begin downloading
         pbm.set_volumes_total(len(cache.keys()))
         for volume, chapters in cache.items():
+            if not self.config.create_no_volume and volume is None:
+                pbm.logger.debug(
+                    "No volume is skipped because of --create-no-volume is not enabled"
+                )
+                pbm.get_volumes_pb().update(1)
+                continue
+
             pbm.set_chapters_total(len(chapters))
             success_images = {}
             failed_images = []

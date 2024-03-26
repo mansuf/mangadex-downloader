@@ -57,15 +57,12 @@ def download(
     _range=None,
 ):
     """Download a manga"""
-    save_as = config.save_as
     cover = config.cover
 
+    backup_fmt = config.save_as
     lang = get_language(config.language)
 
     log.info(f"Using {lang.name} language")
-
-    # Validation save as format
-    fmt_class = get_format(save_as)
 
     manga = Manga(_id=manga_id, use_alt_details=use_alt_details)
 
@@ -86,7 +83,7 @@ def download(
         manga.fetch_chapters(lang.value, all_chapters=True)
 
     # Reuse is good
-    def download_manga(m, path):
+    def download_manga(m, path, splitted_format=False):
         kwargs_iter_chapter_images = {
             "start_chapter": start_chapter,
             "end_chapter": end_chapter,
@@ -96,6 +93,13 @@ def download(
             "groups": groups,
             "_range": _range,
         }
+
+        if splitted_format:
+            config.save_as = config.save_as.replace("-volume", "")
+        else:
+            config.save_as = backup_fmt
+
+        save_as = config.save_as
 
         log.info("Using %s format" % save_as)
 
@@ -126,10 +130,28 @@ def download(
 
         m.tracker = get_tracker(save_as, path)
 
-        fmt = fmt_class(path, m, replace, kwargs_iter_chapter_images)
+        fmt_class = get_format(save_as)
 
-        # Execute main format
-        fmt.main()
+        fmt_cls_kwargs = {
+            "path": path,
+            "manga": manga,
+            "replace": replace,
+            "kwargs_iter_chapter_img": kwargs_iter_chapter_images,
+        }
+
+        if not splitted_format:
+            # Main format and execute it
+            fmt = fmt_class(**fmt_cls_kwargs)
+            fmt.main()
+        else:
+            # Using chapters format as splitted format
+            # This is happening because --create-no-volume is not present
+            fmt_cls_kwargs["splitted_format"] = True
+            fmt_cls_kwargs["_internal_create_no_volume"] = False
+            fmt = fmt_class(**fmt_cls_kwargs)
+
+            # Execute splitted format and execute it
+            fmt.main()
 
     if all_languages:
         # Print info to users
@@ -155,6 +177,11 @@ def download(
             log.info(f'Download directory is set to "{formatted_path.resolve()}"')
             download_manga(new_manga, formatted_path)
 
+            if not config.create_no_volume:
+                # Fetch chapters again before downloading splitted format
+                new_manga.fetch_chapters(translated_lang.value, all_chapters=True)
+                download_manga(new_manga, formatted_path, splitted_format=True)
+
             log.info(
                 f"Download finished for manga {manga.title} "
                 f"in {translated_lang.name} language"
@@ -164,6 +191,10 @@ def download(
         formatted_path = create_directory("", get_path(manga))
         log.info(f'Download directory is set to "{formatted_path.resolve()}"')
         download_manga(manga, formatted_path)
+
+        if not config.create_no_volume:
+            manga.fetch_chapters(lang.value, all_chapters=True)
+            download_manga(manga, formatted_path, splitted_format=True)
 
     log.info('Download finished for manga "%s"' % manga.title)
     return manga

@@ -41,7 +41,15 @@ log = logging.getLogger(__name__)
 
 
 class BaseFormat:
-    def __init__(self, path, manga, replace, kwargs_iter_chapter_img):
+    def __init__(
+        self,
+        path,
+        manga,
+        replace,
+        kwargs_iter_chapter_img,
+        splitted_format=False,
+        _internal_create_no_volume=False,
+    ):
         # "Circular imports" problem
         from ..config import config
 
@@ -51,6 +59,9 @@ class BaseFormat:
         self.compress_img = config.use_compressed_image
         self.replace = replace
         self.kwargs_iter = kwargs_iter_chapter_img
+
+        self.splitted_format = splitted_format
+        self._internal_vars = {"create_no_volume": _internal_create_no_volume}
 
         self.chapter_read_marker = QueueWorkerReadMarker(manga.id)
 
@@ -437,7 +448,16 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
         pbm.set_volumes_total(len(volumes.keys()))
         # Begin downloading
-        for _, chapters in volumes.items():
+        for volume, chapters in volumes.items():
+
+            # This means we will only download chapters that has no volume
+            if (
+                volume is not None
+                and self.splitted_format
+                and not self._internal_vars["create_no_volume"]
+            ):
+                continue
+
             pbm.set_chapters_total(len(chapters))
 
             chapters_pb = pbm.get_chapters_pb()
@@ -498,7 +518,7 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         tracker = manga.tracker
 
         # Recreate DownloadTracker JSON file if --replace is present
-        if self.replace:
+        if self.replace and not self.splitted_format:
             manga.tracker.recreate()
 
         # Steps for existing (downloaded) chapters:
@@ -610,6 +630,13 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
         pbm.set_volumes_total(len(volumes))
 
         for volume, chapters in volumes.items():
+            if not self.config.create_no_volume and volume is None:
+                pbm.logger.debug(
+                    "No volume is skipped because of --create-no-volume is not enabled"
+                )
+                pbm.get_volumes_pb().update(1)
+                continue
+
             pbm.set_chapters_total(len(chapters))
             total = self.get_total_pages_for_volume_fmt(chapters)
             images = []

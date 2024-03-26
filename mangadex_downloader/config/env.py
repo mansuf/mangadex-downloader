@@ -26,7 +26,7 @@ from pathlib import Path
 
 from .utils import (
     validate_bool,
-    dummy_validator,
+    validate_dummy,
     validate_zip_compression_type,
     validate_int,
     validate_blacklist,
@@ -58,7 +58,7 @@ class EnvironmentVariables:
         [
             "config_path",
             None,
-            dummy_validator,
+            validate_dummy,
             False,
         ],
         [

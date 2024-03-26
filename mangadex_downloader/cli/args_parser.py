@@ -308,6 +308,13 @@ def get_args(argv):
         "This will prevent the application to re-download the missing chapters.",
         default=config.ignore_missing_chapters,
     )
+    chap_group.add_argument(
+        "--create-no-volume",
+        "-cnv",
+        action="store_true",
+        help="Merge all chapters that has no volume into 1 file for 'volume' format. ",
+        default=config.create_no_volume,
+    )
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")
