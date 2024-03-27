@@ -10,7 +10,6 @@ log = logging.getLogger(__name__)
 
 
 class Migration(SQLMigration):
-    migrate_tables = ["db_info"]
     new_version = 1
     file = __file__
 
@@ -22,6 +21,8 @@ class Migration(SQLMigration):
         fmt = self.get_format()
         self.migrate_columns[f"file_info_{fmt}"] = ["volume"]
         self.migrate_values[f"file_info_{fmt}"] = ["volume", int]
+
+        self.migrate_tables = ["db_info"]
 
     # Return:
     # {file_name: volume_manga}

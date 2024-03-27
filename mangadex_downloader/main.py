@@ -153,6 +153,8 @@ def download(
             # Execute splitted format and execute it
             fmt.main()
 
+        config.save_as = backup_fmt
+
     if all_languages:
         # Print info to users
         # Let the users know how many translated languages available

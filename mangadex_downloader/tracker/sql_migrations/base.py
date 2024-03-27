@@ -36,22 +36,23 @@ migration_files = _get_migration_files()
 class SQLMigration:
     """Base class for SQL Migration"""
 
-    # Base checking before migrations
-    # subclasses must implement this
-    migrate_tables = []
     new_version = None
     file = None
 
-    # Format:
-    # {table_name: [column_name1, column_name2, ...]}
-    migrate_columns = {}
-
-    # Format:
-    # {table_name: [column_name, column_data_type]}
-    # This to make sure that column value is not null
-    migrate_values = {}
-
     def __init__(self, db: sqlite3.Connection):
+        # Base checking before migrations
+        # subclasses must implement this
+        self.migrate_tables = []
+
+        # Format:
+        # {table_name: [column_name1, column_name2, ...]}
+        self.migrate_columns = {}
+
+        # Format:
+        # {table_name: [column_name, column_data_type]}
+        # This to make sure that column value is not null
+        self.migrate_values = {}
+
         self.db = db
 
     def check_if_migrate_is_possible(self) -> bool:
