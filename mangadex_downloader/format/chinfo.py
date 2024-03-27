@@ -27,20 +27,11 @@ from pathlib import Path
 from ..utils import get_cover_art_url
 from ..network import Net
 
-try:
-    from PIL import (
-        Image,
-        ImageDraw,
-        ImageFont,
-        ImageEnhance,
-        ImageFilter
-    )
-except ImportError:
-    pass
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 
 # Font related
 rgb_white = (255, 255, 255)
-font_family = 'arial.ttf'
+font_family = "arial.ttf"
 
 # Text positioning
 text_align = "left"
@@ -62,13 +53,15 @@ fonts = {
     "default": font_path / f"FreeSans{font_ext}",
     "bold": font_path / f"FreeSansBold{font_ext}",
     "bold_italic": font_path / f"FreeSansBoldOblique{font_ext}",
-    "italic": font_path / f"FreeSansOblique{font_ext}"
+    "italic": font_path / f"FreeSansOblique{font_ext}",
 }
+
 
 def load_font(type, size):
     font = fonts[type]
     loc = str(font.resolve())
     return ImageFont.truetype(loc, size)
+
 
 def textwrap_newlines(text, width):
     """This function is designed to split with newlines instead of list"""
@@ -79,6 +72,7 @@ def textwrap_newlines(text, width):
 
     return new_text
 
+
 def draw_multiline_text(font, image, text, width_pos, height_pos, split_size):
     new_text = textwrap_newlines(text, width=split_size)
     draw = ImageDraw.Draw(image)
@@ -87,9 +81,12 @@ def draw_multiline_text(font, image, text, width_pos, height_pos, split_size):
         text=new_text,
         fill=rgb_white,
         font=font,
-        align="left"
+        align="left",
     )
-    return draw.multiline_textbbox((width_pos, height_pos), new_text, font, align="left")
+    return draw.multiline_textbbox(
+        (width_pos, height_pos), new_text, font, align="left"
+    )
+
 
 def get_chapter_info(manga, cover, chapter):
     cover_url = get_cover_art_url(manga.id, cover, "original")
@@ -97,7 +94,8 @@ def get_chapter_info(manga, cover, chapter):
     image = Image.open(r.raw)
     image = image.convert("RGBA")
 
-    # resize image to fixed 1000px width (keeping aspect ratio) so font sizes and text heights match for all covers
+    # resize image to fixed 1000px width (keeping aspect ratio)
+    # so font sizes and text heights match for all covers
     aspect_ratio = image.height / image.width
     new_width = 1000
     new_height = new_width * aspect_ratio
@@ -119,7 +117,7 @@ def get_chapter_info(manga, cover, chapter):
         text=title_text,
         width_pos=40,
         height_pos=40,
-        split_size=20
+        split_size=20,
     )
 
     chinfo_font = load_font("default", size=45)
@@ -132,7 +130,7 @@ def get_chapter_info(manga, cover, chapter):
         text=chinfo_text,
         width_pos=40,
         height_pos=title_bbox[3] + 40,
-        split_size=40
+        split_size=40,
     )
 
     scanlatedby_font = load_font("italic", size=30)
@@ -143,7 +141,7 @@ def get_chapter_info(manga, cover, chapter):
         text=scanlatedby_text,
         width_pos=40,
         height_pos=chinfo_bbox[3] + 30,
-        split_size=40
+        split_size=40,
     )
 
     group_bbox = None
@@ -154,23 +152,21 @@ def get_chapter_info(manga, cover, chapter):
             height_pos = scanlatedby_bbox[3] + 15
         else:
             height_pos = group_bbox[3] + 5
-        
+
         group_bbox = draw_multiline_text(
             font=group_font,
             image=image,
             text=group_text,
             width_pos=40,
             height_pos=height_pos,
-            split_size=30
+            split_size=30,
         )
 
     logo = base_path / "images/mangadex-logo.png"
     logo_image = Image.open(logo)
     logo_image = logo_image.convert("RGBA").resize((120, 120))
     image.alpha_composite(
-        im=logo_image,
-        dest=(40, (image.height - (logo_image.height + 30)))
+        im=logo_image, dest=(40, (image.height - (logo_image.height + 30)))
     )
 
     return image
-

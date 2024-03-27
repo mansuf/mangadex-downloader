@@ -25,17 +25,11 @@ Progress bar manager for volumes, chapters, pages and file sizes
 """
 
 import logging
-import sys
 from tqdm import tqdm
 
+
 class ProgressBarManager:
-    valid_types_order = [
-        "volumes",
-        "chapters",
-        "pages",
-        "file sizes",
-        "convert"
-    ]
+    valid_types_order = ["volumes", "chapters", "pages", "file sizes", "convert"]
 
     def __init__(self):
         self._logger = logging.getLogger(__name__)
@@ -46,7 +40,7 @@ class ProgressBarManager:
         self._pages_initial = self._pages_total = 0
         self._file_sizes_initial = self._file_sizes_total = 0
         self._convert_initial = self._convert_total = 0
-        
+
         # Initialization vars for progress bar (unit value)
         self._volumes_unit = "vol"
         self._chapters_unit = "ch"
@@ -76,10 +70,7 @@ class ProgressBarManager:
 
         # Progress bars that are only allowed to showed up
         # if stacked mode is not enabled
-        self._single_progress_bar_types = [
-            "_file_sizes",
-            "_convert"
-        ]
+        self._single_progress_bar_types = ["_file_sizes", "_convert"]
 
     def _create_progress_bar(self, var_name: str) -> tqdm:
         var: tqdm = getattr(self, var_name)
@@ -99,15 +90,15 @@ class ProgressBarManager:
         # Determine ncols progress bar
         length = len(desc_name)
         if length < 20:
-            kwargs_tqdm.setdefault('ncols', 80)
+            kwargs_tqdm.setdefault("ncols", 80)
         elif length > 20 and length < 50:
-            kwargs_tqdm.setdefault('dynamic_ncols', True)
+            kwargs_tqdm.setdefault("dynamic_ncols", True)
         # Length desc is more than 40 or 50
         elif length >= 50:
-            desc_name = desc_name[:20] + '...'
-            kwargs_tqdm.setdefault('ncols', 90)
+            desc_name = desc_name[:20] + "..."
+            kwargs_tqdm.setdefault("ncols", 90)
 
-        kwargs_tqdm.setdefault('desc', desc_name)
+        kwargs_tqdm.setdefault("desc", desc_name)
 
         return tqdm(**kwargs_tqdm)
 
@@ -131,7 +122,7 @@ class ProgressBarManager:
     @property
     def stacked(self):
         return self._stacked
-    
+
     @stacked.setter
     def stacked(self, value: bool):
         self._stacked = value
@@ -139,7 +130,7 @@ class ProgressBarManager:
     def _get_progress_bar(self, var, recreate=False) -> tqdm:
         if self.disabled:
             # Well the progress bar is disabled
-            # What are you gonna do ? 
+            # What are you gonna do ?
             return self._create_dummy_progress_bar()
 
         value_var = getattr(self, var)
@@ -159,7 +150,7 @@ class ProgressBarManager:
             else:
                 value_var = self._create_progress_bar(var)
                 setattr(self, var, value_var)
-        
+
         value_var = getattr(self, var)
 
         return value_var
@@ -188,7 +179,7 @@ class ProgressBarManager:
             self._volumes.refresh()
 
         self._volumes_initial = value
-    
+
     def set_chapters_initial(self, value: int):
         if self._chapters is not None:
             self._chapters.initial = value
@@ -251,7 +242,7 @@ class ProgressBarManager:
         if self._convert is not None:
             self._convert.total = value
             self._convert.refresh()
-        
+
         self._convert_total = value
 
     # Close progress bar
@@ -284,5 +275,6 @@ class ProgressBarManager:
             values.append("_%s" % _type.replace(" ", "_"))
 
         self._types_order = values
+
 
 progress_bar_manager = ProgressBarManager()

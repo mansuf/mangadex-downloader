@@ -22,7 +22,6 @@
 
 import logging
 import os
-import re
 import requests
 
 from .utils import check_group_all
@@ -30,12 +29,18 @@ from .command import registered_commands
 from ..config import config
 from ..network import Net
 from ..fetcher import get_chapter, get_list, get_manga
-from ..errors import ChapterNotFound, InvalidManga, InvalidMangaDexList, InvalidURL, MangaDexException
+from ..errors import (
+    ChapterNotFound,
+    InvalidManga,
+    InvalidMangaDexList,
+    InvalidURL,
+    MangaDexException,
+)
 from ..utils import (
     validate_url as get_uuid,
     find_md_urls,
     valid_url_types,
-    get_key_value
+    get_key_value,
 )
 from ..main import (
     download as dl_manga,
@@ -43,10 +48,11 @@ from ..main import (
     download_list as dl_list,
     download_legacy_chapter as dl_legacy_chapter,
     download_legacy_manga as dl_legacy_manga,
-    download_cover_art_manga as dl_cover_art
+    download_cover_art_manga as dl_cover_art,
 )
 
 log = logging.getLogger(__name__)
+
 
 def download_manga(url, args, legacy=False):
     check_group_all(args)
@@ -64,19 +70,21 @@ def download_manga(url, args, legacy=False):
 
     # We cannot allow if --range and other range options (such as: --start-chapter) together
     range_forbidden_args = {
-        'start_chapter': '--start-chapter',
-        'end_chapter': '--end-chapter',
-        'start_page': '--start-page',
-        'end_page': '--end-page',
-        'no_oneshot_chapter': '--no-oneshot-chapter'
+        "start_chapter": "--start-chapter",
+        "end_chapter": "--end-chapter",
+        "start_page": "--start-page",
+        "end_page": "--end-page",
+        "no_oneshot_chapter": "--no-oneshot-chapter",
     }
     for name, arg in range_forbidden_args.items():
         value = getattr(args, name)
         if args.range and value:
-            raise MangaDexException(f'--range cannot be used together with {arg}')
+            raise MangaDexException(f"--range cannot be used together with {arg}")
 
     if config.download_mode == "unread" and not Net.mangadex.check_login():
-        raise MangaDexException("You must logged in, in order to use --download-mode=unread")
+        raise MangaDexException(
+            "You must logged in, in order to use --download-mode=unread"
+        )
 
     args = (
         url,
@@ -95,15 +103,16 @@ def download_manga(url, args, legacy=False):
         dl_legacy_manga(*args)
     else:
         dl_manga(*args)
-        
+
 
 def download_chapter(url, args, legacy=False):
-
     if args.range:
-        raise MangaDexException('--range option is not available for chapter download')
+        raise MangaDexException("--range option is not available for chapter download")
 
     if config.download_mode == "unread" and not Net.mangadex.check_login():
-        raise MangaDexException("You must logged in, in order to use --download-mode=unread")
+        raise MangaDexException(
+            "You must logged in, in order to use --download-mode=unread"
+        )
 
     args = (
         url,
@@ -117,20 +126,22 @@ def download_chapter(url, args, legacy=False):
     else:
         dl_chapter(*args)
 
+
 def _error_list(option):
     raise MangaDexException("%s is not allowed when download a list" % option)
 
+
 def download_list(url, args):
     if args.start_chapter:
-        _error_list('--start-chapter')
+        _error_list("--start-chapter")
     elif args.end_chapter:
-        _error_list('--end-chapter')
+        _error_list("--end-chapter")
     elif args.start_page:
-        _error_list('--start-page')
+        _error_list("--start-page")
     elif args.end_page:
-        _error_list('--end-page')
+        _error_list("--end-page")
     elif args.range:
-        _error_list('--range')
+        _error_list("--range")
 
     check_group_all(args)
 
@@ -138,7 +149,9 @@ def download_list(url, args):
         raise MangaDexException("--group cannot be used together with --no-group-name")
 
     if config.download_mode == "unread" and not Net.mangadex.check_login():
-        raise MangaDexException("You must logged in, in order to use --download-mode=unread")
+        raise MangaDexException(
+            "You must logged in, in order to use --download-mode=unread"
+        )
 
     dl_list(
         url,
@@ -146,46 +159,53 @@ def download_list(url, args):
         args.group,
     )
 
+
 def download_cover(url, args):
     dl_cover_art(url, args.replace)
 
-# Legacy support
-download_legacy_manga = lambda url, args: download_manga(url, args, True)
-download_legacy_chapter = lambda url, args: download_chapter(url, args, True)
 
-funcs = {i: globals()['download_%s' % i.replace('-', '_')] for i in valid_url_types}
+# Legacy support
+def download_legacy_manga(url, args):
+    return download_manga(url, args, True)
+
+
+def download_legacy_chapter(url, args):
+    return download_chapter(url, args, True)
+
+
+funcs = {i: globals()["download_%s" % i.replace("-", "_")] for i in valid_url_types}
+
 
 class URL:
     def __init__(self, func, _id):
         self.func = func
         self.id = _id
-    
+
     def __call__(self, args, _type=None):
         if _type is not None:
             self.func = funcs[_type]
         self.func(self.id, args)
 
     def __repr__(self) -> str:
-        return '<URL func = "%s" id = "%s">' % (
-            self.func.__name__,
-            self.id
-        )
+        return '<URL func = "%s" id = "%s">' % (self.func.__name__, self.id)
+
 
 def build_URL_from_type(_type, _id):
     parsed_id = get_uuid(_id)
     return URL(funcs[_type], parsed_id)
+
 
 def smart_select_url(url):
     """Wisely determine type url. The process is checking given url one by one"""
     log.info(f"Checking url = {url}")
     func = None
     _id = None
-    
+
     result = find_md_urls(url)
     if result:
         _id, _type = result
         func = funcs[_type]
-    
+
     # If none of patterns is match, grab UUID instantly and then
     # fetch one by one, starting from manga, list, and then chapter.
     if func is None and _id is None:
@@ -197,15 +217,15 @@ def smart_select_url(url):
         except InvalidManga:
             pass
         else:
-            func = funcs['manga']
-        
+            func = funcs["manga"]
+
         # MDlist
         try:
             get_list(_id)
         except InvalidMangaDexList:
             pass
         else:
-            func = funcs['list']
+            func = funcs["list"]
 
         # Chapter
         try:
@@ -213,21 +233,23 @@ def smart_select_url(url):
         except ChapterNotFound:
             pass
         else:
-            func = funcs['chapter']
+            func = funcs["chapter"]
 
         # None of them is found in MangaDex
         # raise error
         if func is None:
             raise InvalidURL(f"'{url}' is not valid MangaDex URL")
-    
+
     return URL(func, _id)
+
 
 def _try_read(path):
     if not os.path.exists(path):
         return None
-    
-    with open(path, 'r') as o:
+
+    with open(path, "r") as o:
         return o.read()
+
 
 def build_url(parser, args):
     exec_command = False
@@ -239,25 +261,27 @@ def build_url(parser, args):
 
             exec_command = True
             break
-    
+
     if not exec_command:
         # Parsing file path
         if args.file:
-            _, file = get_key_value(args.URL, sep=':')
-            
+            _, file = get_key_value(args.URL, sep=":")
+
             if not file:
                 parser.error("Syntax error: file path argument is empty")
 
             # web URL location support for "file:{location}" syntax
-            if file.startswith('http://') or file.startswith('https://'):
+            if file.startswith("http://") or file.startswith("https://"):
                 r = Net.requests.get(file)
                 try:
                     r.raise_for_status()
                 except requests.HTTPError:
-                    raise MangaDexException(f"Failed to connect '{file}', status code = {r.status_code}")
+                    raise MangaDexException(
+                        f"Failed to connect '{file}', status code = {r.status_code}"
+                    )
 
                 urls = r.text
-            
+
             # Because this is specified syntax for batch downloading
             # If file doesn't exist, raise error
             else:
@@ -277,10 +301,13 @@ def build_url(parser, args):
     def yeet():
         """Function to yeet each url with error handling (:class:`InvalidURL`)"""
         if args.type:
-            func = lambda i: build_URL_from_type(args.type, i)
+
+            def func(i):
+                return build_URL_from_type(args.type, i)
+
         else:
             func = smart_select_url
-        
+
         for i in result:
             try:
                 yield func(i)

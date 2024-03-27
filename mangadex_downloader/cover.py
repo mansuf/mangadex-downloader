@@ -34,6 +34,7 @@ valid_cover_types = cover_qualities + ["none"]
 
 default_cover_type = "original"
 
+
 class CoverArt:
     def __init__(self, cover_id=None, data=None):
         if not data:

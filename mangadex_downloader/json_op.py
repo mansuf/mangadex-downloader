@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# This module containing JSON operations 
+# This module containing JSON operations
 # where the library use `json` or `orjson` (if available) streamlined
 # without using different behaviour each libraries
 # ex: dumped JSON (orjson) -> bytes
@@ -46,7 +46,7 @@ if ORJSON_OK:
 else:
     JSONDecodeError = json.JSONDecodeError
     JSONEncodeError = TypeError
-    
+
 
 def _get_encoding(content):
     data = bytearray(content)
@@ -64,15 +64,17 @@ def _get_encoding(content):
 
     return detector.result["encoding"]
 
+
 def loads(content: Union[str, bytes]) -> dict:
     """Take a bytes or str parameter will result a loaded dict JSON"""
     if ORJSON_OK:
         return orjson.loads(content)
-    
+
     return json.loads(content)
 
+
 def dumps(content: dict, convert_str=True) -> Union[str, bytes]:
-    """Take a dict parameter will result in str or bytes 
+    """Take a dict parameter will result in str or bytes
     (str, if param `convert_str` is True, else bytes)"""
     dumped = None
     if ORJSON_OK:
@@ -94,5 +96,3 @@ def dumps(content: dict, convert_str=True) -> Union[str, bytes]:
 
     # Return the data as-is
     return dumped
-    
-    
