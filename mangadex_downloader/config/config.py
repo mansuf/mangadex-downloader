@@ -233,7 +233,7 @@ class _Config:
         with self._lock:
             obj = self._data.copy()
             obj[name] = value
-            self._write(obj)
+            self._write(obj, write_to_path=not self.no_read)
 
 
 _conf = _Config()
