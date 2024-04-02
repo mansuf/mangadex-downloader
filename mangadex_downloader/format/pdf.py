@@ -106,9 +106,11 @@ class PDFPlugin:
             x_resolution = y_resolution = im.encoderinfo.get("resolution", 72.0)
 
         info = {
-            "title": None
-            if is_appending
-            else os.path.splitext(os.path.basename(filename))[0],
+            "title": (
+                None
+                if is_appending
+                else os.path.splitext(os.path.basename(filename))[0]
+            ),
             "author": None,
             "subject": None,
             "keywords": None,
@@ -412,8 +414,6 @@ class PDFFile:
 
 class PDF(ConvertedChaptersFormat, PDFFile):
     def on_finish(self, file_path, chapter, images):
-        chap_name = chapter.get_simplified_name()
-        pbm.logger.info(f"{chap_name} has finished download, converting to pdf...")
         self.worker.submit(lambda: self.convert(images, file_path))
 
 
@@ -444,8 +444,6 @@ class PDFVolume(ConvertedVolumesFormat, PDFFile):
         self.insert_ch_info_img(self.images, chapter, self.volume_path, count)
 
     def on_convert(self, file_path, volume, images):
-        volume_name = self.get_volume_name(volume)
-        pbm.logger.info(f"{volume_name} has finished download, converting to pdf...")
         self.worker.submit(lambda: self.convert(self.images, file_path))
 
     def on_received_images(self, file_path, chapter, images):
@@ -466,9 +464,6 @@ class PDFSingle(ConvertedSingleFormat, PDFFile):
         self.insert_ch_info_img(self.images, chapter, self.images_directory, count)
 
     def on_finish(self, file_path, images):
-        pbm.logger.info(
-            f"Manga '{self.manga.title}' has finished download, converting to pdf..."
-        )
         self.worker.submit(lambda: self.convert(self.images, file_path))
 
     def on_received_images(self, file_path, chapter, images):

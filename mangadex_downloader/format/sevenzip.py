@@ -93,9 +93,6 @@ class SevenZipFile:
 
 class SevenZip(ConvertedChaptersFormat, SevenZipFile):
     def on_finish(self, file_path, chapter, images):
-        chap_name = chapter.get_simplified_name()
-
-        pbm.logger.info(f"{chap_name} has finished download, converting to cb7...")
         self.worker.submit(lambda: self.convert(images, file_path))
 
 
@@ -121,9 +118,6 @@ class SevenZipVolume(ConvertedVolumesFormat, SevenZipFile):
         self.images.extend(images)
 
     def on_convert(self, file_path, volume, images):
-        volume_name = self.get_volume_name(volume)
-
-        pbm.logger.info(f"{volume_name} has finished download, converting to cb7...")
         self.worker.submit(lambda: self.convert(self.images, file_path))
 
 
@@ -149,8 +143,4 @@ class SevenZipSingle(ConvertedSingleFormat, SevenZipFile):
         return super().on_received_images(file_path, chapter, images)
 
     def on_finish(self, file_path, images):
-        pbm.logger.info(
-            f"Manga '{self.manga.title}' has finished download, converting to cbz..."
-        )
-
         self.worker.submit(lambda: self.convert(self.images, file_path))

@@ -496,6 +496,9 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
                 chapters_pb.update(1)
 
+                pbm.logger.info(
+                    f"{chap_name} has finished download, converting to {self.file_ext} file..."
+                )
                 self.on_finish(file_path, chap_class, images)
 
                 if index != len(chapters) and pbm.stacked:
@@ -687,6 +690,9 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 pbm.get_pages_pb().reset()
 
             chapters_pb.reset()
+            pbm.logger.info(
+                f"{volume_name} has finished download, converting chapters to {self.file_ext} file..."
+            )
             self.on_convert(file_path, volume, images)
 
             # Remove original chapter folder
@@ -886,6 +892,9 @@ class ConvertedSingleFormat(BaseConvertedFormat):
             chapters_pb.reset()
             volumes_pb.update(1)
 
+        pbm.logger.info(
+            f"Manga {self.manga.title!r} has finished download, converting chapters to {self.file_ext} file..."
+        )
         self.on_finish(file_path, images)
         pbm.get_convert_pb().close()
 

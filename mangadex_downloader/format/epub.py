@@ -409,10 +409,6 @@ class EPUBFile:
 
 class Epub(ConvertedChaptersFormat, EPUBFile):
     def on_finish(self, file_path, chapter, images):
-        chap_name = chapter.get_simplified_name()
-
-        pbm.logger.info(f"{chap_name} has finished download, converting to epub...")
-
         # KeyboardInterrupt safe
         def job():
             return self.convert(
@@ -431,10 +427,6 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
         self.epub_vol_cover = self.get_vol_cover_img(volume, dir_path, count)
 
     def on_convert(self, file_path, volume, images):
-        volume_name = self.get_volume_name(volume)
-
-        pbm.logger.info(f"{volume_name} has finished download, converting to epub...")
-
         def job():
             return self.convert(
                 self.manga,
@@ -457,10 +449,6 @@ class EpubSingle(ConvertedSingleFormat, EPUBFile):
         self.epub_chapters = []
 
     def on_finish(self, file_path, images):
-        pbm.logger.info(
-            f"Manga '{self.manga.title}' has finished download, converting to epub..."
-        )
-
         def job():
             return self.convert(
                 self.manga,

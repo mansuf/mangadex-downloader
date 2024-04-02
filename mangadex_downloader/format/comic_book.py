@@ -203,9 +203,6 @@ class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
         )
 
     def on_finish(self, file_path, chapter, images):
-        chap_name = chapter.get_simplified_name()
-
-        pbm.logger.info(f"{chap_name} has finished download, converting to cbz...")
         self.worker.submit(lambda: self.convert(self.chapter_zip, images))
 
 
@@ -233,9 +230,6 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
         )
 
     def on_convert(self, file_path, volume, images):
-        volume_name = self.get_volume_name(volume)
-        pbm.logger.info(f"{volume_name} has finished download, converting to cbz...")
-
         self.insert_comic_info_xml(self.volume_zip, self.total_pages, volume=volume)
         self.worker.submit(lambda: self.convert(self.volume_zip, images))
 
@@ -256,9 +250,5 @@ class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
         )
 
     def on_finish(self, file_path, images):
-        pbm.logger.info(
-            f"Manga '{self.manga.title}' has finished download, converting to cbz..."
-        )
-
         self.insert_comic_info_xml(self.zip, total_pages=self.total_pages)
         self.worker.submit(lambda: self.convert(self.zip, images))
