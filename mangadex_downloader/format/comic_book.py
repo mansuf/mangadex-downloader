@@ -193,10 +193,10 @@ class CBZFile:
 
 class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
     def on_prepare(self, file_path, chapter, images):
-        chapter_zip = self.make_zip(file_path)
+        self.chapter_zip = self.make_zip(file_path)
 
         self.insert_comic_info_xml(
-            chapter_zip,
+            self.chapter_zip,
             total_pages=chapter.pages,
             chapter=chapter,
             volume=chapter.volume,
