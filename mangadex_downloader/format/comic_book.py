@@ -33,7 +33,7 @@ from ..progress_bar import progress_bar_manager as pbm
 log = logging.getLogger(__name__)
 
 
-def generate_Comicinfo(manga, chapter):
+def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
     xml_root = ET.Element(
         "ComicInfo",
         {
@@ -41,9 +41,12 @@ def generate_Comicinfo(manga, chapter):
             "xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
         },
     )
-    xml_series = ET.SubElement(xml_root, "Series")
-    xml_series.text = manga._title
 
+    # Manga title
+    xml_series = ET.SubElement(xml_root, "Series")
+    xml_series.text = manga.title
+
+    # Authors
     if len(manga.authors) > 0:
         author_str = ""
         for author in manga.authors:
@@ -51,6 +54,7 @@ def generate_Comicinfo(manga, chapter):
         xml_author = ET.SubElement(xml_root, "Writer")
         xml_author.text = author_str[1:]
 
+    # Artists
     if len(manga.artists) > 0:
         artist_str = ""
         for artist in manga.artists:
@@ -58,6 +62,7 @@ def generate_Comicinfo(manga, chapter):
         xml_artist = ET.SubElement(xml_root, "Penciller")
         xml_artist.text = artist_str[1:]
 
+    # Genres
     if len(manga.genres) > 0:
         genre_str = ""
         for genre in manga.genres:
@@ -65,9 +70,11 @@ def generate_Comicinfo(manga, chapter):
         xml_genre = ET.SubElement(xml_root, "Genre")
         xml_genre.text = genre_str[1:]
 
+    # Manga description
     xml_summary = ET.SubElement(xml_root, "Summary")
     xml_summary.text = manga.description
 
+    # Manga alternative titles (if there is any)
     if len(manga.alternative_titles) > 0:
         alt_str = ""
         for alt in manga.alternative_titles:
@@ -75,11 +82,23 @@ def generate_Comicinfo(manga, chapter):
         xml_alt = ET.SubElement(xml_root, "AlternateSeries")
         xml_alt.text = alt_str[1:]
 
-    if chapter is not None:
-        if chapter.volume is not None:
-            xml_vol = ET.SubElement(xml_root, "Volume")
-            xml_vol.text = str(chapter.volume)
+    # Manga volume
+    xml_vol = ET.SubElement(xml_root, "Volume")
+    xml_vol.text = str(volume) if volume is not None else "No Volume"
 
+    # Language
+    # If `chapter` parameter is used
+    # Retrieve language from chapter.language instead
+    # for accurate per chapter translated language
+    xml_lang = ET.SubElement(xml_root, "LanguageISO")
+    xml_lang.text = (
+        str(chapter.language.value)
+        if chapter is not None
+        else manga.chapters.language.value
+    )
+
+    # Chapter specific informations
+    if chapter is not None:
         if chapter.chapter is not None:
             xml_num = ET.SubElement(xml_root, "Number")
             xml_num.text = str(chapter.chapter)
@@ -87,14 +106,12 @@ def generate_Comicinfo(manga, chapter):
         xml_title = ET.SubElement(xml_root, "Title")
         xml_title.text = chapter.name
 
-        xml_lang = ET.SubElement(xml_root, "LanguageISO")
-        xml_lang.text = str(chapter.language.value)
+        xml_si = ET.SubElement(xml_root, "ScanInformation")
+        xml_si.text = chapter.groups_name
 
+    # Total pages
     xml_pc = ET.SubElement(xml_root, "PageCount")
-    xml_pc.text = str(chapter.pages)
-
-    xml_si = ET.SubElement(xml_root, "ScanInformation")
-    xml_si.text = chapter.groups_name
+    xml_pc.text = str(total_pages)
 
     return xml_root
 
@@ -159,23 +176,31 @@ class CBZFile:
             worker.submit(lambda: zip_obj.write(img_path, img_name))
             count.increase()
 
-
-class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
-    def on_prepare(self, file_path, chapter, images):
-        self.chapter_zip = self.make_zip(file_path)
-
+    def insert_comic_info_xml(self, zip_obj, *args, **kwargs):
         # Generate 'ComicInfo.xml' data
-        xml_data = generate_Comicinfo(self.manga, chapter)
+        xml_data = generate_Comicinfo(self.manga, *args, **kwargs)
 
         # Write 'ComicInfo.xml' to .cbz file
         # And make sure that we don't write it twice or more
-        if "ComicInfo.xml" not in self.chapter_zip.namelist():
+        if "ComicInfo.xml" not in zip_obj.namelist():
 
             def wrap():
-                return self.chapter_zip.writestr("ComicInfo.xml", ET.tostring(xml_data))
+                return zip_obj.writestr("ComicInfo.xml", ET.tostring(xml_data))
 
             # KeyboardInterrupt safe
             self.worker.submit(wrap)
+
+
+class ComicBookArchive(ConvertedChaptersFormat, CBZFile):
+    def on_prepare(self, file_path, chapter, images):
+        chapter_zip = self.make_zip(file_path)
+
+        self.insert_comic_info_xml(
+            chapter_zip,
+            total_pages=chapter.pages,
+            chapter=chapter,
+            volume=chapter.volume,
+        )
 
     def on_finish(self, file_path, chapter, images):
         chap_name = chapter.get_simplified_name()
@@ -189,12 +214,20 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
         volume_name = self.get_volume_name(volume)
         self.volume_zip = self.make_zip(file_path)
         self.volume_path = create_directory(volume_name, self.path)
+        self.total_pages = 0
+
+        if self.config.use_volume_cover:
+            self.total_pages += 1
 
         self.insert_vol_cover_img(
             self.volume_zip, self.worker, volume, count, self.volume_path
         )
 
     def on_iter_chapter(self, file_path, chapter, count):
+        if self.config.use_chapter_cover:
+            self.total_pages += 1
+
+        self.total_pages += chapter.pages
         self.insert_ch_info_img(
             self.volume_zip, self.worker, chapter, count, self.volume_path
         )
@@ -203,6 +236,7 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
         volume_name = self.get_volume_name(volume)
         pbm.logger.info(f"{volume_name} has finished download, converting to cbz...")
 
+        self.insert_comic_info_xml(self.volume_zip, self.total_pages, volume=volume)
         self.worker.submit(lambda: self.convert(self.volume_zip, images))
 
 
@@ -210,8 +244,13 @@ class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
     def on_prepare(self, file_path, base_path):
         self.images_directory = base_path
         self.zip = self.make_zip(file_path)
+        self.total_pages = 0
 
     def on_iter_chapter(self, file_path, chapter, count):
+        if self.config.use_chapter_cover:
+            self.total_pages += 1
+
+        self.total_pages += chapter.pages
         self.insert_ch_info_img(
             self.zip, self.worker, chapter, count, self.images_directory
         )
@@ -221,4 +260,5 @@ class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
             f"Manga '{self.manga.title}' has finished download, converting to cbz..."
         )
 
+        self.insert_comic_info_xml(self.zip, total_pages=self.total_pages)
         self.worker.submit(lambda: self.convert(self.zip, images))
