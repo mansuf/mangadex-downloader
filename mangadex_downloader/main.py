@@ -179,7 +179,7 @@ def download(
             log.info(f'Download directory is set to "{formatted_path.resolve()}"')
             download_manga(new_manga, formatted_path)
 
-            if not config.create_no_volume:
+            if not config.create_no_volume and "-volume" in backup_fmt:
                 # Fetch chapters again before downloading splitted format
                 new_manga.fetch_chapters(translated_lang.value, all_chapters=True)
                 download_manga(new_manga, formatted_path, splitted_format=True)
@@ -194,7 +194,7 @@ def download(
         log.info(f'Download directory is set to "{formatted_path.resolve()}"')
         download_manga(manga, formatted_path)
 
-        if not config.create_no_volume:
+        if not config.create_no_volume and "-volume" in backup_fmt:
             manga.fetch_chapters(lang.value, all_chapters=True)
             download_manga(manga, formatted_path, splitted_format=True)
 
