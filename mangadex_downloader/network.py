@@ -121,7 +121,6 @@ class requestsMangaDexSession(ModifiedSession):
         )
         user_agent += "Python/{0[0]}.{0[1]} ".format(sys.version_info)
         user_agent += "requests/{0}".format(requests.__version__)
-        self.headers = {"User-Agent": user_agent}
         self._session_token = None
         self._refresh_token = None
 
@@ -139,6 +138,9 @@ class requestsMangaDexSession(ModifiedSession):
 
         # To prevent conflict with `requests.Session.auth`
         self.api_auth = auth_cls(self)
+
+        # Not to be confused with `requests.Session.headers`
+        self.api_headers = {"User-Agent": user_agent}
 
     def set_auth(self, auth_cls):
         self.api_auth = auth_cls(self)
@@ -180,9 +182,29 @@ class requestsMangaDexSession(ModifiedSession):
 
         log.info("Logged in to MangaDex")
 
-    def _request(self, attempt, *args, **kwargs):
+    def _request(self, attempt, method, url, *args, **kwargs):
+        netloc = _get_netloc(url)
+
+        headers = self.api_headers.copy()
+        # Do not send auth tokens other than api.mangadex.org
+        if (
+            "api.mangadex.org/auth/check" not in netloc
+            and self.check_login()
+            and "api.mangadex.org" not in netloc
+        ):
+            try:
+                headers.pop("Authorization")
+            except KeyError:
+                pass
+
+        headers_kwarg = kwargs.get("headers")
+        if headers_kwarg:
+            headers_kwarg.update(headers)
+        else:
+            kwargs.setdefault("headers", headers)
+
         try:
-            resp = super().request(*args, **kwargs)
+            resp = super().request(method, url, *args, **kwargs)
         except requests.exceptions.ConnectionError as e:
             pbm.logger.error(
                 'Failed connect to "%s", reason: %s. Trying... (attempt: %s)'
@@ -227,13 +249,15 @@ class requestsMangaDexSession(ModifiedSession):
 
         # Server error
         elif resp.status_code >= 500:
-            url = _get_netloc(resp.url)
-            if "mangadex.network" in url and "api.mangadex.network/report" not in url:
+            if (
+                "mangadex.network" in netloc
+                and "api.mangadex.network/report" not in netloc
+            ):
                 # Return here anyway to not wasting time to retry to faulty node
                 return resp
 
             pbm.logger.info(
-                f'Failed to connect to "{url}", '
+                f'Failed to connect to "{netloc}", '
                 f"reason: Server throwing error code {resp.status_code}. "
                 f"Trying... (attempt: {attempt})"
             )
@@ -287,7 +311,7 @@ class requestsMangaDexSession(ModifiedSession):
 
         self._refresh_token = refresh_token
         self._session_token = session_token
-        self.headers["Authorization"] = "Bearer %s" % session_token
+        self.api_headers["Authorization"] = "Bearer %s" % session_token
 
         self._login_cache.set_refresh_token(refresh_token)
         self._login_cache.set_session_token(session_token)
@@ -301,7 +325,7 @@ class requestsMangaDexSession(ModifiedSession):
     def _reset_token(self):
         self._refresh_token = None
         self._session_token = None
-        self.headers.pop("Authorization")
+        self.api_headers.pop("Authorization")
 
     def _notify_login_fut(self):
         """Usually this will be called when :meth:`requestsMangaDexSession.logout()`
