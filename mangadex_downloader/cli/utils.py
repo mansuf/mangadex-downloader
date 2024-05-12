@@ -103,7 +103,7 @@ def register_keyboardinterrupt_handler():
 
 def close_network_object():
     log.info("Cleaning up...")
-    log.debug("Closing netwok object")
+    log.debug("Closing network object")
     Net.close()
 
 
