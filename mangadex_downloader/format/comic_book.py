@@ -113,6 +113,10 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
     xml_pc = ET.SubElement(xml_root, "PageCount")
     xml_pc.text = str(total_pages)
 
+    # Web URL
+    xml_url = ET.SubElement(xml_root, "Web")
+    xml_url.text = f"https://mangadex.org/title/{manga.id}"
+
     return xml_root
 
 
