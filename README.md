@@ -1,6 +1,8 @@
 [![pypi-total-downloads](https://img.shields.io/pypi/dm/mangadex-downloader?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
+[![](https://dcbadge.limes.pink/api/server/NENvQ5b5Pt)](https://discord.gg/NENvQ5b5Pt)
+
 
 # mangadex-downloader
 
@@ -164,6 +166,7 @@ Any donation amount will be appreciated 💖
 
 - [PyPI](https://pypi.org/project/mangadex-downloader/)
 - [Docs](https://mangadex-dl.mansuf.link)
+- [Discord Server (Mostly for questions and support)](https://discord.gg/NENvQ5b5Pt)
 
 ## Disclaimer <a id="disclaimer"></a>
 
