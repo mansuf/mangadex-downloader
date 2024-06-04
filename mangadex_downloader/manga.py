@@ -21,16 +21,20 @@
 # SOFTWARE.
 
 import logging
+import csv
 from enum import Enum
 from typing import List
+from pathlib import Path
 
+from . import json_op
 from .fetcher import get_manga
 from .language import Language, get_details_language
-from .utils import get_local_attr, input_handle
+from .utils import get_local_attr, input_handle, comma_separated_text
 from .artist_and_author import Author, Artist
 from .cover import CoverArt
 from .chapter import MangaChapter
 from .tag import Tag
+from .path.op import get_manga_info_filepath
 
 log = logging.getLogger(__name__)
 
@@ -285,7 +289,7 @@ class Manga:
             else:
                 return desc
 
-    def fetch_chapters(self, lang, chapter=None, all_chapters=False):
+    def fetch_chapters(self, lang=None, chapter=None, all_chapters=False):
         """Fetch chapters of this manga.
 
         When initializing :class:`Manga`, :attr:`Manga.chapter` is filled with ``None``.
@@ -293,3 +297,107 @@ class Manga:
         :class:`MangaChapter`.
         """
         self._chapters = MangaChapter(self, lang, chapter, all_chapters)
+
+
+class MangaInfo:
+    def __init__(self, base_path: Path, manga: Manga, replace: bool):
+        # "Circular imports" thing
+        from .config import config
+
+        self.config = config
+        self.base_path = base_path
+
+        self.file_path = self.get_filepath(manga)
+        self.manga = manga
+        self.replace = replace
+
+    @classmethod
+    def get_filepath(cls, manga: Manga):
+        return Path(get_manga_info_filepath(manga)).resolve()
+
+    def write(self):
+        if self.config.manga_info_format == "csv":
+            self.write_to_csv()
+        else:
+            self.write_to_json()
+
+    def _ensure_manga_data(self, existing_data: list[dict], data):
+        keys = []
+        manga_info = None
+        for row in existing_data:
+            if row["title"] == data["title"]:
+                keys.extend(list(row.keys()))
+                manga_info = row
+
+        if manga_info:
+            # Existing data has been found
+            existing_data.remove(manga_info)
+            for dict_key in keys:
+                manga_info[dict_key] = data[dict_key]
+
+            existing_data.append(manga_info)
+        else:
+            # Data is not exist
+            existing_data.append(data)
+
+    def write_to_csv(self):
+        existing_data = []
+        fieldnames = ["title", "authors", "artists", "description", "tags"]
+
+        data = {
+            "title": self.manga.title,
+            "authors": comma_separated_text(self.manga.authors, use_bracket=False),
+            "artists": comma_separated_text(self.manga.artists, use_bracket=False),
+            "description": self.manga.description.replace("\n", "\\n").replace(
+                "\r", "\\r"
+            ),  # In csv newlines didn't work
+            "tags": comma_separated_text(
+                [i.name for i in self.manga.tags], use_bracket=False
+            ),
+        }
+
+        # If the file exists, we copy all the data to memory and overwrite into the file
+        if self.file_path.exists() and not self.replace:
+            with open(self.file_path, "r") as fp:
+                reader = csv.DictReader(fp)
+                for row in reader:
+                    existing_data.append(row)
+
+        # Remove all contents of the file
+        with open(self.file_path, "w", newline="") as fp:
+            writer = csv.DictWriter(fp, fieldnames=fieldnames)
+            writer.writeheader()
+
+            # Make sure we didn't duplicate data for current manga
+            # And if the manga info has already been written before
+            # we try to update it
+            self._ensure_manga_data(existing_data, data)
+
+            # Write the existing data into the file
+            for row in existing_data:
+                writer.writerow(row)
+
+    def write_to_json(self):
+        existing_data = []
+
+        data = {
+            "title": self.manga.title,
+            "authors": self.manga.authors,
+            "artists": self.manga.artists,
+            "description": self.manga.description,
+            "tags": [i.name for i in self.manga.tags],
+        }
+
+        with open(self.file_path, "r") as o:
+            reader: list = json_op.loads(o.read())
+
+            if not isinstance(reader, dict):
+                # If it's dict datatype, the data is malformed
+                existing_data.extend(reader)
+
+        self._ensure_manga_data(existing_data, data)
+
+        with open(self.file_path, "w") as o:
+            data = json_op.dumps(existing_data)
+
+            o.write(data)

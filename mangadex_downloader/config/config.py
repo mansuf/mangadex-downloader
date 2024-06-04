@@ -38,6 +38,7 @@ from .utils import (
     validate_stacked_progress_bar_order,
     validate_log_level,
     validate_progress_bar_layout,
+    convert_string_lowercase,
     ConfigTypeError,
 )
 from .. import format as fmt, json_op
@@ -104,6 +105,12 @@ class _Config:
         "progress_bar_layout": ("default", validate_progress_bar_layout),
         "ignore_missing_chapters": (False, validate_bool),
         "create_no_volume": (False, validate_bool),
+        "create_manga_info": (False, validate_bool),
+        "manga_info_format": ("csv", convert_string_lowercase),
+        "manga_info_filepath": (
+            "{download_path}/manga_info.{manga_info_format}",
+            validate_dummy,
+        ),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

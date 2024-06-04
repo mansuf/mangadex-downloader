@@ -316,7 +316,7 @@ class Chapter:
         return name
 
 
-def iter_chapters_feed(manga_id, lang):
+def iter_chapters_feed(manga_id, lang=None):
     includes = ["scanlation_group", "user", "manga"]
     content_ratings = ["safe", "suggestive", "erotica", "pornographic"]
     offset = 0
@@ -330,9 +330,12 @@ def iter_chapters_feed(manga_id, lang):
             "offset": offset,
             "order[volume]": "asc",
             "order[chapter]": "asc",
-            "translatedLanguage[]": lang,
             "includeEmptyPages": 0,
         }
+
+        if lang:
+            params.update({"translatedLanguage[]": lang})
+
         r = Net.mangadex.get(f"{base_url}/manga/{manga_id}/feed", params=params)
         d = r.json()
 
@@ -373,7 +376,7 @@ class IteratorChapter:
 
         self.chapters = chapters
         self.manga = manga
-        self.language = lang
+        self.language = Language(lang)
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
         self.end_chapter = end_chapter
@@ -643,14 +646,14 @@ class IteratorChapter:
 
 
 class MangaChapter:
-    def __init__(self, manga, lang, chapter=None, all_chapters=False):
+    def __init__(self, manga, lang=None, chapter=None, all_chapters=False):
         if chapter and all_chapters:
             raise ValueError("chapter and all_chapters cannot be together")
         elif chapter is None and not all_chapters:
             raise ValueError("at least provide chapter or set all_chapters to True")
 
         self.chapters = []
-        self.language = Language(lang)
+        self.language = lang
         self.manga = manga
 
         if chapter:
@@ -660,7 +663,7 @@ class MangaChapter:
 
     def iter(self, *args, **kwargs):
         return IteratorChapter(
-            self.chapters, self.manga, self.language, *args, **kwargs
+            self.chapters, self.manga, Language(self.language), *args, **kwargs
         )
 
     def _parse_volumes_from_chapter(self, chapter):
@@ -672,7 +675,7 @@ class MangaChapter:
         self.chapters.append(chap)
 
     def _parse_volumes(self):
-        iterator = iter_chapters_feed(self.manga.id, self.language.value)
+        iterator = iter_chapters_feed(self.manga.id, self.language)
         self.chapters = map(Chapter.from_data, iterator)
 
         if not self.chapters:

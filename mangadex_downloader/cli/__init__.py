@@ -102,7 +102,6 @@ def _main(argv):
 
     # Other exception
     except Exception as e:
-        log.error("Unhandled exception, %s: %s" % (e.__class__.__name__, str(e)))
         traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
         return parser, 1, None
 

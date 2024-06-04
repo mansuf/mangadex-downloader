@@ -29,7 +29,7 @@ def _get_or_minus_one(x):
 
 
 def _split_text(text):
-    return comma_separated_text(text, no_bracket=True)
+    return comma_separated_text(text, use_bracket=False)
 
 
 class Placeholder:

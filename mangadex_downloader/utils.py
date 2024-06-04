@@ -114,11 +114,11 @@ def getpass_handle(*args, **kwargs):
         sys.exit(0)
 
 
-def comma_separated_text(array, no_bracket=False):
+def comma_separated_text(array, use_bracket=True):
     text = ""
 
     # Opening square bracket
-    if not no_bracket:
+    if use_bracket:
         text += "["
 
     # Append first item
@@ -132,7 +132,7 @@ def comma_separated_text(array, no_bracket=False):
         text += ", " + item
 
     # Closing square bracket
-    if not no_bracket:
+    if use_bracket:
         text += "]"
 
     return text
@@ -351,3 +351,16 @@ def get_key_value(text, sep="="):
     key = splitted[0].lower()
     value = "".join(splitted[1:])
     return key, value
+
+
+def create_manga_info(path, manga, replace):
+    from .config import config
+    from .manga import MangaInfo
+
+    log.debug(f"Writing file 'manga_info.{config.manga_info_format}'")
+
+    manga_info = MangaInfo(path, manga, replace)
+    manga_info.write()
+
+    log.debug("Download finished because --create-manga-info is present")
+    return manga

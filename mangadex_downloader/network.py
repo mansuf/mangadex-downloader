@@ -140,6 +140,7 @@ class requestsMangaDexSession(ModifiedSession):
         self.api_auth = auth_cls(self)
 
         # Not to be confused with `requests.Session.headers`
+        # See self._request() for more details
         self.api_headers = {"User-Agent": user_agent}
 
     def set_auth(self, auth_cls):

@@ -54,6 +54,7 @@ __all__ = (
     "load_env",
     "LazyLoadEnv",
     "ConfigTypeError",
+    "convert_string_lowercase",
 )
 
 log = logging.getLogger(__name__)
@@ -64,6 +65,13 @@ class ConfigTypeError(MangaDexException):
 
 
 # Utilities
+def convert_string_lowercase(val):
+    if isinstance(val, str):
+        return val.lower()
+    else:
+        return str(val).lower()
+
+
 def validate_bool(val):
     if isinstance(val, str):
         value = val.strip().lower()

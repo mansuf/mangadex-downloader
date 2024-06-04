@@ -50,3 +50,32 @@ def get_path(manga):
     )
 
     return config.path.format(**fmt_kwargs)
+
+
+def get_manga_info_filepath(manga):
+    from ..config import config
+
+    attributes = Placeholder.get_allowed_attributes(
+        file_ext=False, chapter=False, volume=False
+    )
+    fmt_kwargs = create_placeholders_kwargs(
+        manga, attributes=attributes, cli_option="--manga-info-filepath"
+    )
+
+    # Because this is modified placeholders
+    # in order for get_manga_info_filepath() to work
+    # We need to include some attributes before creating placeholders
+    # to prevent crashing (KeyError) when initialize Placeholder class
+    attributes["manga_info_format"] = None
+    attributes["download_path"] = None
+
+    fmt_kwargs["manga_info_format"] = Placeholder(
+        obj=config.manga_info_format,
+        name="manga_info_format",
+        allowed_attributes=attributes,
+    )
+    fmt_kwargs["download_path"] = Placeholder(
+        obj=get_path(manga), name="download_path", allowed_attributes=attributes
+    )
+
+    return config.manga_info_filepath.format(**fmt_kwargs)

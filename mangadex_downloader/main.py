@@ -28,6 +28,7 @@ from .utils import (
     create_directory,
     check_blacklisted_tags_manga,
     get_cover_art_url,
+    create_manga_info,
 )
 from .language import Language, get_language
 from .fetcher import get_legacy_id
@@ -128,6 +129,10 @@ def download(
             fd.download()
             fd.cleanup()
 
+        if config.create_manga_info:
+            create_manga_info(path, m, replace)
+            return manga
+
         m.tracker = get_tracker(save_as, path)
 
         fmt_class = get_format(save_as)
@@ -217,10 +222,16 @@ def download_chapter(
     manga = Manga(_id=chap.manga_id)
     manga.fetch_chapters(chap.language.value, chap)
 
+    path = get_path(manga)
+
+    if config.create_manga_info:
+        create_manga_info(path, manga, replace)
+        return manga
+
     log.info(f'Found chapter {chap.chapter} from manga "{manga.title}"')
 
     # Create folder for downloading
-    base_path = create_directory(manga.title, config.path)
+    base_path = create_directory("", path)
     log.info(f'Download directory is set to "{base_path.resolve()}"')
 
     kwargs_iter_chapter_images = {
@@ -320,6 +331,17 @@ def download_cover_art_manga(url, replace=False):
         raise MangaDexException(f"Cannot find matching cover from filename {filename}")
 
     manga = Manga(_id=cover.manga_id)
+
+    if config.create_manga_info:
+        manga.fetch_chapters(all_chapters=True)
+
+        # To avoid error when using placeholders in --path option
+        manga.chapters.language = Language(None)
+
+        path = create_directory("", path=get_path(manga))
+        create_manga_info(path, manga, replace)
+        return manga
+
     if cover.volume is None:
         cover_name = "No volume cover"
     else:
@@ -329,7 +351,7 @@ def download_cover_art_manga(url, replace=False):
     # Merge file ext with new filename
     _, file_ext = filename.split(".", maxsplit=1)
     filename = cover_name + "." + file_ext
-    base_path = create_directory(manga.title, path=config.path)
+    base_path = create_directory("", path=get_path(manga))
     path = base_path / filename
     log.info(f"Download directory is set to {base_path}")
 

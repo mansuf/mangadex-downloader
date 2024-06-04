@@ -193,6 +193,28 @@ def get_args(argv):
         action="store_true",
         help="Use alternative title and description manga",
     )
+    manga_group.add_argument(
+        "--create-manga-info",
+        "-cmi",
+        action="store_true",
+        help="Store manga information such as title, authors, artists, description, and tags "
+        "in a file called 'manga_info.csv'. By default this file will save to csv format you can change this in "
+        "--manga-info-format",
+        default=config.create_manga_info,
+    )
+    manga_group.add_argument(
+        "--manga-info-format",
+        "-mif",
+        help="Change file format for manga information file (manga_info.csv)",
+        choices=("csv", "json"),
+        default=config.manga_info_format,
+    )
+    manga_group.add_argument(
+        "--manga-info-filepath",
+        "-mip",
+        help="Change file location to store manga information. Default to './manga_info.{manga_info_format}'",
+        default=config.manga_info_filepath,
+    )
 
     # Group related
     group_group = parser.add_argument_group("Group")  # wtf group_group
