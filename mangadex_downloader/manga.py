@@ -321,7 +321,7 @@ class MangaInfo:
         else:
             self.write_to_json()
 
-    def _ensure_manga_data(self, existing_data: list[dict], data):
+    def _ensure_manga_data(self, existing_data, data):
         keys = []
         manga_info = None
         for row in existing_data:
