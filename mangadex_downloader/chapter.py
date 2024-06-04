@@ -661,6 +661,9 @@ class MangaChapter:
         elif all_chapters:
             self._parse_volumes()
 
+        if self.language is not None:
+            self.language = Language(lang)
+
     def iter(self, *args, **kwargs):
         return IteratorChapter(
             self.chapters, self.manga, Language(self.language), *args, **kwargs
