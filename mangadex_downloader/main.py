@@ -331,13 +331,12 @@ def download_cover_art_manga(url, replace=False):
         raise MangaDexException(f"Cannot find matching cover from filename {filename}")
 
     manga = Manga(_id=cover.manga_id)
+    manga.fetch_chapters(all_chapters=True)
+
+    # To avoid error when using placeholders in --path option
+    manga.chapters.language = Language(None)
 
     if config.create_manga_info:
-        manga.fetch_chapters(all_chapters=True)
-
-        # To avoid error when using placeholders in --path option
-        manga.chapters.language = Language(None)
-
         path = create_directory("", path=get_path(manga))
         create_manga_info(path, manga, replace)
         return manga
