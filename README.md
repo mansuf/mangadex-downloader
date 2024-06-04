@@ -24,6 +24,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
     - [Bundled executable version](#usage-bundled-executable-version)
 - [Contributing](#contributing)
 - [Donation](#donation)
+- [Support](#support)
 - [Links](#links)
 - [Disclaimer](#disclaimer)
 
@@ -161,6 +162,14 @@ If you like this project, please consider donate to one of these websites:
 - [Github Sponsor](https://github.com/sponsors/mansuf)
 
 Any donation amount will be appreciated 💖
+
+## Support <a id="support"></a>
+
+Need help ? Have questions or you just wanna chat ?
+
+[Come join to discord server](https://discord.gg/NENvQ5b5Pt)
+
+Please note, that the Discord server is really new and it doesn't have anything on it. So please be respect and kind.
 
 ## Links <a id="links"></a>
 
