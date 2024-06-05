@@ -13,6 +13,7 @@ env:
 
 jobs:
   docker:
+    name: Docker build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
