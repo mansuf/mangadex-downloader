@@ -26,10 +26,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
 
+      - name: Setup python (x86)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
+
       - name: Install required libraries
         run: |
-          pip install -U pip
-          pip install -U wheel pyinstaller setuptools cython
+          py -${{ matrix.python-version }}-64 -m pip install -U pip
+          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
+
+          py -${{ matrix.python-version }}-32 -m pip install -U pip
+          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
 
       - name: Test imports
         run: |
@@ -55,12 +64,6 @@ jobs:
 
       # Build mangadex-downloader with PyInstaller
       # only allow python 3.10
-
-      - name: Setup python (x86)
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x86
 
       - name: Compile script
         if: ${{ contains(env.python_version, '3.10') }}
