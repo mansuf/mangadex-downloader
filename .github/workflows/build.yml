@@ -42,26 +42,16 @@ jobs:
         run: |
           py -${{ matrix.python-version }}-64 -m pip install -U pip
           py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-64 -m pip install -U .[optional]
 
           py -${{ matrix.python-version }}-32 -m pip install -U pip
           py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-32 -m pip install -U .[optional]
 
       - name: Test imports
         run: |
-          # Setup for venv python 
-          Write-Output "Creating virtual environment"
-          python -m venv test_imports
-
-          # Enable virtual environment
-          Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass
-          .\test_imports\Scripts\Activate.ps1
-
-          # Install mangadex-downloader
-          Write-Output "Installing mangadex-downloader"
-          pip install .[optional]
-
-          Write-Output "Executing test imports"
-          python -m mangadex_downloader --version
+          # I..... have no idea for this
+          mangadex-dl --version
 
       - name: Get python version
         run: |
