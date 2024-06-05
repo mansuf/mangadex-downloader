@@ -7,10 +7,36 @@ on:
       - 'requirements-optional.txt'
       - 'docs/*'
 
+env:
+  TEST_TAG: mansuf/mangadex-downloader:test
+  LATEST_TAG: mansuf/mangadex-downloader:latest
 
 jobs:
-  build:
-    name: Build app & docs
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: ${{ env.TEST_TAG }}
+      
+      - name: Test
+        run: |
+          docker run --rm ${{ env.TEST_TAG }}
+
+  windows-build:
+    name: Build app & docs (Windows)
     runs-on: windows-latest
     strategy:
       matrix:
