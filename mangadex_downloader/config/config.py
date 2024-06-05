@@ -231,7 +231,7 @@ class _Config:
 
     def write(self, name, value):
         """Write config file with lock"""
-        if not config_enabled:
+        if not config_enabled and not self.no_read:
             raise MangaDexException(
                 "Config is not enabled. "
                 "You can enable it by set MANGADEXDL_CONFIG_ENABLED to 1"
