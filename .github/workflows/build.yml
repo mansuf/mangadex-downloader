@@ -26,12 +26,6 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@v3
 
-      - name: Setup python (x86)
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x86
-      
       - name: Setup python (x64)
         uses: actions/setup-python@v4
         with:
@@ -40,85 +34,39 @@ jobs:
 
       - name: Install required libraries
         run: |
-          py -${{ matrix.python-version }}-64 -m pip install -U pip
-          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools tox
-          # For building lxml
-          py -${{ matrix.python-version }}-64 -m pip install -U cython
-          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements.txt
-          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements-optional.txt
+          pip install -U pip
+          pip install -U wheel pyinstaller setuptools cython
 
-          py -${{ matrix.python-version }}-32 -m pip install -U pip
-          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools tox
-          # For building lxml
-          py -${{ matrix.python-version }}-32 -m pip install -U cython
-          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements.txt
-          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements-optional.txt
-
-      - name: Test imports (x64)
+      - name: Test imports
         run: |
-          # Setup for venv python x64
-          echo "Creating virtual environment"
-          py -${{ matrix.python-version }}-64 -m venv test_imports_x64
+          # Setup for venv python 
+          Write-Output "Creating virtual environment"
+          python -m venv test_imports
+
+          # Enable virtual environment
+          Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass
+          .\test_imports\Scripts\Activate.ps1
 
           # Install mangadex-downloader
-          echo "Installing mangadex-downloader"
-          & ".\test_imports_x64\Scripts\python.exe" setup.py build
-          Move-Item -Path ".\build\lib\mangadex_downloader" -Destination ".\test_imports_x64"
+          Write-Output "Installing mangadex-downloader"
+          pip install .[optional]
 
-          # Preparing
-          $venvbindir_x64 = ".\Scripts"
-          $pythonvenv_x64 = "${venvbindir_x64}\python.exe"
-          $pipvenv_x64 = "${venvbindir_x64}\pip.exe"
-          Copy-Item -Path ".\requirements-optional.txt" -Destination ".\test_imports_x64"
-          Copy-Item -Path ".\requirements.txt" -Destination ".\test_imports_x64"
-          cd "test_imports_x64"
-
-          # Install required libraries in venv x64
-          echo "Installing required libraries"
-          & "${pipvenv_x64}" install -U wheel
-          & "${pipvenv_x64}" install -U -r requirements-optional.txt
-          & "${pipvenv_x64}" install -U -r requirements.txt
-
-          # Execute test imports
-          echo "Executing test imports"
-          & "${pythonvenv_x64}" -m mangadex_downloader --version
-
-      - name: Test imports (x86)
-        run: |
-          # Setup for venv python x86
-          echo "Creating virtual environment"
-          py -${{ matrix.python-version }}-32 -m venv test_imports_x86
-
-          # Install mangadex-downloader
-          echo "Installing mangadex-downloader"
-          & ".\test_imports_x86\Scripts\python.exe" setup.py build
-          Move-Item -Path ".\build\lib\mangadex_downloader" -Destination ".\test_imports_x86"
-
-          # Preparing
-          $venvbindir_x86 = ".\Scripts"
-          $pythonvenv_x86 = "${venvbindir_x86}\python.exe"
-          $pipvenv_x86 = "${venvbindir_x86}\pip.exe"
-          Copy-Item -Path ".\requirements-optional.txt" -Destination ".\test_imports_x86"
-          Copy-Item -Path ".\requirements.txt" -Destination ".\test_imports_x86"
-          cd "test_imports_x86"
-
-          # Install required libraries in venv x86
-          echo "Installing required libraries"
-          & "${pipvenv_x86}" install -U wheel
-          & "${pipvenv_x86}" install -U -r requirements-optional.txt
-          & "${pipvenv_x86}" install -U -r requirements.txt
-
-          # Execute test imports
-          echo "Executing test imports"
-          & "${pythonvenv_x86}" -m mangadex_downloader --version
+          Write-Output "Executing test imports"
+          python -m mangadex_downloader --version
 
       - name: Get python version
         run: |
           $PythonVersion = (python --version)
-          echo "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Output "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # Build mangadex-downloader with PyInstaller
       # only allow python 3.10
+
+      - name: Setup python (x86)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
 
       - name: Compile script
         if: ${{ contains(env.python_version, '3.10') }}
