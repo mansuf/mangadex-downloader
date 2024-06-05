@@ -47,7 +47,5 @@ class Migration(SQLMigration):
 
             cursor.execute(cmd_script)
 
-        if self.db.in_transaction:
-            self.db.commit()
-
+        self.db.commit()
         cursor.close()
