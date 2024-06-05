@@ -22,6 +22,7 @@
 
 import logging
 import csv
+import io
 from enum import Enum
 from typing import List
 from pathlib import Path
@@ -358,24 +359,27 @@ class MangaInfo:
 
         # If the file exists, we copy all the data to memory and overwrite into the file
         if self.file_path.exists() and not self.replace:
-            with open(self.file_path, "r") as fp:
-                reader = csv.DictReader(fp)
-                for row in reader:
-                    existing_data.append(row)
+            fpreaddata = self.file_path.read_bytes().decode(errors="replace")
+            fpreadio = io.StringIO(fpreaddata)
+            reader = csv.DictReader(fpreadio)
+            for row in reader:
+                existing_data.append(row)
 
         # Remove all contents of the file
-        with open(self.file_path, "w", newline="") as fp:
-            writer = csv.DictWriter(fp, fieldnames=fieldnames)
-            writer.writeheader()
+        bytesfp = io.StringIO()
+        writer = csv.DictWriter(bytesfp, fieldnames=fieldnames)
+        writer.writeheader()
 
-            # Make sure we didn't duplicate data for current manga
-            # And if the manga info has already been written before
-            # we try to update it
-            self._ensure_manga_data(existing_data, data)
+        # Make sure we didn't duplicate data for current manga
+        # And if the manga info has already been written before
+        # we try to update it
+        self._ensure_manga_data(existing_data, data)
 
-            # Write the existing data into the file
-            for row in existing_data:
-                writer.writerow(row)
+        # Write the existing data into the file
+        for row in existing_data:
+            writer.writerow(row)
+
+        self.file_path.write_bytes(bytesfp.getvalue().encode())
 
     def write_to_json(self):
         existing_data = []
