@@ -1,6 +1,8 @@
 [![pypi-total-downloads](https://img.shields.io/pypi/dm/mangadex-downloader?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
+[![](https://dcbadge.limes.pink/api/server/NENvQ5b5Pt)](https://discord.gg/NENvQ5b5Pt)
+
 
 # mangadex-downloader
 
@@ -22,6 +24,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
     - [Bundled executable version](#usage-bundled-executable-version)
 - [Contributing](#contributing)
 - [Donation](#donation)
+- [Support](#support)
 - [Links](#links)
 - [Disclaimer](#disclaimer)
 
@@ -161,10 +164,19 @@ If you like this project, please consider donate to one of these websites:
 
 Any donation amount will be appreciated 💖
 
+## Support <a id="support"></a>
+
+Need help ? Have questions or you just wanna chat ?
+
+[Come join to discord server](https://discord.gg/NENvQ5b5Pt)
+
+Please note, that the Discord server is really new and it doesn't have anything on it. So please be respect and kind.
+
 ## Links <a id="links"></a>
 
 - [PyPI](https://pypi.org/project/mangadex-downloader/)
 - [Docs](https://mangadex-dl.mansuf.link)
+- [Discord Server (Mostly for questions and support)](https://discord.gg/NENvQ5b5Pt)
 
 ## Disclaimer <a id="disclaimer"></a>
 
