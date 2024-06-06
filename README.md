@@ -101,6 +101,16 @@ Steps:
 - That's it ! You have successfully install mangadex-downloader. 
 [See this instructions to run mangadex-downloader](#usage-bundled-executable-version)
 
+### Docker <a id="installation-docker"></a>
+
+Available at: https://hub.docker.com/repository/docker/mansuf/mangadex-downloader
+
+You wouldn't need to install optional dependencies as it's already installed in the docker image
+
+```sh
+docker pull mansuf/mangadex-downloader
+```
+
 ### Development version <a id="installation-development-version"></a>
 
 **NOTE:** You must have git installed. If you don't have it, install it from here https://git-scm.com/.
@@ -144,6 +154,14 @@ mangadex-dl.exe "insert MangaDex URL here"
 ```
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
+
+### Docker version <a id="usage-docker-version"></a>
+
+The downloaded files in the container are stored in `/downloads` directory
+
+```sh
+docker run --rm -v /home/sussyuser/sussymanga:/downloads mansuf/mangadex-downloader "insert MangaeDx URL"
+```
 
 For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_usage/index.html)
 
