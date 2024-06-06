@@ -9,7 +9,9 @@ on:
 
 env:
   TEST_TAG: mansuf/mangadex-downloader:test
+  TEST_OPTIONAL_TAG: mansuf/mangadex-downloader:test-optional
   LATEST_TAG: mansuf/mangadex-downloader:latest
+  LATEST_OPTIONAL_TAG: mansuf/mangadex-downloader:latest-optional
 
 jobs:
   docker:
@@ -31,10 +33,22 @@ jobs:
           context: .
           load: true
           tags: ${{ env.TEST_TAG }}
+
+      - name: Build and export to Docker (with optional dependencies)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.optional
+          load: true
+          tags: ${{ env.TEST_OPTIONAL_TAG }}
       
+      - name: Test docker image
+        run: |
+          docker run --rm ${{ env.TEST_TAG }}          
+
       - name: Test
         run: |
-          docker run --rm ${{ env.TEST_TAG }}
+          docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
 
   windows-build:
     name: Build app & docs (Windows)

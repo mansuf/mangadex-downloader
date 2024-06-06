@@ -1,0 +1,28 @@
+FROM python:3.11
+
+COPY . /app
+WORKDIR /app
+
+# Setup rust
+RUN apt update && apt install wget
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH \
+    RUST_VERSION=1.78.0
+RUN wget https://sh.rustup.rs -O rustup.sh
+RUN chmod +x ./rustup.sh
+RUN ./rustup.sh -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION
+RUN chmod -R a+w $RUSTUP_HOME $CARGO_HOME;
+RUN rustup --version; 
+RUN cargo --version;
+RUN rustc --version;
+
+# Install mangadex-downloader
+RUN pip install --upgrade pip
+RUN pip install .[optional]
+
+WORKDIR /downloads
+
+ENTRYPOINT [ "mangadex-downloader" ]
+
+CMD [ "--help" ]

@@ -8,7 +8,10 @@ on:
 
 env:
   TEST_TAG: mansuf/mangadex-downloader:test
+  TEST_OPTIONAL_TAG: mansuf/mangadex-downloader:test-optional
   LATEST_TAG: mansuf/mangadex-downloader:latest
+  LATEST_OPTIONAL_TAG: mansuf/mangadex-downloader:latest-optional
+
 
 jobs:
   docker:
@@ -36,13 +39,25 @@ jobs:
           context: .
           load: true
           tags: ${{ env.TEST_TAG }}
+
+      - name: Build and export to Docker (with optional dependencies)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.optional
+          load: true
+          tags: ${{ env.TEST_OPTIONAL_TAG }}
       
-      - name: Test
+      - name: Test docker image
         run: |
           docker run --rm ${{ env.TEST_TAG }}          
 
+      - name: Test
+        run: |
+          docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
+
       - name: Update Docker Hub description
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -51,7 +66,7 @@ jobs:
           short-description: ${{ github.event.repository.description }}
 
       - name: Build and push
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -63,6 +78,23 @@ jobs:
           tags: |
             ${{ env.LATEST_TAG }}
             mansuf/mangadex-downloader:${{ github.ref_name }}
+            mansuf/mangadex-downloader:v2.10.3
+
+      - name: Build and push (with optional dependencies)
+        # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.optional
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/arm/v7
+          push: true
+          tags: |
+            ${{ env.LATEST_OPTIONAL_TAG }}
+            mansuf/mangadex-downloader:${{ github.ref_name }}-optional
+            mansuf/mangadex-downloader:v2.10.3-optional
 
   windows-build:
     name: Build app & docs (Windows)
