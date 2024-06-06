@@ -107,10 +107,15 @@ Steps:
 
 Available at: https://hub.docker.com/repository/docker/mansuf/mangadex-downloader
 
-You wouldn't need to install optional dependencies as it's already installed in the docker image
-
 ```sh
 docker pull mansuf/mangadex-downloader
+```
+
+If you want to get optional features such as `EPUB` support, `cb7` support, etc.
+You might wanna use `latest-optional` tag
+
+```sh
+docker pull mansuf/mangadex-downloader:latest-optional
 ```
 
 ### Development version <a id="installation-development-version"></a>
