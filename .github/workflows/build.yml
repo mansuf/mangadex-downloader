@@ -42,7 +42,7 @@ jobs:
           docker run --rm ${{ env.TEST_TAG }}          
 
       - name: Update Docker Hub description
-        # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -51,7 +51,7 @@ jobs:
           short-description: ${{ github.event.repository.description }}
 
       - name: Build and push
-        # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -63,7 +63,6 @@ jobs:
           tags: |
             ${{ env.LATEST_TAG }}
             mansuf/mangadex-downloader:${{ github.ref_name }}
-            mansuf/mangadex-downloader:v2.10.3
 
   windows-build:
     name: Build app & docs (Windows)
