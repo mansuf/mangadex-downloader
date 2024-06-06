@@ -63,9 +63,11 @@ jobs:
         run: |
           py -${{ matrix.python-version }}-64 -m pip install -U pip
           py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-64 -m pip install -U .[optional]
 
           py -${{ matrix.python-version }}-32 -m pip install -U pip
           py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-32 -m pip install -U .[optional]
 
       - name: Test imports
         run: |
