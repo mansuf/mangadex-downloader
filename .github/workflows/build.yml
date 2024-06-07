@@ -65,21 +65,21 @@ jobs:
           repository: mansuf/mangadex-downloader
           short-description: ${{ github.event.repository.description }}
 
-      - name: Build and push
-        # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: |
-            linux/amd64
-            linux/arm64
-            linux/arm/v7
-            linux/arm/v6
-          push: true
-          tags: |
-            ${{ env.LATEST_TAG }}
-            mansuf/mangadex-downloader:${{ github.ref_name }}
-            mansuf/mangadex-downloader:v2.10.3
+      # - name: Build and push
+      #   # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     platforms: |
+      #       linux/amd64
+      #       linux/arm64
+      #       linux/arm/v7
+      #       linux/arm/v6
+      #     push: true
+      #     tags: |
+      #       ${{ env.LATEST_TAG }}
+      #       mansuf/mangadex-downloader:${{ github.ref_name }}
+      #       mansuf/mangadex-downloader:v2.10.3
 
       - name: Build and push (with optional dependencies)
         # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
@@ -92,7 +92,7 @@ jobs:
             linux/arm64
             linux/arm/v7
             linux/arm/v6
-          push: true
+          # push: true
           tags: |
             ${{ env.LATEST_OPTIONAL_TAG }}
             mansuf/mangadex-downloader:${{ github.ref_name }}-optional

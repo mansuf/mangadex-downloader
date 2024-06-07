@@ -3,6 +3,10 @@ FROM python:3.11
 COPY . /app
 WORKDIR /app
 
+# Workaround for arm/v6
+RUN export "ARCHITECTURE=$(lscpu | grep Architecture | sed -e 's/Architecture:\s//g')"
+RUN if [[ $ARCHITECTURE == "arm/v6" ]]; then echo "arm/v6 architecture"; fi
+
 # Setup rust
 RUN apt update && apt install wget
 ENV RUSTUP_HOME=/usr/local/rustup \
