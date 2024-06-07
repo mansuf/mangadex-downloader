@@ -52,7 +52,7 @@ jobs:
         run: |
           docker run --rm ${{ env.TEST_TAG }}          
 
-      - name: Test
+      - name: Test docker image (with optional dependencies)
         run: |
           docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
 
@@ -74,6 +74,7 @@ jobs:
             linux/amd64
             linux/arm64
             linux/arm/v7
+            linux/arm/v6
           push: true
           tags: |
             ${{ env.LATEST_TAG }}
