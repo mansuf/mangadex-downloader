@@ -6,6 +6,7 @@ export ARCHITECTURE=$(lscpu | grep Architecture | sed -e 's/Architecture:\s//g')
 export CPU_FLAGS=$(lscpu | grep Flags | sed -e 's/Flags:\s//g')
 echo $ARCHITECTURE
 echo $CPU_FLAGS
+echo find / -iname "libgcc_s.so.1"
 
 # https://stackoverflow.com/a/52832543
 # Thank you stackoverflow
