@@ -105,7 +105,7 @@ Steps:
 
 ### Docker <a id="installation-docker"></a>
 
-Available at: https://hub.docker.com/repository/docker/mansuf/mangadex-downloader
+Available at: https://hub.docker.com/r/mansuf/mangadex-downloader
 
 ```sh
 docker pull mansuf/mangadex-downloader
