@@ -14,7 +14,11 @@ apt-get install libc6-armhf-cross
 ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /lib/ld-linux-armhf.so.3
 
 # https://askubuntu.com/a/574174
-apt-get install gcc-multilib
+# apt-get install gcc-multilib
+
+# https://github.com/zabbix/zabbix-docker/issues/1086
+apt-get install libgcc
+
 
 # export LD_LIBRARY_PATH=/usr/arm-linux-gnueabihf/lib
 # export QEMU_LD_PREFIX=/usr/arm-linux-gnueabi
