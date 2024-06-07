@@ -52,7 +52,7 @@ jobs:
         run: |
           docker run --rm ${{ env.TEST_TAG }}          
 
-      - name: Test
+      - name: Test docker image (with optional dependencies)
         run: |
           docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
 
