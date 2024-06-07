@@ -112,10 +112,11 @@ docker pull mansuf/mangadex-downloader
 ```
 
 If you want to get optional features such as `EPUB` support, `cb7` support, etc.
-You might wanna use `latest-optional` tag
+You might wanna use tag ending with `-optional`
 
 ```sh
 docker pull mansuf/mangadex-downloader:latest-optional
+docker pull mansuf/mangadex-downloader:v2.10.3-optional
 ```
 
 ### Development version <a id="installation-development-version"></a>
