@@ -5,6 +5,7 @@ WORKDIR /app
 
 # Workaround for arm/v6
 RUN export "ARCHITECTURE=$(lscpu | grep Architecture | sed -e 's/Architecture:\s//g')"
+RUN echo $ARCHITECTURE
 RUN if [[ $ARCHITECTURE == "arm/v6" ]]; then echo "arm/v6 architecture"; fi
 
 # Setup rust
