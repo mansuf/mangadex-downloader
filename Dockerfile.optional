@@ -3,11 +3,8 @@ FROM python:3.11
 COPY . /app
 WORKDIR /app
 
-# Workaround for arm/v6
-RUN chmod +x ./arm_v6_workaround.sh
-RUN ./arm_v6_workaround.sh
-
 # Setup rust
+RUN apt update && apt install wget
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
