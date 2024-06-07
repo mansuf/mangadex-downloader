@@ -7,12 +7,17 @@ export CPU_FLAGS=$(lscpu | grep Flags | sed -e 's/Flags:\s//g')
 echo $ARCHITECTURE
 echo $CPU_FLAGS
 
-# echo $ARCHITECTURE
-apt update
-apt install libc6-armhf-cross
+# https://stackoverflow.com/a/52832543
+# Thank you stackoverflow
+apt-get update
+apt-get install libc6-armhf-cross
+ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /lib/ld-linux-armhf.so.3
+
+# https://askubuntu.com/a/574174
+apt-get install gcc-multilib
+
 # export LD_LIBRARY_PATH=/usr/arm-linux-gnueabihf/lib
 # export QEMU_LD_PREFIX=/usr/arm-linux-gnueabi
-ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /lib/ld-linux-armhf.so.3
 # if [ $ARCHITECTURE = "armv7l" ] && ! [[ $CPU_FLAGS =~ "v_vmsave_vmlo" ]]; then 
 #     apt install libc6-armhf-cross
 #     export LD_LIBRARY_PATH=/usr/arm-linux-gnueabihf/lib
