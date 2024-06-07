@@ -88,6 +88,7 @@ jobs:
           context: .
           file: Dockerfile.optional
           platforms: |
+            linux/arm/v7
             linux/arm/v6
           # push: true
           tags: |
