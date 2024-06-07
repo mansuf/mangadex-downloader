@@ -17,7 +17,7 @@ ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /lib/ld-linux-armhf.so.3
 # apt-get install gcc-multilib
 
 # https://github.com/zabbix/zabbix-docker/issues/1086
-apt-get install libgcc
+apt-get install libgcc-12-dev
 
 
 # export LD_LIBRARY_PATH=/usr/arm-linux-gnueabihf/lib
