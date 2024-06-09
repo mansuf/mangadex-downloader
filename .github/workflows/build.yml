@@ -6,9 +6,97 @@ on:
     tags:
       - v*
 
+env:
+  TEST_TAG: mansuf/mangadex-downloader:test
+  TEST_OPTIONAL_TAG: mansuf/mangadex-downloader:test-optional
+  LATEST_TAG: mansuf/mangadex-downloader:latest
+  LATEST_OPTIONAL_TAG: mansuf/mangadex-downloader:latest-optional
+
+
 jobs:
-  build:
-    name: Build app
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_SECRET_TOKEN }}
+      
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: ${{ env.TEST_TAG }}
+
+      - name: Build and export to Docker (with optional dependencies)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.optional
+          load: true
+          tags: ${{ env.TEST_OPTIONAL_TAG }}
+      
+      - name: Test docker image
+        run: |
+          docker run --rm ${{ env.TEST_TAG }}          
+
+      - name: Test docker image (with optional dependencies)
+        run: |
+          docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
+
+      - name: Update Docker Hub description
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_SECRET_TOKEN }}
+          repository: mansuf/mangadex-downloader
+          short-description: ${{ github.event.repository.description }}
+
+      - name: Build and push
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/arm/v7
+            linux/arm/v6
+          push: true
+          tags: |
+            ${{ env.LATEST_TAG }}
+            mansuf/mangadex-downloader:${{ github.ref_name }}
+
+      - name: Build and push (with optional dependencies)
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.optional
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/arm/v7
+          push: true
+          tags: |
+            ${{ env.LATEST_OPTIONAL_TAG }}
+            mansuf/mangadex-downloader:${{ github.ref_name }}-optional
+
+  windows-build:
+    name: Build app & docs (Windows)
     runs-on: windows-latest
     strategy:
       matrix:
@@ -26,99 +114,46 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@v3
 
-      - name: Setup python (x86)
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x86
-      
       - name: Setup python (x64)
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
 
+      - name: Setup python (x86)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
+
       - name: Install required libraries
         run: |
           py -${{ matrix.python-version }}-64 -m pip install -U pip
-          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools tox
-          # For building lxml
-          py -${{ matrix.python-version }}-64 -m pip install -U cython
-          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements.txt
-          py -${{ matrix.python-version }}-64 -m pip install -U -r requirements-optional.txt
+          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-64 -m pip install -U .[optional]
 
           py -${{ matrix.python-version }}-32 -m pip install -U pip
-          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools tox
-          # For building lxml
-          py -${{ matrix.python-version }}-32 -m pip install -U cython
-          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements.txt
-          py -${{ matrix.python-version }}-32 -m pip install -U -r requirements-optional.txt
+          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-32 -m pip install -U .[optional]
 
-      - name: Test imports (x64)
+      - name: Test imports
         run: |
-          # Setup for venv python x64
-          echo "Creating virtual environment"
-          py -${{ matrix.python-version }}-64 -m venv test_imports_x64
-
-          # Install mangadex-downloader
-          echo "Installing mangadex-downloader"
-          & ".\test_imports_x64\Scripts\python.exe" setup.py build
-          Move-Item -Path ".\build\lib\mangadex_downloader" -Destination ".\test_imports_x64"
-
-          # Preparing
-          $venvbindir_x64 = ".\Scripts"
-          $pythonvenv_x64 = "${venvbindir_x64}\python.exe"
-          $pipvenv_x64 = "${venvbindir_x64}\pip.exe"
-          Copy-Item -Path ".\requirements-optional.txt" -Destination ".\test_imports_x64"
-          Copy-Item -Path ".\requirements.txt" -Destination ".\test_imports_x64"
-          cd "test_imports_x64"
-
-          # Install required libraries in venv x64
-          echo "Installing required libraries"
-          & "${pipvenv_x64}" install -U wheel
-          & "${pipvenv_x64}" install -U -r requirements-optional.txt
-          & "${pipvenv_x64}" install -U -r requirements.txt
-
-          # Execute test imports
-          echo "Executing test imports"
-          & "${pythonvenv_x64}" -m mangadex_downloader --version
-
-      - name: Test imports (x86)
-        run: |
-          # Setup for venv python x86
-          echo "Creating virtual environment"
-          py -${{ matrix.python-version }}-32 -m venv test_imports_x86
-
-          # Install mangadex-downloader
-          echo "Installing mangadex-downloader"
-          & ".\test_imports_x86\Scripts\python.exe" setup.py build
-          Move-Item -Path ".\build\lib\mangadex_downloader" -Destination ".\test_imports_x86"
-
-          # Preparing
-          $venvbindir_x86 = ".\Scripts"
-          $pythonvenv_x86 = "${venvbindir_x86}\python.exe"
-          $pipvenv_x86 = "${venvbindir_x86}\pip.exe"
-          Copy-Item -Path ".\requirements-optional.txt" -Destination ".\test_imports_x86"
-          Copy-Item -Path ".\requirements.txt" -Destination ".\test_imports_x86"
-          cd "test_imports_x86"
-
-          # Install required libraries in venv x86
-          echo "Installing required libraries"
-          & "${pipvenv_x86}" install -U wheel
-          & "${pipvenv_x86}" install -U -r requirements-optional.txt
-          & "${pipvenv_x86}" install -U -r requirements.txt
-
-          # Execute test imports
-          echo "Executing test imports"
-          & "${pythonvenv_x86}" -m mangadex_downloader --version
+          # I..... have no idea for this
+          mangadex-dl --version
 
       - name: Get python version
         run: |
           $PythonVersion = (python --version)
-          echo "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Output "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # Build mangadex-downloader with PyInstaller
       # only allow python 3.10
+
+      - name: Setup python (x86)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
 
       - name: Compile script
         if: ${{ contains(env.python_version, '3.10') }}
@@ -210,4 +245,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
