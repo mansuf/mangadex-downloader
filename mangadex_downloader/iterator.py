@@ -457,7 +457,7 @@ def iter_random_manga(**filters):
 class CoverArtIterator(BaseIterator):
     cache = {}
 
-    def __init__(self, manga_id):
+    def __init__(self, manga_id, language_override=None):
         super().__init__()
 
         self.limit = 100
@@ -466,6 +466,16 @@ class CoverArtIterator(BaseIterator):
         if self.cache.get(manga_id) is None:
             # Data is not cached
             self.cache[manga_id] = []
+
+        self.language = None
+
+        if language_override:
+            self.language = language_override
+        else:
+            vol_cover_lang = config.volume_cover_language
+            cover_locale = vol_cover_lang if vol_cover_lang else config.language
+
+            self.language = cover_locale
 
     def _make_cache_iterator(self):
         for item in self.cache.get(self.manga_id):
@@ -485,9 +495,6 @@ class CoverArtIterator(BaseIterator):
         if self.cache.get(self.manga_id):
             return
 
-        vol_cover_lang = config.volume_cover_language
-        cover_locale = vol_cover_lang if vol_cover_lang else config.language
-
         # One-shot filling covers in single function call
         # So cache can be used
         while True:
@@ -497,8 +504,8 @@ class CoverArtIterator(BaseIterator):
                 "limit": self.limit,
             }
 
-            if cover_locale != "all":
-                params.update({"locales[]": cover_locale})
+            if self.language != "all" and self.language is not None:
+                params.update({"locales[]": self.language})
 
             url = f"{base_url}/cover"
             r = Net.mangadex.get(url, params=params)

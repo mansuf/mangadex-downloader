@@ -29,6 +29,7 @@ import time
 
 from enum import Enum
 from .chinfo import get_chapter_info as get_chinfo
+from ..language import Language
 from ..downloader import FileDownloader
 from ..utils import get_cover_art_url
 from .. import __repository__, __url_repository__, json_op
@@ -66,17 +67,39 @@ def get_volume_cover(manga, volume, path, replace, download=True):
 
         return volume == cover.volume
 
-    f = filter(find_volume_cover, CoverArtIterator(manga.id))
+    cover_art_iter_kwargs = [
+        # Fix default volume covers behaviour
+        # See https://github.com/mansuf/mangadex-downloader/issues/105
+        {"language_override": None},  # --volume-cover-language or --language
+        {
+            "language_override": manga.original_language.value,
+        },  # volume cover from manga original language
+        {
+            "language_override": "all",
+        },  # Volume cover from any languages that exists
+    ]
 
-    try:
-        cover = next(f)
-    except StopIteration:
-        if download:
-            pbm.logger.warning(
-                f"Failed to find volume cover for volume {volume}. "
-                "Falling back to manga cover..."
-            )
-        cover = manga.cover
+    cover = None
+    for kwargs in cover_art_iter_kwargs:
+        kwargs["manga_id"] = manga.id
+        iterator = CoverArtIterator(**kwargs)
+        f = filter(find_volume_cover, iterator)
+
+        try:
+            cover = next(f)
+        except StopIteration:
+            lang = Language(iterator.language)
+            log.debug(f"Failed to find volume cover in {lang.name} language")
+            continue
+        else:
+            break
+
+    if download and cover is None:
+        pbm.logger.warning(
+            f"Failed to find volume cover for volume {volume}. "
+            "Falling back to manga cover..."
+        )
+    cover = manga.cover
 
     url = get_cover_art_url(manga.id, cover, "original")
 

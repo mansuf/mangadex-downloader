@@ -124,6 +124,11 @@ class Manga:
         return self._title
 
     @property
+    def original_language(self):
+        """:class:`str`: Return original language of the manga"""
+        return Language(self._attr.get("originalLanguage"))
+
+    @property
     def alternative_titles(self):
         """List[:class:`str`]: List of alternative titles"""
         titles = self._attr.get("altTitles")
