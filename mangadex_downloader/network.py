@@ -143,6 +143,10 @@ class requestsMangaDexSession(ModifiedSession):
         # See self._request() for more details
         self.api_headers = {"User-Agent": user_agent}
 
+        # This was used to debug request if something happened
+        # and report it to MangaDex
+        self.last_request_id = None
+
     def set_auth(self, auth_cls):
         self.api_auth = auth_cls(self)
 
@@ -267,10 +271,11 @@ class requestsMangaDexSession(ModifiedSession):
         return resp
 
     # Ratelimit handler
-    def request(self, *args, **kwargs):
+    def request(self, method, url, *args, **kwargs):
         attempt = 1
         resp = None
         retries = self.config.http_retries
+        netloc = _get_netloc(url)
 
         if isinstance(retries, int):
             iterator = range(retries)
@@ -278,7 +283,7 @@ class requestsMangaDexSession(ModifiedSession):
             iterator = itertools.count()
 
         for _ in iterator:
-            resp = self._request(attempt, *args, **kwargs)
+            resp = self._request(attempt, method, url, *args, **kwargs)
 
             if self.delay:
                 delay = self.delay
@@ -294,10 +299,20 @@ class requestsMangaDexSession(ModifiedSession):
                 time.sleep(delay)
 
             if resp is not None:
+                self.last_request_id = resp.headers.get("X-Request-ID", None)
                 return resp
 
             attempt += 1
             continue
+
+        request_id = (
+            resp.headers.get("X-Request-ID", self.last_request_id)
+            if resp
+            else self.last_request_id
+        )
+        pbm.logger.debug(
+            f"Request to {netloc!r} failed, Last successful request ID = {request_id!r}"
+        )
 
         if resp is not None and resp.status_code >= 500:
             # 5 attempts request failed caused by server error
