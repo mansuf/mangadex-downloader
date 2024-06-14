@@ -23,6 +23,7 @@
 import logging
 import queue
 from pathvalidate import sanitize_filename
+from typing import List
 
 from .user import User
 from .language import Language
@@ -35,7 +36,7 @@ from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config, env
-from .utils import convert_int_or_float, get_local_attr
+from .utils import convert_int_or_float, get_local_attr, convert_start_end_from_negative
 from .progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
@@ -115,6 +116,11 @@ class ChapterImages:
 
         quality_mode = "data-saver" if self.data_saver else "data"
         images = self._low_images if self.data_saver else self._images
+
+        # Convert range numbers if it's negative
+        self.start_page, self.end_page = convert_start_end_from_negative(
+            self.start_page, self.end_page, range(1, len(images) + 1)
+        )
 
         page = 1
         for img in images:
@@ -374,7 +380,7 @@ class IteratorChapter:
                 "_range and (start_* or end_* or no_oneshot) cannot be together"
             )
 
-        self.chapters = chapters
+        self.chapters: List[Chapter] = chapters
         self.manga = manga
         self.language = Language(lang)
         self.queue = queue.Queue()
@@ -387,6 +393,11 @@ class IteratorChapter:
         self.all_group = False
         self.legacy_range = legacy_range
         self.duplicates = {}
+
+        # Convert the numbers if it's negative
+        self.start_chapter, self.end_chapter = convert_start_end_from_negative(
+            self.start_chapter, self.end_chapter, [i.chapter for i in self.chapters]
+        )
 
         if _range is not None:
             # self.range = range_mod.compile(_range)
@@ -679,7 +690,7 @@ class MangaChapter:
 
     def _parse_volumes(self):
         iterator = iter_chapters_feed(self.manga.id, self.language)
-        self.chapters = map(Chapter.from_data, iterator)
+        self.chapters.extend(map(Chapter.from_data, iterator))
 
         if not self.chapters:
             raise ChapterNotFound(

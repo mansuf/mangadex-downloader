@@ -51,6 +51,27 @@ def check_conflict_options(args, parser):
     if args.ignore_missing_chapters and args.no_track:
         parser.error("--ignore-missing-chapters cannot be used when --no-track is set")
 
+    if args.group and args.no_group_name:
+        raise MangaDexException("--group cannot be used together with --no-group-name")
+
+    if args.start_chapter is not None and args.end_chapter is not None:
+        if args.start_chapter > args.end_chapter:
+            raise MangaDexException("--start-chapter cannot be more than --end-chapter")
+
+        if args.start_chapter < 0 and args.end_chapter >= 0:
+            raise MangaDexException(
+                "--end-chapter cannot be positive number while --start-chapter is negative number"
+            )
+
+    if args.start_page is not None and args.end_page is not None:
+        if args.start_page > args.end_page:
+            raise MangaDexException("--start-page cannot be more than --end-page")
+
+        if args.start_page < 0 and args.end_page >= 0:
+            raise MangaDexException(
+                "--end-page cannot be positive number while --start-page is negative number"
+            )
+
 
 def _main(argv):
     parser = None

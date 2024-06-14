@@ -364,3 +364,43 @@ def create_manga_info(path, manga, replace):
 
     log.debug("Download finished because --create-manga-info is present")
     return manga
+
+
+def convert_start_end_from_negative(start_num, end_num, data):
+    """Convert start and end numbers from negative to positive
+
+    Use cases:
+    - "--start-chapter"
+    - "--end-chapter"
+    - "--start-page"
+    - "--end-page"
+    """
+
+    if start_num is None and end_num is None:
+        return start_num, end_num
+
+    if start_num is None:
+        start_num = 0
+    if end_num is None:
+        end_num = 0
+
+    if start_num >= 0 and end_num >= 0:
+        return start_num, end_num
+
+    start_num = convert_int_or_float(start_num)
+    end_num = convert_int_or_float(end_num)
+
+    # Remove chapters from last index to beginning that is not numbers
+    # to make sure we can use legacy range chapters and pages
+    # We don't need to sorting the array, because that's been already done
+    # in mangadex_downloader.chapter.IteratorChapter._fill_data()
+    filtered_data = []
+    for num in data:
+        try:
+            a = convert_int_or_float(num)
+        except ValueError:
+            continue
+        else:
+            filtered_data.append(a)
+
+    return filtered_data[start_num], filtered_data[end_num]

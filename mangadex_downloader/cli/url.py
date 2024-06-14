@@ -57,17 +57,6 @@ log = logging.getLogger(__name__)
 def download_manga(url, args, legacy=False):
     check_group_all(args)
 
-    if args.group and args.no_group_name:
-        raise MangaDexException("--group cannot be used together with --no-group-name")
-
-    if args.start_chapter is not None and args.end_chapter is not None:
-        if args.start_chapter > args.end_chapter:
-            raise MangaDexException("--start-chapter cannot be more than --end-chapter")
-
-    if args.start_page is not None and args.end_page is not None:
-        if args.start_page > args.end_page:
-            raise MangaDexException("--start-page cannot be more than --end-page")
-
     # We cannot allow if --range and other range options (such as: --start-chapter) together
     range_forbidden_args = {
         "start_chapter": "--start-chapter",
