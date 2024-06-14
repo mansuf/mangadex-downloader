@@ -518,6 +518,12 @@ def get_args(argv):
         help="Disable download tracking. "
         "NOTE: If you enable this, the application will not verify images and chapters. ",
     )
+    misc_group.add_argument(
+        "--no-metadata",
+        action="store_true",
+        default=config.no_metadata,
+        help="Disable metadata creation (ComicInfo.xml) in any cbz format (cbz, cbz-volume, cbz-single)",
+    )
 
     console_group = parser.add_argument_group("Console output")
     console_group.add_argument(

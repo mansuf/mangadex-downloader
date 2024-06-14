@@ -111,6 +111,7 @@ class _Config:
             "{download_path}/manga_info.{manga_info_format}",
             validate_dummy,
         ),
+        "no_metadata": (False, validate_bool),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

@@ -184,6 +184,12 @@ class CBZFile:
             count.increase()
 
     def insert_comic_info_xml(self, zip_obj, *args, **kwargs):
+        if self.config.no_metadata:
+            pbm.logger.debug(
+                "Not creating metadata for cbz format because --no-metadata is set"
+            )
+            return
+
         # Generate 'ComicInfo.xml' data
         xml_data = generate_Comicinfo(self.manga, *args, **kwargs)
 
