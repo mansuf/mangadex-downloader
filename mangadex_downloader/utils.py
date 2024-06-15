@@ -376,13 +376,8 @@ def convert_start_end_from_negative(start_num, end_num, data):
     - "--end-page"
     """
 
-    if start_num is None and end_num is None:
+    if start_num is None or end_num is None:
         return start_num, end_num
-
-    if start_num is None:
-        start_num = 0
-    if end_num is None:
-        end_num = 0
 
     if start_num >= 0 and end_num >= 0:
         return start_num, end_num
