@@ -145,8 +145,8 @@ jobs:
             linux/arm/v6
           push: true
           tags: |
-            n3n5b0s8/mangadex-downloader:latest
-            n3n5b0s8/mangadex-downloader:${{ github.ref_name }}
+            public.ecr.aws/n3n5b0s8/mangadex-downloader:latest
+            public.ecr.aws/n3n5b0s8/mangadex-downloader:${{ github.ref_name }}
           # tags: |
           #   ${{ env.LATEST_TAG }}
           #   mansuf/mangadex-downloader:${{ github.ref_name }}
@@ -162,8 +162,8 @@ jobs:
             linux/arm/v7
           push: true
           tags: |
-            n3n5b0s8/mangadex-downloader:latest-optional
-            n3n5b0s8/mangadex-downloader:${{ github.ref_name }}-optional
+            public.ecr.aws/n3n5b0s8/mangadex-downloader:latest-optional
+            public.ecr.aws/n3n5b0s8/mangadex-downloader:${{ github.ref_name }}-optional
           # tags: |
           #   ${{ env.LATEST_OPTIONAL_TAG }}
           #   mansuf/mangadex-downloader:${{ github.ref_name }}-optional
