@@ -308,8 +308,12 @@ def validate_progress_bar_layout(val):
 
 
 def validate_stacked_progress_bar_order(val):
-    values = (i.strip() for i in val.split(","))
-    values = [value for value in values if value]
+    if isinstance(val, str):
+        values = (i.strip() for i in val.split(","))
+        values = [value for value in values if value]
+    else:
+        values = val
+
     for value in values:
         if value not in progress_bar_manager.valid_types_order:
             raise ConfigTypeError(f"'{val}' is not valid stacked progress bar order")
