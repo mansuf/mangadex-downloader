@@ -9,9 +9,10 @@ on:
 env:
   TEST_TAG: mansuf/mangadex-downloader:test
   TEST_OPTIONAL_TAG: mansuf/mangadex-downloader:test-optional
-  LATEST_TAG: mansuf/mangadex-downloader:latest
-  LATEST_OPTIONAL_TAG: mansuf/mangadex-downloader:latest-optional
-
+  DOCKERHUB_LATEST_TAG: mansuf/mangadex-downloader:latest
+  DOCKERHUB_LATEST_OPTIONAL_TAG: mansuf/mangadex-downloader:latest-optional
+  AWS_ECR_LATEST_TAG: public.ecr.aws/n3n5b0s8/mangadex-downloader:latest
+  AWS_ECR_LATEST_OPTIONAL_TAG: public.ecr.aws/n3n5b0s8/mangadex-downloader:latest-optional
 
 jobs:
   docker-build-test:
@@ -87,7 +88,7 @@ jobs:
             linux/arm/v6
           push: true
           tags: |
-            ${{ env.LATEST_TAG }}
+            ${{ env.DOCKERHUB_LATEST_TAG }}
             mansuf/mangadex-downloader:${{ github.ref_name }}
 
       - name: Build and push (with optional dependencies)
@@ -101,13 +102,13 @@ jobs:
             linux/arm/v7
           push: true
           tags: |
-            ${{ env.LATEST_OPTIONAL_TAG }}
+            ${{ env.DOCKERHUB_LATEST_OPTIONAL_TAG }}
             mansuf/mangadex-downloader:${{ github.ref_name }}-optional
 
   docker-aws-ecr-build-and-push:
     name: Docker build and push (public.ecr.aws)
     runs-on: ubuntu-latest
-    # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+    if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -136,11 +137,8 @@ jobs:
             linux/arm/v6
           push: true
           tags: |
-            public.ecr.aws/n3n5b0s8/mangadex-downloader:v2.10.3
-          # tags: |
-          #   ${{ env.LATEST_TAG }}
-          #   public.ecr.aws/n3n5b0s8/mangadex-downloader:latest
-          #   public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}
+            ${{ env.AWS_ECR_LATEST_TAG }}
+            public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}
 
       - name: Build and push (with optional dependencies)
         uses: docker/build-push-action@v5
@@ -153,159 +151,156 @@ jobs:
             linux/arm/v7
           push: true
           tags: |
-            public.ecr.aws/n3n5b0s8/mangadex-downloader:v2.10.3-optional
-          # tags: |
-          #   ${{ env.LATEST_OPTIONAL_TAG }}
-          #   public.ecr.aws/n3n5b0s8/mangadex-downloader:latest-optional
-          #   public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}-optional
+            ${{ env.AWS_ECR_LATEST_OPTIONAL_TAG  }}
+            public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}-optional
 
-  # windows-build:
-  #   name: Build app & docs (Windows)
-  #   runs-on: windows-latest
-  #   strategy:
-  #     matrix:
-  #       python-version: [ '3.8', '3.9', '3.10' ]
+  windows-build:
+    name: Build app & docs (Windows)
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' ]
 
-  #   steps:
-  #     # Make sure cancels CI when tags is released
-  #     - name: Cancel previous runs
-  #       if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
-  #       uses: styfle/cancel-workflow-action@0.9.1
-  #       with:
-  #         access_token: ${{ github.token }}
-  #         all_but_latest: true
+    steps:
+      # Make sure cancels CI when tags is released
+      - name: Cancel previous runs
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+          all_but_latest: true
 
-  #     - name: Clone repo
-  #       uses: actions/checkout@v3
+      - name: Clone repo
+        uses: actions/checkout@v3
 
-  #     - name: Setup python (x64)
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         architecture: x64
+      - name: Setup python (x64)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
 
-  #     - name: Setup python (x86)
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         architecture: x86
+      - name: Setup python (x86)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
 
-  #     - name: Install required libraries
-  #       run: |
-  #         py -${{ matrix.python-version }}-64 -m pip install -U pip
-  #         py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
-  #         py -${{ matrix.python-version }}-64 -m pip install -U .[optional]
+      - name: Install required libraries
+        run: |
+          py -${{ matrix.python-version }}-64 -m pip install -U pip
+          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-64 -m pip install -U .[optional]
 
-  #         py -${{ matrix.python-version }}-32 -m pip install -U pip
-  #         py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
-  #         py -${{ matrix.python-version }}-32 -m pip install -U .[optional]
+          py -${{ matrix.python-version }}-32 -m pip install -U pip
+          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-32 -m pip install -U .[optional]
 
-  #     - name: Test imports
-  #       run: |
-  #         # I..... have no idea for this
-  #         mangadex-dl --version
+      - name: Test imports
+        run: |
+          # I..... have no idea for this
+          mangadex-dl --version
 
-  #     - name: Get python version
-  #       run: |
-  #         $PythonVersion = (python --version)
-  #         Write-Output "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Get python version
+        run: |
+          $PythonVersion = (python --version)
+          Write-Output "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-  #     # Build mangadex-downloader with PyInstaller
-  #     # only allow python 3.10
+      # Build mangadex-downloader with PyInstaller
+      # only allow python 3.10
 
-  #     - name: Setup python (x86)
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         architecture: x86
+      - name: Setup python (x86)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x86
 
-  #     - name: Compile script
-  #       if: ${{ contains(env.python_version, '3.10') }}
-  #       run: |
-  #         py -${{ matrix.python-version }}-64 -m PyInstaller "mangadex-dl_x64.spec" --distpath "./dist_x64"
-  #         py -${{ matrix.python-version }}-32 -m PyInstaller "mangadex-dl_x86.spec" --distpath "./dist_x86"
+      - name: Compile script
+        if: ${{ contains(env.python_version, '3.10') }}
+        run: |
+          py -${{ matrix.python-version }}-64 -m PyInstaller "mangadex-dl_x64.spec" --distpath "./dist_x64"
+          py -${{ matrix.python-version }}-32 -m PyInstaller "mangadex-dl_x86.spec" --distpath "./dist_x86"
 
-  #     - name: Run compiled script
-  #       if: ${{ contains(env.python_version, '3.10') }}
-  #       run: |
-  #         & ".\dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" --version
-  #         & ".\dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" --version
+      - name: Run compiled script
+        if: ${{ contains(env.python_version, '3.10') }}
+        run: |
+          & ".\dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" --version
+          & ".\dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" --version
 
-  #     - name: Cleanup build
-  #       if: contains(env.python_version, '3.10')
-  #       run: |
-  #         # x86 executable
-  #         copy "LICENSE" "dist_x86\mangadex-dl_x86"
-  #         copy "README.md" "dist_x86\mangadex-dl_x86"
-  #         copy "docs\changelog.md" "dist_x86\mangadex-dl_x86"
-  #         echo "${{ github.ref_name }}" | Out-File -FilePath "dist_x86\mangadex-dl_x86\version.txt" -NoNewLine
-  #         echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x86\mangadex-dl_x86\update.bat"
-  #         echo "start cmd" | Out-File -FilePath "dist_x86\mangadex-dl_x86\start cmd.bat"
-  #         Rename-Item -Path "dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" -NewName "mangadex-dl.exe"
-  #         Rename-Item -Path "dist_x86\mangadex-dl_x86" -NewName "mangadex-dl"
-  #         Compress-Archive -Path "dist_x86\mangadex-dl" -DestinationPath "mangadex-dl_x86_${{ github.ref_name }}.zip"
+      - name: Cleanup build
+        if: contains(env.python_version, '3.10')
+        run: |
+          # x86 executable
+          copy "LICENSE" "dist_x86\mangadex-dl_x86"
+          copy "README.md" "dist_x86\mangadex-dl_x86"
+          copy "docs\changelog.md" "dist_x86\mangadex-dl_x86"
+          echo "${{ github.ref_name }}" | Out-File -FilePath "dist_x86\mangadex-dl_x86\version.txt" -NoNewLine
+          echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x86\mangadex-dl_x86\update.bat"
+          echo "start cmd" | Out-File -FilePath "dist_x86\mangadex-dl_x86\start cmd.bat"
+          Rename-Item -Path "dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" -NewName "mangadex-dl.exe"
+          Rename-Item -Path "dist_x86\mangadex-dl_x86" -NewName "mangadex-dl"
+          Compress-Archive -Path "dist_x86\mangadex-dl" -DestinationPath "mangadex-dl_x86_${{ github.ref_name }}.zip"
 
-  #         # x64 executable
-  #         copy "LICENSE" "dist_x64\mangadex-dl_x64"
-  #         copy "README.md" "dist_x64\mangadex-dl_x64"
-  #         copy "docs\changelog.md" "dist_x64\mangadex-dl_x64"
-  #         echo "${{ github.ref_name }}" | Out-File -FilePath "dist_x64\mangadex-dl_x64\version.txt" -NoNewLine
-  #         echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x64\mangadex-dl_x64\update.bat"
-  #         echo "start cmd" | Out-File -FilePath "dist_x64\mangadex-dl_x64\start cmd.bat"
-  #         Rename-Item -Path "dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" -NewName "mangadex-dl.exe"
-  #         Rename-Item -Path "dist_x64\mangadex-dl_x64" -NewName "mangadex-dl"
-  #         Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
+          # x64 executable
+          copy "LICENSE" "dist_x64\mangadex-dl_x64"
+          copy "README.md" "dist_x64\mangadex-dl_x64"
+          copy "docs\changelog.md" "dist_x64\mangadex-dl_x64"
+          echo "${{ github.ref_name }}" | Out-File -FilePath "dist_x64\mangadex-dl_x64\version.txt" -NoNewLine
+          echo "mangadex-dl.exe --update" | Out-File -FilePath "dist_x64\mangadex-dl_x64\update.bat"
+          echo "start cmd" | Out-File -FilePath "dist_x64\mangadex-dl_x64\start cmd.bat"
+          Rename-Item -Path "dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" -NewName "mangadex-dl.exe"
+          Rename-Item -Path "dist_x64\mangadex-dl_x64" -NewName "mangadex-dl"
+          Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
-  #     - name: Upload artifact (x64)
-  #       if: contains(env.python_version, '3.10')
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: mangadex-dl_x64
-  #         path: dist_x64/mangadex-dl/
+      - name: Upload artifact (x64)
+        if: contains(env.python_version, '3.10')
+        uses: actions/upload-artifact@v3
+        with:
+          name: mangadex-dl_x64
+          path: dist_x64/mangadex-dl/
 
-  #     - name: Upload artifact (x86)
-  #       if: contains(env.python_version, '3.10')
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: mangadex-dl_x86
-  #         path: dist_x86/mangadex-dl/
+      - name: Upload artifact (x86)
+        if: contains(env.python_version, '3.10')
+        uses: actions/upload-artifact@v3
+        with:
+          name: mangadex-dl_x86
+          path: dist_x86/mangadex-dl/
 
-  #     - name: Get File hash
-  #       if: contains(env.python_version, '3.10')
-  #       run: |
-  #         $File_x86 = "mangadex-dl_x86_${{ github.ref_name }}.zip"
-  #         $File_x64 = "mangadex-dl_x64_${{ github.ref_name }}.zip"
+      - name: Get File hash
+        if: contains(env.python_version, '3.10')
+        run: |
+          $File_x86 = "mangadex-dl_x86_${{ github.ref_name }}.zip"
+          $File_x64 = "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
-  #         $Hash_x86 = (Get-FileHash -Algorithm SHA256 ${File_x86}).Hash.ToLower()
-  #         $Hash_x64 = (Get-FileHash -Algorithm SHA256 ${File_x64}).Hash.ToLower()
+          $Hash_x86 = (Get-FileHash -Algorithm SHA256 ${File_x86}).Hash.ToLower()
+          $Hash_x64 = (Get-FileHash -Algorithm SHA256 ${File_x64}).Hash.ToLower()
 
-  #         echo "mangadex_dl_x64_hash=${Hash_x64}" | Out-File -FilePath $env:GITHUB_ENV -Append
-  #         echo "mangadex_dl_x86_hash=${Hash_x86}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "mangadex_dl_x64_hash=${Hash_x64}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "mangadex_dl_x86_hash=${Hash_x86}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-  #         echo "${File_x64} Hash = ${Hash_x64}"
-  #         echo "${File_x86} Hash = ${Hash_x86}"
+          echo "${File_x64} Hash = ${Hash_x64}"
+          echo "${File_x86} Hash = ${Hash_x86}"
 
-  #     - name: Create Release
-  #       if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader'
-  #       uses: softprops/action-gh-release@v1
-  #       with:
-  #         tag_name: ${{ env.GIRHUB_REF_NAME }}
-  #         name: mangadex-downloader ${{ github.ref_name }}
-  #         body: |
-  #           ------
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/') && contains(env.python_version, '3.10') && github.repository == 'mansuf/mangadex-downloader'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.GIRHUB_REF_NAME }}
+          name: mangadex-downloader ${{ github.ref_name }}
+          body: |
+            ------
 
-  #           ## Files hash
+            ## Files hash
 
-  #           | Name | SHA-256 |
-  #           | ---- | ------- |
-  #           | mangadex-dl_x64_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x64_hash }} |
-  #           | mangadex-dl_x86_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x86_hash }} |
+            | Name | SHA-256 |
+            | ---- | ------- |
+            | mangadex-dl_x64_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x64_hash }} |
+            | mangadex-dl_x86_${{ github.ref_name }}.zip | ${{ env.mangadex_dl_x86_hash }} |
 
-  #           These binaries are for Windows only.
-  #         files: |
-  #           mangadex-dl_x64_${{ github.ref_name }}.zip
-  #           mangadex-dl_x86_${{ github.ref_name }}.zip
-  #         draft: true
-  #         prerelease: false
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            These binaries are for Windows only.
+          files: |
+            mangadex-dl_x64_${{ github.ref_name }}.zip
+            mangadex-dl_x86_${{ github.ref_name }}.zip
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
