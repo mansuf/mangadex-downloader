@@ -76,15 +76,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_SECRET_TOKEN }}
 
-      - name: Update Docker Hub description
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_SECRET_TOKEN }}
-          repository: mansuf/mangadex-downloader
-          short-description: ${{ github.event.repository.description }}
-
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -145,10 +136,11 @@ jobs:
             linux/arm/v6
           push: true
           tags: |
-            public.ecr.aws/n3n5b0s8/mangadex-downloader:latest
+            public.ecr.aws/n3n5b0s8/mangadex-downloader:v2.10.3
           # tags: |
           #   ${{ env.LATEST_TAG }}
-          #   mansuf/mangadex-downloader:${{ github.ref_name }}
+          #   public.ecr.aws/n3n5b0s8/mangadex-downloader:latest
+          #   public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}
 
       - name: Build and push (with optional dependencies)
         uses: docker/build-push-action@v5
@@ -161,10 +153,11 @@ jobs:
             linux/arm/v7
           push: true
           tags: |
-            public.ecr.aws/n3n5b0s8/mangadex-downloader:latest-optional
+            public.ecr.aws/n3n5b0s8/mangadex-downloader:v2.10.3-optional
           # tags: |
           #   ${{ env.LATEST_OPTIONAL_TAG }}
-          #   mansuf/mangadex-downloader:${{ github.ref_name }}-optional
+          #   public.ecr.aws/n3n5b0s8/mangadex-downloader:latest-optional
+          #   public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}-optional
 
   # windows-build:
   #   name: Build app & docs (Windows)
