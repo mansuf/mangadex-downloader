@@ -183,7 +183,11 @@ mangadex-dl.exe "insert MangaDex URL here"
 The downloaded files in the container are stored in `/downloads` directory
 
 ```sh
-docker run --rm -v /home/sussyuser/sussymanga:/downloads mansuf/mangadex-downloader "insert MangaeDx URL"
+# Dockerhub
+docker run --rm -v /home/sussyuser/sussymanga:/downloads mansuf/mangadex-downloader "insert MangaDex URL"
+
+# AWS ECR (alternative)
+docker run --rm -v /home/sussyuser/sussymanga:/downloads public.ecr.aws/n3n5b0s8/mangadex-downloader "insert MangaDex URL"
 ```
 
 For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_usage/index.html)
