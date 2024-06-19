@@ -107,14 +107,14 @@ Steps:
 
 Available at:
 - https://hub.docker.com/r/mansuf/mangadex-downloader
-- https://gallery.ecr.aws/n3n5b0s8/mangadex-downloader
+- https://gallery.ecr.aws/mansuf/mangadex-downloader
 
 ```sh
 # Dockerhub
 docker pull mansuf/mangadex-downloader
 
 # AWS ECR (Alternative)
-docker pull public.ecr.aws/n3n5b0s8/mangadex-downloader
+docker pull public.ecr.aws/mansuf/mangadex-downloader
 ```
 
 If you want to get optional features such as `EPUB` support, `cb7` support, etc.
@@ -126,8 +126,8 @@ docker pull mansuf/mangadex-downloader:latest-optional
 docker pull mansuf/mangadex-downloader:v2.10.3-optional
 
 # AWS ECR (Alternative)
-docker pull public.ecr.aws/n3n5b0s8/mangadex-downloader:latest-optional
-docker pull public.ecr.aws/n3n5b0s8/mangadex-downloader:v2.10.3-optional
+docker pull public.ecr.aws/mansuf/mangadex-downloader:latest-optional
+docker pull public.ecr.aws/mansuf/mangadex-downloader:v2.10.3-optional
 ```
 
 **NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support. 
@@ -187,7 +187,7 @@ The downloaded files in the container are stored in `/downloads` directory
 docker run --rm -v /home/sussyuser/sussymanga:/downloads mansuf/mangadex-downloader "insert MangaDex URL"
 
 # AWS ECR (alternative)
-docker run --rm -v /home/sussyuser/sussymanga:/downloads public.ecr.aws/n3n5b0s8/mangadex-downloader "insert MangaDex URL"
+docker run --rm -v /home/sussyuser/sussymanga:/downloads public.ecr.aws/mansuf/mangadex-downloader "insert MangaDex URL"
 ```
 
 For more example usage, you can [read here](https://mangadex-dl.mansuf.link/en/stable/cli_usage/index.html)
