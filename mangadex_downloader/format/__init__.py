@@ -23,15 +23,18 @@ formats = {
     "cb7-single": SevenZipSingle,
     "epub": Epub,
     "epub-volume": EpubVolume,
-    "epub-single": EpubSingle
+    "epub-single": EpubSingle,
 }
 
 deprecated_formats = ["tachiyomi", "tachiyomi-zip"]
 
 default_save_as_format = "raw"
 
+
 def get_format(fmt):
     try:
         return formats[fmt]
     except KeyError:
-        raise InvalidFormat("invalid save_as format, available are: %s" % set(formats.keys()))
+        raise InvalidFormat(
+            "invalid save_as format, available are: %s" % set(formats.keys())
+        )

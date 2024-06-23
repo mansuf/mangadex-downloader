@@ -32,12 +32,14 @@ from .utils import find_md_urls
 
 log = logging.getLogger(__name__)
 
+
 @dataclass
 class _ResultValidationForumThreadURL:
     url: str
     thread_id: str
     page: Union[str, None]
     post_id: Union[str, None]
+
 
 def get_post_id_forum_thread(url):
     post_id = None
@@ -46,8 +48,9 @@ def get_post_id_forum_thread(url):
     result = re.search(post_id_re, url)
     if result:
         post_id = result.group("post_id")
-    
+
     return post_id
+
 
 def check_legacy_forum_thread_url(url):
     result = False
@@ -61,10 +64,11 @@ def check_legacy_forum_thread_url(url):
             # No need to raise error
             # since it's old url
             return False
-    
+
         result = True
 
     return result
+
 
 def validate_forum_thread_url(url):
     """Validate MangaDex forum thread url"""
@@ -80,8 +84,11 @@ def validate_forum_thread_url(url):
     # Find post id first
     post_id = get_post_id_forum_thread(url)
 
-    # Then find full url 
-    full_url_re = r"forums\.mangadex\.org\/threads\/(.{1,}\.|)(?P<thread_id>[0-9]+)(\/page-(?P<page>[0-9]+)|)"
+    # Then find full url
+    full_url_re = (
+        r"forums\.mangadex\.org\/threads\/(.{1,}\.|)"
+        r"(?P<thread_id>[0-9]+)(\/page-(?P<page>[0-9]+)|)"
+    )
     result = re.search(full_url_re, url)
     if result:
         try:
@@ -89,8 +96,8 @@ def validate_forum_thread_url(url):
         except IndexError:
             # No forum thread id
             # hmmmm, sus
-            raise InvalidURL(f"forum thread id from url '{url}' cannot be found")
-        
+            raise InvalidURL(f"forum thread id from url {url!r} cannot be found")
+
         try:
             page = result.group("page")
         except IndexError:
@@ -99,12 +106,9 @@ def validate_forum_thread_url(url):
             pass
 
         return _ResultValidationForumThreadURL(
-            url=url,
-            thread_id=thread_id,
-            page=page,
-            post_id=post_id
+            url=url, thread_id=thread_id, page=page, post_id=post_id
         )
-    
+
     # Check if it's numbers only
     # for forum thread id
     result = re.match(r"^[0-9]+$", url)
@@ -113,11 +117,9 @@ def validate_forum_thread_url(url):
         raise InvalidURL("Invalid forum thread URL")
 
     return _ResultValidationForumThreadURL(
-        url=url,
-        thread_id=result.group(),
-        page=None,
-        post_id=None
+        url=url, thread_id=result.group(), page=None, post_id=None
     )
+
 
 def get_thread_title_owner_and_post_owner(parser=None, thread_url=None, post_id=None):
     post_owner = None
@@ -127,21 +129,19 @@ def get_thread_title_owner_and_post_owner(parser=None, thread_url=None, post_id=
         parser = BeautifulSoup(r.text, "html.parser")
 
     # Finding thread owner
-    thread_owner = parser.find("a", attrs={"class": ["username"], "data-xf-init": "member-tooltip"})
+    thread_owner = parser.find(
+        "a", attrs={"class": ["username"], "data-xf-init": "member-tooltip"}
+    )
     if thread_owner is None:
         # Hmmmm, there is no thread owner in a forum thread ? sus
-        raise UnhandledException(
-            f"No thread owner in forum thread {thread_url}"
-        )
+        raise UnhandledException(f"No thread owner in forum thread {thread_url}")
     thread_owner = thread_owner.get_text(strip=True)
 
     # Finding thread title
     thread_title = parser.find("h1", attrs={"class": ["p-title-value"]})
     if thread_title is None:
         # No thread title ? VERY SUS
-        raise UnhandledException(
-            f"No thread title in forum thread {thread_url}"
-        )
+        raise UnhandledException(f"No thread title in forum thread {thread_url}")
     thread_title = thread_title.get_text(strip=True)
 
     if post_id:
@@ -150,6 +150,7 @@ def get_thread_title_owner_and_post_owner(parser=None, thread_url=None, post_id=
             post_owner = article.attrs["data-author"]
 
     return thread_title, thread_owner, post_owner
+
 
 def get_absolute_forum_thread_url(result: _ResultValidationForumThreadURL):
     # Construct forum thread URL from forum thread ID
@@ -168,6 +169,7 @@ def get_absolute_forum_thread_url(result: _ResultValidationForumThreadURL):
         raise MangaDexException(f"forum thread id {result.thread_id} is not exist")
 
     return result
+
 
 def iter_md_urls_from_forum_thread(url):
     min_page = None
@@ -189,22 +191,24 @@ def iter_md_urls_from_forum_thread(url):
 
     # Check if it's has specific post id in URL
     if result.post_id is not None:
-        article_post_id = parser.find("article", attrs={"data-content": f"post-{result.post_id}"})
+        article_post_id = parser.find(
+            "article", attrs={"data-content": f"post-{result.post_id}"}
+        )
 
         if article_post_id is not None:
             log.debug(f"Found post_id in forum thread url = {url}")
-            log.debug(f"Finding MD urls from post id, instead of whole thread")
+            log.debug("Finding MD urls from post id, instead of whole thread")
             # Begin iter MangaDex URLs
             for text in article_post_id.prettify().splitlines():
                 result_url = find_md_urls(text)
 
                 if result_url:
                     yield result_url
-            
+
             return
-        
+
         log.warning(
-            f"Post id {result.post_id} cannot be found in forum thread '{thread_title}'. " \
+            f"Post id {result.post_id} cannot be found in forum thread {thread_title!r}. "
             "Scanning URLs in whole thread"
         )
 
@@ -223,7 +227,7 @@ def iter_md_urls_from_forum_thread(url):
         min_page = min(next_pages_num) if result.page is None else int(result.page)
         max_page = max(next_pages_num)
 
-        # Because range() is starting at 0 
+        # Because range() is starting at 0
         # We need to check if it's same numbers as (min_page + 1) and max_page
         # to prevent range() is not returning value if it's same numbers
         min_page += 1
@@ -231,11 +235,13 @@ def iter_md_urls_from_forum_thread(url):
             next_pages = range(min_page, max_page + 1)
         else:
             next_pages = range(min_page, max_page)
-        
-        log.debug(f"Found {max_page} pages in forum thread '{thread_title}'")
+
+        log.debug(f"Found {max_page} pages in forum thread {thread_title!r}")
 
     def yield_urls_from_parser(parser):
-        for element in parser.find_all("article", attrs={"class": ["message", "message--post"]}):
+        for element in parser.find_all(
+            "article", attrs={"class": ["message", "message--post"]}
+        ):
             for text in element.prettify().splitlines():
                 result_url = find_md_urls(text)
 
@@ -258,5 +264,3 @@ def iter_md_urls_from_forum_thread(url):
         next_parser = BeautifulSoup(r.text, "html.parser")
 
         yield from yield_urls_from_parser(next_parser)
-
-        
