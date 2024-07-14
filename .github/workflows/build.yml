@@ -60,7 +60,7 @@ jobs:
   docker-dockerhub-build-and-push:
     name: Docker build and push (hub.docker.com)
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+    # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,26 +89,27 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKERHUB_LATEST_TAG }}
-            mansuf/mangadex-downloader:${{ github.ref_name }}
+      
+      # mansuf/mangadex-downloader:${{ github.ref_name }}
 
-      - name: Build and push (with optional dependencies)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile.optional
-          platforms: |
-            linux/amd64
-            linux/arm64
-            linux/arm/v7
-          push: true
-          tags: |
-            ${{ env.DOCKERHUB_LATEST_OPTIONAL_TAG }}
-            mansuf/mangadex-downloader:${{ github.ref_name }}-optional
+      # - name: Build and push (with optional dependencies)
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: Dockerfile.optional
+      #     platforms: |
+      #       linux/amd64
+      #       linux/arm64
+      #       linux/arm/v7
+      #     push: true
+      #     tags: |
+      #       ${{ env.DOCKERHUB_LATEST_OPTIONAL_TAG }}
+      #       mansuf/mangadex-downloader:${{ github.ref_name }}-optional
 
   docker-aws-ecr-build-and-push:
     name: Docker build and push (public.ecr.aws)
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
+    # if: startsWith(github.ref, 'refs/tags/') && github.repository == 'mansuf/mangadex-downloader'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -138,21 +139,22 @@ jobs:
           push: true
           tags: |
             ${{ env.AWS_ECR_LATEST_TAG }}
-            public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}
+            
+      # public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}
 
-      - name: Build and push (with optional dependencies)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile.optional
-          platforms: |
-            linux/amd64
-            linux/arm64
-            linux/arm/v7
-          push: true
-          tags: |
-            ${{ env.AWS_ECR_LATEST_OPTIONAL_TAG  }}
-            public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}-optional
+      # - name: Build and push (with optional dependencies)
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: Dockerfile.optional
+      #     platforms: |
+      #       linux/amd64
+      #       linux/arm64
+      #       linux/arm/v7
+      #     push: true
+      #     tags: |
+      #       ${{ env.AWS_ECR_LATEST_OPTIONAL_TAG  }}
+      #       public.ecr.aws/n3n5b0s8/mansuf/mangadex-downloader:${{ github.ref_name }}-optional
 
   windows-build:
     name: Build app & docs (Windows)
