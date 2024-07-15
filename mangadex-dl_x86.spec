@@ -11,7 +11,8 @@ a = Analysis(
     datas=[
         ('mangadex_downloader/fonts', 'mangadex_downloader/fonts'), 
         ('mangadex_downloader/images', 'mangadex_downloader/images'),
-        ('mangadex_downloader/tracker/sql_files', 'mangadex_downloader/tracker/sql_files')
+        ('mangadex_downloader/tracker/sql_files', 'mangadex_downloader/tracker/sql_files'),
+        ('mangadex_downloader/tracker/sql_migrations', 'mangadex_downloader/tracker/sql_migrations'),
     ],
     hiddenimports=[],
     hookspath=[],

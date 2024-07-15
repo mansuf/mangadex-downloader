@@ -23,6 +23,7 @@
 from typing import Union, List
 from dataclasses import dataclass
 
+
 class BaseInfo:
     """Base info for download tracker in JSON format"""
 
@@ -37,6 +38,7 @@ class BaseInfo:
 
         return self.data == o.data
 
+
 @dataclass
 class ImageInfo(BaseInfo):
     name: str
@@ -45,11 +47,8 @@ class ImageInfo(BaseInfo):
 
     @property
     def data(self):
-        return {
-            "name": self.name,
-            "hash": self.hash,
-            "chapter_id": self.chapter_id
-        }
+        return {"name": self.name, "hash": self.hash, "chapter_id": self.chapter_id}
+
 
 @dataclass
 class ChapterInfo(BaseInfo):
@@ -58,16 +57,14 @@ class ChapterInfo(BaseInfo):
 
     @property
     def data(self):
-        return {
-            "name": self.name,
-            "id": self.id
-        }
-    
+        return {"name": self.name, "id": self.id}
+
     def __eq__(self, o) -> bool:
         if isinstance(o, str):
             return self.id == o
-        
+
         return super().__eq__(o)
+
 
 @dataclass
 class FileInfo(BaseInfo):
@@ -93,5 +90,5 @@ class FileInfo(BaseInfo):
             "hash": self.hash,
             "completed": self.completed,
             "images": self.images,
-            "chapters": self.chapters
+            "chapters": self.chapters,
         }

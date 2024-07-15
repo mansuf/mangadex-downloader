@@ -31,12 +31,13 @@ from ..utils import delete_file
 
 log = logging.getLogger(__name__)
 
+
 def _migrate_legacy_tracker_raw(
-    legacy_tracker: DownloadTrackerJSON, 
+    legacy_tracker: DownloadTrackerJSON,
     new_tracker: DownloadTrackerSQLite,
     manga_id: str,
     path: Path,
-    progress_bar: tqdm
+    progress_bar: tqdm,
 ):
     fmt = legacy_tracker.format
 
@@ -44,10 +45,7 @@ def _migrate_legacy_tracker_raw(
     for fi in legacy_tracker.data["files"]:
         # File info
         new_tracker.add_file_info(
-            name=fi.name,
-            manga_id=manga_id,
-            ch_id=fi.id,
-            hash=fi.hash
+            name=fi.name, manga_id=manga_id, ch_id=fi.id, hash=fi.hash
         )
 
         if "single" in fmt or "volume" in fmt:
@@ -55,18 +53,14 @@ def _migrate_legacy_tracker_raw(
             ci_data = []
             ci: ChapterInfo
             for ci in fi.chapters:
-                ci_data.append(
-                    (ci.name, ci.id, fi.name)
-                )
+                ci_data.append((ci.name, ci.id, fi.name))
             new_tracker.add_chapters_info(ci_data)
 
         # Image info
         ii_data = []
         ii: ImageInfo
         for ii in fi.images:
-            ii_data.append(
-                (ii.name, ii.hash, ii.chapter_id, fi.name)
-            )
+            ii_data.append((ii.name, ii.hash, ii.chapter_id, fi.name))
         new_tracker.add_images_info(ii_data)
 
         new_tracker.toggle_complete(fi.name, True)
@@ -74,12 +68,13 @@ def _migrate_legacy_tracker_raw(
 
     delete_file(legacy_tracker.file)
 
+
 def _migrate_legacy_tracker_any(
-    legacy_tracker: DownloadTrackerJSON, 
+    legacy_tracker: DownloadTrackerJSON,
     new_tracker: DownloadTrackerSQLite,
     manga_id: str,
     path: Path,
-    progress_bar: tqdm
+    progress_bar: tqdm,
 ):
     fmt = legacy_tracker.format
 
@@ -87,10 +82,7 @@ def _migrate_legacy_tracker_any(
     for fi in legacy_tracker.data["files"]:
         # File info
         new_tracker.add_file_info(
-            name=fi.name,
-            manga_id=manga_id,
-            ch_id=fi.id,
-            hash=fi.hash
+            name=fi.name, manga_id=manga_id, ch_id=fi.id, hash=fi.hash
         )
 
         if "single" in fmt or "volume" in fmt:
@@ -98,15 +90,14 @@ def _migrate_legacy_tracker_any(
             ci_data = []
             ci: ChapterInfo
             for ci in fi.chapters:
-                ci_data.append(
-                    (ci.name, ci.id, fi.name)
-                )
+                ci_data.append((ci.name, ci.id, fi.name))
             new_tracker.add_chapters_info(ci_data)
 
         new_tracker.toggle_complete(fi.name, True)
         progress_bar.update(1)
 
     delete_file(legacy_tracker.file)
+
 
 def _migrate_legacy_tracker(fmt, path):
     from ..chapter import Chapter
@@ -124,13 +115,11 @@ def _migrate_legacy_tracker(fmt, path):
 
     log.info("Legacy download tracker detected, migrating to new one...")
     log.warning(
-        "Do not turn it off while migrating " \
+        "Do not turn it off while migrating "
         "or the migration will be failed and download tracker data will be lost"
     )
     progress_bar = tqdm(
-        total=len(legacy_tracker.data["files"]),
-        unit="files",
-        desc="progress"
+        total=len(legacy_tracker.data["files"]), unit="files", desc="progress"
     )
 
     manga_id = None
@@ -154,13 +143,7 @@ def _migrate_legacy_tracker(fmt, path):
     chapter = Chapter(_id=chapter_id)
     manga_id = chapter.manga_id
 
-    args_migrate = (
-        legacy_tracker,
-        new_tracker,
-        manga_id,
-        path,
-        progress_bar
-    )
+    args_migrate = (legacy_tracker, new_tracker, manga_id, path, progress_bar)
 
     # Begin migrating
     if "raw" in fmt:
@@ -170,9 +153,8 @@ def _migrate_legacy_tracker(fmt, path):
 
     return new_tracker
 
-def get_tracker(fmt, path):
-    # return DownloadTrackerSQLite(fmt, path)
 
+def get_tracker(fmt, path):
     legacy_path = DownloadTrackerJSON.get_tracker_path(fmt, path)
     if legacy_path.exists():
         return _migrate_legacy_tracker(fmt, path)

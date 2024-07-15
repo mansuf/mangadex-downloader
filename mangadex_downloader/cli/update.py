@@ -27,15 +27,18 @@ from ..update import check_version
 
 log = logging.getLogger(__name__)
 
+
 def check_update():
-    log.debug('Checking update...')
-    latest_version = check_version()
-    if latest_version:
-        log.info("There is new version mangadex-downloader ! (%s), you should update it with \"%s\" option" % (
-            latest_version,
-            '--update'
-        ))
-    elif latest_version == False:
+    log.debug("Checking update...")
+    try:
+        latest_version = check_version()
+    except Exception:
         sys.exit(1)
+
+    if latest_version:
+        log.info(
+            f"There is new version mangadex-downloader ! ({latest_version})), "
+            "you should update it with '--update' option"
+        )
     else:
         log.debug("No update found")

@@ -27,6 +27,7 @@ from ..errors import MangaDexException, ChapterNotFound
 
 log = logging.getLogger(__name__)
 
+
 def download(args):
     for url in args.URL:
         try:

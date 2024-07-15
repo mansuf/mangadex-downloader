@@ -24,71 +24,84 @@ import zipfile
 import os
 from pathlib import Path
 
-from .utils import *
+from .utils import (
+    validate_bool,
+    validate_dummy,
+    validate_zip_compression_type,
+    validate_int,
+    validate_blacklist,
+    validate_tag,
+    load_env,
+    LazyLoadEnv,
+    ConfigTypeError,
+)
 from ..errors import MangaDexException
 
-__all__ = (
-    "env", "base_path", "config_enabled", "init"
-)
+__all__ = ("env", "base_path", "config_enabled", "init")
+
 
 class EnvironmentVariables:
     # 4 values of tuple
-    # (key_env: string, default_value: Any, validator_function: Callable, lazy_loading: boolean)
+    # (
+    #   key_env: string,
+    #   default_value: Any,
+    #   validator_function: Callable,
+    #   lazy_loading: boolean
+    # )
     _vars = [
         [
-            'config_enabled',
+            "config_enabled",
             False,
             validate_bool,
             False,
         ],
         [
-            'config_path',
+            "config_path",
             None,
-            dummy_validator,
+            validate_dummy,
             False,
         ],
         [
-            'zip_compression_type',
+            "zip_compression_type",
             zipfile.ZIP_STORED,
             validate_zip_compression_type,
             False,
         ],
         [
-            'zip_compression_level',
+            "zip_compression_level",
             None,
             validate_int,
             False,
         ],
         [
-            'user_blacklist',
+            "user_blacklist",
             tuple(),
             validate_blacklist,
             False,
         ],
         [
-            'group_blacklist',
+            "group_blacklist",
             tuple(),
             validate_blacklist,
             False,
         ],
         [
-            'tags_blacklist',
+            "tags_blacklist",
             tuple(),
             lambda x: validate_blacklist(x, validate_tag),
-            
             # We need to use lazy loading for env MANGADEXDL_TAGS_BLACKLIST
             # to prevent "circular imports" problem when using `requestsMangaDexSession`.
             # Previously, it was using `requests.Session`
             # which is not respecting rate limit system from MangaDex API
             True,
-        ]
+        ],
     ]
 
     def __init__(self):
         self.data = {}
 
         for key, default_value, validator, lazy_loading in self._vars:
-            env_key = f'MANGADEXDL_{key.upper()}'
+            env_key = f"MANGADEXDL_{key.upper()}"
             env_value = os.environ.get(env_key)
             if env_value is not None:
                 if lazy_loading:
@@ -98,7 +111,7 @@ class EnvironmentVariables:
                 self.data[key] = load_env(env_key, env_value, validator)
             else:
                 self.data[key] = default_value
-        
+
     def read(self, name):
         try:
             value = self.data[name]
@@ -106,14 +119,16 @@ class EnvironmentVariables:
             # This should not happened
             # unless user is hacking in the internal API
             raise MangaDexException(f'environment variable "{name}" is not exist')
-        
+
         if not isinstance(value, LazyLoadEnv):
             return value
-        
+
         self.data[name] = value.load()
         return self.data[name]
 
+
 _env_orig = EnvironmentVariables()
+
 
 class EnvironmentVariablesProxy:
     def __getattr__(self, name):
@@ -122,19 +137,22 @@ class EnvironmentVariablesProxy:
     def __setattr__(self, name, value):
         raise NotImplementedError
 
+
 # Allow library to get values from attr easily
 env = EnvironmentVariablesProxy()
 
 _env_dir = env.config_path
-base_path = Path(_env_dir) if _env_dir is not None else (Path.home() / '.mangadex-dl')
+base_path = Path(_env_dir) if _env_dir is not None else (Path.home() / ".mangadex-dl")
 
 _env_conf_enabled = env.config_enabled
 try:
     config_enabled = validate_bool(_env_conf_enabled)
 except ConfigTypeError:
     raise MangaDexException(
-        f"Failed to load env MANGADEXDL_CONFIG_ENABLED, value '{_env_conf_enabled}' is not valid boolean value"
+        "Failed to load env MANGADEXDL_CONFIG_ENABLED, "
+        f"value {_env_conf_enabled!r} is not valid boolean value"
     )
+
 
 def init():
     # Create config directory
@@ -142,9 +160,8 @@ def init():
         base_path.mkdir(exist_ok=True, parents=True)
     except Exception as e:
         raise MangaDexException(
-            f"Failed to create config folder in '{base_path}', " \
-            f"reason: {e}. Make sure you have permission to read & write in that directory " \
-            "or you can set MANGADEXDL_CONFIG_DIR to another path " \
+            f"Failed to create config folder in '{base_path}', "
+            f"reason: {e}. Make sure you have permission to read & write in that directory "
+            "or you can set MANGADEXDL_CONFIG_DIR to another path "
             "or you can disable config with MANGADEXDL_CONFIG_ENABLED=0"
         ) from None
-
