@@ -372,6 +372,8 @@ class IteratorChapter:
         no_oneshot=None,
         groups=None,
         _range=None,
+        start_volume=None,
+        end_volume=None,
         **kwargs
     ):
 
@@ -380,7 +382,9 @@ class IteratorChapter:
             end_chapter or
             start_page or
             end_page or
-            no_oneshot
+            no_oneshot or
+            start_volume or
+            end_volume
         )
 
         if _range and legacy_range:
@@ -395,6 +399,8 @@ class IteratorChapter:
         self.start_page = start_page
         self.end_page = end_page
         self.no_oneshot = no_oneshot
+        self.start_volume = start_volume
+        self.end_volume = end_volume
         self.groups = None
         self.all_group = False
         self.legacy_range = legacy_range
@@ -456,6 +462,7 @@ class IteratorChapter:
 
     def _check_range_chapter_legacy(self, chap):
         num_chap = chap.chapter
+        num_vol = chap.volume
         if num_chap != 'none':
             try:
                 num_chap = float(num_chap)
@@ -464,8 +471,25 @@ class IteratorChapter:
             except TypeError:
                 # null value
                 pass
+        if num_vol != 'none':
+            try:
+                num_vol = float(num_vol)
+            except ValueError:
+                pass
+            except TypeError:
+                # null value
+                pass
 
         is_number = isinstance(num_chap, float)
+        is_vol_number = isinstance(num_vol, float)
+        
+        if is_vol_number and num_vol > 0.0:
+            if self.start_volume is not None and not (num_vol >= self.start_volume):
+                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
+                return False
+            if self.end_volume is not None and not (num_vol <= self.end_volume):
+                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
+                return False
 
         # There is a chance that "Chapter 0" is Oneshot or prologue
         # We need to verify that is valid oneshot chapter
@@ -480,6 +504,7 @@ class IteratorChapter:
                 log.debug(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
 
+
         if chap.oneshot and self.no_oneshot and not self.all_group:
             log.debug("Ignoring oneshot chapter since it's in ignored list")
             return False
@@ -491,7 +516,10 @@ class IteratorChapter:
                 log.debug(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
 
+
+
         return True
+
 
     def _check_range_chapter(self, chap):
         if self.legacy_range:

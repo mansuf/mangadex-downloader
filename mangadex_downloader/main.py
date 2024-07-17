@@ -52,6 +52,8 @@ def download(
     start_page=None,
     end_page=None,
     no_oneshot_chapter=False,
+    start_volume=False,
+    end_volume=False,
     use_alt_details=False,
     groups=None,
     _range=None,
@@ -118,6 +120,8 @@ def download(
             "start_page": start_page,
             "end_page": end_page,
             "no_oneshot": no_oneshot_chapter,
+            "start_volume": start_volume,
+            "end_volume": end_volume,
             "groups": groups,
             "_range": _range,
         }

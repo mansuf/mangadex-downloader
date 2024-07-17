@@ -198,6 +198,23 @@ def get_args(argv):
         default=config.volume_cover_language,
     )
 
+    # Volume related
+    vol_group = parser.add_argument_group('Volume')
+    vol_group.add_argument(
+        '--start-volume',
+        '-sv',
+        type=float,
+        help='Start download chapter from given volume number',
+        metavar='VOLUME'
+    )
+    vol_group.add_argument(
+        '--end-volume',
+        '-ev',
+        type=float,
+        help='Stop download chapter from given volume number',
+        metavar='VOLUME'
+    )
+
     # Chapter related
     chap_group = parser.add_argument_group('Chapter')
     chap_group.add_argument(
