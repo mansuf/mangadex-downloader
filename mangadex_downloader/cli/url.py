@@ -58,6 +58,10 @@ def download_manga(url, args, legacy=False):
         if args.start_chapter > args.end_chapter:
             raise MangaDexException("--start-chapter cannot be more than --end-chapter")
 
+    if args.start_volume is not None and args.end_volume is not None:
+        if args.start_volume > args.end_volume:
+            raise MangaDexException("--start-volume cannot be more than --end-volume")
+
     if args.start_page is not None and args.end_page is not None:
         if args.start_page > args.end_page:
             raise MangaDexException("--start-page cannot be more than --end-page")
@@ -68,7 +72,9 @@ def download_manga(url, args, legacy=False):
         'end_chapter': '--end-chapter',
         'start_page': '--start-page',
         'end_page': '--end-page',
-        'no_oneshot_chapter': '--no-oneshot-chapter'
+        'no_oneshot_chapter': '--no-oneshot-chapter',
+        'start_volume': '--start-volume',
+        'end_volume': '--end-volume'
     }
     for name, arg in range_forbidden_args.items():
         value = getattr(args, name)
@@ -86,6 +92,8 @@ def download_manga(url, args, legacy=False):
         args.start_page,
         args.end_page,
         args.no_oneshot_chapter,
+        args.start_volume,
+        args.end_volume,
         args.use_alt_details,
         args.group,
         args.range,
@@ -129,6 +137,10 @@ def download_list(url, args):
         _error_list('--start-page')
     elif args.end_page:
         _error_list('--end-page')
+    elif args.start_volume:
+        _error_list('--start-volume')
+    elif args.end_volume:
+        _error_list('--end-volume')
     elif args.range:
         _error_list('--range')
 
