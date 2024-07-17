@@ -482,6 +482,14 @@ class IteratorChapter:
 
         is_number = isinstance(num_chap, float)
         is_vol_number = isinstance(num_vol, float)
+        
+        if is_vol_number and num_vol > 0.0:
+            if self.start_volume is not None and not (num_vol >= self.start_volume):
+                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
+                return False
+            if self.end_volume is not None and not (num_vol <= self.end_volume):
+                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
+                return False
 
         # There is a chance that "Chapter 0" is Oneshot or prologue
         # We need to verify that is valid oneshot chapter
@@ -496,13 +504,6 @@ class IteratorChapter:
                 log.debug(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
                 return False
 
-        if is_vol_number and num_vol > 0.0:
-            if self.start_volume is not None and not (num_vol >= self.start_volume):
-                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
-                return False
-            if self.end_volume is not None and not (num_vol <= self.end_volume):
-                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
-                return False
 
         if chap.oneshot and self.no_oneshot and not self.all_group:
             log.debug("Ignoring oneshot chapter since it's in ignored list")
