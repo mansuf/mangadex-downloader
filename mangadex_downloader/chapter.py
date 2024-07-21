@@ -23,6 +23,7 @@
 import logging
 import queue
 import itertools
+import re
 from pathvalidate import sanitize_filename
 
 from .user import User
@@ -191,6 +192,7 @@ class Chapter:
         self.oneshot = False
         self.use_group_name = not config.no_group_name
         self.use_chapter_title = config.use_chapter_title
+        self.chapter_naming_format = config.chapter_naming_format
 
         self._lang = Language(self._attr['translatedLanguage'])
 
@@ -286,6 +288,12 @@ class Chapter:
     def _make_name(self, chap_name):
         name = ""
 
+        #Chapter naming format should have the highest priority I guess
+        format = str(self.chapter_naming_format)
+        if format:
+            format = self._apply_name_format(format)
+            return sanitize_filename(format)
+
         if self.use_group_name:
             name += f'[{sanitize_filename(self.groups_name)}] '
 
@@ -304,6 +312,41 @@ class Chapter:
     def get_simplified_name(self):
         """Return simplified name of :meth:`Chapter.get_name()`"""
         return self._make_name(self._simpl_name)
+
+    def _apply_name_format(self, format_string: str):
+        format = format_string
+        pattern = "(\{\{(?:[A-Z])(?::?[0-9]*)\}\})"
+        matches = re.split(pattern, format)
+
+        for idx, match in enumerate(matches):
+            if not match.startswith("{{"):
+                continue
+            
+            spl = match.removeprefix("{{").removesuffix("}}").split(":")
+            width = 0
+            if len(spl) > 1:
+                try:
+                    width = int(spl[1])
+                except ValueError:
+                    pass
+            matches[idx] = self._get_replacement(spl[0], width)
+
+        return sanitize_filename(''.join(matches))
+    
+    def _get_replacement(self, action: str, width: int = 0):
+        match action:
+            case "T":
+                return self.title
+            case "C":
+                return str(self.chapter).zfill(width)
+            case "V":
+                return str(self.volume).zfill(width)
+            case "G":
+                return self.groups_name
+            case "M":
+                return self.manga_title
+            case _:
+                return ''
 
     @property
     def groups_name(self):

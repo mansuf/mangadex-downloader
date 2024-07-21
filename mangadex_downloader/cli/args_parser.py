@@ -280,6 +280,19 @@ def get_args(argv):
              "NOTE: Volume cover will be not created in chapter (cbz, pdf, raw, etc) and single formats)",
         default=config.use_volume_cover
     )
+    chap_group.add_argument(
+        "--chapter-naming-format",
+        "-cnf",
+        help="Output format of the chapter filename, where:\n"\
+            "{{M}} is manga title, "\
+            "{{C}} is chapter number (use {{C:x}} when you want to pad the number with zeroes - e.g. {{C:3}} produces 001 for chapter no. 1),\n"\
+            "{{V}} is volume number (use {{V:x}} when you want to pad the number with zeroes - e.g. {{V:2}} produces 02 for volume no. 2),\n"\
+            "{{T}} is chapter title,\n"\
+            "{{G}} is scanlation group name.\n"\
+            "For example: 'Chapter {{C:2}} Vol. {{V}} - {{T}} [{{G}}]' will produce filename called 'Chapter 09 Vol. 1 - MangaTitle [TranslationGroup]'\n"\
+            "This bypasses --use-chapter-title and --no-group-name both in arguments and in the config file."
+    )
+
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")

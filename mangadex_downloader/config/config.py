@@ -135,6 +135,11 @@ class _Config:
             "default",
             validate_progress_bar_layout
         ],
+        "chapter_naming_format": [
+            '',
+            #TODO ASAP: validate this somehow
+            dummy_validator
+        ]
     }
     default_conf = {
         x: y for x, (y, _) in confs.items()
