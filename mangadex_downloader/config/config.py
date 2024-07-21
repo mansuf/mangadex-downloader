@@ -137,8 +137,7 @@ class _Config:
         ],
         "chapter_naming_format": [
             '',
-            #TODO ASAP: validate this somehow
-            dummy_validator
+            validate_chapter_naming_format_syntax
         ]
     }
     default_conf = {

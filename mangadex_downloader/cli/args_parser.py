@@ -290,7 +290,8 @@ def get_args(argv):
             "{{T}} is chapter title,\n"\
             "{{G}} is scanlation group name.\n"\
             "For example: 'Chapter {{C:2}} Vol. {{V}} - {{T}} [{{G}}]' will produce filename called 'Chapter 09 Vol. 1 - MangaTitle [TranslationGroup]'\n"\
-            "This bypasses --use-chapter-title and --no-group-name both in arguments and in the config file."
+            "This bypasses --use-chapter-title and --no-group-name both in arguments and in the config file.",
+        default=''
     )
 
 

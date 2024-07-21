@@ -24,6 +24,7 @@ import logging
 import zipfile
 import os
 import typing
+import re
 from dataclasses import dataclass
 from urllib.parse import urlparse
 from requests_doh import get_all_dns_provider, add_dns_provider
@@ -31,7 +32,7 @@ from requests_doh import get_all_dns_provider, add_dns_provider
 from .. import format as fmt
 from ..errors import MangaDexException, InvalidURL
 from ..language import get_language
-from ..utils import validate_url, get_key_value
+from ..utils import validate_url, get_key_value, get_chapter_naming_format_regex_pattern
 from ..progress_bar import progress_bar_manager
 
 __all__ = (
@@ -40,7 +41,7 @@ __all__ = (
     "validate_int", "validate_tag", "validate_blacklist",
     "validate_sort_by", "validate_http_retries", "validate_download_mode",
     "validate_doh_provider", "validate_log_level", "validate_progress_bar_layout",
-    "validate_stacked_progress_bar_order",
+    "validate_stacked_progress_bar_order", "validate_chapter_naming_format_syntax",
     "load_env", "LazyLoadEnv", "ConfigTypeError"
 )
 
@@ -280,3 +281,10 @@ def validate_stacked_progress_bar_order(val):
 
     progress_bar_manager.set_types_order(*values)
     return values
+
+def validate_chapter_naming_format_syntax(val : str):
+    pattern = get_chapter_naming_format_regex_pattern()
+    matches = re.findall(pattern, val)
+    if len(matches) <= 0:
+        raise ConfigTypeError(f"'{val}' does not contain any formatting syntax")
+    return val

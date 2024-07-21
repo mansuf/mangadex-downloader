@@ -39,7 +39,7 @@ from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config, env
-from .utils import convert_int_or_float, get_local_attr
+from .utils import convert_int_or_float, get_local_attr, get_chapter_naming_format_regex_pattern
 from .progress_bar import progress_bar_manager as pbm
 # from . import range as range_mod # range_mod stands for "range module"
 
@@ -315,7 +315,7 @@ class Chapter:
 
     def _apply_name_format(self, format_string: str):
         format = format_string
-        pattern = "(\{\{(?:[A-Z])(?::?[0-9]*)\}\})"
+        pattern = get_chapter_naming_format_regex_pattern()
         matches = re.split(pattern, format)
 
         for idx, match in enumerate(matches):

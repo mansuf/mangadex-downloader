@@ -316,3 +316,6 @@ def get_key_value(text, sep='='):
     key = splitted[0].lower()
     value = "".join(splitted[1:])
     return key, value
+
+def get_chapter_naming_format_regex_pattern() -> str:
+    return "(\{\{(?:[A-Z])(?::?[0-9]*)\}\})"
