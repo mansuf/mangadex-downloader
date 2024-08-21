@@ -40,7 +40,7 @@ To see all available manuals, see {doc}`cli_ref/index`
 installation
 formats
 cli_usage/index
-cli_usage/advanced
+cli_usage/advanced/index
 cli_ref/index
 ```
 
