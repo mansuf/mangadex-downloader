@@ -541,6 +541,15 @@ def get_args(argv):
         default=config.no_metadata,
         help="Disable metadata creation (ComicInfo.xml) in any cbz format (cbz, cbz-volume, cbz-single)",
     )
+    misc_group.add_argument(
+        "--page-size",
+        type=int,
+        default=config.page_size,
+        help="Set maximum items displayed in page for commands and search mode. "
+        "For example: 'mangadex-dl library --login --page-size 50', this example command will display "
+        "50 items per page. If you set to 0, the application will follow default limit size "
+        "depends on what type of command",
+    )
 
     console_group = parser.add_argument_group("Console output")
     console_group.add_argument(

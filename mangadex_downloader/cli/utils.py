@@ -29,6 +29,7 @@ from ..update import architecture, executable
 from ..network import Net
 from ..downloader import _cleanup_jobs
 from ..errors import MangaDexException, NotLoggedIn
+from ..config import config
 
 log = logging.getLogger(__name__)
 
@@ -121,7 +122,11 @@ class Paginator:
 
         self._pos = 0
         self.iterator = iter(iterator)
-        self.limit = limit
+
+        if config.page_size:
+            self.limit = config.page_size
+        else:
+            self.limit = limit
 
         self.duplicates = []
 
@@ -198,7 +203,9 @@ class Paginator:
         # Retrieving page
         items = self._pages[pos]
         start_item_pos = pos * self.limit
-        result = [(pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)]
+        result = [
+            (pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)
+        ]
 
         self._pos += 1
 
@@ -212,7 +219,9 @@ class Paginator:
 
         items = self._pages[pos]
         start_item_pos = pos * self.limit
-        result = [(pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)]
+        result = [
+            (pos, item) for pos, item in enumerate(items, start=start_item_pos + 1)
+        ]
 
         self._pos -= 1
 

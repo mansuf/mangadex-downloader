@@ -39,6 +39,7 @@ from .utils import (
     validate_log_level,
     validate_progress_bar_layout,
     convert_string_lowercase,
+    validate_int,
     ConfigTypeError,
 )
 from .. import format as fmt, json_op
@@ -112,6 +113,7 @@ class _Config:
             validate_dummy,
         ),
         "no_metadata": (False, validate_bool),
+        "page_size": (0, validate_int),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

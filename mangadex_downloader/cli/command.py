@@ -48,6 +48,7 @@ from ..group import Group
 from ..cover import CoverArt, cover_qualities
 from ..language import get_language
 from ..format.pdf import PillowNotInstalled
+from ..config import config
 
 
 def preview_chapter(chapter: Chapter):
@@ -437,12 +438,16 @@ class SearchMangaCommand(MangaCommand, FilterEnabled):
         filter_kwargs = self.parse_filter(args)
 
         iterator = IteratorManga(input_text, **filter_kwargs)
-        super().__init__(parser, args, iterator, f'Manga search results for "{input_text}"')
+        super().__init__(
+            parser, args, iterator, f'Manga search results for "{input_text}"'
+        )
 
         self.input_text = input_text
 
     def on_empty_error(self):
-        self.args_parser.error(f'Manga search results for "{self.input_text}" are empty')
+        self.args_parser.error(
+            f'Manga search results for "{self.input_text}" are empty'
+        )
 
 
 class GroupMangaCommand(MangaCommand):
@@ -633,8 +638,6 @@ class CoverArtCommand(MangaDexCommand):
         if quality not in cover_qualities:
             parser.error(f"{quality} is not valid quality covers")
 
-        from ..config import config
-
         vcl = config.volume_cover_language
         cover_locale = vcl if vcl else config.language
         cover_locale = get_language(cover_locale)
@@ -675,7 +678,8 @@ class CoverArtCommand(MangaDexCommand):
 
     def on_empty_error(self):
         self.args_parser.error(
-            f"Manga {self.manga.title!r} doesn't " f"have {self.cover_locale.name!r} covers"
+            f"Manga {self.manga.title!r} doesn't "
+            f"have {self.cover_locale.name!r} covers"
         )
 
 
