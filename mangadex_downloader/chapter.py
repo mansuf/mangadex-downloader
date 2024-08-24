@@ -157,7 +157,7 @@ class Chapter:
             data = get_chapter(_id)["data"]
 
         self.id = data["id"]
-        self._attr = data["attributes"]
+        self.attr = data["attributes"]
 
         # Get scanlation groups and manga
         rels = data["relationships"]
@@ -191,7 +191,7 @@ class Chapter:
         self.use_group_name = not config.no_group_name
         self.use_chapter_title = config.use_chapter_title
 
-        self._lang = Language(self._attr["translatedLanguage"])
+        self._lang = Language(self.attr["translatedLanguage"])
 
         self._parse_name()
 
@@ -203,7 +203,7 @@ class Chapter:
 
     @property
     def volume(self):
-        vol = self._attr["volume"]
+        vol = self.attr["volume"]
         if vol is not None:
             # As far as i know
             # Volume manga are integer numbers, not float
@@ -226,18 +226,18 @@ class Chapter:
     @property
     def chapter(self):
         try:
-            return self._attr["chapter"].strip()
+            return self.attr["chapter"].strip()
         except AttributeError:
             # null value
             return None
 
     @property
     def title(self):
-        return self._attr["title"]
+        return self.attr["title"]
 
     @property
     def pages(self):
-        return self._attr["pages"]
+        return self.attr["pages"]
 
     @property
     def language(self):
@@ -336,6 +336,7 @@ def iter_chapters_feed(manga_id, lang=None):
             "offset": offset,
             "order[volume]": "asc",
             "order[chapter]": "asc",
+            "order[readableAt]": "desc" if config.order == "newest" else "asc",
             "includeEmptyPages": 0,
         }
 

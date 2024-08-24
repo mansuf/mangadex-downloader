@@ -36,6 +36,7 @@ from ..progress_bar import progress_bar_manager
 
 __all__ = (
     "validate_bool",
+    "validate_order",
     "validate_language",
     "validate_value_from_iterator",
     "validate_format",
@@ -320,3 +321,11 @@ def validate_stacked_progress_bar_order(val):
 
     progress_bar_manager.set_types_order(*values)
     return values
+
+
+def validate_order(val):
+    val = val.strip().lower()
+    if val not in ["newest", "oldest"]:
+        raise ConfigTypeError(f"'{val}' is not valid order")
+
+    return val

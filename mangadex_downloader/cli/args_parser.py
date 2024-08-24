@@ -354,6 +354,14 @@ def get_args(argv):
         help="Merge all chapters that has no volume into 1 file for 'volume' format. ",
         default=config.create_no_volume,
     )
+    chap_group.add_argument(
+        "--order",
+        default=config.order,
+        choices=("newest", "oldest"),
+        help="Change chapter order, by default it set to 'newest'. "
+        "Which mean it always try to download the newest chapter. "
+        "Available options: newest, oldest",
+    )
 
     # Chapter page related
     chap_page_group = parser.add_argument_group("Chapter Page")
