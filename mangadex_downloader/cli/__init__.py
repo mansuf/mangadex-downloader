@@ -1,4 +1,5 @@
 import sys
+import time
 import traceback
 from .update import check_update
 from .args_parser import get_args
@@ -16,6 +17,7 @@ from .download import download
 
 from ..errors import MangaDexException
 from ..format import deprecated_formats
+from ..utils import queueworker_active_threads
 
 _deprecated_opts = {
     # I know this isn't deprecated
@@ -124,7 +126,7 @@ def _main(argv):
     # Other exception
     except Exception as e:
         traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
-        return parser, 1, None
+        return parser, 2, None
 
     else:
         # We're done here
@@ -134,7 +136,29 @@ def _main(argv):
 def main(argv=None):
     _argv = sys_argv if argv is None else argv
 
-    args_parser, exit_code, err_msg = _main(_argv)
+    # Notes for exit code
+    # 0 Means it has no error
+    # 1 is library error (atleast we can handle it)
+    # 2 is an error that we cannot handle (usually from another library or Python itself)
+
+    if "--run-forever" in [i.lower() for i in _argv]:
+        while True:
+            args_parser, exit_code, err_msg = _main(_argv)
+
+            if exit_code == 2:
+                # Hard error
+                # an error that we cannot handle
+                # exit the application
+                break
+
+            # Shutdown worker threads
+            # to prevent infinte worker threads
+            for worker_thread in queueworker_active_threads:
+                worker_thread.shutdown(blocking=True)
+
+            time.sleep(5)
+    else:
+        args_parser, exit_code, err_msg = _main(_argv)
 
     if args_parser is not None and exit_code > 0 and err_msg:
         # It has error message, exit with .error()

@@ -550,6 +550,14 @@ def get_args(argv):
         "50 items per page. If you set to 0, the application will follow default limit size "
         "depends on what type of command",
     )
+    # If you look carefully, this cli argument is used for creating help and documentation only
+    # The actual implementation is silly, a manual checking inside application argv
+    # See main function in cli.__init__ module
+    misc_group.add_argument(
+        "--run-forever",
+        action="store_true",
+        help="Allow the application to run indefinitely with 5 seconds delay for repeating the same job",
+    )
 
     console_group = parser.add_argument_group("Console output")
     console_group.add_argument(

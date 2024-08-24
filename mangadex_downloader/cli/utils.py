@@ -39,6 +39,11 @@ sys_argv = sys.argv[1:]
 
 def setup_logging(name_module, verbose=False):
     log = logging.getLogger(name_module)
+    for handler in log.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            # We already have logging configured
+            return log
+
     handler = logging.StreamHandler()
     fmt = logging.Formatter("[%(levelname)s] %(message)s")
     handler.setFormatter(fmt)

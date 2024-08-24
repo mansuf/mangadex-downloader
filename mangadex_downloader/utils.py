@@ -164,6 +164,9 @@ def delete_file(file):
         raise err
 
 
+queueworker_active_threads = []
+
+
 class QueueWorker(threading.Thread):
     """A queue-based worker run in another thread"""
 
@@ -182,6 +185,8 @@ class QueueWorker(threading.Thread):
     def start(self):
         super().start()
         self._thread_wait_mainthread.start()
+
+        queueworker_active_threads.append(self)
 
     def _wait_mainthread(self):
         """Wait for mainthread to exit and then shutdown :class:`QueueWorker` thread"""
