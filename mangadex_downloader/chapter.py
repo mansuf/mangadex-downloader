@@ -632,6 +632,13 @@ class IteratorChapter:
                     if chap.user and group.id == chap.user.id:
                         group_check = True
 
+            if (
+                not group_check
+                and config.group_nomatch_behaviour == "fallback"
+                and self._check_duplicate(chap)
+            ):
+                return False
+
             if not group_check:
                 pbm.logger.debug(
                     f"Ignoring chapter {num_chap}, "

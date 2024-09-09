@@ -36,6 +36,7 @@ from .utils import (
     validate_http_retries,
     validate_download_mode,
     validate_stacked_progress_bar_order,
+    validate_group_nomatch_behaviour,
     validate_log_level,
     validate_progress_bar_layout,
     validate_int,
@@ -116,6 +117,7 @@ class _Config:
         "no_metadata": (False, validate_bool),
         "page_size": (0, validate_int),
         "order": ("newest", validate_order),
+        "group_nomatch_behaviour": ("ignore", validate_group_nomatch_behaviour),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

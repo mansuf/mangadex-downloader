@@ -217,8 +217,8 @@ def get_args(argv):
     )
 
     # Group related
-    group_group = parser.add_argument_group("Group")  # wtf group_group
-    group_group.add_argument(
+    grp_group = parser.add_argument_group("Group")
+    grp_group.add_argument(
         "--group",
         "-g",
         metavar="GROUP_ID",
@@ -226,6 +226,16 @@ def get_args(argv):
         help="Filter each chapter with different scanlation group. "
         "Filter with user also supported.",
         action="append",
+    )
+    grp_group.add_argument(
+        "--group-nomatch-behaviour",
+        "-gnb",
+        choices=("ignore", "fallback"),
+        default=config.group_nomatch_behaviour,
+        help="Change behaviour for group filtering if it doesn't match. "
+        "By default, it set to 'ignore'. Which mean it will ignore the chapter "
+        "if the chapter doesn't match with specified group. If you set it to 'fallback' "
+        "the app will find another chapter if the chapter doesn't match with specified group",
     )
 
     # Language related

@@ -52,6 +52,7 @@ __all__ = (
     "validate_log_level",
     "validate_progress_bar_layout",
     "validate_stacked_progress_bar_order",
+    "validate_group_nomatch_behaviour",
     "load_env",
     "LazyLoadEnv",
     "ConfigTypeError",
@@ -329,3 +330,9 @@ def validate_order(val):
         raise ConfigTypeError(f"'{val}' is not valid order")
 
     return val
+
+
+def validate_group_nomatch_behaviour(val):
+    val = val.strip().lower()
+    if val not in ["ignore", "fallback"]:
+        raise ConfigTypeError(f"'{val}' is not valid order")
