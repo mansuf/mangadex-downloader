@@ -144,7 +144,7 @@ def delete_file(file):
         return
 
     err = None
-    for attempt in range(5):
+    for attempt in range(20):
         try:
             os.remove(file)
         except Exception as e:
