@@ -101,12 +101,11 @@ class Migration(SQLMigration):
         cursor = self.db.cursor()
         missing_tables = self.get_missing_tables()
         missing_columns = self.get_missing_columns()
-        missing_values = self.get_missing_values()
         missing_version = self._is_version_missing(cursor)
 
         cursor.close()
 
-        return any([missing_columns, missing_tables, missing_values, missing_version])
+        return any([missing_columns, missing_tables, missing_version])
 
     def migrate(self):
         cursor = self.db.cursor()
