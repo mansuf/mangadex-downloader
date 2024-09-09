@@ -5,5 +5,5 @@ pathvalidate
 packaging
 pyjwt
 beautifulsoup4
-Pillow==9.5.0
+Pillow==10.4.0
 chardet
