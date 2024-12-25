@@ -3,7 +3,6 @@
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![](https://dcbadge.limes.pink/api/server/NENvQ5b5Pt)](https://discord.gg/NENvQ5b5Pt)
 
-
 # mangadex-downloader
 
 [![Indonesian](https://img.shields.io/badge/Language-Indonesian-blue.svg)](https://github.com/mansuf/mangadex-downloader/blob/main/README.id.md)
@@ -16,14 +15,14 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - [Key Features](#key-features)
 - [Supported formats](#supported-formats)
 - [Installation](#installation)
-    - [Python Package Index (PyPI)](#installation-pypi)
-    - [Bundled executable](#installation-bundled-executable)
-    - [Docker](#installation-docker)
-    - [Development version](#installation-development-version)
+  - [Python Package Index (PyPI)](#installation-pypi)
+  - [Bundled executable](#installation-bundled-executable)
+  - [Docker](#installation-docker)
+  - [Development version](#installation-development-version)
 - [Usage](#usage)
-    - [PyPI version](#usage-pypi-version)
-    - [Bundled executable version](#usage-bundled-executable-version)
-    - [Docker version](#usage-docker-version)
+  - [PyPI version](#usage-pypi-version)
+  - [Bundled executable version](#usage-bundled-executable-version)
+  - [Docker version](#usage-docker-version)
 - [Contributing](#contributing)
 - [Donation](#donation)
 - [Support](#support)
@@ -46,7 +45,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - Multi languages support
 - Save as raw images, EPUB, PDF, Comic Book Archive (.cbz or .cb7)
 
-***And ability to not download oneshot chapter***
+**_And ability to not download oneshot chapter_**
 
 ## Supported formats <a id="supported-formats"></a>
 
@@ -56,7 +55,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 
 What will you need:
 
-- Python 3.8.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#installation-bundled-executable))
+- Python 3.8.x to 3.11.x with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#installation-bundled-executable))
 
 That's it.
 
@@ -100,12 +99,13 @@ Steps:
 
 - Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
 - Extract it.
-- That's it ! You have successfully install mangadex-downloader. 
-[See this instructions to run mangadex-downloader](#usage-bundled-executable-version)
+- That's it ! You have successfully install mangadex-downloader.
+  [See this instructions to run mangadex-downloader](#usage-bundled-executable-version)
 
 ### Docker <a id="installation-docker"></a>
 
 Available at:
+
 - https://hub.docker.com/r/mansuf/mangadex-downloader
 - https://gallery.ecr.aws/mansuf/mangadex-downloader
 
@@ -130,9 +130,9 @@ docker pull public.ecr.aws/mansuf/mangadex-downloader:latest-optional
 docker pull public.ecr.aws/mansuf/mangadex-downloader:v2.10.3-optional
 ```
 
-**NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support. 
-That's because some dependencies (most notably `orjson`) require rust compiler 
-and i give up installing rust compiler in arm/v6 platform, there is too much errors for me. 
+**NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support.
+That's because some dependencies (most notably `orjson`) require rust compiler
+and i give up installing rust compiler in arm/v6 platform, there is too much errors for me.
 
 ### Development version <a id="installation-development-version"></a>
 
@@ -150,17 +150,17 @@ python setup.py install # or "pip install ."
 
 ```shell
 
-mangadex-dl "insert MangaDex URL here" 
+mangadex-dl "insert MangaDex URL here"
 # or
-mangadex-downloader "insert MangaDex URL here" 
+mangadex-downloader "insert MangaDex URL here"
 
 # Use this if "mangadex-dl" or "mangadex-downloader" didn't work
 
 # For Windows
-py -3 -m mangadex_downloader "insert MangaDex URL here" 
+py -3 -m mangadex_downloader "insert MangaDex URL here"
 
 # For Linux / Mac OS
-python3 -m mangadex_downloader "insert MangaDex URL here" 
+python3 -m mangadex_downloader "insert MangaDex URL here"
 ```
 
 ### Bundled executable version <a id="usage-bundled-executable-version"></a>
@@ -173,7 +173,7 @@ python3 -m mangadex_downloader "insert MangaDex URL here"
 - And then start using mangadex-downloader, see example below:
 
 ```shell
-mangadex-dl.exe "insert MangaDex URL here" 
+mangadex-dl.exe "insert MangaDex URL here"
 ```
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
