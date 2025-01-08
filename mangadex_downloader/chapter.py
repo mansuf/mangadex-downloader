@@ -732,8 +732,14 @@ class MangaChapter:
         iterator = iter_chapters_feed(self.manga.id, self.language)
         self.chapters.extend(map(Chapter.from_data, iterator))
 
+        if isinstance(self.language, Language):
+            language = self.language.name
+        else:
+            # Assume it was string object
+            language = self.language
+
         if not self.chapters:
             raise ChapterNotFound(
-                f"Manga '{self.manga.title}' with {self.language.name} "
+                f"Manga '{self.manga.title}' with {language} "
                 "language has no chapters"
             )
