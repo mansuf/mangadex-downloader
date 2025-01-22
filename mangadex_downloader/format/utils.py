@@ -32,7 +32,7 @@ from .chinfo import get_chapter_info as get_chinfo
 from ..language import Language
 from ..downloader import FileDownloader
 from ..utils import get_cover_art_url
-from .. import __repository__, __url_repository__, json_op
+from .. import __repository__, __url_repository__
 from ..progress_bar import progress_bar_manager as pbm
 
 log = logging.getLogger(__name__)
@@ -232,50 +232,6 @@ class MangaStatus(Enum):
     Completed = "2"
     Hiatus = "6"
     Cancelled = "5"
-
-
-def write_tachiyomi_details(manga, path):
-    """Write 'details.json' for tachiyomi format
-
-    See https://tachiyomi.org/help/guides/local-manga/#editing-local-manga-details
-    """
-    data = {}
-    data["title"] = manga.title
-
-    # Parse authors
-    authors = ""
-    for index, author in enumerate(manga.authors):
-        if index < (len(manga.authors) - 1):
-            authors += author + ","
-        else:
-            # If this is last index, append author without comma
-            authors += author
-    data["author"] = authors
-
-    # Parse artists
-    artists = ""
-    for index, artist in enumerate(manga.artists):
-        if index < (len(manga.artists) - 1):
-            artists += artist + ","
-        else:
-            # If this is last index, append artist without comma
-            artists += artist
-    data["artist"] = artists
-
-    data["description"] = manga.description
-    data["genre"] = manga.genres
-    data["status"] = MangaStatus[manga.status].value
-    data["_status values"] = [
-        "0 = Unknown",
-        "1 = Ongoing",
-        "2 = Completed",
-        "3 = Licensed",
-        "4 = Publishing finished",
-        "5 = Cancelled",
-        "6 = On hiatus",
-    ]
-    with open(path, "wb") as writer:
-        writer.write(json_op.dumps(data, convert_str=False))
 
 
 class QueueWorkerReadMarker(threading.Thread):

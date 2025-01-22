@@ -118,11 +118,6 @@ def get_args(argv):
         "--replace", "-r", help="Replace manga if exist", action="store_true"
     )
     parser.add_argument(
-        "--verbose",
-        help="[DEPRECATED] Use `--log-level=DEBUG` instead. " "Enable verbose output",
-        action="store_true",
-    )
-    parser.add_argument(
         "--filter",
         "-ft",
         help="Apply filter to search and random manga",
@@ -214,6 +209,14 @@ def get_args(argv):
         "-mip",
         help="Change file location to store manga information. Default to './manga_info.{manga_info_format}'",
         default=config.manga_info_filepath,
+    )
+    manga_group.add_argument(
+        "--manga-info-only",
+        "-mio",
+        action="store_true",
+        help="Store manga information without downloading manga. "
+        "The application will exit after writing manga information",
+        default=config.manga_info_only,
     )
 
     # Group related
@@ -540,13 +543,6 @@ def get_args(argv):
     )
 
     misc_group.add_argument(
-        "--write-tachiyomi-info",
-        "-wti",
-        action="store_true",
-        default=config.write_tachiyomi_info,
-        help="Write manga details to tachiyomi `details.json` file",
-    )
-    misc_group.add_argument(
         "--no-track",
         action="store_true",
         default=config.no_track,
@@ -605,14 +601,6 @@ def get_args(argv):
         "Multiple values is supported, separated by comma. "
         "Default order is 'volumes, chapters, pages, file sizes, convert'",
         metavar="ORDER",
-    )
-    console_group.add_argument(
-        "--no-progress-bar",
-        "-npb",
-        action="store_true",
-        default=config.no_progress_bar,
-        help="[DEPRECATED] Use '--progress-bar-layout=none' instead. "
-        "Disable progress bar when downloading or converting",
     )
 
     # Update application

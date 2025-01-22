@@ -23,10 +23,6 @@ _deprecated_opts = {
     # I know this isn't deprecated
     # But i need the warning feature, hehe
     "range": "--range is disabled, because it's broken and need to rework",
-    "no_progress_bar": "--no-progress bar is deprecated and will be removed in v3.0.0"
-    ". Use '--progress-bar-layout=none' instead",
-    "verbose": "--verbose is deprecated and will be removed in v3.0.0. "
-    "Use '--log-level=DEBUG' instead",
 }
 
 
@@ -43,10 +39,6 @@ def check_deprecated_formats(log, args):
             f"format `{args.save_as}` is deprecated, "
             "please use `raw` or `cbz` format with `--write-tachiyomi-info` instead"
         )
-
-        # Enable `--write-tachiyomi-info`
-        # because it's using `tachiyomi` and `tachiyomi-zip` format
-        args.write_tachiyomi_info = True
 
 
 def check_conflict_options(args, parser):
@@ -85,7 +77,9 @@ def _main(argv):
         parser, args = get_args(argv)
 
         # Setup logging
-        log = setup_logging("mangadex_downloader", args.verbose)
+        log = setup_logging(
+            "mangadex_downloader", True if args.log_level == "DEBUG" else False
+        )
 
         # Check deprecated
         check_deprecated_options(log, args)

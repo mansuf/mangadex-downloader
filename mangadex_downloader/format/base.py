@@ -26,7 +26,6 @@ import shutil
 from .utils import (
     NumberWithLeadingZeros,
     verify_sha256,
-    write_tachiyomi_details,
     get_md_file_hash,
     create_file_hash_sha256,
     QueueWorkerReadMarker,
@@ -263,12 +262,6 @@ class BaseFormat:
             name = "No Volume"
 
         return name
-
-    def write_tachiyomi_info(self):
-        """Write `details.json` file for tachiyomi app"""
-        if self.config.write_tachiyomi_info:
-            log.info("Writing tachiyomi `details.json` file")
-            write_tachiyomi_details(self.manga, (self.path / "details.json"))
 
     def get_fi_chapter_fmt(self, name, id, hash=None):
         """Get DownloadTracker._FileInfo for chapter format (raw, cbz, epub, etc..)
@@ -532,8 +525,6 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
         # Steps for new (not downloaded) chapters:
         # - Download all of them, yes
 
-        self.write_tachiyomi_info()
-
         log.info("Preparing to download...")
         cache = []
         cache.extend(manga.chapters.iter(**self.kwargs_iter))
@@ -723,8 +714,6 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
         # Steps for new (not downloaded) volumes:
         # - Download all of them, yes
-
-        self.write_tachiyomi_info()
 
         cache = self.get_fmt_volume_cache(manga)
 
@@ -927,8 +916,6 @@ class ConvertedSingleFormat(BaseConvertedFormat):
 
         # Steps for new (not downloaded) file (single format):
         # - Download all of them, yes
-
-        self.write_tachiyomi_info()
 
         cache, total = result_cache
 

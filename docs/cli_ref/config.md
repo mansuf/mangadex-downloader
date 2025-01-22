@@ -14,12 +14,12 @@ Let's say you want to download a manga with
 - No manga cover
 - No group name in each chapters
 - And the chapters language must Indonesian
-- And store it to `manga` directory
+- And store it to `library` directory
 
 The results:
 
 ```shell
-mangadex-dl "https://mangadex.org/title/..." --force-https --no-progress-bar --dns-over-https "cloudflare" --cover "none" --no-group-name --language "Indonesian" --path "manga"
+mangadex-dl "https://mangadex.org/title/..." --force-https --progress-bar-layout "none" --dns-over-https "cloudflare" --cover "none" --no-group-name --language "Indonesian" --path "library/mymanga"
 ```
 
 It is wayyyy too longgggggg and you have to write these command-line options everytime to download manga. 
@@ -47,12 +47,12 @@ Second, set the values for configs
 ```shell
 # `1` is alias for True and `0` is alias for False
 mangadex-dl "conf:force_https=1"
-mangadex-dl "conf:no_progress_bar=1"
+mangadex-dl "conf:progress_bar_layout=none"
 mangadex-dl "conf:dns_over_https=cloudflare"
 mangadex-dl "conf:cover=none"
 mangadex-dl "conf:no_group_name=1"
 mangadex-dl "conf:language=Indonesian"
-mangadex-dl "conf:path=manga"
+mangadex-dl "conf:path=library/mymanga"
 ```
 
 After that you can download the manga without writing very-very long command-line options
@@ -70,12 +70,12 @@ Let's say you have `config.txt`. And inside of that file is that every configs t
 
 ```shell
 conf:force_https=1
-conf:no_progress_bar=1
+conf:progress_bar_layout=none
 conf:dns_over_https=cloudflare
 conf:cover=none
 conf:no_group_name=1
 conf:language=Indonesian
-conf:path=manga
+conf:path=library/mymanga
 ```
 
 And then you execute these commands:
@@ -140,12 +140,20 @@ Same as `--force-https` or `-fh`
 Same as `--path` or `--folder` or `-d`
 ```
 
-```{option} dns_over_https
-Same as `-doh` or `--dns-over-https`
+```{option} filename_chapter
+Same as `--filename-chapter` or `-fc`
 ```
 
-```{option} no_chapter_info
-Same as `-nci` or `--no-chapter-info`
+```{option} filename_volume
+Same as `--filename-volume` or `-fv`
+```
+
+```{option} filename_single
+Same as `--filename-single` or `-fs`
+```
+
+```{option} dns_over_https
+Same as `-doh` or `--dns-over-https`
 ```
 
 ```{option} no_group_name
@@ -154,10 +162,6 @@ Same as `-ngn` or `--no-group-name`
 
 ```{option} sort_by
 Same as `--sort-by`
-```
-
-```{option} no_progress_bar
-Same as `-npb` or `--no-progress-bar`
 ```
 
 ```{option} http_retries

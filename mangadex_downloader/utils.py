@@ -367,7 +367,6 @@ def create_manga_info(path, manga, replace):
     manga_info = MangaInfo(path, manga, replace)
     manga_info.write()
 
-    log.debug("Download finished because --create-manga-info is present")
     return manga
 
 
