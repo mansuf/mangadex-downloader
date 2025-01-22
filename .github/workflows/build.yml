@@ -159,7 +159,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10' ]
+        python-version: [ '3.10', '3.11', '3.12', '3.13' ]
 
     steps:
       # Make sure cancels CI when tags is released
@@ -206,7 +206,7 @@ jobs:
           Write-Output "python_version=${PythonVersion}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # Build mangadex-downloader with PyInstaller
-      # only allow python 3.10
+      # only allow python 3.13
 
       - name: Setup python (x86)
         uses: actions/setup-python@v4
@@ -215,19 +215,19 @@ jobs:
           architecture: x86
 
       - name: Compile script
-        if: ${{ contains(env.python_version, '3.10') }}
+        if: ${{ contains(env.python_version, '3.13') }}
         run: |
           py -${{ matrix.python-version }}-64 -m PyInstaller "mangadex-dl_x64.spec" --distpath "./dist_x64"
           py -${{ matrix.python-version }}-32 -m PyInstaller "mangadex-dl_x86.spec" --distpath "./dist_x86"
 
       - name: Run compiled script
-        if: ${{ contains(env.python_version, '3.10') }}
+        if: ${{ contains(env.python_version, '3.13') }}
         run: |
           & ".\dist_x64\mangadex-dl_x64\mangadex-dl_x64.exe" --version
           & ".\dist_x86\mangadex-dl_x86\mangadex-dl_x86.exe" --version
 
       - name: Cleanup build
-        if: contains(env.python_version, '3.10')
+        if: contains(env.python_version, '3.13')
         run: |
           # x86 executable
           copy "LICENSE" "dist_x86\mangadex-dl_x86"
@@ -252,21 +252,21 @@ jobs:
           Compress-Archive -Path "dist_x64\mangadex-dl" -DestinationPath "mangadex-dl_x64_${{ github.ref_name }}.zip"
 
       - name: Upload artifact (x64)
-        if: contains(env.python_version, '3.10')
+        if: contains(env.python_version, '3.13')
         uses: actions/upload-artifact@v3
         with:
           name: mangadex-dl_x64
           path: dist_x64/mangadex-dl/
 
       - name: Upload artifact (x86)
-        if: contains(env.python_version, '3.10')
+        if: contains(env.python_version, '3.13')
         uses: actions/upload-artifact@v3
         with:
           name: mangadex-dl_x86
           path: dist_x86/mangadex-dl/
 
       - name: Get File hash
-        if: contains(env.python_version, '3.10')
+        if: contains(env.python_version, '3.13')
         run: |
           $File_x86 = "mangadex-dl_x86_${{ github.ref_name }}.zip"
           $File_x64 = "mangadex-dl_x64_${{ github.ref_name }}.zip"

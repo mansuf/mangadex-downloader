@@ -3,7 +3,6 @@
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![](https://dcbadge.limes.pink/api/server/NENvQ5b5Pt)](https://discord.gg/NENvQ5b5Pt)
 
-
 # mangadex-downloader
 
 [![Indonesian](https://img.shields.io/badge/Language-Indonesian-blue.svg)](https://github.com/mansuf/mangadex-downloader/blob/main/README.id.md)
@@ -124,11 +123,11 @@ You can use tag ending with `-optional`
 ```sh
 # Dockerhub
 docker pull mansuf/mangadex-downloader:latest-optional
-docker pull mansuf/mangadex-downloader:v2.10.3-optional
+docker pull mansuf/mangadex-downloader:v3.0.0-optional
 
 # AWS ECR (Alternative)
 docker pull public.ecr.aws/mansuf/mangadex-downloader:latest-optional
-docker pull public.ecr.aws/mansuf/mangadex-downloader:v2.10.3-optional
+docker pull public.ecr.aws/mansuf/mangadex-downloader:v3.0.0-optional
 ```
 
 **NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support. 

@@ -1,4 +1,4 @@
 py7zr==0.22.0
-orjson==3.10.7
+orjson==3.10.15
 lxml==5.3.0
 Authlib

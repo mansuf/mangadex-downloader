@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.13
 
 COPY . /app
 WORKDIR /app
@@ -8,7 +8,7 @@ RUN apt update && apt install wget
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.78.0
+    RUST_VERSION=1.84.0
 RUN wget https://sh.rustup.rs -O rustup.sh
 RUN chmod +x ./rustup.sh
 RUN ./rustup.sh -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION
