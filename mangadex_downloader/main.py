@@ -135,7 +135,9 @@ def download(
 
         if config.create_manga_info:
             create_manga_info(path, m, replace)
-            return manga
+
+            if config.manga_info_only:
+                return manga
 
         m.tracker = get_tracker(save_as, path)
 
@@ -230,7 +232,9 @@ def download_chapter(
 
     if config.create_manga_info:
         create_manga_info(path, manga, replace)
-        return manga
+
+        if config.manga_info_only:
+            return manga
 
     log.info(f'Found chapter {chap.chapter} from manga "{manga.title}"')
 
@@ -343,7 +347,9 @@ def download_cover_art_manga(url, replace=False):
     if config.create_manga_info:
         path = create_directory("", path=get_path(manga))
         create_manga_info(path, manga, replace)
-        return manga
+
+        if config.manga_info_only:
+            return manga
 
     if cover.volume is None:
         cover_name = "No volume cover"
