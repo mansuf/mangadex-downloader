@@ -74,8 +74,8 @@ When you already downloaded a manga, but you wanna download it again with differ
 
 ## Download manga with compressed size images
 
-If you have limited plan or metered network, you can download manga, chapter, or list with compressed size. 
-And yes, this may reduce the quality. But hey, atleast it saved you from huge amount of bytes
+If you have limited plan or metered network, you can download manga, chapter, or list with compressed size.
+And yes, this may reduce the quality. But hey, at least it saved you from huge amount of bytes
 
 Example Usage:
 
@@ -89,7 +89,7 @@ mangadex-dl "https://mangadex.org/title/..." --use-compressed-image
 This method require authentication
 ```
 
-mangadex-downloader support download from user library. Just type `library`, login, and select which manga you want to download.
+mangadex-downloader supports download from user library. Just type `library`, login, and select which manga you want to download.
 
 For example:
 
@@ -101,10 +101,10 @@ mangadex-dl "library" --login
 You can also apply filter to it !
 
 ```shell
-# List all mangas with "Reading" status from user library
+# List all manga with "Reading" status from user library
 mangadex-dl "library:reading" --login
 
-# List all mangas with "Plan to read" status from user library
+# List all manga with "Plan to read" status from user library
 mangadex-dl "library:plan_to_read" --login
 ```
 
@@ -178,10 +178,10 @@ mangadex-dl -s -ft "group=063cf1b0-9e25-495b-b234-296579a34496"
 
 ## Blacklist a group or user
 
-Sometimes you don't like the chapter that this user or group upload it. 
+Sometimes you don't like the chapter that this user or group upload it.
 You can use this feature to prevent the chapter being downloaded.
 
-**Group**
+### Group
 
 ```shell
 # For Windows
@@ -191,7 +191,7 @@ set MANGADEXDL_GROUP_BLACKLIST=4197198b-c99b-41ae-ad21-8e6ecc10aa49, 0047632b-13
 export MANGADEXDL_GROUP_BLACKLIST=4197198b-c99b-41ae-ad21-8e6ecc10aa49, 0047632b-1390-493d-ad7c-ac6bb9288f05
 ```
 
-**User**
+### User
 
 ```shell
 # For Windows
@@ -258,7 +258,7 @@ mangadex-dl "https://mangadex.org/title/..." --group "all"
 ```
 
 ```{warning}
-You cannot use `--group all` and `--no-group-name` together. It will throw error, if you're trying to do it
+You cannot use `--group all` and `--no-group-name` together, it will throw an error.
 ```
 
 Also, you can use user as filter in `--group` option.
@@ -279,7 +279,7 @@ mangadex-dl "https://mangadex.org/title/..." --proxy "http://127.0.0.1"
 mangadex-dl "https://mangadex.org/title/..." --proxy "socks://127.0.0.1"
 ```
 
-mangadex-downloader support proxy from environments
+mangadex-downloader supports proxy from environments
 
 ```shell
 # For Linux / Mac OS
@@ -294,13 +294,13 @@ mangadex-dl "insert mangadex url here" --proxy-env
 ```
 
 ```{warning}
-You cannot use `--proxy` and `--proxy-env` together. It will throw error, if you're trying to do it
+You cannot use `--proxy` and `--proxy-env` together, it will throw an error.
 ```
 
 ## Special syntax for batch download
 
-To avoid conflict filenames with reserved names (such as: `list`, `library`, `followed-list`) in `URL` argument, 
-you can use special syntax for batch download
+To avoid conflicting filenames with reserved names (such as: `list`, `library`, `followed-list`) in `URL` argument,
+you can use special syntax for batch download.
 
 For example:
 
@@ -417,8 +417,8 @@ For more information, you can see -> {doc}`../cli_ref/config`
 
 ## Authentication cache
 
-mangadex-downloader support authentication cache, which mean you can re-use your previous login session in mangadex-downloader 
-without re-login.
+mangadex-downloader support authentication cache, which mean you can re-use your previous login session
+in mangadex-downloader without re-login.
 
 ```{note}
 This authentication cache is stored in same place as where [config](#configuration) is stored.
@@ -437,7 +437,7 @@ mangadex-dl "conf:login_cache=true"
 mangadex-dl "https://mangadex.org/title/..." --login
 ```
 
-After this command, you no longer need to use `--login` option, 
+After this command, you no longer need to use `--login` option,
 use `--login` option if you want to update user login.
 
 ```shell
@@ -450,7 +450,7 @@ For more information, you can see here -> {doc}`../cli_ref/auth_cache`
 
 ## Filters
 
-mangadex-downloader support filters. These filters applied to search and random manga.
+mangadex-downloader support filters. These filters apply to search and random manga.
 
 Example usage (Search manga)
 
@@ -499,7 +499,7 @@ mangadex-dl "https://mangadex.org/title/..." --delay-requests 1.5
 
 ## Enable DNS-over-HTTPS
 
-mangadex-downloader support DoH (DNS-over-HTTPS). 
+mangadex-downloader support DoH (DNS-over-HTTPS).
 You can use it in case your router or ISP being not friendly to MangaDex server.
 
 Example usage
@@ -521,7 +521,7 @@ mangadex-dl "https://mangadex.org/title/..." --timeout 2
 
 ## Auto select choices from selectable prompt command (list, library, followed-list)
 
-In case you didn't want to be prompted, you can use this feature !
+In case you don't want as many prompts, you can use this feature !
 
 ```shell
 # Automatically select position 1
@@ -533,7 +533,7 @@ mangadex-dl "insert keyword here" -s --input-pos "*"
 
 ## Enable chapter info creation (or "covers")
 
-In case you want this image appeared in the beginning of every chapters.
+In case you want this image appearing in the beginning of every chapters.
 
 ![chapter info](../images/chapter_info.png)
 
@@ -549,8 +549,8 @@ mangadex-dl "insert URL here" --use-chapter-cover -f pdf-volume
 
 ## Enable compression for epub and cbz formats
 
-By default, the application didn't enable compression for cbz and epub formats. 
-In order to enable compression you must use 2 environment variables
+By default, the application doest't enable compression for cbz and epub formats.
+In order to enable compression you must set two environment variables
 
 ```sh
 # For Linux / Mac OS
