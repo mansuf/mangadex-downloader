@@ -6,7 +6,7 @@
 - `mangadex-downloader`
 
 ````{note}
-If none of above doesnt work use this
+If none of the above works, use this:
 
 ```shell
 # For Windows
@@ -19,8 +19,8 @@ python3 -m mangadex_downloader
 
 ## For bundled executable users
 
-It depend to the filename actually, 
-by default the executable is named `mangdex-dl.exe`.
+It depend to the filename actually,
+by default the executable is named `mangadex-dl.exe`.
 
 You can execute the application without ".exe". For example:
 
