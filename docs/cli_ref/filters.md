@@ -7,7 +7,7 @@ Currently filters can be used in:
 
 ## Syntax
 
-It's accesible from `-ft` or `--filter` option
+It's accessible from `-ft` or `--filter` option
 
 ```shell
 mangadex-dl -s -ft "KEY=VALUE"
@@ -20,7 +20,7 @@ mangadex-dl "random" -ft "KEY=VALUE1,VALUE2,VALUE3"
 ```
 
 ```{note}
-random manga has limited filters, here a list of available filters for random manga.
+random manga has limited filters, here's a list of available filters for random manga.
 
 - content_rating
 - included_tags
@@ -147,7 +147,7 @@ value must matching format `%Y-%m-%dT%H:%M:%S`
 
 ## Example usage
 
-Search manga with content rating erotica and status completed 
+Search manga with content rating erotica and status completed
 
 ```shell
 mangadex-dl -s -ft "original_language=Japanese" -ft "content_rating=erotica" -ft "status=completed"
