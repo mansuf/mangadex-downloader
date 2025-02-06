@@ -8,7 +8,7 @@ Show all saved MangaDex lists from logged in user or from another user. You will
 mangadex-dl "list:<user-id>"
 ```
 
-If `<user-id>` is given, it will show all public MangaDex lists from that user. 
+If `<user-id>` is given, it will show all public MangaDex lists from that user.
 Otherwise it will show all MangaDex lists from logged in user.
 
 You can give just the id or full URL to `<user-id>`.
