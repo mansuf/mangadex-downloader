@@ -1,6 +1,6 @@
 # Supported formats
 
-mangadex-downloader can download in different formats, here a list of supported formats.
+mangadex-downloader can download in different formats, here's the list of supported formats.
 
 ## raw
 
@@ -10,7 +10,7 @@ This is default format of mangadex-downloader. It's just bunch of images stored 
 
 `raw` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📂Volume. 1 Chapter. 1
  ┃ ┣ 🖼️images
@@ -33,7 +33,7 @@ Same as `raw` format, except all chapters wrapped into each volumes.
 
 `raw-volume` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📂Volume. 1
  ┃ ┣ 🖼️images
@@ -56,7 +56,7 @@ Same as `raw` format, except all chapters wrapped into single folder.
 
 `raw-single` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📂Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2
  ┃ ┣ 🖼️images
@@ -77,13 +77,17 @@ If you don't know tachiyomi, it's android app for reading manga and it's open so
 
 You can [read here](https://tachiyomi.org/help/guides/local-manga) for instruction how to create local manga in tachiyomi.
 
-**NOTE: mangadex-downloader are not affliated with tachiyomi, the app only provide custom format for tachiyomi local manga.**
+**NOTE: mangadex-downloader are not affiliated with tachiyomi, the app only provide custom format for tachiyomi local manga.**
+
+>[IMPORTANT]
+> As of Jan 13, 2024 Tachiyomi itself is no longer under active development [goodbye](https://github.com/tachiyomiorg)
+> The format still persists as a common standard used by many tools.
 
 ### Structure files
 
 `tachiyomi` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📂Volume. 1 Chapter. 1
  ┃ ┣ 🖼️images
@@ -107,7 +111,7 @@ Same as `tachiyomi` except, all images in each chapter will stored in ZIP file.
 
 `tachiyomi-zip` format files look like this
 
-```
+```shell
 📦 Manga title
  ┣ 📜cover.jpg
  ┣ 📜details.json
@@ -129,7 +133,7 @@ All images in each chapter will be converted to PDF file (.pdf)
 
 `pdf` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1 Chapter. 1.pdf
@@ -150,7 +154,7 @@ Same as `pdf`, except all chapters wrapped into each volumes PDF file.
 
 `pdf-volume` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1.pdf
@@ -171,7 +175,7 @@ same as `pdf` format, except all chapters wrapped into single PDF file
 
 `pdf-single` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┗ 📜Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2.pdf
@@ -195,7 +199,7 @@ This format was based of `zip` extension.
 
 `cbz` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1 Chapter. 1.cbz
@@ -216,7 +220,7 @@ same as `cbz` format, except all chapters wrapped into each volumes .cbz file
 
 `cbz-volume` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1.cbz
@@ -237,7 +241,7 @@ same as `cbz` format, except all chapters wrapped into single .cbz file
 
 `cbz-single` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┗ 📜Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2.cbz
@@ -259,7 +263,7 @@ This format was based of `7z` extension.
 
 `cb7` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1 Chapter. 1.cb7
@@ -280,7 +284,7 @@ same as `cb7` format, except all chapters wrapped into each volumes .cb7 file
 
 `cb7-volume` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1.cb7
@@ -301,7 +305,7 @@ same as `cb7` format, except all chapters wrapped into single .cb7 file
 
 `cb7-single` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┗ 📜Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2.cb7
@@ -323,7 +327,7 @@ This format was based of `zip` extension
 
 `epub` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1 Chapter. 1.epub
@@ -350,7 +354,7 @@ If you don't know what that means, you can have look here -> {doc}`../cli_ref/ch
 
 `epub-volume` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┣ 📜Volume. 1.epub
@@ -377,7 +381,7 @@ If you don't know what that means, you can have look here -> {doc}`../cli_ref/ch
 
 `epub-single` format files look like this
 
-```
+```shell
 📦Manga title
  ┣ 📜cover.jpg
  ┗ 📜Volume. 1 Chapter. 1 - Volume. 1 Chapter. 2.epub
