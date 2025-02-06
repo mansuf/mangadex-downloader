@@ -1,7 +1,7 @@
 # Commands
 
-Here is a list of available commands that you can execute in mangadex-downloader. 
-Most of them are for to show and download manga or lists. 
+Here is a list of available commands that you can execute in mangadex-downloader.
+Most of them are to show and download manga or lists.
 This command can be executed through `URL` parameter, see syntax below
 
 ## Syntax
