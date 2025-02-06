@@ -4,7 +4,7 @@
 
 # mangadex-downloader
 
-Sebuah alat antarmuka baris perintah untuk mengunduh manga dari [MangaDex](https://mangadex.org/), 
+Sebuah alat antarmuka baris perintah untuk mengunduh manga dari [MangaDex](https://mangadex.org/),
 ditulis di bahasa [Python](https://www.python.org/)
 
 ## Daftar isi
@@ -12,12 +12,12 @@ ditulis di bahasa [Python](https://www.python.org/)
 - [Fitur utama](#fitur-utama)
 - [Format yang didukung](#format-yang-didukung)
 - [Instalasi](#instalasi)
-    - [Python Package Index (PyPI)](#instalasi-pypi)
-    - [Satu paket aplikasi](#instalasi-satu-paket-aplikasi)
-    - [Versi perkembangan](#instalasi-versi-perkembangan)
+  - [Python Package Index (PyPI)](#instalasi-pypi)
+  - [Satu paket aplikasi](#instalasi-satu-paket-aplikasi)
+  - [Versi perkembangan](#instalasi-versi-perkembangan)
 - [Pemakaian](#pemakaian)
-    - [Versi PyPI](#pemakaian-versi-pypi)
-    - [Versi satu paket aplikasi](#pemakaian-versi-satu-paket-aplikasi)
+  - [Versi PyPI](#pemakaian-versi-pypi)
+  - [Versi satu paket aplikasi](#pemakaian-versi-satu-paket-aplikasi)
 - [Berkontribusi](#berkontribusi)
 - [Donasi](#donasi)
 - [Daftar tautan](#tautan)
@@ -49,7 +49,7 @@ ditulis di bahasa [Python](https://www.python.org/)
 
 Berikut aplikasi yang anda butuhkan:
 
-- Python versi 3.8.x atau keatas dengan Pip (Jika OS anda adalah Windows, anda bisa mengunduh satu paket aplikasi. 
+- Python versi 3.8.x atau keatas dengan Pip (Jika OS anda adalah Windows, anda bisa mengunduh satu paket aplikasi.
 [Lihat instruksi berikut untuk memasangnya](#instalasi-satu-paket-aplikasi))
 
 ### Python Package Index (PyPI) <a id="instalasi-pypi"></a>
@@ -139,10 +139,10 @@ mangadex-dl.exe "Masukan tautan MangaDex disini"
 
 ![example_usage_executable](https://raw.githubusercontent.com/mansuf/mangadex-downloader/main/assets/example_usage_executable.png)
 
-Untuk lebih banyak contoh tentang pemakaian, 
+Untuk lebih banyak contoh tentang pemakaian,
 [anda bisa baca disini](https://mangadex-dl.mansuf.link/en/stable/cli_usage/index.html)
 
-Untuk informasi lebih lanjut tentang opsi CLI, 
+Untuk informasi lebih lanjut tentang opsi CLI,
 [Anda bisa baca disini](https://mangadex-dl.mansuf.link/en/stable/cli_ref/index.html)
 
 ## Berkontribusi <a id="berkontribusi"></a>
@@ -166,5 +166,5 @@ Setiap jumlah yang diterima akan diapresiasi 💖
 
 ## Penafian (disclaimer) <a id="penafian"></a>
 
-mangadex-downloader tidak bersangkutan dengan MangaDex. 
+mangadex-downloader tidak bersangkutan dengan MangaDex.
 Dan pengelola yang sekarang ([@mansuf](https://github.com/mansuf)) bukan seorang MangaDex developer

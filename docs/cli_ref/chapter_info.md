@@ -2,7 +2,7 @@
 
 ![chapter info](../images/chapter_info.png)
 
-This is called chapter info (some people would call this "cover"). 
+This is called chapter info (some people would call this "cover").
 This gives you information what chapter currently you reading on.
 
 This applied to this formats

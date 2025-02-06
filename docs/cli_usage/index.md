@@ -20,8 +20,8 @@ mangadex-dl "a96676e5-8ae2-425e-b549-7f15dd34a6d8"
 ```
 
 ````{warning}
-If you want to download private list and you own that list, you must login by using `--login` option. Otherwise
-you will get error "List ... cannot be found"
+If you want to download a private list and you own that list, you must login by using `--login` option. Otherwise
+you will get an error "List ... cannot be found"
 
 ```shell
 mangadex-dl "https://mangadex.org/list/..." --login
@@ -65,9 +65,9 @@ For more info, you can see it here -> {doc}`../cli_ref/forums`
 
 ## Batch download
 
-mangadex-downloader support batch downloading. Just type a file and you're good to go !.
+mangadex-downloader support batch downloading. Just type a file and you're good to go !
 
-Make sure contents of the file are list of MangaDex urls
+Make sure contents of the file are list of MangaDex urls.
 
 ```shell
 # Inside of `urls.txt` file
@@ -98,12 +98,17 @@ $ mangadex-dl "yes-it-exist/exist.txt"
 ```
 ````
 
+````{note}
+When running from a docker the file path must be given as it would appear inside the docker,
+not from the calling command line.
+````
+
 ## Download manga, chapter or list in different format
 
-mangadex-downloader support download manga as different format. 
+mangadex-downloader support download manga as different format.
 For more info about supported formats, you can see it here -> {doc}`../formats`
 
-By default, mangadex-downloader will download in `raw` format. 
+By default, mangadex-downloader will download in `raw` format.
 Which just a bunch of images stored in each chapter folder. You can use different format by using `--save-as` option.
 
 ```shell
@@ -189,7 +194,7 @@ Also, you can add chapter title for each folder.
 mangadex-dl "https://mangadex.org/title/..." --use-chapter-title
 ```
 
-By default, mangadex-downloader will add scanlator group name for each chapter folder. 
+By default, mangadex-downloader will add scanlator group name for each chapter folder.
 If you don't want this, use `--no-group-name` option
 
 ```shell
@@ -209,17 +214,17 @@ mangadex-dl "https://mangadex.org/title/..." --start-chapter 20 --end-chapter 69
 ```
 
 ```{warning}
-If you use `--start-page` and `--end-page` when downloading manga it will download all chapter with specified range pages
+If you use `--start-page` and `--end-page` when downloading manga it will download all chapter with specified range pages.
 ```
 
-You can use `--start-page` and `--end-page` too when downloading a chapter
+You can use `--start-page` and `--end-page` when downloading a chapter.
 
 ```shell
 mangadex-dl "https://mangadex.org/chapter/..." --start-page 5 --end-page 20
 ```
 
 ````{warning}
-You can't use these options when downloading a list. If you're trying to do that, it will throw a error.
+You can't use these options when downloading a list. If you're trying to do that, it will throw an error.
 
 ```shell
 mangadex-dl "https://mangadex.org/list/..." --start-chapter 20 --end-chapter 69
@@ -264,7 +269,7 @@ mangadex-dl "https://mangadex.org/list/..." --login
 # ...
 ```
 
-You can specify (username or email) and password without be prompted (less secure) ! 
+You can specify (username or email) and password without be prompted (less secure) !
 using `--login-username` and `--login-password`
 
 ```shell
@@ -276,7 +281,7 @@ mangadex-dl "https://mangadex.org/title/..." --login --login-username "..." --lo
 
 ## Choose and download random manga
 
-In case you wanna try something different, this feature is for you !
+In case you wanna find something new, this feature is for you !
 
 Example usage:
 

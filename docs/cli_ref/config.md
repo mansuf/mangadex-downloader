@@ -1,14 +1,12 @@
 # Configuration
 
-These configs automatically written into command-line options value,
-so you don't have to write a bunch command line options. 
-Just set a config and the app will automatically set the value to command-line options.
+These configs automatically set command-line options,
+so you don't have to pass a provide of options.
+Just set a config and the app will automatically set the command-line options.
 
-Still confused how is it working ? see this example
+For example, let's say you want to download a manga with:
 
-Let's say you want to download a manga with
-
-- Forced HTTPS port
+- Force HTTPS port
 - No progress bar
 - Using DNSOverHTTPS to cloudflare
 - No manga cover
@@ -16,13 +14,13 @@ Let's say you want to download a manga with
 - And the chapters language must Indonesian
 - And store it to `manga` directory
 
-The results:
+The command:
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --force-https --no-progress-bar --dns-over-https "cloudflare" --cover "none" --no-group-name --language "Indonesian" --path "manga"
 ```
 
-It is wayyyy too longgggggg and you have to write these command-line options everytime to download manga. 
+It is wayyyy too longgggggg and you have to write these command-line options every time to download manga.
 How to fix this ? **Config** is the only answer !
 
 First, enable config first.
@@ -55,14 +53,14 @@ mangadex-dl "conf:language=Indonesian"
 mangadex-dl "conf:path=manga"
 ```
 
-After that you can download the manga without writing very-very long command-line options
+After that you can download the manga without writing very-very long command-line options.
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..."
 ```
 
-**But, i don't want type all those commands. I just want single command, 
-just type the file that i have every configs that i wanna change and it changed**.
+**But, I don't want type all those commands. I just want single command,
+just type the file that I have every configs that I wanna change and it changed**.
 
 Well, you can do it too. But, this time we're using `-pipe` option.
 
@@ -88,7 +86,7 @@ type config.txt | mangadex-dl -pipe
 cat config.txt | mangadex-dl -pipe
 ```
 
-Horray ! your configs is now changed.
+Hooray your config is now changed!
 
 ## Syntax
 
@@ -106,7 +104,7 @@ Set this `1` or `true` to enable config, `0` or `false` to disable config.
 A directory to store config and authentication cache.
 ```
 
-## Available configs
+## Available config options
 
 ```{option} login_cache [1 or 0, true or false]
 Same as `--login-cache`

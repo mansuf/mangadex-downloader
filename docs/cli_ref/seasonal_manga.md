@@ -2,14 +2,14 @@
 
 ## Syntax
 
-```
+```shell
 mangadex-dl "seasonal:<season>"
 ```
 
-If `<season>` is given, it will show seasonal manga based on given season. 
+If `<season>` is given, it will show seasonal manga based on given season.
 Otherwise it will show current seasonal manga.
 
-If you want to see all available seasons, 
+If you want to see all available seasons,
 type `list` in `<season>` argument
 
 ```shell

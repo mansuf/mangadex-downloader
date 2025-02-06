@@ -11,7 +11,7 @@
 
 ### Fix bugs
 
-- Fixed `pdf-volume` and `cb7-volume` formats are not working after upgrading to v2.10.x 
+- Fixed `pdf-volume` and `cb7-volume` formats are not working after upgrading to v2.10.x
 [#78](https://github.com/mansuf/mangadex-downloader/issues/78)
 
 ## v2.10.1
@@ -58,7 +58,7 @@
 
 ### Fix bugs
 
-- Fix error message is not showing when chapters with specified langauge is not found
+- Fix error message is not showing when chapters with specified language is not found
 - Fixed `--type` are not respecting full URL
 
 ### Dependencies
@@ -131,9 +131,9 @@
 
 - Reworked creation chapter info (cover) [#44](https://github.com/mansuf/mangadex-downloader/issues/44)
 
-### Dependecies
+### Dependencies
 
-- [Pillow](https://pypi.org/project/pillow/) is now required dependecies (no longer optional)
+- [Pillow](https://pypi.org/project/pillow/) is now required dependencies (no longer optional)
 
 ## v2.6.2
 
@@ -172,10 +172,10 @@
 
 - Rework how to download latest chapters on various formats. See commit [`865b7f5`](https://github.com/mansuf/mangadex-downloader/commit/865b7f5988a9cd92e21112ac8649a29299b5023f) for more info
 
-### Dependecies
+### Dependencies
 
 - Bump orjson to v3.8.3
-- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) are now required dependecies (no longer optional)
+- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) are now required dependencies (no longer optional)
 
 ### Breaking changes
 
@@ -262,14 +262,14 @@
 
 - Fixed progress bar are not hidden when `--no-progress-bar` is used
 
-### Dependecies
+### Dependencies
 
 - Bump Pillow to v9.3.0
 - Bump py7zr to v0.20.2
 
 ### Breaking changes
 
-- `--search-filter` and `-sf` are no longer working as replaced with `--filter` and `-ft` option. 
+- `--search-filter` and `-sf` are no longer working as replaced with `--filter` and `-ft` option.
 The `--search-filter` and `-sf` option will be removed in v2.6.0
 
 ## v2.3.0
@@ -367,7 +367,7 @@ The `--search-filter` and `-sf` option will be removed in v2.6.0
 - Fixed memory slowly increased during download
 - Fixed download with `raw-single` format is not working.
 - Fixed error `OSError: broken data stream when reading image file` when downloading in any `pdf` formats.
-- Fixed downloder is overflowing when server didn't support `Range` header
+- Fixed downloader is overflowing when server didn't support `Range` header
 
 ### Breaking changes
 
@@ -375,14 +375,14 @@ The `--search-filter` and `-sf` option will be removed in v2.6.0
 - Removed `--no-verify` and `-nv` option
 - Removed API references [notes](#notes-api-references-removal)
 - Changed extension file for `tachiyomi-zip` format (from `.zip` to `.cbz`)
-- [Pillow](https://pypi.org/project/pillow/) is no longer required when downloading in any `single` and `volume` format. 
+- [Pillow](https://pypi.org/project/pillow/) is no longer required when downloading in any `single` and `volume` format.
 - All formats will download and convert in separated time (previously was download and convert in same time).
 - `--range` option is disabled, because it's broken right now and needs to reworked
 
 ### Notes: API references removal <a id="notes-api-references-removal"></a>
 
-All public API is now become private API. Please do not use it for your python script. 
-Those can be changed without any notice. 
+All public API is now become private API. Please do not use it for your python script.
+Those can be changed without any notice.
 
 ## v1.7.2
 
@@ -410,7 +410,7 @@ Those can be changed without any notice.
 
 ### Improvements
 
-- Added delay to each failed HTTP(s) requests (Delay time formula: `attempt * 0.5`). 
+- Added delay to each failed HTTP(s) requests (Delay time formula: `attempt * 0.5`).
 If `--delay-requests` is set, delay time will be used from `--delay-requests` instead.
 - Simplified error message [[notes]](#notes-simplified-error-message)
 
@@ -444,7 +444,7 @@ After
 
 ```shell
 $ mangadex-dl "library:ayeeee lmao"
-Error: ayeee lmao are not valid status, choices are {dropped, completed, on_hold, plan_to_read, re_reading, reading}
+Error: ayeeee lmao are not valid status, choices are {dropped, completed, on_hold, plan_to_read, re_reading, reading}
 ```
 
 ## v1.6.2
@@ -457,7 +457,7 @@ Error: ayeee lmao are not valid status, choices are {dropped, completed, on_hold
 
 ### Improvements
 
-- Added `ComicInfo.xml` for `cbz` format. 
+- Added `ComicInfo.xml` for `cbz` format.
 This file is useful for showing details of manga (if an reader support `ComicInfo.xml` file) [#26](https://github.com/mansuf/mangadex-downloader/pull/26).
 
 ## v1.6.0
@@ -477,7 +477,7 @@ This file is useful for showing details of manga (if an reader support `ComicInf
 
 - Fixed error `Too many open files` in Unix-based systems when downloading manga in any `pdf` format
 - Fixed false owner list name when executing command `list:<user-id>`
-- Fixed unproperly parsed `list` command
+- Fixed improperly parsed `list` command
 
 ### Improvements
 
@@ -519,7 +519,7 @@ This file is useful for showing details of manga (if an reader support `ComicInf
 
 ### Fix bugs
 
-- Fixed error `NameError: name 'exit' is not defined` in bundled executable 
+- Fixed error `NameError: name 'exit' is not defined` in bundled executable
 when executing command `login_cache` or `login_cache:show`
 - Fixed mangadex-downloader won't start in Python 3.8
 - Fixed config is not parsed properly
@@ -532,10 +532,10 @@ when executing command `login_cache` or `login_cache:show`
 ### Notes: Unsafe feature removal
 
 You may be wondering, why remove a feature that got added 2 months before ?
-<br>
-Okay that was my mistake, 
-because i was really naive to implement some restriction that makes user have a complicated process when downloading manga from MangaDex. 
-See [d3470ce](https://github.com/mansuf/mangadex-downloader/commit/d3470ce47e7475f604cdd8b30a12f249a2bbcb38), 
+
+Okay that was my mistake,
+because i was really naive to implement some restriction that makes user have a complicated process when downloading manga from MangaDex.
+See [d3470ce](https://github.com/mansuf/mangadex-downloader/commit/d3470ce47e7475f604cdd8b30a12f249a2bbcb38),
 but here's the thing, it's a downloader tool and it has nothing to do with content restrictions in a downloader tool.
 
 ## v1.2.1
@@ -552,8 +552,8 @@ but here's the thing, it's a downloader tool and it has nothing to do with conte
 - Added cache authentication
 - Added config
 - Added new languages
-    - Kazakh
-    - Tamil
+  - Kazakh
+  - Tamil
 - Added support for `Other` language
 - Added `--range` (or `-rg`) option, allow you to download specific chapters and pages.
 
@@ -591,7 +591,7 @@ but here's the thing, it's a downloader tool and it has nothing to do with conte
 
 ### Fix bugs
 
-- Fix missing fonts in Linux for any `volume` and `single` formats. If error occurred during creating chapter info or the text is really small. Please install Arial font or FreeSans font (from GNU FreeFont) [#20](https://github.com/mansuf/mangadex-downloader/pull/20) @bachhh 
+- Fix missing fonts in Linux for any `volume` and `single` formats. If error occurred during creating chapter info or the text is really small. Please install Arial font or FreeSans font (from GNU FreeFont) [#20](https://github.com/mansuf/mangadex-downloader/pull/20) @bachhh
 
 ### Improvements
 
@@ -608,17 +608,17 @@ but here's the thing, it's a downloader tool and it has nothing to do with conte
 
 ### Fix bugs
 
-- Fixed `--replace` is not working properly in `cbz` format 
-- Fixed `--enable-legacy-sorting` is not working properly in `cbz` format 
-- Fixed duplicate oneshot 
+- Fixed `--replace` is not working properly in `cbz` format
+- Fixed `--enable-legacy-sorting` is not working properly in `cbz` format
+- Fixed duplicate oneshot
 
 ### New features
 
-- From now on, you can download mangas from user library (require authentication)
+- From now on, you can download manga from user library (require authentication)
 - Added new formats
-	- cb7 [#17](https://github.com/mansuf/mangadex-downloader/issues/17)
-	- cb7-volume [#17](https://github.com/mansuf/mangadex-downloader/issues/17)
-	- cb7-single [#17](https://github.com/mansuf/mangadex-downloader/issues/17)
+  - cb7 [#17](https://github.com/mansuf/mangadex-downloader/issues/17)
+  - cb7-volume [#17](https://github.com/mansuf/mangadex-downloader/issues/17)
+  - cb7-single [#17](https://github.com/mansuf/mangadex-downloader/issues/17)
 
 ## v1.0.1
 
@@ -638,11 +638,11 @@ but here's the thing, it's a downloader tool and it has nothing to do with conte
 - Added ability to add chapter title to each chapters filename
 - Added shortcut option for `--language`
 - Added new formats
-    - raw
-    - raw-volume [#13](https://github.com/mansuf/mangadex-downloader/issues/13)
-    - raw-single
-    - pdf-volume [#13](https://github.com/mansuf/mangadex-downloader/issues/13)
-    - cbz-volume [#13](https://github.com/mansuf/mangadex-downloader/issues/13)
+  - raw
+  - raw-volume [#13](https://github.com/mansuf/mangadex-downloader/issues/13)
+  - raw-single
+  - pdf-volume [#13](https://github.com/mansuf/mangadex-downloader/issues/13)
+  - cbz-volume [#13](https://github.com/mansuf/mangadex-downloader/issues/13)
 - Added search feature
 - Added ability to login with email
 - Added old technique sorting images [#10](https://github.com/mansuf/mangadex-downloader/issues/10)
@@ -697,31 +697,31 @@ but here's the thing, it's a downloader tool and it has nothing to do with conte
 PyPI version is broken, the bug is already fixed in v0.5.1
 ```
 
-- Fixed oneshot chapter is unproperly parsed 
+- Fixed oneshot chapter incorrectly parsed
 - Fix chapters are sometimes in string not in numbers [#7](https://github.com/mansuf/mangadex-downloader/issues/7)
-- Fix `ConnectionError` 
-- Added `none` type in `--cover` option, if the value is `none` it will not download cover manga. 
-- Added save as format, available in 3 formats: `{tachiyomi, tachiyomi-zip, pdf}`. Default to `tachiyomi` 
-- Added PDF support 
+- Fix `ConnectionError`
+- Added `none` type in `--cover` option, if the value is `none` it will not download cover manga.
+- Added save as format, available in 3 formats: `{tachiyomi, tachiyomi-zip, pdf}`. Default to `tachiyomi`
+- Added PDF support
 - Added Tachiyomi zipped support
 - From now mangadex-downloader will no longer support Python 3.5, 3.6 and 3.7
 
 ## v0.4.2
 
-- Fixed sometimes manga are failed to get volumes 
-- Fixed additional info manga are not appeared in Tachiyomi local 
-- Fixed uncomplete artists and authors in manga 
-- Fixed app still running when `--start-chapter` are more than `--end-chapter` 
-- Fixed app throwing error if one of chapters has no images 
-- Added auth handler. If login and logout is failed it will try again 5 times, if still failed it will exit (login) or ignored (logout) 
+- Fixed sometimes manga are failed to get volumes
+- Fixed additional info manga are not appeared in Tachiyomi local
+- Fixed incomplete artists and authors in manga
+- Fixed app still running when `--start-chapter` are more than `--end-chapter`
+- Fixed app throwing error if one of chapters has no images
+- Added auth handler. If login and logout is failed it will try again 5 times, if still failed it will exit (login) or ignored (logout)
 - Added `--cover` option, select quality cover to download
 - Changed license from The Unlicense to MIT License. From now the app will be released under MIT License.
 
 ## v0.4.1
 
 - Fixed error if selected manga with different translated language has no chapters.
-- Fixed sometimes manga are failed to get chapters. 
-- From now the app will fetch the chapters first before download the covers, writing details, etc. 
+- Fixed sometimes manga are failed to get chapters.
+- From now the app will fetch the chapters first before download the covers, writing details, etc.
 
 ## v0.4.0
 
@@ -777,6 +777,7 @@ file_sizes:  50%|████████████▉             | 1.38M/2.7
 [INFO] Cleaning up...
 Action interrupted by user
 ```
+
 - Added type checking for MangaDex url, so no more messy outputs. See example below
 
 Before
@@ -817,6 +818,7 @@ __main__.py: error: argument URL: Invalid MangaDex URL or manga id
 - Now `download()` will raise `InvalidManga` if given manga are not exist, see example below.
 
 Before
+
 ```shell
 $ mangadex-dl "2bdf5af0-54ab-41e2-978b-58e74bdb9d15"
 [INFO] Fetching manga 2bdf5af0-54ab-41e2-978b-58e74bdb9d15
@@ -827,7 +829,8 @@ mangadex_downloader.errors.HTTPException: Server sending 404 code
 ```
 
 After
-```shell 
+
+```shell
 $ mangadex-dl "2bdf5af0-54ab-41e2-978b-58e74bdb9d15"
 [INFO] Fetching manga 2bdf5af0-54ab-41e2-978b-58e74bdb9d15
 Traceback (most recent call last):
@@ -835,9 +838,9 @@ Traceback (most recent call last):
     raise InvalidManga('Manga \"%s\" cannot be found' % manga_id)
 mangadex_downloader.errors.InvalidManga: Manga "2bdf5af0-54ab-41e2-978b-58e74bdb9d15" cannot be found
 ```
-- Added `login()` for logging in to MangaDex API, for more info: https://mangadex-downloader.readthedocs.io/en/latest/api.html#mangadex_downloader.login.
-- Added `logout()` for logging out from MangaDex API, for more info: https://mangadex-downloader.readthedocs.io/en/latest/api.html#mangadex_downloader.logout
 
+- Added `login()` for logging in to MangaDex API, for more info: <https://mangadex-downloader.readthedocs.io/en/latest/api.html#mangadex_downloader.login>.
+- Added `logout()` for logging out from MangaDex API, for more info: <https://mangadex-downloader.readthedocs.io/en/latest/api.html#mangadex_downloader.logout>
 
 ## v0.2.0
 
@@ -935,12 +938,12 @@ python3 -m mangadex_downloader
 
 - Bug fix: given url doesn't have title in url causing empty and useless loop request
 - Bug fix: `MangaData.__repr__()` raise error for `oneshot` genre manga
-- New Feature: Add `output_folder` in Mangadex class arguments for choose the path in which store the downloaded mangas [#1](https://github.com/mansuf/mangadex-downloader/pull/1)
+- New Feature: Add `output_folder` in Mangadex class arguments for choose the path in which store the downloaded manga [#1](https://github.com/mansuf/mangadex-downloader/pull/1)
 - Enchantment: add functional `Mangadex.download()`
 
 ## v0.0.2
 
-- fixed failed to getting info when manga dont have more than 100 chapters
+- fixed failed to getting info when manga don't have more than 100 chapters
 
 ## v0.0.1
 

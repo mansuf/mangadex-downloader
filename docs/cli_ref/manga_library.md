@@ -1,6 +1,6 @@
 # Manga library command
 
-Show all saved mangas from logged in user. You will be prompted to select which manga want to download.
+Show all saved manga from logged in user. You will be prompted to select which manga want to download.
 
 ```{note}
 You must login in order to use this command. Otherwise it will not work.
@@ -12,7 +12,7 @@ You must login in order to use this command. Otherwise it will not work.
 mangadex-dl "library:<status>" --login
 ```
 
-If `<status>` is given, it will filter manga library based on reading status. 
+If `<status>` is given, it will filter manga library based on reading status.
 If not, then it will show all manga in the library.
 
 ## Statuses

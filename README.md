@@ -1,8 +1,7 @@
 [![pypi-total-downloads](https://img.shields.io/pypi/dm/mangadex-downloader?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![python-ver](https://img.shields.io/pypi/pyversions/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
 [![pypi-release-ver](https://img.shields.io/pypi/v/mangadex-downloader?style=for-the-badge)](https://pypi.org/project/mangadex-downloader)
-[![](https://dcbadge.limes.pink/api/server/NENvQ5b5Pt)](https://discord.gg/NENvQ5b5Pt)
-
+[![discord mangadex-dl](https://dcbadge.limes.pink/api/server/NENvQ5b5Pt)](https://discord.gg/NENvQ5b5Pt)
 
 # mangadex-downloader
 
@@ -16,14 +15,14 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - [Key Features](#key-features)
 - [Supported formats](#supported-formats)
 - [Installation](#installation)
-    - [Python Package Index (PyPI)](#installation-pypi)
-    - [Bundled executable](#installation-bundled-executable)
-    - [Docker](#installation-docker)
-    - [Development version](#installation-development-version)
+  - [Python Package Index (PyPI)](#installation-pypi)
+  - [Bundled executable](#installation-bundled-executable)
+  - [Docker](#installation-docker)
+  - [Development version](#installation-development-version)
 - [Usage](#usage)
-    - [PyPI version](#usage-pypi-version)
-    - [Bundled executable version](#usage-bundled-executable-version)
-    - [Docker version](#usage-docker-version)
+  - [PyPI version](#usage-pypi-version)
+  - [Bundled executable version](#usage-bundled-executable-version)
+  - [Docker version](#usage-docker-version)
 - [Contributing](#contributing)
 - [Donation](#donation)
 - [Support](#support)
@@ -98,16 +97,17 @@ Because this is bundled executable, Python are not required to install.
 
 Steps:
 
-- Download latest version here -> https://github.com/mansuf/mangadex-downloader/releases
+- Download latest version here -> <https://github.com/mansuf/mangadex-downloader/releases>
 - Extract it.
-- That's it ! You have successfully install mangadex-downloader. 
+- That's it ! You have successfully install mangadex-downloader.
 [See this instructions to run mangadex-downloader](#usage-bundled-executable-version)
 
 ### Docker <a id="installation-docker"></a>
 
 Available at:
-- https://hub.docker.com/r/mansuf/mangadex-downloader
-- https://gallery.ecr.aws/mansuf/mangadex-downloader
+
+- <https://hub.docker.com/r/mansuf/mangadex-downloader>
+- <https://gallery.ecr.aws/mansuf/mangadex-downloader>
 
 ```sh
 # Dockerhub
@@ -130,13 +130,13 @@ docker pull public.ecr.aws/mansuf/mangadex-downloader:latest-optional
 docker pull public.ecr.aws/mansuf/mangadex-downloader:v2.10.3-optional
 ```
 
-**NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support. 
-That's because some dependencies (most notably `orjson`) require rust compiler 
-and i give up installing rust compiler in arm/v6 platform, there is too much errors for me. 
+**NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support.
+That's because some dependencies (most notably `orjson`) require rust compiler
+and i give up installing rust compiler in arm/v6 platform, there is too much errors for me.
 
 ### Development version <a id="installation-development-version"></a>
 
-**NOTE:** You must have git installed. If you don't have it, install it from here https://git-scm.com/.
+**NOTE:** You must have git installed. If you don't have it, install it from here <https://git-scm.com/>.
 
 ```shell
 git clone https://github.com/mansuf/mangadex-downloader.git
