@@ -1,6 +1,6 @@
 # Cover command
 
-This command will show list of covers which you can choose and download it.
+This command will show list of covers to choose from and download.
 
 ```{note}
 This command will download covers only. The manga is not downloaded at all.
@@ -11,8 +11,8 @@ The covers will be stored in folder under manga title name (ex: "Official "Test"
 
 It support following values:
 
-- Full manga URL (https://mangadex.org/title/...)
-- Full cover manga URL (https://mangadex.org/covers/...)
+- Full manga URL (<https://mangadex.org/title/>...)
+- Full cover manga URL (<https://mangadex.org/covers/>...)
 - Manga id only (f9c33607-9180-4ba6-b85c-e4b5faee7192)
 
 ### Original quality
