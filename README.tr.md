@@ -11,15 +11,15 @@
 - [Ana Özellikler](#key-features)
 - [Desteklenen Formatlar](#supported-formats)
 - [Kurmak](#installation)
-    - [Nasıl (PyPI)](#how-to-pypi)
-    - [Nasıl (bundled executable)](#how-to-bundled-executable)
-    - [Nasıl (Development version)](#how-to-development-version)
+  - [Nasıl (PyPI)](#how-to-pypi)
+  - [Nasıl (bundled executable)](#how-to-bundled-executable)
+  - [Nasıl (Development version)](#how-to-development-version)
 - [Kullanımı](#usage)
-    - [Komut Satırı Arayüzü (PyPI version)](#command-line-interface-pypi-version)
-    - [Komut Satırı Arayüzü (bundled executable version)](#command-line-interface-bundled-executable-version)
-    - [Gömülü (API)](#embedding-api)
+  - [Komut Satırı Arayüzü (PyPI version)](#command-line-interface-pypi-version)
+  - [Komut Satırı Arayüzü (bundled executable version)](#command-line-interface-bundled-executable-version)
+  - [Gömülü (API)](#embedding-api)
 - [Notlar](#notes)
-- [Bağışta bulunun ](#supporting)
+- [Bağışta bulunun](#supporting)
 - [Linkler](#links)
 - [Sorumluluk reddi beyanı](#disclaimer)
 
@@ -88,13 +88,13 @@ Bu paket bundled executable olduğundan, Python'un yüklenmesi gerekmez.
 
 Adımlar:
 
-- En son sürümü buradan indirebilirsiniz -> https://github.com/mansuf/mangadex-downloader/releases
+- En son sürümü buradan indirebilirsiniz -> <https://github.com/mansuf/mangadex-downloader/releases>
 - Dosyayı çıkartın.
 - [Mangadex-downloader'ı çalıştırmak için bu talimatlara bakın](#command-line-interface-bundled-executable-version)
 
 ### Nasıl (Geliştirici versiyonu) <a id="how-to-development-version"></a>
 
-**NOT:** Git'in yüklü olması gerekir. Eğer yoksa buradan kurabilirsiniz https://git-scm.com/.
+**NOT:** Git'in yüklü olması gerekir. Eğer yoksa buradan kurabilirsiniz <https://git-scm.com/>.
 
 ```shell
 git clone https://github.com/mansuf/mangadex-downloader.git
@@ -154,14 +154,14 @@ Daha fazla bilgi için, [burayı okuyun](https://mangadex-dl.mansuf.link/en/stab
 
 ### Pornografil ve Erotik içerik <a id="pornographic-and-erotica-content"></a>
 
-Bu hatayı alıcaksınız `You are not allowed to see ..` pornografik ve erotik manga indirmeye çalışırken. 
+Bu hatayı alıcaksınız `You are not allowed to see ..` pornografik ve erotik manga indirmeye çalışırken.
 Bunun nedeni, mangadex indiricisinin pornografik ve erotik mangalara katı kurallar uygulamasıdır.
 
 Daha fazla bilgi için, [Burayı Kullanın](https://mangadex-dl.mansuf.link/en/latest/notes/pornographic.html)
 
 ## Bağışta bulunun <a id="supporting"></a>
 
-Bu projeyi beğendin mi ? Orijinal projeyi yıldızlayabilirsiniz https://github.com/mansuf/mangadex-downloader veya mevcut ilgileniciye bağış yapın [@mansuf](https://github.com/mansuf)
+Bu projeyi beğendin mi ? Orijinal projeyi yıldızlayabilirsiniz <https://github.com/mansuf/mangadex-downloader> veya mevcut ilgileniciye bağış yapın [@mansuf](https://github.com/mansuf)
 
 İlgilenici şu tür bağışları destekler:
 
@@ -169,7 +169,7 @@ Bu projeyi beğendin mi ? Orijinal projeyi yıldızlayabilirsiniz https://github
 
 *Endonezya'daysanız, saweria ile bağış yapabilirsiniz.*
 
-https://saweria.co/mansuf
+<https://saweria.co/mansuf>
 
 ## Linkler <a id="links"></a>
 
