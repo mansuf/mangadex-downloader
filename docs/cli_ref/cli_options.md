@@ -67,7 +67,7 @@ Download manga in given language,
 to see all languages, use `--list-languages` option
 ```
 
-```{option} --list-language -ll 
+```{option} --list-language -ll
 List all available languages
 ```
 
