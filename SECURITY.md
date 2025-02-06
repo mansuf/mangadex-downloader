@@ -2,11 +2,11 @@
 
 ## Reporting a Vulnerability
 
-To make a report, you can email me at security@mansuf.link
+To make a report, you can email me at <security@mansuf.link>
 
 Optionally, you can encrypt your report with GPG, using key [6ABF0FF73964A699](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6abf0ff73964a699)
 
-```
+```shell
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: Hostname: 
 Version: Hockeypuck 2.1.0-189-g15ebf24
