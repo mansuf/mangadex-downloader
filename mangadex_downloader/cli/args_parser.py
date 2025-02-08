@@ -229,7 +229,8 @@ def get_args(argv):
         metavar="GROUP_ID",
         type=validate_group_url,
         help="Filter each chapter with different scanlation group. "
-        "Filter with user also supported.",
+        "Filter with user also supported. "
+        "You can also put `all` value, this will make download all chapters from all groups available in the manga",
         action="append",
     )
     grp_group.add_argument(

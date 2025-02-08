@@ -77,7 +77,9 @@ Store manga information without downloading manga. The application will exit aft
 ## Group related
 
 ```{option} --group -g GROUP_ID
-Filter each chapter with different scanlation group. Filter with user also supported.
+Filter each chapter with different scanlation group. 
+Filter with user also supported. 
+You can also put `all` value, this will make download all chapters from all groups available in the manga
 ```
 
 ```{option} --group-nomatch-behaviour -gnb ignore|fallback
