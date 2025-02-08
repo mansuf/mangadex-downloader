@@ -274,6 +274,14 @@ mangadex-dl "https://mangadex.org/title/..." --login --login-username "..." --lo
 # ...
 ```
 
+Using new authencation system:
+
+```sh
+mangadex-dl "https://mangadex.org/title/..." --login --login-method "oauth2" --login-username "username" --login-password "password" --login-api-id "API Client ID" --login-api-secret "API Client Secret"
+```
+
+For more information about new authencation system, please refer to {doc}`../cli_ref/oauth`
+
 ## Choose and download random manga
 
 In case you wanna try something different, this feature is for you !
