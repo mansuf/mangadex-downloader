@@ -172,6 +172,78 @@ Same as `--http-retries`
 Same as `--no-track`
 ```
 
+```{option} download_mode
+Same as `--download-mode` 
+```
+
+```{option} download_mode
+Same as `--download-mode`
+```
+
+```{option} use_chapter_cover [1 or 0, true or false]
+Same as `--use-chapter-cover`
+```
+
+```{option} use_volume_cover [1 or 0, true or false]
+Same as `--use-volume-cover`
+```
+
+```{option} volume_cover_language
+Same as `--volume-cover-language`
+```
+
+```{option} stacked_progress_bar_order
+Same as `--stacked-progress-bar-order`
+```
+
+```{option} log_level
+Same as `--log-level`
+```
+
+```{option} progress_bar_layout
+Same as `--progress-bar-layout`
+```
+
+```{option} ignore_missing_chapters [1 or 0, true or false]
+Same as `--ignore-missing-chapters`
+```
+
+```{option} create_no_volume [1 or 0, true or false]
+Same as `--create-no-volume`
+```
+
+```{option} create_manga_info [1 or 0, true or false]
+Same as `--create-manga-info`
+```
+
+```{option} manga_info_format
+Same as `--manga-info-format`
+```
+
+```{option} manga_info_filepath
+Same as `--manga-info-filepath`
+```
+
+```{option} manga_info_only [1 or 0, true or false]
+Same as `--manga-info-only`
+```
+
+```{option} no_metadata [1 or 0, true or false]
+Same as `--no-metadata`
+```
+
+```{option} page_size
+Same as `--page-size`
+```
+
+```{option} order
+Same as `--order`
+```
+
+```{option} group_nomatch_behaviour
+Same as `--group-nomatch-behaviour`
+```
+
 ```{option} reset [config]
 Reset config back to default value
 ```
