@@ -65,7 +65,9 @@ Change file format for manga information file (manga_info.csv). Available option
 ```
 
 ```{option} --manga-info-filepath -mip PATH
-Change file location to store manga information. Default to `./manga_info.{manga_info_format}`
+Change file location to store manga information. Default to `./manga_info.{manga_info_format}`. 
+Available placeholders: {download_path} and {manga_info_format}, placeholder {download_path} is value from --path option 
+and placeholder {manga_info_format} is from --manga-info-format option
 ```
 
 ```{option} --manga-info-only -mio

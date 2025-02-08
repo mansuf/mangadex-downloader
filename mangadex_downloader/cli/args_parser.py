@@ -207,7 +207,9 @@ def get_args(argv):
     manga_group.add_argument(
         "--manga-info-filepath",
         "-mip",
-        help="Change file location to store manga information. Default to './manga_info.{manga_info_format}'",
+        help="Change file location to store manga information. Default to './manga_info.{manga_info_format}'"
+        ". Available placeholders: {download_path} and {manga_info_format}, placeholder {download_path} is value from --path option " 
+        "and placeholder {manga_info_format} is from --manga-info-format option",
         default=config.manga_info_filepath,
     )
     manga_group.add_argument(
