@@ -21,9 +21,9 @@ def _get_volume(x):
     return f"Vol. {x}"
 
 
-def _get_or_minus_one(x):
+def _get_or_unknown(x):
     if not x:
-        return "-1"
+        return "Unknown"
 
     return x
 
@@ -112,8 +112,8 @@ class Placeholder:
 
         if chapter:
             attr["Chapter"] = {
-                "chapter": _get_or_minus_one,
-                "volume": _get_or_minus_one,
+                "chapter": _get_or_unknown,
+                "volume": _get_or_unknown,
                 "title": sanitize_filename,
                 "pages": None,
                 "language": None,

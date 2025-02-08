@@ -82,8 +82,8 @@ There's 2 placeholders that you can use in `--filename-chapter` option.
 
 | attribute | description | type data |
 | ----- | ----- | ----- |
-| chapter | Manga chapter in number from 0 to 1 (You can get `-1` if there is no valid chapter number) | [integer](#integer-type-data) |
-| volume | Manga volume in number from 0 to 1 (You can get `-1` if there is no valid volume number) | [integer](#integer-type-data) |
+| chapter | Manga chapter in number from 0 to 1 (You can get `Unknown` if there is no valid chapter number) | [integer](#integer-type-data) |
+| volume | Manga volume in number from 0 to 1 (You can get `Unknown` if there is no valid volume number) | [integer](#integer-type-data) |
 | title | Chapter title | [string](#string-type-data) |
 | pages | Total pages in the chapter | [integer](#integer-type-data) |
 | language | Chapter language | Language |
