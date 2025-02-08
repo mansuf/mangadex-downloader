@@ -533,7 +533,8 @@ def get_args(argv):
     misc_group.add_argument(
         "--input-pos",
         help="Automatically select choices in selectable prompt "
-        "(list, library, followed-list command)",
+        "(list, library, followed-list command)"
+        ". You also can put asterisk (*) in this option to select all choices",
     )
     misc_group.add_argument(
         "-pipe", action="store_true", help="Download from pipe input"

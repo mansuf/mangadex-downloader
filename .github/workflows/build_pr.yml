@@ -59,7 +59,7 @@ jobs:
 
     steps:
       - name: Clone repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup python (x64)
         uses: actions/setup-python@v4
@@ -135,14 +135,14 @@ jobs:
 
       - name: Upload artifact (x64)
         if: contains(env.python_version, '3.13')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mangadex-dl_x64
           path: dist_x64/mangadex-dl/
 
       - name: Upload artifact (x86)
         if: contains(env.python_version, '3.13')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mangadex-dl_x86
           path: dist_x86/mangadex-dl/

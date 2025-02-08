@@ -284,7 +284,8 @@ Set HTTP retries, use this if you want to set how much to retries if the app fai
 ## Miscellaneous
 
 ````{option} --input-pos
-Automatically select choices in selectable prompt (list, library, followed-list command)
+Automatically select choices in selectable prompt (list, library, followed-list command). 
+You also can put asterisk (*) in this option to select all choices
 
 ```{note}
 This option does not apply to `--use-alt-details` 
