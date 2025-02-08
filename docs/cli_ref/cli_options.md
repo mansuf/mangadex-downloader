@@ -15,11 +15,11 @@ Override type MangaDex url. By default, it auto detect given url
 Replace manga if exist
 ```
 
-```{option} --filter -ft
-Apply filter to search and random manga
+```{option} --filter -ft FILTERS
+Apply filter to search and random manga. For more information, you can see {doc}`./filters`
 ```
 
-```{option} --download-mode -dm
+```{option} --download-mode -dm default|unread
 Set download mode, you can set to `default` or `unread`. 
 If you set to `unread`, the app will download unread chapters only (require authentication). 
 If you set to `default` the app will download all chapters
@@ -31,15 +31,15 @@ If you set to `default` the app will download all chapters
 Store manga / chapter to specified directory. This option support placeholders, read {doc}`./path_placeholders` for more info
 ```
 
-```{option} --filename-single -fs
+```{option} --filename-single -fs FILENAME_WITH_PLACEHOLDERS
 Set filename for single format, read {doc}`./path_placeholders` for more info
 ```
 
-```{option} --filename-volume -fv
+```{option} --filename-volume -fv FILENAME_WITH_PLACEHOLDERS
 Set filename for volume format, read {doc}`./path_placeholders` for more info
 ```
 
-```{option} --filename-chapter -fc
+```{option} --filename-chapter -fc FILENAME_WITH_PLACEHOLDERS
 Set filename for chapter format, read {doc}`./path_placeholders` for more info
 ```
 
@@ -60,11 +60,11 @@ Store manga information such as title, authors, artists, description, and tags i
 By default this file will save to csv format you can change this in --manga-info-format
 ```
 
-```{option} --manga-info-format -mif
+```{option} --manga-info-format -mif csv|json
 Change file format for manga information file (manga_info.csv). Available options: csv, json
 ```
 
-```{option} --manga-info-filepath -mip
+```{option} --manga-info-filepath -mip PATH
 Change file location to store manga information. Default to `./manga_info.{manga_info_format}`
 ```
 
@@ -78,7 +78,7 @@ Store manga information without downloading manga. The application will exit aft
 Filter each chapter with different scanlation group. Filter with user also supported.
 ```
 
-```{option} --group-nomatch-behaviour -gnb
+```{option} --group-nomatch-behaviour -gnb ignore|fallback
 Change behaviour for group filtering if it doesn't match. 
 By default, it set to `ignore`. Which mean it will ignore the chapter if the chapter doesn't match with specified group. 
 If you set it to `fallback` the app will find another chapter if the chapter doesn't match with specified group
@@ -129,7 +129,8 @@ Do not use scanlation group name for each chapter
 ````{option} --use-chapter-title -uct
 Use chapter title for each chapters.
 
-```{note} This option is useless if used with any single and volume format 
+```{note} 
+This option is useless if used with any single and volume format 
 ```
 ````
 
@@ -137,21 +138,23 @@ Use chapter title for each chapters.
 A range pattern to download specific chapters
 ```
 
-```{option} --sort-by
+```{option} --sort-by chapter|volume
 Download sorting method, by default it's selected to `volume`
 ```
 
 ````{option} --use-chapter-cover -ucc
 Enable creation of chapter info (cover) for any single or volume formats. See {doc}`./chapter_info` for more info.
 
-```{note} Chapter info creation are not enabled if you are using any chapter format (cbz, pdf, raw, etc) 
+```{note}
+Chapter info creation are not enabled if you are using any chapter format (cbz, pdf, raw, etc) 
 ```
 ````
 
 ````{option} --use-volume-cover -uvc
 Enable creation of volume cover for any volume formats. Volume cover will be placed in first page in each volume files.
 
-```{note} Volume cover will be not created in chapter (cbz, pdf, raw, etc) and single formats 
+```{note} 
+Volume cover will be not created in chapter (cbz, pdf, raw, etc) and single formats 
 ```
 ````
 

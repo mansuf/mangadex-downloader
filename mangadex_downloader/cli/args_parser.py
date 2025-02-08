@@ -330,6 +330,7 @@ def get_args(argv):
     chap_group.add_argument(
         "--sort-by",
         help='Download sorting method, by default it\'s selected to "volume"',
+        choices=("chapter", "volume"),
         default=config.sort_by,
     ),
     chap_group.add_argument(
