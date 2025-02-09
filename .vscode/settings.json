@@ -1,7 +1,5 @@
 {
-    "ruff.lint.args": [
-        "--config=${workspaceFolder}/ruff.toml"
-    ],
+    "ruff.configuration": "${workspaceFolder}/ruff.toml",
     "[python]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "ms-python.black-formatter",

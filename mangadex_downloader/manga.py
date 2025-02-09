@@ -46,7 +46,6 @@ class ContentRating(Enum):
     Erotica = "erotica"
     Pornographic = "pornographic"
 
-
 def _append_authors(cls, data, array):
     try:
         created = cls(data=data)

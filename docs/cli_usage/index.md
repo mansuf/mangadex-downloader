@@ -163,27 +163,53 @@ mangadex-dl "https://mangadex.org/title/..." --language "Indonesian"
 
 ## File management
 
-mangadex-downloader support store in different path / folder.
+### Store in different path / folder
 
-```shell
-mangadex-dl "https://mangadex.org/title/..." --folder "insert directory here"
+````{note}
+Starting v3.0.0 and upper, `--folder`, `--path`, and `-d` options become absolute path
 
-# or
+For example, if you store the manga in `mymanga/some_kawaii_manga`. 
+The manga and the chapters will be stored under directory `some_kawaii_manga`
 
-mangadex-dl "https://mangadex.org/title/..." --path "insert directory here"
-
-# or
-
-mangadex-dl "https://mangadex.org/title/..." -d "insert directory here"
+```
+📂mymanga
+ ┗ 📂some_kawaii_manga
+ ┃ ┣ 📂Vol. 1 Ch. 1
+ ┃ ┃ ┣ 📜00.png
+ ┃ ┃ ┣ 📜01.png
+ ┃ ┃ ┗ 📜++.png
+ ┃ ┣ 📜cover.jpg
+ ┃ ┗ 📜download.db
 ```
 
-It also support replace existing manga, chapter or list
+You can use placeholders like `{manga.title}` if you comfortable with old behaviour
+````
+
+```shell
+mangadex-dl "https://mangadex.org/title/..." --folder "./mymanga/some_random_title"
+
+# or
+
+mangadex-dl "https://mangadex.org/title/..." --path "./mymanga/some_random_title"
+
+# or
+
+mangadex-dl "https://mangadex.org/title/..." -d "./mymanga/some_random_title"
+
+# The option also support placeholders, for example:
+
+mangadex-dl "https://mangadex.org/title/..." -d "./mymanga/{manga.title}"
+```
+
+For more information about placeholders, you can see {doc}`../cli_ref/path_placeholders`
+
+### Replace existing manga, chapter or list
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --replace
 ```
 
-Also, you can add chapter title for each folder.
+### Add chapter title for each folder
 
 ```shell
 mangadex-dl "https://mangadex.org/title/..." --use-chapter-title
