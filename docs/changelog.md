@@ -7,6 +7,7 @@
 - Change `--path` behaviour to absolute path with placeholders support
 - Now, if a manga that doesn't have no volume, it will get separated (chapters format) rather than being merged into single file called `No volume.cbz` (example). However if you prefer old behaviour (merge no volume chapters into single file) you can use `--create-no-volume`.
 - Dropped support for Python v3.8 and v3.9
+- Removed --no-progress-bar option since it's deprecated
 
 ### Improvements
 
