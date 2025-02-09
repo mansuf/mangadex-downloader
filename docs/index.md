@@ -48,6 +48,7 @@ cli_ref/index
 :hidden:
 :caption: Development
 
+migration_v2_v3
 changelog
 Github repository <https://github.com/mansuf/mangadex-downloader>
 ```

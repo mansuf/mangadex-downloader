@@ -18,9 +18,16 @@
 
 ### New features
 
+- Added `--login-api-id` and `--login-api-secret` to login with OAuth (you must set `--login-method` with value `oauth`)
+- Added `--start-volume` and `--end-volume` to start and stop download chapter from given volume number
+- Added `--filename-chapter` option to set filename for chapter formats
+- Added `--filename-volume` option to set filename for volume formats
+- Added `--filename-single` option to set filename for single formats
 - Added `--ignore-missing-chapters` option to ignore missing chapters
-- Added support for oauth private client
-- Added `--create-manga-info` option to download manga information only
+- Added `--create-manga-info` option to store manga information in a file
+- Added `--manga-info-format` option to change file format for manga information file
+- Added `--manga-info-filepath` option to change location to store manga information file.
+- Added `--manga-info-only` option to download manga information only (no chapters and volumes)
 - Added `--order` option to change chapters released order (newest or oldest)
 - Added `--group-nomatch-behaviour` to manage `--group` filter behaviour
 - Added `--no-metadata` option to disable metadata creation on any cbz formats
@@ -32,6 +39,7 @@
 - Fix `download.db` is modified if there is not new chapters available. 
 - Fix `epub-volume` format doesn't adding cover art
 - Fix default volume covers behaviour. (See [#105](https://github.com/mansuf/mangadex-downloader/issues/105) for more info)
+- Fix app stopped downloading list when a manga doesn't have chapters
 
 ## v2.10.3
 
