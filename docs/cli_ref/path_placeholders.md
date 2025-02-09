@@ -43,31 +43,31 @@ For more information, see below:
 
 | attribute | description | type data |
 | ----- | ----- | ----- |
-| title | The title of the manga | [string](#string-type-data) |
-| id | The unique identifier of manga | [string](#string-type-data) |
-| alternative_titles | Alternative titles of the manga | array[[string](#string-type-data)] |
-| description | The description of the manga | [string](#string-type-data) |
-| authors | List of authors of the manga separated by comma | [string](#string-type-data) |
-| artists | List of artists of the manga separated by comma | [string](#string-type-data) |
-| cover | Manga main cover | CoverArt |
-| genres | List of manga genres separated by comma | [string](#string-type-data) |
-| status | Status of the manga (hiatus, completed, etc) | [string](#string-type-data) |
-| content_rating | Content rating of the manga (9.0, 6.9, etc) | ContentRating |
-| tags | List of manga tags separated by comma | [string](#string-type-data) |
+| title | The title of the manga | [string](#string) |
+| id | The unique identifier of manga | [string](#string) |
+| alternative_titles | Alternative titles of the manga | [array](#array)[[string](#string)] |
+| description | The description of the manga | [string](#string) |
+| authors | List of authors of the manga separated by comma | [string](#string) |
+| artists | List of artists of the manga separated by comma | [string](#string) |
+| cover | Manga main cover | [CoverArt](#coverart) |
+| genres | List of manga genres separated by comma | [string](#string) |
+| status | Status of the manga (hiatus, completed, etc) | [string](#string) |
+| content_rating | Content rating of the manga (safe, suggestive, etc) | [ContentRating](#contentrating-and-language) |
+| tags | List of manga tags separated by comma | [string](#string) |
 
 ### User placeholder attributes
 
 | attribute | description | type data |
 | ----- | ----- | ----- |
-| id | The unique identifier of user | [string](#string-type-data) |
-| name | An username | [string](#string-type-data) |
+| id | The unique identifier of user | [string](#string) |
+| name | An username | [string](#string) |
 
 ### Language placeholder attributes
 
 | attribute | description | type data |
 | ----- | ----- | ----- |
-| full | Language in full text (ex: `English`) | [string](#string-type-data) |
-| simple | Language in simplified text (ex: `en`) | [string](#string-type-data) |
+| full | Language in full text (ex: `English`) | [string](#string) |
+| simple | Language in simplified text (ex: `en`) | [string](#string) |
 
 ## Placeholder objects for `--filename-chapter` option
 
@@ -82,14 +82,14 @@ There's 2 placeholders that you can use in `--filename-chapter` option.
 
 | attribute | description | type data |
 | ----- | ----- | ----- |
-| chapter | Manga chapter in number from 0 to 1 (You can get `Unknown` if there is no valid chapter number) | [integer](#integer-type-data) |
-| volume | Manga volume in number from 0 to 1 (You can get `Unknown` if there is no valid volume number) | [integer](#integer-type-data) |
-| title | Chapter title | [string](#string-type-data) |
-| pages | Total pages in the chapter | [integer](#integer-type-data) |
-| language | Chapter language | Language |
-| name | Full parsed chapter name (ex: `Volume. 69 Chapter. 69`) | [string](#string-type-data) |
-| simple_name | Simplified parsed chapter name (ex: `Vol. 69 Ch. 69`) | [string](#string-type-data) |
-| groups_name | List of scanlation groups for the chapter separated by `&` (you can get `User - username` if there is no scanlation groups available) | [string](#string-type-data) |
+| chapter | Manga chapter in number from 0 to 1 (You can get `Unknown` if there is no valid chapter number) | [integer](#integer) |
+| volume | Manga volume in number from 0 to 1 (You can get `Unknown` if there is no valid volume number) | [integer](#integer) |
+| title | Chapter title | [string](#string) |
+| pages | Total pages in the chapter | [integer](#integer) |
+| language | Chapter language | [Language](#contentrating-and-language) |
+| name | Full parsed chapter name (ex: `Volume. 69 Chapter. 69`) | [string](#string) |
+| simple_name | Simplified parsed chapter name (ex: `Vol. 69 Ch. 69`) | [string](#string) |
+| groups_name | List of scanlation groups for the chapter separated by `&` (you can get `User - username` if there is no scanlation groups available) | [string](#string) |
 
 ## Placeholder objects for `--filename-volume` option
 
@@ -104,7 +104,7 @@ There's 2 placeholders that you can use in `--filename-volume` option.
 
 | attribute | description | type data |
 | --- | --- | --- |
-| chapters | List of chapters in the volume | [ArrayModified](#arraymodified-type-data)[Chapter] |
+| chapters | List of chapters in the volume | [ArrayModified](#arraymodified)[[Chapter](#chapter-placeholder-attributes)] |
 
 ## Placeholder objects for `--filename-single` option
 
@@ -115,22 +115,22 @@ There's 2 placeholders that you can use in `--filename-single` option.
 | chapters | List of all chapters in the manga, the attributes is same as [`chapters` in volume placeholder](#volume-placeholder-attributes) |
 | file_ext | File extension |
 
-## Types data
+## Data types
 
 Here you can find a data types that used in mangadex-downloader path placeholders
 
-### string type data
+### string
 
 It's a text.
 
 The string type data follows python f-string (formatted string). 
 You can read more about it [in here](https://docs.python.org/3/library/string.html#format-specification-mini-language)
 
-### integer type data
+### integer
 
 It's a negative or positive number
 
-### array type data
+### array
 
 It's a list of data, 
 you can access a data by giving index position.
@@ -152,7 +152,7 @@ For example:
 mangadex-dl "URL" --path "/home/mymanga/{manga.alternative_titles[0]}"
 ```
 
-### ArrayModified type data
+### ArrayModified
 
 Same as `array` data type, but it has additional attributes
 
@@ -174,6 +174,26 @@ mangadex-dl "URL" --filename-volume "Vol. {volume} (Ch. {volume.chapters[0].chap
 I know some of you asking "But why ? why you did this ?"
 
 Because it looks elegant and clean 😂👌.
+
+### ContentRating and Language
+
+This data type contain these attributes
+
+| attribute | description |
+| --- | --- |
+| value | Lowercase or short text (for example: safe, en) |
+| name | Capitalized or long text (for example: Safe, English) |
+
+### CoverArt
+
+This data type contain these attributes
+
+| attribute | description |
+| --- | --- |
+| id | CoverArt manga id |
+| description | Cover manga description |
+| file | Filename of the cover manga |
+| locale | Cover manga language (type data: [Language](#contentrating-and-language)) |
 
 ## Examples
 
