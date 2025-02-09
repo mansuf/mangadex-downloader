@@ -22,7 +22,7 @@
 
 import logging
 import re
-from .errors import UnhandledException, MangaDexException
+from .errors import UnhandledException, MangaDexException, ChapterNotFound
 from .utils import (
     comma_separated_text,
     create_directory,
@@ -269,11 +269,14 @@ def download_list(
     _list = MangaDexList(_id=list_id)
 
     for manga in _list.iter_manga():
-        download(
-            manga.id,
-            replace,
-            groups=groups,
-        )
+        try:
+            download(
+                manga.id,
+                replace,
+                groups=groups,
+            )
+        except ChapterNotFound as e:
+            log.error(e)
 
 
 def download_legacy_manga(legacy_id, *args, **kwargs):
