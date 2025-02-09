@@ -29,16 +29,23 @@ from ..update import architecture, executable
 from ..network import Net
 from ..downloader import _cleanup_jobs
 from ..errors import MangaDexException, NotLoggedIn
+from ..config import config
 
 log = logging.getLogger(__name__)
 
 # Will be used in main() and get_args()
 sys_argv = sys.argv[1:]
 
+
 def setup_logging(name_module, verbose=False):
     log = logging.getLogger(name_module)
+    for handler in log.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            # We already have logging configured
+            return log
+
     handler = logging.StreamHandler()
-    fmt = logging.Formatter('[%(levelname)s] %(message)s')
+    fmt = logging.Formatter("[%(levelname)s] %(message)s")
     handler.setFormatter(fmt)
     log.addHandler(handler)
     if verbose:
@@ -46,6 +53,7 @@ def setup_logging(name_module, verbose=False):
     else:
         log.setLevel(logging.INFO)
     return log
+
 
 def setup_proxy(proxy=None, from_env=False):
     if proxy and from_env:
@@ -55,8 +63,9 @@ def setup_proxy(proxy=None, from_env=False):
         log.debug("Using proxy from environments")
 
     if proxy:
-        log.debug('Setting up proxy from --proxy option')
+        log.debug("Setting up proxy from --proxy option")
         Net.set_proxy(proxy)
+
 
 def setup_network(args):
     # Build proxy
@@ -67,11 +76,12 @@ def setup_network(args):
 
     if args.dns_over_https:
         Net.set_doh(args.dns_over_https)
-    
+
     if args.timeout:
         Net.set_timeout(args.timeout)
 
     Net.set_auth(args.login_method)
+
 
 def _keyboard_interrupt_handler(*args):
     print("Cleaning up...")
@@ -88,6 +98,7 @@ def _keyboard_interrupt_handler(*args):
     print("Action interrupted by user", file=sys.stdout)
     sys.exit(0)
 
+
 def register_keyboardinterrupt_handler():
     # CTRL+C is pressed
     signal.signal(signal.SIGINT, _keyboard_interrupt_handler)
@@ -95,30 +106,38 @@ def register_keyboardinterrupt_handler():
     # CTRL+D (in Unix) is pressed or taskkill without force (in Windows)
     signal.signal(signal.SIGTERM, _keyboard_interrupt_handler)
 
+
 def close_network_object():
     log.info("Cleaning up...")
-    log.debug("Closing netwok object")
+    log.debug("Closing network object")
     Net.close()
+
 
 class IteratorEmpty(Exception):
     pass
+
 
 # Honestly, this code was total messed up
 # I don't know how to make pagination correctly
 class Paginator:
     """A tool to create sequence of pages"""
+
     def __init__(self, iterator, limit=10):
         self._pages = []
 
         self._pos = 0
         self.iterator = iter(iterator)
-        self.limit = limit
+
+        if config.page_size:
+            self.limit = config.page_size
+        else:
+            self.limit = limit
 
         self.duplicates = []
 
     @property
     def pos(self):
-        """"Return current position"""
+        """ "Return current position"""
         return self._pos
 
     def _get_data(self):
@@ -141,7 +160,7 @@ class Paginator:
 
             items.append(item)
             self.duplicates.append(item if item_id is None else item_id)
-        
+
         return items
 
     def _add_page(self, until_pos):
@@ -164,11 +183,11 @@ class Paginator:
 
     def _try_load(self, for_pos):
         """Try to load page data for given pos
-        
+
         If not exist it will add page until given pos.
         """
         success = self._load_page_from_pos(for_pos)
-        
+
         if success:
             return True
 
@@ -213,13 +232,15 @@ class Paginator:
 
         return result
 
+
 def print_version_info():
-    bundled_executable = 'yes' if executable else 'no'
+    bundled_executable = "yes" if executable else "no"
 
     print(f"mangadex-downloader v{__version__} ({__url_repository__}/{__repository__})")
     print("Python: {0[0]}.{0[1]}.{0[2]}".format(sys.version_info))
     print(f"arch: {architecture}")
     print(f"bundled executable: {bundled_executable}")
+
 
 def dynamic_bars(length):
     if isinstance(length, str):
@@ -228,17 +249,19 @@ def dynamic_bars(length):
     bar = ""
     for _ in range(length):
         bar += "="
-    
+
     return bar
 
+
 def split_comma_separated(text, single_value_to_list=False):
-    if ',' not in text:
-        return [text] if single_value_to_list else  text
-    
-    return [i.strip() for i in text.split(',')]
+    if "," not in text:
+        return [text] if single_value_to_list else text
+
+    return [i.strip() for i in text.split(",")]
+
 
 def check_group_all(args):
-    """Check `--group` is containing `all` value with another `--group <group_id>` """
+    """Check `--group` is containing `all` value with another `--group <group_id>`"""
     if args.group is None:
         return
 
@@ -250,4 +273,6 @@ def check_group_all(args):
         pass
     else:
         if len(args.group) > 1:
-            raise MangaDexException("'--group all' cannot be used with another '--group <group_id>'")
+            raise MangaDexException(
+                "'--group all' cannot be used with another '--group <group_id>'"
+            )

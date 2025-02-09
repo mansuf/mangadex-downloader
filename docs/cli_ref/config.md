@@ -14,12 +14,12 @@ Let's say you want to download a manga with
 - No manga cover
 - No group name in each chapters
 - And the chapters language must Indonesian
-- And store it to `manga` directory
+- And store it to `library` directory
 
 The results:
 
 ```shell
-mangadex-dl "https://mangadex.org/title/..." --force-https --no-progress-bar --dns-over-https "cloudflare" --cover "none" --no-group-name --language "Indonesian" --path "manga"
+mangadex-dl "https://mangadex.org/title/..." --force-https --progress-bar-layout "none" --dns-over-https "cloudflare" --cover "none" --no-group-name --language "Indonesian" --path "library/mymanga"
 ```
 
 It is wayyyy too longgggggg and you have to write these command-line options everytime to download manga. 
@@ -47,12 +47,12 @@ Second, set the values for configs
 ```shell
 # `1` is alias for True and `0` is alias for False
 mangadex-dl "conf:force_https=1"
-mangadex-dl "conf:no_progress_bar=1"
+mangadex-dl "conf:progress_bar_layout=none"
 mangadex-dl "conf:dns_over_https=cloudflare"
 mangadex-dl "conf:cover=none"
 mangadex-dl "conf:no_group_name=1"
 mangadex-dl "conf:language=Indonesian"
-mangadex-dl "conf:path=manga"
+mangadex-dl "conf:path=library/mymanga"
 ```
 
 After that you can download the manga without writing very-very long command-line options
@@ -70,12 +70,12 @@ Let's say you have `config.txt`. And inside of that file is that every configs t
 
 ```shell
 conf:force_https=1
-conf:no_progress_bar=1
+conf:progress_bar_layout=none
 conf:dns_over_https=cloudflare
 conf:cover=none
 conf:no_group_name=1
 conf:language=Indonesian
-conf:path=manga
+conf:path=library/mymanga
 ```
 
 And then you execute these commands:
@@ -140,12 +140,20 @@ Same as `--force-https` or `-fh`
 Same as `--path` or `--folder` or `-d`
 ```
 
-```{option} dns_over_https
-Same as `-doh` or `--dns-over-https`
+```{option} filename_chapter
+Same as `--filename-chapter` or `-fc`
 ```
 
-```{option} no_chapter_info
-Same as `-nci` or `--no-chapter-info`
+```{option} filename_volume
+Same as `--filename-volume` or `-fv`
+```
+
+```{option} filename_single
+Same as `--filename-single` or `-fs`
+```
+
+```{option} dns_over_https
+Same as `-doh` or `--dns-over-https`
 ```
 
 ```{option} no_group_name
@@ -156,16 +164,84 @@ Same as `-ngn` or `--no-group-name`
 Same as `--sort-by`
 ```
 
-```{option} no_progress_bar
-Same as `-npb` or `--no-progress-bar`
-```
-
 ```{option} http_retries
 Same as `--http-retries`
 ```
 
 ```{option} no_track
 Same as `--no-track`
+```
+
+```{option} download_mode
+Same as `--download-mode` 
+```
+
+```{option} download_mode
+Same as `--download-mode`
+```
+
+```{option} use_chapter_cover [1 or 0, true or false]
+Same as `--use-chapter-cover`
+```
+
+```{option} use_volume_cover [1 or 0, true or false]
+Same as `--use-volume-cover`
+```
+
+```{option} volume_cover_language
+Same as `--volume-cover-language`
+```
+
+```{option} stacked_progress_bar_order
+Same as `--stacked-progress-bar-order`
+```
+
+```{option} log_level
+Same as `--log-level`
+```
+
+```{option} progress_bar_layout
+Same as `--progress-bar-layout`
+```
+
+```{option} ignore_missing_chapters [1 or 0, true or false]
+Same as `--ignore-missing-chapters`
+```
+
+```{option} create_no_volume [1 or 0, true or false]
+Same as `--create-no-volume`
+```
+
+```{option} create_manga_info [1 or 0, true or false]
+Same as `--create-manga-info`
+```
+
+```{option} manga_info_format
+Same as `--manga-info-format`
+```
+
+```{option} manga_info_filepath
+Same as `--manga-info-filepath`
+```
+
+```{option} manga_info_only [1 or 0, true or false]
+Same as `--manga-info-only`
+```
+
+```{option} no_metadata [1 or 0, true or false]
+Same as `--no-metadata`
+```
+
+```{option} page_size
+Same as `--page-size`
+```
+
+```{option} order
+Same as `--order`
+```
+
+```{option} group_nomatch_behaviour
+Same as `--group-nomatch-behaviour`
 ```
 
 ```{option} reset [config]

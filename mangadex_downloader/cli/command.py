@@ -23,12 +23,7 @@
 import sys
 import re
 import requests
-from .utils import (
-    Paginator, 
-    dynamic_bars, 
-    IteratorEmpty, 
-    split_comma_separated
-)
+from .utils import Paginator, dynamic_bars, IteratorEmpty, split_comma_separated
 from ..iterator import (
     IteratorManga,
     IteratorMangaFromList,
@@ -39,16 +34,12 @@ from ..iterator import (
     IteratorUserList,
     iter_random_manga,
     ForumThreadMangaDexURLIterator,
-    CoverArtIterator
+    CoverArtIterator,
 )
-from ..forums import (
-    get_thread_title_owner_and_post_owner,
-    get_post_id_forum_thread,
-    validate_forum_thread_url
-)
+from ..forums import get_thread_title_owner_and_post_owner, get_post_id_forum_thread
 from .. import __repository__
 from ..utils import input_handle, validate_url, get_cover_art_url, get_key_value
-from ..errors import InvalidURL, MangaDexException, PillowNotInstalled, UnhandledException
+from ..errors import InvalidURL, MangaDexException
 from ..network import Net
 from ..manga import Manga
 from ..chapter import Chapter
@@ -56,6 +47,9 @@ from ..mdlist import MangaDexList
 from ..group import Group
 from ..cover import CoverArt, cover_qualities
 from ..language import get_language
+from ..format.pdf import PillowNotInstalled
+from ..config import config
+
 
 def preview_chapter(chapter: Chapter):
     try:
@@ -75,6 +69,7 @@ def preview_chapter(chapter: Chapter):
 
     pass
 
+
 def preview_cover_manga(manga_id, manga_cover, manga_title=None, quality="original"):
     try:
         from PIL import Image
@@ -90,18 +85,21 @@ def preview_cover_manga(manga_id, manga_cover, manga_title=None, quality="origin
     im.show(manga_title)
     im.close()
 
-def preview_list(mdlist):
-    text_init = f'List of mangas from MangaDex list \"{mdlist.name}\"'
 
-    print('\n')
+def preview_list(mdlist):
+    text_init = f'List of mangas from MangaDex list "{mdlist.name}"'
+
+    print("\n")
     print(text_init)
     print(dynamic_bars(text_init))
     for manga in mdlist.iter_manga():
         print(manga.title)
-    print('\n\n')
+    print("\n\n")
+
 
 class BaseCommand:
     """A base class that will handle command prompt"""
+
     def __init__(self, parser, args, iterator, text, limit=10):
         self.args_parser = parser
         self.args = args
@@ -111,19 +109,19 @@ class BaseCommand:
 
     def _error(self, message, exit=False):
         """Function to print error, yes"""
-        msg = f'\nError: {message}\n'
+        msg = f"\nError: {message}\n"
         if exit:
             self.args_parser.error(message)
         else:
             print(msg)
 
-    def _insert_choices(self, choices, action='next'):
+    def _insert_choices(self, choices, action="next"):
         text = ""
         func = getattr(self.paginator, action)
 
         for pos, item in func():
             choices[str(pos)] = item
-            text += f"({pos}). {item}\n" 
+            text += f"({pos}). {item}\n"
 
         self._text_choices = text
 
@@ -146,27 +144,29 @@ class BaseCommand:
         final_text += 'type "next" to show next results\n'
         final_text += 'type "previous" to show previous results'
         if self.preview():
-            final_text += '\ntype "preview NUMBER" to show more details about selected result. ' \
-                          'For example: "preview 2"'
-        
+            final_text += (
+                '\ntype "preview NUMBER" to show more details about selected result. '
+                'For example: "preview 2"'
+            )
+
         print(final_text)
 
     def preview(self):
         """Check if this command support preview.
-        
+
         Must return ``True`` or ``False``.
         """
         return False
 
     def on_empty_error(self):
-        """This function will be called if :attr:`BaseCommand.iterator` 
+        """This function will be called if :attr:`BaseCommand.iterator`
         returns nothing on first prompt.
         """
         pass
 
     def on_preview(self, item):
         """This function is called when command ``preview`` is selected.
-        
+
         :func:`BaseCommand.preview()` must return ``True`` in order to get this called.
         """
         pass
@@ -181,12 +181,11 @@ class BaseCommand:
             return None
 
         while True:
-
             try:
                 result = choices[pos]
             except KeyError:
                 result = None
-            
+
             if result is not None:
                 yield result
                 break
@@ -217,9 +216,10 @@ class BaseCommand:
 
         answer = None
         while True:
+            # TODO: Refactor this
             if answer is not None:
-                if answer.startswith('preview') and self.preview():
-                    answer_item = answer.split('preview', maxsplit=1)[1].strip()
+                if answer.startswith("preview") and self.preview():
+                    answer_item = answer.split("preview", maxsplit=1)[1].strip()
                     try:
                         item = choices[answer_item]
                     except KeyError:
@@ -242,7 +242,7 @@ class BaseCommand:
                         answer = None
                     else:
                         return item
-                
+
                 if answer is not None:
                     try:
                         self._insert_choices(choices, action)
@@ -250,12 +250,14 @@ class BaseCommand:
                         self._error("There are no more results")
                     except IndexError:
                         self._error("Choices are out of range, try again")
-        
+
             self._print_choices()
             answer = input_handle("=> ")
 
+
 class MangaDexCommand(BaseCommand):
     """Command specialized for MangaDex"""
+
     def prompt(self, input_pos=None):
         answer = super().prompt(input_pos=input_pos)
 
@@ -273,27 +275,34 @@ class MangaDexCommand(BaseCommand):
         else:
             return [answer.id]
 
+
 class MangaCommand(MangaDexCommand):
     """Command specialized for manga related"""
+
     def preview(self):
         return True
 
     def on_preview(self, item):
         preview_cover_manga(item.id, item.cover, item.title)
 
+
 class MDListCommand(MangaDexCommand):
     """Command specialized for MangaDex list related"""
+
     def preview(self):
         return True
 
     def on_preview(self, item):
         preview_list(item)
 
+
 class MangaLibraryCommand(MangaCommand):
-    """A command that will prompt user to select which manga want to download from user library"""
+    """
+    A command that will prompt user to select which manga want to download from user library
+    """
 
     def __init__(self, parser, args, input_text):
-        _, status = get_key_value(input_text, sep=':')
+        _, status = get_key_value(input_text, sep=":")
 
         if not status:
             # To prevent error "invalid value"
@@ -314,7 +323,7 @@ class MangaLibraryCommand(MangaCommand):
             parser,
             args,
             IteratorUserLibraryManga(status),
-            f'List of manga from user library "{user.name}"'
+            f'List of manga from user library "{user.name}"',
         )
 
         self.user = user
@@ -322,23 +331,27 @@ class MangaLibraryCommand(MangaCommand):
     def on_empty_error(self):
         self.args_parser.error(f'User "{self.user.name}"')
 
+
 class ListLibraryCommand(MDListCommand):
-    """A command that will prompt user to select which list want to download from user library"""
+    """
+    A command that will prompt user to select which list want to download from user library
+    """
+
     def __init__(self, parser, args, input_text):
-        _, user = get_key_value(input_text, sep=':')
+        _, user = get_key_value(input_text, sep=":")
 
         user_id = None
         if user:
             try:
                 user_id = validate_url(user)
-            except InvalidURL as e:
+            except InvalidURL:
                 parser.error(f'"{user}" is not a valid user')
-        
+
         if user:
             iterator = IteratorUserList(user_id)
         else:
             iterator = IteratorUserLibraryList()
-        
+
         try:
             user = iterator.user
         except AttributeError:
@@ -346,19 +359,19 @@ class ListLibraryCommand(MDListCommand):
             user = Net.mangadex.user
 
         super().__init__(
-            parser,
-            args,
-            iterator,
-            f'List of saved MDList from user "{user.name}"'
+            parser, args, iterator, f'List of saved MDList from user "{user.name}"'
         )
 
         self.user = user
-    
+
     def on_empty_error(self):
         self.args_parser.error(f'User "{self.user.name} has no saved lists"')
 
+
 class FollowedListLibraryCommand(MDListCommand):
-    """A command that will prompt user to select which list want to download from followed lists user """
+    """
+    A command that will prompt user to select which list want to download from followed lists user
+    """  # noqa: E501
 
     def __init__(self, parser, args, input_text):
         iterator = IteratorUserLibraryFollowsList()
@@ -366,16 +379,14 @@ class FollowedListLibraryCommand(MDListCommand):
         user = Net.mangadex.user
 
         super().__init__(
-            parser,
-            args,
-            iterator,
-            f'List of followed MDlist from user "{user.name}"'
+            parser, args, iterator, f'List of followed MDlist from user "{user.name}"'
         )
 
         self.user = user
-    
+
     def on_empty_error(self):
         self.args_parser.error(f'User "{self.user.name}" has no followed lists')
+
 
 class FilterEnabled:
     @classmethod
@@ -385,7 +396,7 @@ class FilterEnabled:
         filter_kwargs = {}
         filters = args.filter or []
         for f in filters:
-            key, value  = get_key_value(f)
+            key, value = get_key_value(f)
             try:
                 value_filter_kwargs = filter_kwargs[key]
             except KeyError:
@@ -405,7 +416,7 @@ class FilterEnabled:
         # We cannot put "order[key]" into function parameters
         # that would cause syntax error
         for key in filter_kwargs.keys():
-            if 'order' in key:
+            if "order" in key:
                 orders[key] = filter_kwargs[key]
 
         # Remove "order[key]" from filter_kwargs
@@ -415,84 +426,80 @@ class FilterEnabled:
 
         # This much safer
         if orders:
-            filter_kwargs['order'] = orders
+            filter_kwargs["order"] = orders
 
         return filter_kwargs
 
+
 class SearchMangaCommand(MangaCommand, FilterEnabled):
     """A command that will prompt user to select which manga to download (from search)"""
+
     def __init__(self, parser, args, input_text):
         filter_kwargs = self.parse_filter(args)
 
         iterator = IteratorManga(input_text, **filter_kwargs)
         super().__init__(
-            parser,
-            args,
-            iterator,
-            f'Manga search results for "{input_text}"'
+            parser, args, iterator, f'Manga search results for "{input_text}"'
         )
-        
+
         self.input_text = input_text
-    
+
     def on_empty_error(self):
-        self.args_parser.error(f'Manga search results for "{self.input_text}" are empty')
+        self.args_parser.error(
+            f'Manga search results for "{self.input_text}" are empty'
+        )
+
 
 class GroupMangaCommand(MangaCommand):
-    """A command that will prompt user to select which manga to download (from scanlator group)"""
+    """
+    A command that will prompt user to select which manga to download (from scanlator group)
+    """
+
     def __init__(self, parser, args, input_text):
         # Getting group id
-        _, group_id = get_key_value(input_text, sep=':')
+        _, group_id = get_key_value(input_text, sep=":")
         if not group_id:
             parser.error("group id or url are required")
-        
+
         group_id = validate_url(group_id)
         group = Group(group_id)
 
         iterator = IteratorManga(None, group=group.id)
         text = f'List of manga from group "{group.name}"'
 
-        super().__init__(
-            parser,
-            args,
-            iterator,
-            text
-        )
-        
+        super().__init__(parser, args, iterator, text)
+
         self.group = group
 
     def on_empty_error(self):
         self.args_parser.error(f'Group "{self.group.name}" has no uploaded mangas')
 
+
 class RandomMangaCommand(MangaCommand, FilterEnabled):
     def __init__(self, parser, args, input_text):
-        _, value = get_key_value(input_text, sep=':')
+        _, value = get_key_value(input_text, sep=":")
 
         if value:
             raise MangaDexException(
-                "Syntax 'random:<content_rating>' are no longer supported, " \
+                "Syntax 'random:<content_rating>' are no longer supported, "
                 "use --filter or -ft instead."
             )
 
         filters = self.parse_filter(args)
 
         iterator = iter_random_manga(**filters)
-        text = f'Found random manga'
-        super().__init__(
-            parser,
-            args,
-            iterator,
-            text,
-            limit=5
-        )
-    
+        text = "Found random manga"
+        super().__init__(parser, args, iterator, text, limit=5)
+
     def on_empty_error(self):
         # This should never happened
-        self.args_parser.error('Unknown error when fetching random manga')
+        self.args_parser.error("Unknown error when fetching random manga")
+
 
 class SeasonalMangaCommand(MangaCommand):
     def __init__(self, parser, args, input_text):
         # Get season
-        _, season = get_key_value(input_text, sep=':')
+        _, season = get_key_value(input_text, sep=":")
 
         season = season.lower().strip()
 
@@ -500,41 +507,41 @@ class SeasonalMangaCommand(MangaCommand):
             self._print_help()
         elif not season:
             # Current season
-            r = Net.requests.get(f'https://raw.githubusercontent.com/{__repository__}/main/seasonal_manga_now.txt')
+            r = Net.requests.get(
+                f"https://raw.githubusercontent.com/{__repository__}/main/seasonal_manga_now.txt"
+            )
             try:
                 r.raise_for_status()
             except requests.HTTPError as e:
-                raise MangaDexException(f"failed to get current seasonal manga, reason: {e}")
-            
+                raise MangaDexException(
+                    f"failed to get current seasonal manga, reason: {e}"
+                )
+
             season_list_id = validate_url(r.text)
             iterator = IteratorMangaFromList(season_list_id)
             season = iterator.name
         else:
-            season = f'Seasonal: {season.capitalize()}'
+            season = f"Seasonal: {season.capitalize()}"
             iterator = IteratorSeasonalManga(season)
 
         text = f"List of manga from {season}"
-        super().__init__(
-            parser,
-            args,
-            iterator,
-            text
-        )
+        super().__init__(parser, args, iterator, text)
 
     def _print_help(self):
         header = "Available seasons"
 
         print(header)
-        print(dynamic_bars(header), end='\n\n')
+        print(dynamic_bars(header), end="\n\n")
 
         for season in IteratorSeasonalManga._get_seasons():
             print(season)
-        
+
         sys.exit(0)
 
     def on_empty_error(self):
         # This should never happened
-        self.args_parser.error('Unknown error when fetching seasonal manga')
+        self.args_parser.error("Unknown error when fetching seasonal manga")
+
 
 class ForumThreadCommand(MangaDexCommand):
     def preview(self):
@@ -552,7 +559,9 @@ class ForumThreadCommand(MangaDexCommand):
         iterator = ForumThreadMangaDexURLIterator(input_text, True)
 
         post_id = get_post_id_forum_thread(input_text)
-        result = get_thread_title_owner_and_post_owner(thread_url=input_text, post_id=post_id)
+        result = get_thread_title_owner_and_post_owner(
+            thread_url=input_text, post_id=post_id
+        )
         thread_title, thread_owner, post_owner = result
 
         text = f"List of URLs from thread '{thread_title}' by '{thread_owner}'"
@@ -560,13 +569,7 @@ class ForumThreadCommand(MangaDexCommand):
         if post_owner:
             text += f" post by '{post_owner}'"
 
-        super().__init__(
-            parser,
-            args,
-            iterator,
-            text,
-            limit=5
-        )
+        super().__init__(parser, args, iterator, text, limit=5)
 
     def _return_from(self, pos):
         # We don't want to fetch the entire URLs returned from forum thread
@@ -574,9 +577,10 @@ class ForumThreadCommand(MangaDexCommand):
         self.paginator.iterator.fetch = False
 
         return super()._return_from(pos)
-    
+
     def on_empty_error(self):
         self.args_parser.error("No MangaDex urls found in the forum thread")
+
 
 # The reason i made this to get full URL from cover art iterator rather than just the id
 # (The command only accept manga id)
@@ -589,7 +593,7 @@ class ForumThreadCommand(MangaDexCommand):
 # Q: "Then why you don't fetch the cover art id and retrieve information from there ?"
 # A: See the questions from above.
 # - The application don't know what the user want for quality of the cover
-# - The application don't know what the manga id, because each commands only yield 1 result 
+# - The application don't know what the manga id, because each commands only yield 1 result
 # (in this case cover id)
 # Technically, it's possible to rewrite the commands to yield more than 1 results
 # but it would take too much time and efforts (besides this is just a hobby project)
@@ -603,6 +607,7 @@ class CoverArtURLIterator(CoverArtIterator):
         cover = super().__next__()
         return get_cover_art_url(cover.manga_id, cover, self.quality)
 
+
 class CoverArtCommand(MangaDexCommand):
     def preview(self):
         return True
@@ -613,14 +618,16 @@ class CoverArtCommand(MangaDexCommand):
     def __init__(self, parser, args, input_text):
         cover, manga_id = get_key_value(input_text, sep=":")
 
-        regex = r".+(mangadex\.org|uploads\.mangadex\.org)\/covers\/ " \
-                r"(?P<manga_id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\/"
+        regex = (
+            r".+(mangadex\.org|uploads\.mangadex\.org)\/covers\/ "
+            r"(?P<manga_id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\/"
+        )
         result = re.search(regex, manga_id)
         if result is not None:
             manga_id = result.group("manga_id")
 
         manga_id = validate_url(manga_id)
-        
+
         # Determine quality cover
         try:
             _, quality = cover.split("-", maxsplit=1)
@@ -631,7 +638,6 @@ class CoverArtCommand(MangaDexCommand):
         if quality not in cover_qualities:
             parser.error(f"{quality} is not valid quality covers")
 
-        from ..config import config
         vcl = config.volume_cover_language
         cover_locale = vcl if vcl else config.language
         cover_locale = get_language(cover_locale)
@@ -659,7 +665,7 @@ class CoverArtCommand(MangaDexCommand):
             # We don't wanna display full URL as prompt choices
             iterator = CoverArtIterator(self.manga_id)
             self.paginator = Paginator(iterator, self.limit)
-        
+
         result = super().prompt(input_pos)
 
         if input_pos is None:
@@ -672,9 +678,10 @@ class CoverArtCommand(MangaDexCommand):
 
     def on_empty_error(self):
         self.args_parser.error(
-            f"Manga {self.manga.title!r} doesn't " \
+            f"Manga {self.manga.title!r} doesn't "
             f"have {self.cover_locale.name!r} covers"
         )
+
 
 registered_commands = {
     "search": SearchMangaCommand,
@@ -687,5 +694,5 @@ registered_commands = {
     "thread": ForumThreadCommand,
     "cover_art": CoverArtCommand,
     "cover_art_512px": CoverArtCommand,
-    "cover_art_256px": CoverArtCommand
+    "cover_art_256px": CoverArtCommand,
 }

@@ -1,0 +1,7 @@
+# Advanced usage
+
+```{toctree}
+:glob:
+
+./*
+```

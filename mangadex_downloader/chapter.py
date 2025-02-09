@@ -22,27 +22,25 @@
 
 import logging
 import queue
-import itertools
 from pathvalidate import sanitize_filename
+from typing import List
 
 from .user import User
 from .language import Language
 from .fetcher import (
-    get_bulk_chapters,
     get_chapter_images,
     get_chapter,
-    get_all_chapters,
-    get_unread_chapters
+    get_unread_chapters,
 )
 from .network import Net, base_url
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config, env
-from .utils import convert_int_or_float, get_local_attr
+from .utils import convert_int_or_float, get_local_attr, convert_start_end_from_negative
 from .progress_bar import progress_bar_manager as pbm
-# from . import range as range_mod # range_mod stands for "range module"
 
 log = logging.getLogger(__name__)
+
 
 class ChapterImages:
     def __init__(
@@ -65,37 +63,34 @@ class ChapterImages:
         self.range = _range
         self.force_https = config.force_https
 
-        self.legacy_range = (start_page or end_page)
-    
+        self.legacy_range = start_page or end_page
+
     def fetch(self):
         data = get_chapter_images(self.id, force_https=self.force_https)
         # Construct image url
         self._data = data
-        self._base_url = data.get('baseUrl')
-        self._hash = data['chapter']['hash']
-        self._images = data['chapter']['data']
-        self._low_images = data['chapter']['dataSaver']
+        self._base_url = data.get("baseUrl")
+        self._hash = data["chapter"]["hash"]
+        self._images = data["chapter"]["data"]
+        self._low_images = data["chapter"]["dataSaver"]
 
     def _check_range_page_legacy(self, page, log_info):
         if self.start_page is not None:
             if not (page >= self.start_page):
-
                 if log_info:
-                    pbm.logger.info("Ignoring page %s as \"start_page\" is %s" % (
-                        page,
-                        self.start_page
-                    ))
+                    pbm.logger.debug(
+                        'Ignoring page %s as "start_page" is %s'
+                        % (page, self.start_page)
+                    )
 
                 return False
 
         if self.end_page is not None:
             if not (page <= self.end_page):
-
                 if log_info:
-                    pbm.logger.info("Ignoring page %s as \"end_page\" is %s" % (
-                        page,
-                        self.end_page
-                    ))
+                    pbm.logger.debug(
+                        'Ignoring page %s as "end_page" is %s' % (page, self.end_page)
+                    )
 
                 return False
 
@@ -106,44 +101,48 @@ class ChapterImages:
             return self._check_range_page_legacy(page, log_info)
 
         if self.range is not None and not self.range.check_page(self.chap, page):
-
             if log_info:
-                log.debug(f"Ignoring page {page}, because page {page} is in ignored list")
+                pbm.logger.debug(
+                    f"Ignoring page {page}, because page {page} is in ignored list"
+                )
 
             return False
-        
+
         return True
 
     def iter(self, log_info=False):
         if self._data is None:
             raise Exception("fetch() is not called")
 
-        quality_mode = 'data-saver' if self.data_saver else 'data'
+        quality_mode = "data-saver" if self.data_saver else "data"
         images = self._low_images if self.data_saver else self._images
+
+        # Convert range numbers if it's negative
+        self.start_page, self.end_page = convert_start_end_from_negative(
+            self.start_page, self.end_page, range(1, len(images) + 1)
+        )
 
         page = 1
         for img in images:
-
             if not self._check_range_page(page, log_info):
                 page += 1
                 continue
 
-            url = '{0}/{1}/{2}/{3}'.format(
-                self._base_url,
-                quality_mode,
-                self._hash,
-                img
+            url = "{0}/{1}/{2}/{3}".format(
+                self._base_url, quality_mode, self._hash, img
             )
 
             yield page, url, img
 
             page += 1
 
+
 class AggregateChapter:
     def __init__(self, data) -> None:
-        self.id = data.get('id')
-        self.chapter = data.get('chapter')
-        self.others_id = data.get('others')
+        self.id = data.get("id")
+        self.chapter = data.get("chapter")
+        self.others_id = data.get("others")
+
 
 class Chapter:
     def __init__(
@@ -155,29 +154,29 @@ class Chapter:
             raise ValueError("_id and data cannot be together")
 
         if data is None:
-            data = get_chapter(_id)['data']
+            data = get_chapter(_id)["data"]
 
-        self.id = data['id']
-        self._attr = data['attributes']
+        self.id = data["id"]
+        self.attr = data["attributes"]
 
         # Get scanlation groups and manga
-        rels = data['relationships']
+        rels = data["relationships"]
 
         groups = []
         manga_id = None
         manga_title = None
         user = None
         for rel in rels:
-            rel_id = rel['id']
-            rel_type = rel['type']
-            if rel_type == 'scanlation_group':
+            rel_id = rel["id"]
+            rel_type = rel["type"]
+            if rel_type == "scanlation_group":
                 groups.append(Group(data=rel))
-            elif rel_type == 'manga':
+            elif rel_type == "manga":
                 manga_id = rel_id
                 manga_title = get_local_attr(rel["attributes"]["title"])
-            elif rel_type == 'user':
+            elif rel_type == "user":
                 user = User(data=rel)
-        
+
         if manga_id is None:
             raise RuntimeError(f"chapter {_id} has no manga relationship")
 
@@ -192,7 +191,7 @@ class Chapter:
         self.use_group_name = not config.no_group_name
         self.use_chapter_title = config.use_chapter_title
 
-        self._lang = Language(self._attr['translatedLanguage'])
+        self._lang = Language(self.attr["translatedLanguage"])
 
         self._parse_name()
 
@@ -204,7 +203,7 @@ class Chapter:
 
     @property
     def volume(self):
-        vol = self._attr['volume']
+        vol = self.attr["volume"]
         if vol is not None:
             # As far as i know
             # Volume manga are integer numbers, not float
@@ -227,18 +226,18 @@ class Chapter:
     @property
     def chapter(self):
         try:
-            return self._attr['chapter'].strip()
+            return self.attr["chapter"].strip()
         except AttributeError:
             # null value
             return None
 
     @property
     def title(self):
-        return self._attr['title']
+        return self.attr["title"]
 
     @property
     def pages(self):
-        return self._attr['pages']
+        return self.attr["pages"]
 
     @property
     def language(self):
@@ -253,21 +252,21 @@ class Chapter:
         else:
             lower_title = self.title.lower()
 
-        if 'oneshot' in lower_title:
+        if "oneshot" in lower_title:
             self.oneshot = True
             if self.chapter is not None:
-                name += f'Chapter. {self.chapter} '
+                name += f"Chapter. {self.chapter} "
                 simpl_name += f"Ch. {self.chapter} "
 
-            name += 'Oneshot'
-            simpl_name += 'Oneshot'
+            name += "Oneshot"
+            simpl_name += "Oneshot"
         else:
             # Get combined volume and chapter
             if self.volume is not None:
-                name += f'Volume. {self.volume} '
+                name += f"Volume. {self.volume} "
                 simpl_name += f"Vol. {self.volume} "
 
-            name += f'Chapter. {self.chapter}'
+            name += f"Chapter. {self.chapter}"
             simpl_name += f"Ch. {self.chapter}"
 
         self._name = name.strip()
@@ -287,14 +286,14 @@ class Chapter:
         name = ""
 
         if self.use_group_name:
-            name += f'[{sanitize_filename(self.groups_name)}] '
+            name += f"[{sanitize_filename(self.groups_name)}] "
 
         name += chap_name
 
         # Chapter title
         if self.title and self.use_chapter_title:
-            name += f' - {sanitize_filename(self.title)}'
-        
+            name += f" - {sanitize_filename(self.title)}"
+
         return name
 
     def get_name(self):
@@ -307,8 +306,10 @@ class Chapter:
 
     @property
     def groups_name(self):
-        if not self.groups:
-            return f'User - {self.user.name}'
+        if not self.groups and self.user:
+            return f"User - {self.user.name}"
+        elif not self.user:
+            return "User is not specified"
 
         groups = self.groups.copy()
 
@@ -316,48 +317,45 @@ class Chapter:
         name = first_group.name
 
         for group in groups:
-            name += f' & {group.name}'
+            name += f" & {group.name}"
 
         return name
 
-def iter_chapters_feed(manga_id, lang):
-    includes = [
-        'scanlation_group',
-        'user',
-        'manga'
-    ]
-    content_ratings = [
-        'safe',
-        'suggestive',
-        'erotica',
-        'pornographic'
-    ]
+
+def iter_chapters_feed(manga_id, lang=None):
+    includes = ["scanlation_group", "user", "manga"]
+    content_ratings = ["safe", "suggestive", "erotica", "pornographic"]
     offset = 0
     limit = 500
-    
+
     while True:
         params = {
-            'includes[]': includes,
-            'contentRating[]': content_ratings,
-            'limit': limit,
-            'offset': offset,
-            'order[volume]': 'asc',
-            'order[chapter]': 'asc',
-            'translatedLanguage[]': lang,
-            'includeEmptyPages': 0
+            "includes[]": includes,
+            "contentRating[]": content_ratings,
+            "limit": limit,
+            "offset": offset,
+            "order[volume]": "asc",
+            "order[chapter]": "asc",
+            "order[readableAt]": "desc" if config.order == "newest" else "asc",
+            "includeEmptyPages": 0,
         }
-        r = Net.mangadex.get(f'{base_url}/manga/{manga_id}/feed', params=params)
+
+        if lang:
+            params.update({"translatedLanguage[]": lang})
+
+        r = Net.mangadex.get(f"{base_url}/manga/{manga_id}/feed", params=params)
         d = r.json()
 
-        items = d['data']
+        items = d["data"]
 
         if not items:
             break
 
         for item in items:
             yield item
-        
+
         offset += len(items)
+
 
 class IteratorChapter:
     def __init__(
@@ -374,25 +372,26 @@ class IteratorChapter:
         _range=None,
         start_volume=None,
         end_volume=None,
-        **kwargs
+        **kwargs,
     ):
-
         legacy_range = (
-            start_chapter or
-            end_chapter or
-            start_page or
-            end_page or
-            no_oneshot or
-            start_volume or
-            end_volume
+            start_chapter
+            or end_chapter
+            or start_page
+            or end_page
+            or no_oneshot
+            or start_volume
+            or end_volume
         )
 
         if _range and legacy_range:
-            raise ValueError("_range and (start_* or end_* or no_oneshot) cannot be together")
+            raise ValueError(
+                "_range and (start_* or end_* or no_oneshot) cannot be together"
+            )
 
-        self.chapters = chapters
+        self.chapters: List[Chapter] = chapters
         self.manga = manga
-        self.language = lang
+        self.language = Language(lang)
         self.queue = queue.Queue()
         self.start_chapter = start_chapter
         self.end_chapter = end_chapter
@@ -405,7 +404,12 @@ class IteratorChapter:
         self.all_group = False
         self.legacy_range = legacy_range
         self.duplicates = {}
-        
+
+        # Convert the numbers if it's negative
+        self.start_chapter, self.end_chapter = convert_start_end_from_negative(
+            self.start_chapter, self.end_chapter, [i.chapter for i in self.chapters]
+        )
+
         if _range is not None:
             # self.range = range_mod.compile(_range)
             self.range = None
@@ -417,7 +421,7 @@ class IteratorChapter:
         elif groups:
             self.groups = self._parse_groups(groups)
 
-        log_cache = kwargs.get('log_cache')
+        log_cache = kwargs.get("log_cache")
         self.log_cache = True if log_cache else False
 
         if Net.mangadex.check_login():
@@ -456,14 +460,14 @@ class IteratorChapter:
             # It's not a group or user
             # raise error
             if group is None:
-                raise GroupNotFound(f"Group or user \"{_id}\" cannot be found")
-            
+                raise GroupNotFound(f'Group or user "{_id}" cannot be found')
+
         return groups
 
     def _check_range_chapter_legacy(self, chap):
         num_chap = chap.chapter
         num_vol = chap.volume
-        if num_chap != 'none':
+        if num_chap != "none":
             try:
                 num_chap = float(num_chap)
             except ValueError:
@@ -471,7 +475,7 @@ class IteratorChapter:
             except TypeError:
                 # null value
                 pass
-        if num_vol != 'none':
+        if num_vol != "none":
             try:
                 num_vol = float(num_vol)
             except ValueError:
@@ -482,13 +486,17 @@ class IteratorChapter:
 
         is_number = isinstance(num_chap, float)
         is_vol_number = isinstance(num_vol, float)
-        
+
         if is_vol_number and num_vol > 0.0:
             if self.start_volume is not None and not (num_vol >= self.start_volume):
-                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
+                log.debug(
+                    f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list"
+                )
                 return False
             if self.end_volume is not None and not (num_vol <= self.end_volume):
-                log.debug(f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list")
+                log.debug(
+                    f"Ignoring chapter in volume {num_vol}, because volume {num_vol} is in ignored list"
+                )
                 return False
 
         # There is a chance that "Chapter 0" is Oneshot or prologue
@@ -497,42 +505,50 @@ class IteratorChapter:
         # then we need to skip start_chapter and end_chapter checking
         if is_number and num_chap > 0.0:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
-                log.debug(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
+                pbm.logger.debug(
+                    f"Ignoring chapter {num_chap}, "
+                    f"because chapter {num_chap} is in ignored list"
+                )
                 return False
 
             if self.end_chapter is not None and not (num_chap <= self.end_chapter):
-                log.debug(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
+                pbm.logger.debug(
+                    f"Ignoring chapter {num_chap}, "
+                    f"because chapter {num_chap} is in ignored list"
+                )
                 return False
 
-
         if chap.oneshot and self.no_oneshot and not self.all_group:
-            log.debug("Ignoring oneshot chapter since it's in ignored list")
+            pbm.logger.debug("Ignoring oneshot chapter since it's in ignored list")
             return False
 
         # If chapter 0 is prologue or whatever and not oneshot
         # Re-check start_chapter
         elif not chap.oneshot and is_number:
             if self.start_chapter is not None and not (num_chap >= self.start_chapter):
-                log.debug(f"Ignoring chapter {num_chap}, because chapter {num_chap} is in ignored list")
+                pbm.logger.debug(
+                    f"Ignoring chapter {num_chap}, "
+                    f"because chapter {num_chap} is in ignored list"
+                )
                 return False
 
-
-
         return True
-
 
     def _check_range_chapter(self, chap):
         if self.legacy_range:
             return self._check_range_chapter_legacy(chap)
-        
+
         if self.range is not None and not self.range.check_chapter(chap):
-            log.debug(f"Ignoring chapter {chap.chapter}, because chapter {chap.chapter} is in ignored list")
+            pbm.logger.debug(
+                f"Ignoring chapter {chap.chapter}, "
+                f"because chapter {chap.chapter} is in ignored list"
+            )
             return False
 
         return True
 
     def _check_duplicate(self, chap):
-        name = f'{chap.volume}:{chap.chapter}'
+        name = f"{chap.volume}:{chap.chapter}"
 
         try:
             self.duplicates[name]
@@ -540,35 +556,37 @@ class IteratorChapter:
             self.duplicates[name] = chap
         else:
             return True
-        
+
         return False
 
     def _check_chapter(self, chap):
         num_chap = chap.chapter
 
         if (
-            Net.mangadex.check_login() and 
-            config.download_mode == "unread" and
-            chap.id in self._unread_chapters
+            Net.mangadex.check_login()
+            and config.download_mode == "unread"
+            and chap.id in self._unread_chapters
         ):
-            log.debug(
+            pbm.logger.debug(
                 f"Ignoring chapter {chap.get_simplified_name()} because it's marked as read"
             )
             return False
 
         if not self.all_group and not self.groups and self._check_duplicate(chap):
-            log.debug(
-                f"Found duplicate {chap.simple_name} from [{chap.groups_name}], ignoring... "
+            pbm.logger.debug(
+                f"Found duplicate {chap.simple_name} "
+                f"from [{chap.groups_name}], ignoring... "
             )
             return False
 
         # Some manga has chapters where it has no pages / images inside of it.
         # We need to verify it, to prevent error when downloading the manga.
         if chap.pages == 0:
-            log.debug("Chapter {0} from group {1} has no images, ignoring...".format(
-                chap.chapter,
-                chap.groups_name
-            ))
+            pbm.logger.debug(
+                "Chapter {0} from group {1} has no images, ignoring...".format(
+                    chap.chapter, chap.groups_name
+                )
+            )
             return False
 
         if self.language == Language.Other and chap.language != Language.Other:
@@ -579,45 +597,52 @@ class IteratorChapter:
 
         # Check blacklisted groups and users
         if chap.groups:
-            blacklisted_groups = filter(lambda x: x.id in env.group_blacklist, chap.groups)
+            blacklisted_groups = filter(
+                lambda x: x.id in env.group_blacklist, chap.groups
+            )
             for group in blacklisted_groups:
-                log.debug(
-                    f"Ignoring chapter {chap.chapter}, " \
+                pbm.logger.debug(
+                    f"Ignoring chapter {chap.chapter}, "
                     f"because group '{group.name}' is blacklisted"
                 )
                 return False
 
         if chap.user and chap.user.id in env.user_blacklist:
-            log.debug(
-                f"Ignoring chapter {chap.chapter}, " \
+            pbm.logger.debug(
+                f"Ignoring chapter {chap.chapter}, "
                 f"because user '{chap.user.name}' is blacklisted"
             )
             return False
 
         # Check if chap.group in self.groups (`--group`)
         if not self.all_group and self.groups:
-
             group_check = False
             for group in self.groups:
-
                 if isinstance(group, Group):
-                    group_type = 'scanlator group'
+                    group_type = "scanlator group"
                     group_names = chap.groups_name
 
                     if group.id in chap.groups_id:
                         group_check = True
-                
+
                 elif isinstance(group, User):
-                    group_type = 'user'
+                    group_type = "user"
                     group_names = chap.user.name
 
                     if chap.user and group.id == chap.user.id:
                         group_check = True
-                
+
+            if (
+                not group_check
+                and config.group_nomatch_behaviour == "fallback"
+                and self._check_duplicate(chap)
+            ):
+                return False
+
             if not group_check:
-                log.debug(
-                    f"Ignoring chapter {num_chap}, " \
-                    f"{group_type} \"{group_names}\" is not match with \"{group.name}\""
+                pbm.logger.debug(
+                    f"Ignoring chapter {num_chap}, "
+                    f'{group_type} "{group_names}" is not match with "{group.name}"'
                 )
                 return False
 
@@ -645,9 +670,6 @@ class IteratorChapter:
         while True:
             chap = self._get_next_chapter()
 
-            if self.log_cache:
-                log.debug(f'Caching Volume. {chap.volume} Chapter. {chap.chapter}')
-
             if not self._check_chapter(chap):
                 continue
 
@@ -665,23 +687,24 @@ class IteratorChapter:
             try:
                 return convert_int_or_float(c.chapter)
             except ValueError:
-                return float('nan')
+                return float("nan")
 
-        if config.sort_by == 'chapter':
+        if config.sort_by == "chapter":
             self.chapters = sorted(self.chapters, key=sort_chapter)
-        
+
         for chap in self.chapters:
             self.queue.put(chap)
 
+
 class MangaChapter:
-    def __init__(self, manga, lang, chapter=None, all_chapters=False):
+    def __init__(self, manga, lang=None, chapter=None, all_chapters=False):
         if chapter and all_chapters:
             raise ValueError("chapter and all_chapters cannot be together")
         elif chapter is None and not all_chapters:
             raise ValueError("at least provide chapter or set all_chapters to True")
 
         self.chapters = []
-        self.language = Language(lang)
+        self.language = lang
         self.manga = manga
 
         if chapter:
@@ -689,13 +712,12 @@ class MangaChapter:
         elif all_chapters:
             self._parse_volumes()
 
+        if self.language is not None:
+            self.language = Language(lang)
+
     def iter(self, *args, **kwargs):
         return IteratorChapter(
-            self.chapters,
-            self.manga,
-            self.language,
-            *args,
-            **kwargs
+            self.chapters, self.manga, Language(self.language), *args, **kwargs
         )
 
     def _parse_volumes_from_chapter(self, chapter):
@@ -707,10 +729,17 @@ class MangaChapter:
         self.chapters.append(chap)
 
     def _parse_volumes(self):
-        iterator = iter_chapters_feed(self.manga.id, self.language.value)
-        self.chapters = map(Chapter.from_data, iterator)
+        iterator = iter_chapters_feed(self.manga.id, self.language)
+        self.chapters.extend(map(Chapter.from_data, iterator))
+
+        if isinstance(self.language, Language):
+            language = self.language.name
+        else:
+            # Assume it was string object
+            language = self.language
 
         if not self.chapters:
             raise ChapterNotFound(
-                f"Manga '{self.manga.title}' with {self.language.name} language has no chapters"
+                f"Manga '{self.manga.title}' with {language} "
+                "language has no chapters"
             )

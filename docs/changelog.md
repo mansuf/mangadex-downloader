@@ -1,5 +1,47 @@
 # Changelog
 
+## v3.0.0
+
+### Breaking changes
+
+- Change `--path` behaviour to absolute path with placeholders support
+- Now, if a manga that doesn't have no volume, it will get separated (chapters format) rather than being merged into single file called `No volume.cbz` (example). However if you prefer old behaviour (merge no volume chapters into single file) you can use `--create-no-volume`.
+- Dropped support for Python v3.8 and v3.9
+- Removed --no-progress-bar option since it's deprecated
+
+### Improvements
+
+- Refactored code base using ruff linter and black formatter
+- The app now showing `X-Request-ID` if the app encountered `Unhandled HTTP error` that can be reported to MangaDex devs
+- Missing dependencies error is now closing the application (do not ignore it)
+- `ComicInfo.xml` file are now generated for volumes as well
+- Options `--start-page` and `--end-page` are now support negative values (relative to end of chapter)
+
+### New features
+
+- Added `--login-api-id` and `--login-api-secret` to login with OAuth (you must set `--login-method` with value `oauth`)
+- Added `--start-volume` and `--end-volume` to start and stop download chapter from given volume number
+- Added `--filename-chapter` option to set filename for chapter formats
+- Added `--filename-volume` option to set filename for volume formats
+- Added `--filename-single` option to set filename for single formats
+- Added `--ignore-missing-chapters` option to ignore missing chapters
+- Added `--create-manga-info` option to store manga information in a file
+- Added `--manga-info-format` option to change file format for manga information file
+- Added `--manga-info-filepath` option to change location to store manga information file.
+- Added `--manga-info-only` option to download manga information only (no chapters and volumes)
+- Added `--order` option to change chapters released order (newest or oldest)
+- Added `--group-nomatch-behaviour` to manage `--group` filter behaviour
+- Added `--no-metadata` option to disable metadata creation on any cbz formats
+- Added `--page-size` option to manage maximum items fit per page in any commands
+- Added `--run-forever` to run the app indefinitely until crashed or stopped manually by user
+
+### Fix bugs
+
+- Fix `download.db` is modified if there is not new chapters available. 
+- Fix `epub-volume` format doesn't adding cover art
+- Fix default volume covers behaviour. (See [#105](https://github.com/mansuf/mangadex-downloader/issues/105) for more info)
+- Fix app stopped downloading list when a manga doesn't have chapters
+
 ## v2.10.3
 
 ### Fix bugs

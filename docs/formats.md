@@ -69,58 +69,6 @@ Same as `raw` format, except all chapters wrapped into single folder.
 mangadex-dl "insert MangaDex URL here" --save-as raw-single
 ```
 
-## tachiyomi
-
-Same as `raw` format, except it has additional file "details.json" to provide additional info for manga.
-
-If you don't know tachiyomi, it's android app for reading manga and it's open source !. You can learn more [here](https://tachiyomi.org/)
-
-You can [read here](https://tachiyomi.org/help/guides/local-manga) for instruction how to create local manga in tachiyomi.
-
-**NOTE: mangadex-downloader are not affliated with tachiyomi, the app only provide custom format for tachiyomi local manga.**
-
-### Structure files
-
-`tachiyomi` format files look like this
-
-```
-📦Manga title
- ┣ 📂Volume. 1 Chapter. 1
- ┃ ┣ 🖼️images
- ┣ 📂Volume. 1 Chapter. 2
- ┃ ┣ 🖼️images
- ┣ 🖼️cover.jpg
- ┗ 📜details.json
-```
-
-### Usage
-
-```shell
-mangadex-dl "insert MangaDex URL here" --save-as "tachiyomi"
-```
-
-## tachiyomi-zip
-
-Same as `tachiyomi` except, all images in each chapter will stored in ZIP file.
-
-### Structure files
-
-`tachiyomi-zip` format files look like this
-
-```
-📦 Manga title
- ┣ 📜cover.jpg
- ┣ 📜details.json
- ┣ 📜Volume. 1 Chapter. 1.cbz
- ┗ 📜Volume. 1 Chapter. 2.cbz
-```
-
-### Usage
-
-```shell
-mangadex-dl "insert MangaDex URL here" --save-as "tachiyomi-zip"
-```
-
 ## pdf
 
 All images in each chapter will be converted to PDF file (.pdf)

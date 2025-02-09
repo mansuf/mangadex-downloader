@@ -1,9 +1,9 @@
-requests-doh==0.3.1
+requests-doh==1.0.0
 requests[socks]
 tqdm
 pathvalidate
 packaging
 pyjwt
 beautifulsoup4
-Pillow==9.5.0
+Pillow==11.1.0
 chardet

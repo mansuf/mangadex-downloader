@@ -24,6 +24,7 @@ from typing import Union, List
 from datetime import datetime
 from dataclasses import dataclass
 
+
 @dataclass
 class ImageInfo:
     name: str
@@ -33,11 +34,9 @@ class ImageInfo:
     def __eq__(self, o):
         if not isinstance(o, ImageInfo):
             raise NotImplementedError
-        
-        return (
-            self.name == o.name and
-            self.chapter_id == o.chapter_id
-        )
+
+        return self.name == o.name and self.chapter_id == o.chapter_id
+
 
 @dataclass
 class ChapterInfo:
@@ -48,16 +47,14 @@ class ChapterInfo:
         compare = None
 
         if isinstance(o, ChapterInfo):
-            compare = (
-                self.name == o.name and
-                self.id == o.id
-            )
+            compare = self.name == o.name and self.id == o.id
         elif isinstance(o, str):
             compare = self.id == o
         else:
             raise NotImplementedError
 
         return compare
+
 
 class FileInfoCompletedField:
     def __init__(self, *args):
@@ -85,6 +82,7 @@ class FileInfoCompletedField:
 
         setattr(obj, self._name, value)
 
+
 class FileInfoDatetimeField:
     def __init__(self, *args):
         pass
@@ -102,6 +100,7 @@ class FileInfoDatetimeField:
 
         setattr(obj, self._name, val)
 
+
 @dataclass
 class FileInfo:
     name: str
@@ -110,6 +109,7 @@ class FileInfo:
     hash: str
     last_download_time: datetime
     completed: int
+    volume: int
     images: Union[None, List[ImageInfo]]
     chapters: Union[None, List[ChapterInfo]]
 
@@ -131,9 +131,9 @@ class FileInfo:
     def __eq__(self, o):
         if not isinstance(o, FileInfo):
             raise NotImplementedError
-        
+
         return (
-            self.name == o.name and
-            self.manga_id == o.manga_id and
-            self.ch_id == o.ch_id
+            self.name == o.name
+            and self.manga_id == o.manga_id
+            and self.ch_id == o.ch_id
         )

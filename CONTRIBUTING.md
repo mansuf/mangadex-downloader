@@ -16,5 +16,5 @@ Make sure you provide detailed informations like:
 
 Want to add new features ? fix a bug ? made changes to help the app better and faster ? Fork the repository and [send the Pull Request](https://github.com/mansuf/mangadex-downloader/pulls). 
 
-**NOTE:** Before sending a pull request, you have to make sure the code that you're writing are compatible with Python 3.8. 
-Because minimum Python version for developing this app are 3.8
+**NOTE:** Before sending a pull request, you have to make sure the code that you're writing are compatible with Python 3.10. 
+Because minimum Python version for developing this app are 3.10

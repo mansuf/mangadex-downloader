@@ -26,26 +26,28 @@ from typing import List
 from .network import Net, base_url
 from .utils import get_local_attr
 
+
 class Tag:
     def __init__(self, data):
-        self.id = data['id']
+        self.id = data["id"]
 
-        attr = data['attributes']
+        attr = data["attributes"]
 
-        self.name = get_local_attr(attr['name'])
-        self.description = get_local_attr(attr['description'])
-        self.group = attr['group']
+        self.name = get_local_attr(attr["name"])
+        self.description = get_local_attr(attr["description"])
+        self.group = attr["group"]
 
     def __repr__(self) -> str:
         return self.name
 
+
 @lru_cache(maxsize=4096)
 def get_all_tags() -> List[Tag]:
     tags = []
-    r = Net.mangadex.get(f'{base_url}/manga/tag')
+    r = Net.mangadex.get(f"{base_url}/manga/tag")
     data = r.json()
 
-    for item in data['data']:
+    for item in data["data"]:
         tags.append(Tag(item))
-    
+
     return tags

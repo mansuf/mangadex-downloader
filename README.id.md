@@ -49,7 +49,7 @@ ditulis di bahasa [Python](https://www.python.org/)
 
 Berikut aplikasi yang anda butuhkan:
 
-- Python versi 3.8.x atau keatas dengan Pip (Jika OS anda adalah Windows, anda bisa mengunduh satu paket aplikasi. 
+- Python versi 3.10.x atau keatas dengan Pip (Jika OS anda adalah Windows, anda bisa mengunduh satu paket aplikasi. 
 [Lihat instruksi berikut untuk memasangnya](#instalasi-satu-paket-aplikasi))
 
 ### Python Package Index (PyPI) <a id="instalasi-pypi"></a>

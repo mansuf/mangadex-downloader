@@ -22,40 +22,41 @@
 
 from .fetcher import get_list
 
+
 # Why "MangaDexList" ? why not "List" ?
 # to prevent typing.List conflict
 class MangaDexList:
     def __init__(self, _id=None, data=None):
         if _id is not None:
-            data = get_list(_id)['data']
+            data = get_list(_id)["data"]
 
-        self.id = data.get('id')
+        self.id = data.get("id")
         self.data = data
 
-        attr = data['attributes']
+        attr = data["attributes"]
 
-        self.name = attr.get('name')
+        self.name = attr.get("name")
 
-        self.visibility = attr.get('visibility')
+        self.visibility = attr.get("visibility")
 
     def total(self) -> int:
         """Return total manga in the list"""
-        rels = self.data['relationships']
+        rels = self.data["relationships"]
 
         count = 0
         for rel in rels:
-            _type = rel['type']
-            
+            _type = rel["type"]
+
             if _type == "manga":
                 count += 1
 
         return count
 
     def __str__(self) -> str:
-        return f'MDList: {self.name} ({self.total()} total)'
+        return f"MDList: {self.name} ({self.total()} total)"
 
     def __repr__(self) -> str:
-        return f'MDList: {self.name} ({self.total()} total)'
+        return f"MDList: {self.name} ({self.total()} total)"
 
     def iter_manga(self):
         """Yield :class:`Manga` from a list"""
@@ -63,4 +64,3 @@ class MangaDexList:
         from .iterator import IteratorMangaFromList
 
         return IteratorMangaFromList(data=self.data.copy())
-

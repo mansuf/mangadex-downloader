@@ -22,66 +22,98 @@
 
 from . import __repository__, __url_repository__
 
+
 class UnhandledException(Exception):
     """Some errors that the application are unable to handle"""
+
     def __init__(self, msg):
-        super().__init__(str(msg) + 
-                        f". Please report this issue to {__url_repository__}/{__repository__}/issues")
+        super().__init__(
+            str(msg)
+            + f". Please report this issue to {__url_repository__}/{__repository__}/issues"
+        )
+
 
 class MangaDexException(Exception):
     """Base exception for MangaDex errors"""
+
     pass
+
 
 class UnhandledHTTPError(MangaDexException):
     """Raised when we unable to handle HTTP errors"""
+
     pass
+
 
 class HTTPException(MangaDexException):
     """HTTP errors"""
+
     def __init__(self, *args: object, resp=None) -> None:
         self.response = resp
         super().__init__(*args)
 
+
 class ChapterNotFound(MangaDexException):
     """Raised when selected manga has no chapters"""
+
     pass
+
+
+class InvalidPlaceholders(MangaDexException):
+    """Raised when filename or directory placeholders is invalid"""
+
+    pass
+
 
 class InvalidMangaDexList(MangaDexException):
     """Raised when invalid MangaDex list is found"""
+
     pass
+
 
 class InvalidManga(MangaDexException):
     """Raised when invalid manga is found"""
+
     pass
+
 
 class InvalidURL(MangaDexException):
     """Raised when given mangadex url is invalid"""
+
     pass
+
 
 class LoginFailed(MangaDexException):
     """Raised when login is failed"""
+
     pass
 
+
 class AlreadyLoggedIn(MangaDexException):
-    """Raised when user try login but already logged in """
+    """Raised when user try login but already logged in"""
+
     pass
+
 
 class NotLoggedIn(MangaDexException):
     """Raised when user try to logout when user are not logged in"""
+
     pass
+
 
 class InvalidFormat(MangaDexException):
     """Raised when invalid format is given"""
+
     pass
 
-class PillowNotInstalled(MangaDexException):
-    """Raised when trying to download in PDF format but Pillow is not installed"""
-    pass
 
 class UserNotFound(MangaDexException):
     """Raised when user are not found in MangaDex"""
+
     pass
+
 
 class GroupNotFound(MangaDexException):
     """Raised when scanlator group are not found in MangaDex"""
+
     pass

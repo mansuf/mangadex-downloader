@@ -47,7 +47,7 @@ Daha fazla bilgi için [Burayı okuyun](https://mangadex-dl.mansuf.link/en/lates
 
 Nelere ihtiyacınız var:
 
-- Pip ile Python 3.8.x veya üzeri (Windows kullanıyorsanız, paket halindeki yürütülebilir dosyayı indirebilirsiniz. [Nasıl yükleyeceğinizi görün](#how-to-bundled-executable))
+- Pip ile Python 3.10.x veya üzeri (Windows kullanıyorsanız, paket halindeki yürütülebilir dosyayı indirebilirsiniz. [Nasıl yükleyeceğinizi görün](#how-to-bundled-executable))
 
 Hepsi bukadar.
 
