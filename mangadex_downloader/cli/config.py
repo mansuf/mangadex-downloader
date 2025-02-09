@@ -33,7 +33,6 @@ from ..config import (
     get_all_configs,
 )
 from ..config.utils import ConfigTypeError
-from ..progress_bar import progress_bar_manager
 
 log = logging.getLogger(__name__)
 
@@ -129,10 +128,6 @@ def build_config(parser, args):
     # ======================
     # Compatibility configs
     # ======================
-    # Workaround for "--no-progress-bar"
-    if args.no_progress_bar:
-        progress_bar_manager.disabled = True
-
     # Workaround for "--verbose"
     if args.verbose:
         args.log_level = "DEBUG"
