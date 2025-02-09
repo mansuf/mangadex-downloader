@@ -128,9 +128,6 @@ def build_config(parser, args):
     # ======================
     # Compatibility configs
     # ======================
-    # Workaround for "--verbose"
-    if args.verbose:
-        args.log_level = "DEBUG"
 
     # Print all config to debug
     if config_enabled:
