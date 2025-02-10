@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.0.1 (Unreleased)
+
+### Fix bugs
+
+- Fixed `--update` option is not working in bundled executable version when updating from v2 to v3
+
 ## v3.0.0
 
 ### Breaking changes
