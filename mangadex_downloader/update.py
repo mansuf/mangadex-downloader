@@ -177,7 +177,7 @@ def update_app():
             shutil.rmtree(temp_folder, ignore_errors=True)
             sys.exit(1)
 
-        extracted_update_path = str(temp_folder / "mangadex-dl")
+        extracted_update_path = str(temp_folder)
 
         install_script = open((temp_folder / "install.bat"), "w")
         install_script.write("@echo off\n")
