@@ -46,6 +46,7 @@ class ContentRating(Enum):
     Erotica = "erotica"
     Pornographic = "pornographic"
 
+
 def _append_authors(cls, data, array):
     try:
         created = cls(data=data)
@@ -323,6 +324,8 @@ class MangaInfo:
     def write(self):
         if self.config.manga_info_format == "csv":
             self.write_to_csv()
+        elif self.config.manga_info_format == "mihon":
+            self.write_to_mihon()
         else:
             self.write_to_json()
 
@@ -396,16 +399,43 @@ class MangaInfo:
             "tags": [i.name for i in self.manga.tags],
         }
 
-        with open(self.file_path, "r") as o:
-            reader: list = json_op.loads(o.read())
+        if Path(self.file_path).exists():
+            with open(self.file_path, "r") as o:
+                reader: list = json_op.loads(o.read())
 
-            if not isinstance(reader, dict):
-                # If it's dict datatype, the data is malformed
-                existing_data.extend(reader)
+                if not isinstance(reader, dict):
+                    # If it's dict datatype, the data is malformed
+                    existing_data.extend(reader)
 
         self._ensure_manga_data(existing_data, data)
 
         with open(self.file_path, "w") as o:
             data = json_op.dumps(existing_data)
+
+            o.write(data)
+
+    def write_to_mihon(self):
+        from .format.utils import MangaStatus
+
+        data = {
+            "title": self.manga.title,
+            "author": comma_separated_text(self.manga.authors, use_bracket=False),
+            "artist": comma_separated_text(self.manga.artists, use_bracket=False),
+            "description": self.manga.description,
+            "genre": self.manga.genres,
+            "status": MangaStatus[self.manga.status].value,
+            "_status values": [
+                "0 = Unknown",
+                "1 = Ongoing",
+                "2 = Completed",
+                "3 = Licensed",
+                "4 = Publishing finished",
+                "5 = Cancelled",
+                "6 = On hiatus",
+            ],
+        }
+
+        with open(self.file_path, "w") as o:
+            data = json_op.dumps(data)
 
             o.write(data)

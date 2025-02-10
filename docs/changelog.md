@@ -1,10 +1,15 @@
 # Changelog
 
-## v3.0.1 (Unreleased)
+## v3.1.0 (Unreleased)
+
+## New features
+
+- Added `mihon` manga info format (`--manga-info-format`)
 
 ### Fix bugs
 
 - Fixed `--update` option is not working in bundled executable version when updating from v2 to v3
+- Fixed `FileNotFoundError` when using `--create-manga-info` with `--manga-info-format=json` [#129](https://github.com/mansuf/mangadex-downloader/issues/129)
 
 ## v3.0.0
 

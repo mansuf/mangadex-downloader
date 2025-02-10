@@ -200,15 +200,19 @@ def get_args(argv):
     manga_group.add_argument(
         "--manga-info-format",
         "-mif",
-        help="Change file format for manga information file (manga_info.csv)",
-        choices=("csv", "json"),
+        help="Change file format for manga information file (manga_info.csv). "
+        "Available options are: csv, mihon, json. "
+        "NOTE: `mihon` format are written in dict or Object (in js) compared to other manga info formats "
+        "(such as csv and json). The other formats are written in array or list. "
+        "Also `mihon` file extension is .json",
+        choices=("csv", "mihon", "json"),
         default=config.manga_info_format,
     )
     manga_group.add_argument(
         "--manga-info-filepath",
         "-mip",
         help="Change file location to store manga information. Default to './manga_info.{manga_info_format}'"
-        ". Available placeholders: {download_path} and {manga_info_format}, placeholder {download_path} is value from --path option " 
+        ". Available placeholders: {download_path} and {manga_info_format}, placeholder {download_path} is value from --path option "
         "and placeholder {manga_info_format} is from --manga-info-format option",
         default=config.manga_info_filepath,
     )

@@ -62,6 +62,13 @@ def get_manga_info_filepath(manga):
         manga, attributes=attributes, cli_option="--manga-info-filepath"
     )
 
+    # Workaround for "mihon" manga info format
+    # If we do not do this, the file extension will end up as ".mihon" instead of ".json"
+    if config.manga_info_format == "mihon":
+        manga_info_format = "json"
+    else:
+        manga_info_format = config.manga_info_format
+
     # Because this is modified placeholders
     # in order for get_manga_info_filepath() to work
     # We need to include some attributes before creating placeholders
@@ -70,7 +77,7 @@ def get_manga_info_filepath(manga):
     attributes["download_path"] = None
 
     fmt_kwargs["manga_info_format"] = Placeholder(
-        obj=config.manga_info_format,
+        obj=manga_info_format,
         name="manga_info_format",
         allowed_attributes=attributes,
     )

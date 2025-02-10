@@ -60,9 +60,17 @@ Store manga information such as title, authors, artists, description, and tags i
 By default this file will save to csv format you can change this in --manga-info-format
 ```
 
-```{option} --manga-info-format -mif csv|json
-Change file format for manga information file (manga_info.csv). Available options: csv, json
+````{option} --manga-info-format -mif csv|json|mihon
+Change file format for manga information file (manga_info.csv). 
+Available options: csv, json, mihon. 
+
+```{note}
+`mihon` format are written in dict or Object (in js) compared to other manga info formats 
+(such as csv and json). The other formats are written in array or list
+
+Also `mihon` file extension is .json
 ```
+````
 
 ```{option} --manga-info-filepath -mip PATH
 Change file location to store manga information. Default to `./manga_info.{manga_info_format}`. 
