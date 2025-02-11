@@ -230,17 +230,17 @@ def download_chapter(
 
     path = get_path(manga)
 
-    if config.create_manga_info:
-        create_manga_info(path, manga, replace)
-
-        if config.manga_info_only:
-            return manga
-
     log.info(f'Found chapter {chap.chapter} from manga "{manga.title}"')
 
     # Create folder for downloading
     base_path = create_directory("", path)
     log.info(f'Download directory is set to "{base_path.resolve()}"')
+
+    if config.create_manga_info:
+        create_manga_info(path, manga, replace)
+
+        if config.manga_info_only:
+            return manga
 
     kwargs_iter_chapter_images = {
         "start_page": start_page,
