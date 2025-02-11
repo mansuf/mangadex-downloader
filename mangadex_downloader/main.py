@@ -347,13 +347,6 @@ def download_cover_art_manga(url, replace=False):
     # To avoid error when using placeholders in --path option
     manga.chapters.language = Language(None)
 
-    if config.create_manga_info:
-        path = create_directory("", path=get_path(manga))
-        create_manga_info(path, manga, replace)
-
-        if config.manga_info_only:
-            return manga
-
     if cover.volume is None:
         cover_name = "No volume cover"
     else:
@@ -366,6 +359,13 @@ def download_cover_art_manga(url, replace=False):
     base_path = create_directory("", path=get_path(manga))
     path = base_path / filename
     log.info(f"Download directory is set to {base_path}")
+
+    if config.create_manga_info:
+        path = create_directory("", path=get_path(manga))
+        create_manga_info(path, manga, replace)
+
+        if config.manga_info_only:
+            return manga
 
     def handle_error(err, resp):
         if not resp.ok:
