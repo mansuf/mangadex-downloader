@@ -20,6 +20,7 @@
 - Dropped support for Python v3.8 and v3.9
 - Removed `--no-progress-bar` option since it's deprecated (use `--progress-bar-layout=none` instead)
 - Removed `--verbose` option since it's deprecated (use `--log-level=DEBUG` instead)
+- Removed `--write-tachiyomi-details` option
 
 ### Improvements
 

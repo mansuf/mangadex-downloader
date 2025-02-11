@@ -78,6 +78,16 @@ There's 2 placeholders that you can use in `--filename-chapter` option.
 | chapter | Chapter that being downloaded currently |
 | file_ext | File extension |
 
+````{note}
+This option support `manga` placeholder, so you can access manga placeholder for `--filename-chapter` option
+
+For example:
+
+```sh
+mangadex-dl "url" -f cbz --filename-chapter "{manga.title} Ch. {chapter.chapter}{file_ext}"
+```
+````
+
 ### Chapter placeholder attributes
 
 | attribute | description | type data |
@@ -100,6 +110,16 @@ There's 2 placeholders that you can use in `--filename-volume` option.
 | volume | Manga volume |
 | file_ext | File extension |
 
+````{note}
+This option support `manga` placeholder, so you can access manga placeholder for `--filename-volume` option
+
+For example:
+
+```sh
+mangadex-dl "url" -f cbz-volume --filename-volume "{manga.title} Vol. {chapter.volume}{file_ext}"
+```
+````
+
 ### Volume placeholder attributes
 
 | attribute | description | type data |
@@ -114,6 +134,16 @@ There's 2 placeholders that you can use in `--filename-single` option.
 | --- | --- |
 | chapters | List of all chapters in the manga, the attributes is same as [`chapters` in volume placeholder](#volume-placeholder-attributes) |
 | file_ext | File extension |
+
+````{note}
+This option support `manga` placeholder, so you can access manga placeholder for `--filename-single` option
+
+For example:
+
+```sh
+mangadex-dl "url" -f cbz-single --filename-single "{manga.title} All Chapters{file_ext}"
+```
+````
 
 ## Data types
 
