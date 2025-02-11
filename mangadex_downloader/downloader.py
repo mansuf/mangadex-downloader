@@ -226,7 +226,7 @@ class FileDownloader:
             self._write_final_file()
             return True
 
-        # Usually this will happend if
+        # Usually this will happened if
         # - downloader trying to resume download,
         # but the server didn't support `Range` header
         #

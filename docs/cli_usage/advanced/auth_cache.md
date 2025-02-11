@@ -1,6 +1,6 @@
 # Authentication cache
 
-mangadex-downloader support authentication cache, which mean you can re-use your previous login session in mangadex-downloader 
+mangadex-downloader support authentication cache, which mean you can reuse your previous login session in mangadex-downloader 
 without re-login.
 
 ```{note}

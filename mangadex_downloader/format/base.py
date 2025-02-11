@@ -728,7 +728,7 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
 
         volumes = {}
         new_volumes_files_info = []
-        # Check for new chapters in exsiting (downloaded) volumes
+        # Check for new chapters in existing (downloaded) volumes
         for volume, chapters in cache.items():
             file_info = tracker.get_file_info_from_volume(volume)
 

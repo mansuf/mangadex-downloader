@@ -69,7 +69,7 @@ class DownloadTrackerSQLite:
         self._open_connection(**kwargs)
 
         # Table names for SQL query
-        # Because sqlite3.Cursor.exceute() parameters doesn't support
+        # Because sqlite3.Cursor.execute() parameters doesn't support
         # putting values into tables
         fmt_table = self.format.replace("-", "_")
         self._fi_name = f"file_info_{fmt_table}"
