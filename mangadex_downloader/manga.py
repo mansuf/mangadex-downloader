@@ -81,7 +81,7 @@ class Manga:
         else:
             self._data = data
 
-        # Append some additional informations
+        # Append some additional information
         rels = self._data["relationships"]
         authors = []
         artists = []

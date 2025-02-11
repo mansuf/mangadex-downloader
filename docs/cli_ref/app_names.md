@@ -6,7 +6,7 @@
 - `mangadex-downloader`
 
 ````{note}
-If none of above doesnt work use this
+If none of above doesn't work use this
 
 ```shell
 # For Windows

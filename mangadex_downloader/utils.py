@@ -352,9 +352,9 @@ def find_md_urls(text):
 
 
 def get_key_value(text, sep="="):
-    splitted = text.strip().split(sep, maxsplit=1)
-    key = splitted[0].lower()
-    value = "".join(splitted[1:])
+    split = text.strip().split(sep, maxsplit=1)
+    key = split[0].lower()
+    value = "".join(split[1:])
     return key, value
 
 
