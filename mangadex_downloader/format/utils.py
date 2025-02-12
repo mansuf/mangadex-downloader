@@ -99,7 +99,7 @@ def get_volume_cover(manga, volume, path, replace, download=True):
             f"Failed to find volume cover for volume {volume}. "
             "Falling back to manga cover..."
         )
-    cover = manga.cover
+        cover = manga.cover
 
     url = get_cover_art_url(manga.id, cover, "original")
 
