@@ -83,8 +83,9 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
         xml_alt.text = alt_str[1:]
 
     # Manga volume
-    xml_vol = ET.SubElement(xml_root, "Volume")
-    xml_vol.text = str(volume) if volume is not None else "No Volume"
+    if volume is not None:
+        xml_vol = ET.SubElement(xml_root, "Volume")
+        xml_vol.text = str(volume)
 
     # Language
     # If `chapter` parameter is used
