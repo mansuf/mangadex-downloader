@@ -44,11 +44,11 @@ jobs:
       
       - name: Test docker image
         run: |
-          docker run --rm ${{ env.TEST_TAG }}          
+          docker run --rm ${{ env.TEST_TAG }} --version
 
       - name: Test
         run: |
-          docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
+          docker run --rm ${{ env.TEST_OPTIONAL_TAG }} --version     
 
   windows-build:
     name: Build app & docs (Windows)

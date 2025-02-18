@@ -51,11 +51,11 @@ jobs:
       
       - name: Test docker image
         run: |
-          docker run --rm ${{ env.TEST_TAG }}          
+          docker run --rm ${{ env.TEST_TAG }} --version
 
       - name: Test docker image (with optional dependencies)
         run: |
-          docker run --rm ${{ env.TEST_OPTIONAL_TAG }}      
+          docker run --rm ${{ env.TEST_OPTIONAL_TAG }} --version     
 
   docker-dockerhub-build-and-push:
     name: Docker build and push (hub.docker.com)
