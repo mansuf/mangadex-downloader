@@ -11,6 +11,7 @@
 - Fixed `--update` option is not working in bundled executable version when updating from v2 to v3
 - Fixed `FileNotFoundError` when using `--create-manga-info` with `--manga-info-format=json` [#129](https://github.com/mansuf/mangadex-downloader/issues/129)
 - Fixed `--use-volume-cover` always use main cover [#131](https://github.com/mansuf/mangadex-downloader/issues/131)
+- Fixed `--no-track` isn't working after updating to v3.0.0 [#133](https://github.com/mansuf/mangadex-downloader/issues/133)
 
 ## v3.0.0
 

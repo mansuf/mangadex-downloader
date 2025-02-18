@@ -77,7 +77,7 @@ class DownloadTrackerSQLite:
         self._ch_name = f"ch_info_{fmt_table}"
 
         # Automatically entering write mode if there is migrations available
-        if check_if_there_is_migrations(self.db):
+        if not config.no_track and check_if_there_is_migrations(self.db):
             self.init_write_mode()
 
     def _open_connection(self, **kwargs):
