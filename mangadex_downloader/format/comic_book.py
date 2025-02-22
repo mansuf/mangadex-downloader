@@ -98,7 +98,7 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
         else manga.chapters.language.value
     )
 
-    # Chapter specific informations
+    # Chapter specific information
     if chapter is not None:
         if chapter.chapter is not None:
             xml_num = ET.SubElement(xml_root, "Number")

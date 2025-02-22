@@ -22,7 +22,7 @@ The results:
 mangadex-dl "https://mangadex.org/title/..." --force-https --progress-bar-layout "none" --dns-over-https "cloudflare" --cover "none" --no-group-name --language "Indonesian" --path "library/mymanga"
 ```
 
-It is wayyyy too longgggggg and you have to write these command-line options everytime to download manga. 
+It is wayyyy too longgggggg and you have to write these command-line options every time to download manga. 
 How to fix this ? **Config** is the only answer !
 
 First, enable config first.

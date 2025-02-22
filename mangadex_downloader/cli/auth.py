@@ -121,7 +121,7 @@ def purge_auth_cache(args):
     if value.startswith("purge"):
         Net.mangadex.login_from_cache()
         Net.mangadex.logout(purge=True)
-        print("Succesfully invalidate and purge authentication cache tokens")
+        print("Successfully invalidate and purge authentication cache tokens")
     elif value.startswith("show_unsafe"):
         print_auth_cache_unsafe()
     elif value.startswith("help"):
