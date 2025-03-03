@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 
 def _iter_migrate_cls(db: sqlite3.Connection):
-    for _, file in migration_files.items():
+    for _, file in sorted(migration_files.items()):
 
         migrate_lib = importlib.import_module(
             "." + file.replace(".py", ""), "mangadex_downloader.tracker.sql_migrations"
