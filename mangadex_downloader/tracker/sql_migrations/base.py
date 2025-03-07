@@ -32,6 +32,11 @@ def _get_migration_files():
 # {migrate_id: migration_file.py}
 migration_files = _get_migration_files()
 
+# Fix #136 #134 #133
+# Migration is not applied properly because of the order of the migration files
+migration_files = sorted(migration_files.items(), key=lambda x: x[0])
+migration_files = dict(migration_files)
+
 
 class SQLMigration:
     """Base class for SQL Migration"""
