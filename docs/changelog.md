@@ -1,8 +1,14 @@
 # Changelog
 
+## v3.1.1
+
+### Fix bugs
+
+- Fixed migration is not applied properly [#136](https://github.com/mansuf/mangadex-downloader/issues/136) [#133](https://github.com/mansuf/mangadex-downloader/issues/133) [#134](https://github.com/mansuf/mangadex-downloader/issues/134)
+
 ## v3.1.0
 
-## New features
+### New features
 
 - Added `mihon` manga info format (`--manga-info-format`)
 
