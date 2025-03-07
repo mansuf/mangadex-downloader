@@ -6,6 +6,10 @@
 
 - Fixed migration is not applied properly [#136](https://github.com/mansuf/mangadex-downloader/issues/136) [#133](https://github.com/mansuf/mangadex-downloader/issues/133) [#134](https://github.com/mansuf/mangadex-downloader/issues/134)
 
+### Documentation
+
+- Fix typo in documentation and source code [#130](https://github.com/mansuf/mangadex-downloader/pull/130)
+
 ## v3.1.0
 
 ### New features
