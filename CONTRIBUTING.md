@@ -6,7 +6,7 @@ Contributions are welcome. Make sure you follow [github community guidelines](ht
 
 Spotted a bug in the app ? You can report it to [issue tracker](https://github.com/mansuf/mangadex-downloader/issues).
 
-Make sure you provide detailed informations like:
+Make sure you provide detailed information like:
 
 - App version info (you can get it from command `mangadex-dl --version`)
 - Snippet command (must be reproducible)

@@ -217,7 +217,7 @@ class IteratorUserLibraryManga(MangaIterator):
 class IteratorMangaFromList(MangaIterator):
     def __init__(self, _id=None, data=None):
         if _id is None and data is None:
-            raise ValueError("atleast provide _id or data")
+            raise ValueError("at least provide _id or data")
         elif _id and data:
             raise ValueError("_id and data cannot be together")
 
@@ -344,7 +344,7 @@ class IteratorUserList(BaseIterator):
 
             # HTTPException from session only giving "server throwing ... code" message
             raise HTTPException(
-                f'An error occured when getting mdlists from user "{self.user.id}". '
+                f'An error occurred when getting mdlists from user "{self.user.id}". '
                 f'The app cannot fetch all MangaDex lists from user "{self.user.id}" '
                 "because of server error. "
                 "The only solution is to wait until this get fixed "

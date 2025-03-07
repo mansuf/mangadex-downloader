@@ -31,7 +31,7 @@ There's 4 placeholders that you can use in `--path` option.
 | format | Format used to download manga, grabbed from (`--format`) |
 | user | Logged in user, you must login (`--login`) if you want use this placeholder |
 
-Some placeholders have attributes that you can accesss, some of them are:
+Some placeholders have attributes that you can access, some of them are:
 
 - manga
 - user

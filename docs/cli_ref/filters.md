@@ -7,7 +7,7 @@ Currently filters can be used in:
 
 ## Syntax
 
-It's accesible from `-ft` or `--filter` option
+It's accessible from `-ft` or `--filter` option
 
 ```shell
 mangadex-dl -s -ft "KEY=VALUE"

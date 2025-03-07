@@ -132,7 +132,7 @@ def main(argv=None):
 
     # Notes for exit code
     # 0 Means it has no error
-    # 1 is library error (atleast we can handle it)
+    # 1 is library error (at least we can handle it)
     # 2 is an error that we cannot handle (usually from another library or Python itself)
 
     if "--run-forever" in [i.lower() for i in _argv]:
@@ -146,7 +146,7 @@ def main(argv=None):
                 break
 
             # Shutdown worker threads
-            # to prevent infinte worker threads
+            # to prevent infinite worker threads
             for worker_thread in queueworker_active_threads:
                 worker_thread.shutdown(blocking=True)
 
@@ -159,6 +159,6 @@ def main(argv=None):
         args_parser.error(err_msg)
 
     # There is no error during execution
-    # or an error occured during parsing arguments
+    # or an error occurred during parsing arguments
     # or another error that the program itself cannot handle it
     sys.exit(exit_code)

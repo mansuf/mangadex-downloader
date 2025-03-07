@@ -1,7 +1,7 @@
 # Download manga with compressed size images
 
 If you have limited plan or metered network, you can download manga, chapter, or list with compressed size. 
-And yes, this may reduce the quality. But hey, atleast it saved you from huge amount of bytes
+And yes, this may reduce the quality. But hey, at least it saved you from huge amount of bytes
 
 Example Usage:
 

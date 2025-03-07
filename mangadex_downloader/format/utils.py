@@ -320,7 +320,7 @@ class QueueWorkerReadMarker(threading.Thread):
 
             if not r.ok:
                 log.error(
-                    "An error occured when marking chapters as read. "
+                    "An error occurred when marking chapters as read. "
                     "Re-adding failed chapters to queue"
                 )
                 # obviously we don't wanna flood the screen with bunch of chapter ids

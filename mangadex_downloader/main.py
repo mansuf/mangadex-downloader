@@ -155,13 +155,13 @@ def download(
             fmt = fmt_class(**fmt_cls_kwargs)
             fmt.main()
         else:
-            # Using chapters format as splitted format
+            # Using chapters format as split format
             # This is happening because --create-no-volume is not present
             fmt_cls_kwargs["splitted_format"] = True
             fmt_cls_kwargs["_internal_create_no_volume"] = False
             fmt = fmt_class(**fmt_cls_kwargs)
 
-            # Execute splitted format and execute it
+            # Execute split format and execute it
             fmt.main()
 
         config.save_as = backup_fmt
@@ -191,7 +191,7 @@ def download(
             download_manga(new_manga, formatted_path)
 
             if not config.create_no_volume and "-volume" in backup_fmt:
-                # Fetch chapters again before downloading splitted format
+                # Fetch chapters again before downloading split format
                 new_manga.fetch_chapters(translated_lang.value, all_chapters=True)
                 download_manga(new_manga, formatted_path, splitted_format=True)
 

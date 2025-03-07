@@ -121,7 +121,7 @@
 
 ### Fix bugs
 
-- Fix error message is not showing when chapters with specified langauge is not found
+- Fix error message is not showing when chapters with specified language is not found
 - Fixed `--type` are not respecting full URL
 
 ### Dependencies
@@ -194,9 +194,9 @@
 
 - Reworked creation chapter info (cover) [#44](https://github.com/mansuf/mangadex-downloader/issues/44)
 
-### Dependecies
+### Dependencies
 
-- [Pillow](https://pypi.org/project/pillow/) is now required dependecies (no longer optional)
+- [Pillow](https://pypi.org/project/pillow/) is now required dependencies (no longer optional)
 
 ## v2.6.2
 
@@ -235,10 +235,10 @@
 
 - Rework how to download latest chapters on various formats. See commit [`865b7f5`](https://github.com/mansuf/mangadex-downloader/commit/865b7f5988a9cd92e21112ac8649a29299b5023f) for more info
 
-### Dependecies
+### Dependencies
 
 - Bump orjson to v3.8.3
-- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) are now required dependecies (no longer optional)
+- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) are now required dependencies (no longer optional)
 
 ### Breaking changes
 
@@ -325,7 +325,7 @@
 
 - Fixed progress bar are not hidden when `--no-progress-bar` is used
 
-### Dependecies
+### Dependencies
 
 - Bump Pillow to v9.3.0
 - Bump py7zr to v0.20.2
@@ -773,7 +773,7 @@ PyPI version is broken, the bug is already fixed in v0.5.1
 
 - Fixed sometimes manga are failed to get volumes 
 - Fixed additional info manga are not appeared in Tachiyomi local 
-- Fixed uncomplete artists and authors in manga 
+- Fixed incomplete artists and authors in manga 
 - Fixed app still running when `--start-chapter` are more than `--end-chapter` 
 - Fixed app throwing error if one of chapters has no images 
 - Added auth handler. If login and logout is failed it will try again 5 times, if still failed it will exit (login) or ignored (logout) 

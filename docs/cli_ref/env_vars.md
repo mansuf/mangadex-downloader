@@ -10,7 +10,7 @@ A directory to store config and authentication cache.
 
 ```{option} MANGADEXDL_ZIP_COMPRESSION_TYPE
 Set zip compression type for any `cbz` and `epub` formats, 
-by default it setted to `stored`
+by default it set to `stored`
 
 Must be one of:
 
