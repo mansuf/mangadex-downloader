@@ -435,7 +435,7 @@ class MangaInfo:
             ],
         }
 
-        with open(self.file_path, "w") as o:
-            data = json_op.dumps(data)
+        with open(self.file_path, "wb") as o:
+            data = json_op.dumps(data, convert_str=False)
 
             o.write(data)
