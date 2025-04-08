@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.2 (UNRELEASED)
+
+### Fix bugs
+
+- Fixed application is left hanging when download is completed (report system is not working) [#146](https://github.com/mansuf/mangadex-downloader/issues/146)
+- Fixed validator always not passed for "group_nomatch_behaviour" config
+
 ## v3.1.1
 
 ### Fix bugs
