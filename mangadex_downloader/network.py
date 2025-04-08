@@ -594,10 +594,15 @@ class NetworkManager:
 
     def close(self):
         """Close requests and MangaDex session"""
-        self._mangadex.close()
+        if self._mangadex:
+            self._mangadex.close()
+
         self._mangadex = None
 
-        self._requests.close()
+        if self._requests:
+            # Close requests session
+            self._requests.close()
+
         self._requests = None
 
 

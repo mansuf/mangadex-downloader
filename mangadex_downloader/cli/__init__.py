@@ -5,7 +5,7 @@ from .update import check_update
 from .args_parser import get_args
 from .url import build_url
 from .utils import (
-    close_network_object,
+    cleanup_app,
     setup_logging,
     setup_network,
     register_keyboardinterrupt_handler,
@@ -109,9 +109,6 @@ def _main(argv):
         # Check update
         check_update()
 
-        # Cleaning up
-        close_network_object()
-
     # library error
     except MangaDexException as e:
         err_msg = str(e)
@@ -148,11 +145,13 @@ def main(argv=None):
             # Shutdown worker threads
             # to prevent infinite worker threads
             for worker_thread in queueworker_active_threads:
-                worker_thread.shutdown(blocking=True)
+                worker_thread.shutdown(blocking=True, blocking_timeout=3)
 
             time.sleep(5)
     else:
         args_parser, exit_code, err_msg = _main(_argv)
+
+    cleanup_app()
 
     if args_parser is not None and exit_code > 0 and err_msg:
         # It has error message, exit with .error()

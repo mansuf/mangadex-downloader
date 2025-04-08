@@ -84,16 +84,9 @@ def setup_network(args):
 
 
 def _keyboard_interrupt_handler(*args):
-    print("Cleaning up...")
-    # Downloader are not cleaned up
-    for job in _cleanup_jobs:
-        job()
+    """Handle keyboard interrupt (CTRL+C)"""
 
-    # Logging out
-    try:
-        Net.mangadex.logout()
-    except NotLoggedIn:
-        pass
+    cleanup_app()
 
     print("Action interrupted by user", file=sys.stdout)
     sys.exit(0)
@@ -107,10 +100,28 @@ def register_keyboardinterrupt_handler():
     signal.signal(signal.SIGTERM, _keyboard_interrupt_handler)
 
 
-def close_network_object():
+def cleanup_app():
+    """Whenever this function is called, it should clean everything up"""
+    from ..utils import queueworker_active_threads
+
     log.info("Cleaning up...")
+    for job in _cleanup_jobs:
+        job()
+
+    try:
+        Net.mangadex.logout()
+    except NotLoggedIn:
+        pass
+    except Exception as e:
+        log.debug(f"Failed to logout: {e}")
+
     log.debug("Closing network object")
     Net.close()
+
+    # Close all queue workers
+    log.debug("Closing all queue workers")
+    for worker in queueworker_active_threads:
+        worker.shutdown(blocking=True, blocking_timeout=1)
 
 
 class IteratorEmpty(Exception):

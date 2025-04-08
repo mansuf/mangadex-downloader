@@ -29,6 +29,7 @@ import threading
 import queue
 import itertools
 from pathlib import Path
+from typing import List  # noqa: F401
 from pathvalidate import sanitize_filename
 from getpass import getpass
 from concurrent.futures import Future
@@ -164,7 +165,7 @@ def delete_file(file):
         raise err
 
 
-queueworker_active_threads = []
+queueworker_active_threads = []  # type: List[QueueWorker]
 
 
 class QueueWorker(threading.Thread):
@@ -174,6 +175,8 @@ class QueueWorker(threading.Thread):
         threading.Thread.__init__(self)
 
         self._queue = queue.Queue()
+        self._shutdown_signal = threading.Event()
+        self.daemon = True
 
         # Thread to check if mainthread is alive or not
         # if not, then thread queue must be shutted down too
@@ -194,7 +197,7 @@ class QueueWorker(threading.Thread):
 
         while True:
             main_thread.join(timeout=1)
-            if not self.is_alive():
+            if not self.is_alive() or self._shutdown_signal.is_set():
                 # QueueWorker already shutted down
                 # Possibly because of QueueWorker.shutdown() is called
                 return
@@ -223,12 +226,13 @@ class QueueWorker(threading.Thread):
 
         return fut.result()
 
-    def shutdown(self, blocking=False):
+    def shutdown(self, blocking=False, blocking_timeout=None):
         """Shutdown the thread by passing ``None`` value to queue"""
         self._queue.put(None)
+        self._shutdown_signal.set()
 
         if blocking:
-            self.join()
+            self.join(timeout=blocking_timeout)
 
     def run(self):
         while True:
