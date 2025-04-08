@@ -336,3 +336,5 @@ def validate_group_nomatch_behaviour(val):
     val = val.strip().lower()
     if val not in ["ignore", "fallback"]:
         raise ConfigTypeError(f"'{val}' is not valid order")
+
+    return val
