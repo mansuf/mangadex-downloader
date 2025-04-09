@@ -245,6 +245,10 @@ class requestsMangaDexSession(ModifiedSession):
                 # the app is sleeping for 120 seconds if happened like this,
                 delay = DEFAULT_RATE_LIMITED_TIMEOUT
 
+            # Fix https://github.com/mansuf/mangadex-downloader/issues/147
+            # Negative value on the rate limited header
+            delay = abs(delay)
+
             pbm.logger.info(
                 "We being rate limited, sleeping for %0.2f (attempt: %s)"
                 % (delay, attempt)

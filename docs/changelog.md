@@ -6,6 +6,7 @@
 
 - Fixed application is left hanging when download is completed (report system is not working) [#146](https://github.com/mansuf/mangadex-downloader/issues/146)
 - Fixed validator always not passed for "group_nomatch_behaviour" config
+- Fixed negative value when rate-limited [#147](https://github.com/mansuf/mangadex-downloader/issues/147)
 
 ## v3.1.1
 
