@@ -56,10 +56,10 @@ log = logging.getLogger(__name__)
 # Inspired from https://github.com/manga-download/hakuneko/blob/master/src/web/mjs/engine/EbookGenerator.mjs
 # TODO: Add doc for this class
 class EpubPlugin:
-    def __init__(self, manga, lang):
+    def __init__(self, manga, lang, file_id = ""):
         self.manga = manga
         self.id = manga.id
-        self.title = manga.title
+        self.title = f"{manga.title} - {file_id}" if file_id else manga.title
         self.lang = lang
 
         self._chapter_pos = 0
@@ -387,8 +387,8 @@ class EPUBFile:
         if not epub_ready:
             raise EpubMissingDependencies()
 
-    def convert(self, manga, lang, chapters, path):
-        epub = EpubPlugin(manga, lang)
+    def convert(self, manga, lang, chapters, path, file_id = ""):
+        epub = EpubPlugin(manga, lang, file_id)
 
         for chapter, images in chapters:
             epub.create_page(chapter.get_name(), images)
@@ -412,7 +412,11 @@ class Epub(ConvertedChaptersFormat, EPUBFile):
         # KeyboardInterrupt safe
         def job():
             return self.convert(
-                self.manga, chapter.language.value, [(chapter, images)], file_path
+                self.manga,
+                chapter.language.value,
+                [(chapter, images)],
+                file_path,
+                chapter.get_name(),
             )
 
         self.worker.submit(job)
@@ -422,8 +426,8 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
     def on_prepare(self, file_path, volume, count):
         self.epub_chapters = []
 
-        volume_name = self.get_volume_name(volume)
-        dir_path = create_directory(volume_name, self.path)
+        self.volume_name = self.get_volume_name(volume)
+        dir_path = create_directory(self.volume_name, self.path)
         self.epub_vol_cover = self.get_vol_cover_img(volume, dir_path, count)
 
     def on_convert(self, file_path, volume, images):
@@ -433,6 +437,7 @@ class EpubVolume(ConvertedVolumesFormat, EPUBFile):
                 self.manga.chapters.language.value,
                 self.epub_chapters,
                 file_path,
+                self.volume_name,
             )
 
         self.worker.submit(job)
