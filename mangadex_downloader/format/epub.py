@@ -59,7 +59,7 @@ class EpubPlugin:
     def __init__(self, manga, lang, file_id = ""):
         self.manga = manga
         self.id = manga.id
-        self.title = f"{manga.title} - {file_id}" if file_id else manga.title
+        self.title = f"{manga.title}, {file_id}" if file_id else manga.title
         self.lang = lang
 
         self._chapter_pos = 0
