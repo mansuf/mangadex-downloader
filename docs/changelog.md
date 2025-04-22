@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.3
+
+### Fix bugs
+
+- Fix --use-alt-details is not working due to missing language (lang: Georgian) [#154](https://github.com/mansuf/mangadex-downloader/issues/154)
+- Fix chapter cover doesn't work due to CoverArtIterator cache issue [#152](https://github.com/mansuf/mangadex-downloader/issues/152)
+
 ## v3.1.2
 
 ### Fix bugs
