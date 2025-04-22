@@ -451,21 +451,12 @@ def iter_random_manga(**filters):
         continue
 
 
-# For some reason, "/cover" endpoint has result limit for each responses.
-# This class is used for getting all covers while respecting result limit.
-# Of course, the results will be cached to prevent repeated requests.
 class CoverArtIterator(BaseIterator):
-    cache = {}
-
     def __init__(self, manga_id, language_override=None):
         super().__init__()
 
         self.limit = 100
         self.manga_id = manga_id
-
-        if self.cache.get(manga_id) is None:
-            # Data is not cached
-            self.cache[manga_id] = []
 
         self.language = None
 
@@ -477,26 +468,7 @@ class CoverArtIterator(BaseIterator):
 
             self.language = cover_locale
 
-    def _make_cache_iterator(self):
-        for item in self.cache.get(self.manga_id):
-            yield item
-
-    def __iter__(self):
-        cache = self.cache.get(self.manga_id)
-        if cache:
-            # Return cached data instead
-            return self._make_cache_iterator()
-        else:
-            return self
-
     def fill_data(self):
-        # If it's already cached
-        # DO NOT FETCH IT AGAIN
-        if self.cache.get(self.manga_id):
-            return
-
-        # One-shot filling covers in single function call
-        # So cache can be used
         while True:
             params = {
                 "manga[]": self.manga_id,
@@ -517,9 +489,6 @@ class CoverArtIterator(BaseIterator):
             for item in items:
                 cover = CoverArt(data=item)
                 self.queue.put(cover)
-
-                # Add it to cache
-                self.cache[self.manga_id].append(cover)
 
             self.offset += len(items)
 
