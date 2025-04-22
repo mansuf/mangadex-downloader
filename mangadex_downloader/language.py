@@ -75,6 +75,7 @@ class Language(Enum):
     Tamil = "ta"  #:
     Azerbaijani = "az"  #:
     Slovak = "sk"  #:
+    Georgian = "ka"  #:
 
     # Other language
     Other = None  #:
