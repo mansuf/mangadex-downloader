@@ -6,6 +6,7 @@
 
 - Fix --use-alt-details is not working due to missing language (lang: Georgian) [#154](https://github.com/mansuf/mangadex-downloader/issues/154)
 - Fix chapter cover doesn't work due to CoverArtIterator cache issue [#152](https://github.com/mansuf/mangadex-downloader/issues/152)
+- Fix volume number not in EPUB title resulting duplicated entry in comic reader [#149](https://github.com/mansuf/mangadex-downloader/issues/149)
 
 ## v3.1.2
 
