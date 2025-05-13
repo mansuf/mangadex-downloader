@@ -105,7 +105,7 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
             xml_num.text = str(chapter.chapter)
 
         xml_title = ET.SubElement(xml_root, "Title")
-        xml_title.text = chapter.name
+        xml_title.text = chapter.title
 
         xml_si = ET.SubElement(xml_root, "ScanInformation")
         xml_si.text = chapter.groups_name
