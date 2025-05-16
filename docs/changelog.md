@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1.4
+
+### Fix bugs
+
+- Fix UnicodeEncodeError when saving manga info in json format
+- Fix comic book (.cbz) title metadata [#155](https://github.com/mansuf/mangadex-downloader/pull/155)
+- Fix memory leak ? (progress 1)
+
 ## v3.1.3
 
 ### Fix bugs
