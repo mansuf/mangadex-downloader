@@ -400,7 +400,7 @@ class MangaInfo:
         }
 
         if Path(self.file_path).exists():
-            with open(self.file_path, "r") as o:
+            with open(self.file_path, "rb") as o:
                 reader: list = json_op.loads(o.read())
 
                 if not isinstance(reader, dict):
@@ -409,8 +409,8 @@ class MangaInfo:
 
         self._ensure_manga_data(existing_data, data)
 
-        with open(self.file_path, "w") as o:
-            data = json_op.dumps(existing_data)
+        with open(self.file_path, "wb") as o:
+            data = json_op.dumps(existing_data, convert_str=False)
 
             o.write(data)
 
