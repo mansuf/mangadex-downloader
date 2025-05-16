@@ -188,12 +188,19 @@ jobs:
       - name: Install required libraries
         run: |
           py -${{ matrix.python-version }}-64 -m pip install -U pip
-          py -${{ matrix.python-version }}-64 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-64 -m pip install -U wheel setuptools
           py -${{ matrix.python-version }}-64 -m pip install -U .[optional]
 
           py -${{ matrix.python-version }}-32 -m pip install -U pip
-          py -${{ matrix.python-version }}-32 -m pip install -U wheel pyinstaller setuptools
+          py -${{ matrix.python-version }}-32 -m pip install -U wheel setuptools
           py -${{ matrix.python-version }}-32 -m pip install -U .[optional]
+
+          # Install custom Pyinstaller
+          git clone https://github.com/mansuf/mangadex-dl-bootloader.git
+          cd mangadex-dl-bootloader\ready_to_use
+          py -${{ matrix.python-version }}-64 -m pip install -U .
+          py -${{ matrix.python-version }}-32 -m pip install -U .
+          cd ../..
 
       - name: Test imports
         run: |
