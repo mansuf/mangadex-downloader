@@ -185,6 +185,9 @@ class QueueWorker(threading.Thread):
             name=f"QueueWorker-wait-mainthread, QueueWorker_id={self.ident}",
         )
 
+        cls_name = self.__class__.__name__
+        self.name = f"{cls_name}, {cls_name}_id={self.ident}"
+
     def start(self):
         super().start()
         self._thread_wait_mainthread.start()
@@ -205,6 +208,7 @@ class QueueWorker(threading.Thread):
                 # Main thread already shutted down
                 # and QueueWorker still alive, terminate it
                 self._queue.put(None)
+                return
 
     def submit(self, job, blocking=True):
         """Submit a job and return the result

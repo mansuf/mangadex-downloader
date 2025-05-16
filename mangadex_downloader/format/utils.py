@@ -264,6 +264,8 @@ class QueueWorkerReadMarker(threading.Thread):
             name=f"{cls_name}-wait-mainthread, {cls_name}_id={self.ident}",
         )
 
+        self.name = f"{cls_name}, {cls_name}_id={self.ident}"
+
     def start(self):
         super().start()
         self._thread_wait_mainthread.start()
@@ -282,6 +284,7 @@ class QueueWorkerReadMarker(threading.Thread):
                 # Main thread already shutted down
                 # and QueueWorker still alive, terminate it
                 self._shutdown.set()
+                return
 
     def submit(self, chapter_id):
         """Submit a chapter id that will marked as read"""
