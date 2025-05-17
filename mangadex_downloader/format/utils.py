@@ -45,6 +45,13 @@ def get_chapter_info(manga, chapter, path):
         manga=manga, volume=chapter.volume, path=None, replace=False, download=False
     )
 
+    if vol_cover is None:
+        pbm.logger.debug(
+            f"Failed to get volume cover for '{chapter.get_name()}' chapter info. "
+            "Falling back to manga cover..."
+        )
+        vol_cover = manga.cover
+
     image = get_chinfo(manga, vol_cover, chapter)
     image.save(path)
 
