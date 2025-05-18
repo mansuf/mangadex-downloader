@@ -8,7 +8,8 @@
 - Fix comic book (.cbz) title metadata [#155](https://github.com/mansuf/mangadex-downloader/pull/155)
 - Fix memory leak ? (progress 1)
 - Fix application is being falsely flagged by several AVs [#157](https://github.com/mansuf/mangadex-downloader/issues/157)
-- Fix Fix volume cover become null when creating chapter info [#159](https://github.com/mansuf/mangadex-downloader/issues/159)
+- Fix volume cover become null when creating chapter info [#159](https://github.com/mansuf/mangadex-downloader/issues/159)
+- Fix check_login throwing error when refreshing token from cache [#158](https://github.com/mansuf/mangadex-downloader/issues/158)
 
 ## v3.1.3
 
