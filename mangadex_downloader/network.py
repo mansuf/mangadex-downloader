@@ -194,7 +194,7 @@ class requestsMangaDexSession(ModifiedSession):
         # Do not send auth tokens other than api.mangadex.org
         if (
             "api.mangadex.org/auth/check" not in netloc
-            and self.check_login()
+            # and self.check_login()
             and "api.mangadex.org" not in netloc
         ):
             try:
