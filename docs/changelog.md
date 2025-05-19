@@ -1,6 +1,6 @@
 # Changelog
 
-## v3.1.4 (UNRELEASED)
+## v3.1.4
 
 ### Fix bugs
 

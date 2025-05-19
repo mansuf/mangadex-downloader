@@ -123,11 +123,11 @@ You can use tag ending with `-optional`
 ```sh
 # Dockerhub
 docker pull mansuf/mangadex-downloader:latest-optional
-docker pull mansuf/mangadex-downloader:v3.1.3-optional
+docker pull mansuf/mangadex-downloader:v3.1.4-optional
 
 # AWS ECR (Alternative)
 docker pull public.ecr.aws/mansuf/mangadex-downloader:latest-optional
-docker pull public.ecr.aws/mansuf/mangadex-downloader:v3.1.3-optional
+docker pull public.ecr.aws/mansuf/mangadex-downloader:v3.1.4-optional
 ```
 
 **NOTE**: If you're wondering why optional tags doesn't have arm/v6 platform support. 
