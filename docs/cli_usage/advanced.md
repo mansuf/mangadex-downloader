@@ -1,5 +1,6 @@
 # Advanced usage
 
+Moved to {doc}`./advanced/index`
 
 <!-- ## Chapters and pages range syntax
 
