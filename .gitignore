@@ -1,13 +1,51 @@
-*__pycache__
-test*.py
-mangadex_downloader.egg-info/*
-docs/_build
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+
+# IDEs and editors
 *.code-workspace
+.vscode/
+.idea/
+
+# Testing
+test*.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation builds
+docs/_build
+
+# Project-specific
 bugs.txt
 ideas.txt
 *.db
-env
-build/
-dist/
-models
+models/
+
+# OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Linter/formatter cache
+.ruff_cache/
+
+# Logs
+*.log
