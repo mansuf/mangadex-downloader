@@ -127,6 +127,7 @@ class _Config:
         self._data = None
         self._lock = threading.Lock()
         self.no_read = False
+        self._skip_report = False  # Internal flag to skip network reports
 
         # Load the config
         self._load()
