@@ -117,6 +117,9 @@ class _Config:
         "page_size": (0, validate_int),
         "order": ("newest", validate_order),
         "group_nomatch_behaviour": ("ignore", validate_group_nomatch_behaviour),
+        "upscale": (False, validate_bool),
+        "upscale_scale": (2, validate_int),
+        "upscale_concurrency": (2, validate_int),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

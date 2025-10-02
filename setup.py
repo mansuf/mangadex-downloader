@@ -109,11 +109,9 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
     ],
-    python_requires=">=3.10",
+    python_requires=">=3.11,<3.13",
     include_package_data=True,
 )

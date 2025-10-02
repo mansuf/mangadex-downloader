@@ -487,6 +487,21 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
                 images = self.get_images(chap_class, images, chapter_path, count)
                 pbm.get_pages_pb().reset()
 
+                if self.config.upscale:
+                    from ..network import Net
+                    if hasattr(Net.mangadex, '_worker_report'):
+                        Net.mangadex._worker_report.wait()
+
+                    try:
+                        from ..upscale import Upscaler
+                        upscaler = Upscaler(self.config.upscale_scale, self.config.upscale_concurrency)
+                        images = upscaler.process_images(images)
+                    except ImportError:
+                        pbm.logger.warning(
+                            "Upscale dependencies are not installed. Skipping upscale.\n"
+                            "Install optional deps: pip install 'mangadex-downloader[optional]'"
+                        )
+
                 chapters_pb.update(1)
 
                 pbm.logger.info(
@@ -674,6 +689,22 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 self.on_iter_chapter(file_path, chap_class, count)
 
                 ims = self.get_images(chap_class, chap_images, volume_path, count)
+
+                if self.config.upscale:
+                    from ..network import Net
+                    if hasattr(Net.mangadex, '_worker_report'):
+                        Net.mangadex._worker_report.wait()
+
+                    try:
+                        from ..upscale import Upscaler
+                        upscaler = Upscaler(self.config.upscale_scale, self.config.upscale_concurrency)
+                        ims = upscaler.process_images(ims)
+                    except ImportError:
+                        pbm.logger.warning(
+                            "Upscale dependencies are not installed. Skipping upscale.\n"
+                            "Install optional deps: pip install 'mangadex-downloader[optional]'"
+                        )
+
                 images.extend(ims)
 
                 self.on_received_images(file_path, chap_class, ims)
@@ -872,6 +903,22 @@ class ConvertedSingleFormat(BaseConvertedFormat):
                 self.on_iter_chapter(file_path, chap_class, count)
 
                 ims = self.get_images(chap_class, chap_images, path, count)
+
+                if self.config.upscale:
+                    from ..network import Net
+                    if hasattr(Net.mangadex, '_worker_report'):
+                        Net.mangadex._worker_report.wait()
+
+                    try:
+                        from ..upscale import Upscaler
+                        upscaler = Upscaler(self.config.upscale_scale, self.config.upscale_concurrency)
+                        ims = upscaler.process_images(ims)
+                    except ImportError:
+                        pbm.logger.warning(
+                            "Upscale dependencies are not installed. Skipping upscale.\n"
+                            "Install optional deps: pip install 'mangadex-downloader[optional]'"
+                        )
+
                 self.on_received_images(file_path, chap_class, ims)
                 images.extend(ims)
 

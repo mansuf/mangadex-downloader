@@ -9,3 +9,5 @@ ideas.txt
 env
 build/
 dist/
+models
+.DS_Store
