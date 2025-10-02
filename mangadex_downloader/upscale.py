@@ -22,6 +22,7 @@
 
 import logging
 import os
+import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
@@ -41,7 +42,7 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 class Upscaler:
-    def __init__(self, scale: int = 2, concurrency: int = 4):
+    def __init__(self, scale: int = 2, concurrency: int = 2):
         if not REALESRGAN_AVAILABLE:
             raise ImportError(
                 "Real-ESRGAN dependencies not installed. "
@@ -51,6 +52,7 @@ class Upscaler:
         self.scale = scale
         self.concurrency = concurrency
         self.upsampler = None
+        self._shutdown_event = threading.Event()
 
         self._init_model()
 
@@ -138,19 +140,55 @@ class Upscaler:
     def _get_marker_path(self, image_path: str) -> str:
         return f"{image_path}.upscaled"
 
+    def shutdown(self):
+        """Signal upscaler to stop processing"""
+        self._shutdown_event.set()
+
     def _mark_as_upscaled(self, image_path: str):
+        from .format.utils import create_file_hash_sha256
+
+        img_hash = create_file_hash_sha256(image_path)
         marker = self._get_marker_path(image_path)
         with open(marker, 'w') as f:
             f.write(
-                f"scale={self.scale}\nmodel={getattr(self, '_model_name', 'unknown')}\ndevice={getattr(self, '_device', 'unknown')}\n"
+                f"scale={self.scale}\nmodel={getattr(self, '_model_name', 'unknown')}\ndevice={getattr(self, '_device', 'unknown')}\nhash={img_hash}\n"
             )
 
     def _is_already_upscaled(self, image_path: str) -> bool:
+        from .format.utils import create_file_hash_sha256
+
         marker = self._get_marker_path(image_path)
-        if os.path.exists(marker):
+        if not os.path.exists(marker):
+            return False
+
+        try:
             with open(marker, 'r') as f:
-                return f"scale={self.scale}" in f.read()
-        return False
+                content = f.read()
+
+            # Check scale
+            if f"scale={self.scale}" not in content:
+                return False
+
+            # Check hash
+            stored_hash = None
+            for line in content.splitlines():
+                if line.startswith("hash="):
+                    stored_hash = line.split("=", 1)[1]
+                    break
+
+            if not stored_hash:
+                return False
+
+            # Validate current hash
+            current_hash = create_file_hash_sha256(image_path)
+            if current_hash != stored_hash:
+                log.debug(f"Hash mismatch for {image_path}, removing marker (stored={stored_hash[:8]}..., current={current_hash[:8]}...)")
+                os.remove(marker)
+                return False
+
+            return True
+        except Exception:
+            return False
 
     def _upscale_single_image(self, input_path: str, retry: bool = False):
         if self._is_already_upscaled(input_path):
@@ -206,21 +244,31 @@ class Upscaler:
         failed_memory = []
         failed_other = []
 
-        with ThreadPoolExecutor(max_workers=self.concurrency) as executor:
-            futures = {
-                executor.submit(self._upscale_single_image, img): img
-                for img in valid_images
-            }
+        try:
+            with ThreadPoolExecutor(max_workers=self.concurrency) as executor:
+                futures = {
+                    executor.submit(self._upscale_single_image, img): img
+                    for img in valid_images
+                }
 
-            for future in as_completed(futures):
-                path, success, is_mem_error = future.result()
-                if not success:
-                    if is_mem_error:
-                        failed_memory.append(path)
-                    else:
-                        failed_other.append(path)
+                for future in as_completed(futures):
+                    if self._shutdown_event.is_set():
+                        log.info("Upscale cancelled by user")
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        break
 
-        if failed_memory:
+                    path, success, is_mem_error = future.result()
+                    if not success:
+                        if is_mem_error:
+                            failed_memory.append(path)
+                        else:
+                            failed_other.append(path)
+        except KeyboardInterrupt:
+            log.info("Upscale interrupted, cancelling pending operations...")
+            self._shutdown_event.set()
+            raise
+
+        if failed_memory and not self._shutdown_event.is_set():
             log.warning(
                 f"Retrying {len(failed_memory)} images with concurrency=1 "
                 "due to memory errors..."
@@ -239,11 +287,15 @@ class Upscaler:
 
                 still_failed = []
                 for future in as_completed(futures):
+                    if self._shutdown_event.is_set():
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        break
+
                     path, success, is_mem_error = future.result()
                     if not success and is_mem_error:
                         still_failed.append(path)
 
-                if still_failed:
+                if still_failed and not self._shutdown_event.is_set():
                     log.warning(
                         f"Moving {len(still_failed)} images to CPU "
                         "due to persistent memory errors..."
@@ -254,6 +306,9 @@ class Upscaler:
                     self.upsampler.model = self.upsampler.model.cpu()
 
                     for img in still_failed:
+                        if self._shutdown_event.is_set():
+                            break
+
                         path, success, _ = self._upscale_single_image(img, retry=True)
                         if not success:
                             failed_other.append(path)

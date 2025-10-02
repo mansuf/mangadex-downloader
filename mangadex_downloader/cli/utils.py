@@ -36,6 +36,9 @@ log = logging.getLogger(__name__)
 # Will be used in main() and get_args()
 sys_argv = sys.argv[1:]
 
+# Flag to prevent multiple cleanup calls
+_cleanup_called = False
+
 
 def setup_logging(name_module, verbose=False):
     log = logging.getLogger(name_module)
@@ -102,6 +105,11 @@ def register_keyboardinterrupt_handler():
 
 def cleanup_app():
     """Whenever this function is called, it should clean everything up"""
+    global _cleanup_called
+    if _cleanup_called:
+        return
+    _cleanup_called = True
+
     from ..utils import queueworker_active_threads
 
     log.info("Cleaning up...")
@@ -121,7 +129,7 @@ def cleanup_app():
     # Close all queue workers
     log.debug("Closing all queue workers")
     for worker in queueworker_active_threads:
-        worker.shutdown(blocking=True, blocking_timeout=1)
+        worker.shutdown(blocking=True, blocking_timeout=0.5)
 
 
 class IteratorEmpty(Exception):

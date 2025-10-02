@@ -117,8 +117,40 @@ class BaseFormat:
                 # This can be `True`, `False`, or `None`
                 # `True`: Verify success, hash matching
                 # `False`: Verify failed, hash is not matching
+                # Check if image was upscaled and is still intact
+                verified_upscaled = False
+                if self.config.upscale:
+                    marker_path = f"{str(img_path)}.upscaled"
+                    if os.path.exists(marker_path):
+                        try:
+                            with open(marker_path, 'r') as f:
+                                content = f.read()
+
+                            # Extract hash from marker
+                            stored_hash = None
+                            for line in content.splitlines():
+                                if line.startswith("hash="):
+                                    stored_hash = line.split("=", 1)[1]
+                                    break
+
+                            # Validate upscaled hash
+                            if stored_hash:
+                                from .utils import create_file_hash_sha256
+                                current_hash = create_file_hash_sha256(img_path)
+                                if current_hash == stored_hash:
+                                    pbm.logger.debug(f"Upscaled image verified: {img_name}")
+                                    verified_upscaled = True
+                                else:
+                                    pbm.logger.debug(f"Upscaled hash mismatch for {img_name}")
+                        except Exception as e:
+                            pbm.logger.debug(f"Failed to verify upscaled marker for {img_name}: {e}")
+
+                # If upscale is valid, consider verified
                 # `None`: Cannot verify, file is not exist (if `path` argument is given)
-                verified = verify_sha256(img_hash, img_path)
+                if verified_upscaled:
+                    verified = True
+                else:
+                    verified = verify_sha256(img_hash, img_path)
 
                 if verified is None:
                     replace = False
@@ -489,12 +521,13 @@ class ConvertedChaptersFormat(BaseConvertedFormat):
 
                 if self.config.upscale:
                     from ..network import Net
-                    if hasattr(Net.mangadex, '_worker_report'):
-                        Net.mangadex._worker_report.wait()
-
                     try:
                         from ..upscale import Upscaler
+                        from ..downloader import _cleanup_jobs
+
                         upscaler = Upscaler(self.config.upscale_scale, self.config.upscale_concurrency)
+                        _cleanup_jobs.append(upscaler.shutdown)
+
                         images = upscaler.process_images(images)
                     except ImportError:
                         pbm.logger.warning(
@@ -691,13 +724,13 @@ class ConvertedVolumesFormat(BaseConvertedFormat):
                 ims = self.get_images(chap_class, chap_images, volume_path, count)
 
                 if self.config.upscale:
-                    from ..network import Net
-                    if hasattr(Net.mangadex, '_worker_report'):
-                        Net.mangadex._worker_report.wait()
-
                     try:
                         from ..upscale import Upscaler
+                        from ..downloader import _cleanup_jobs
+
                         upscaler = Upscaler(self.config.upscale_scale, self.config.upscale_concurrency)
+                        _cleanup_jobs.append(upscaler.shutdown)
+
                         ims = upscaler.process_images(ims)
                     except ImportError:
                         pbm.logger.warning(
@@ -905,13 +938,13 @@ class ConvertedSingleFormat(BaseConvertedFormat):
                 ims = self.get_images(chap_class, chap_images, path, count)
 
                 if self.config.upscale:
-                    from ..network import Net
-                    if hasattr(Net.mangadex, '_worker_report'):
-                        Net.mangadex._worker_report.wait()
-
                     try:
                         from ..upscale import Upscaler
+                        from ..downloader import _cleanup_jobs
+
                         upscaler = Upscaler(self.config.upscale_scale, self.config.upscale_concurrency)
+                        _cleanup_jobs.append(upscaler.shutdown)
+
                         ims = upscaler.process_images(ims)
                     except ImportError:
                         pbm.logger.warning(
