@@ -109,6 +109,11 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
 
         xml_si = ET.SubElement(xml_root, "ScanInformation")
         xml_si.text = chapter.groups_name
+    else:
+        #Fallback to series title if there is no chapter
+        xml_title = ET.SubElement(xml_root, "Title")
+        xml_title.text = manga.title
+      
 
     # Total pages
     xml_pc = ET.SubElement(xml_root, "PageCount")
@@ -116,6 +121,16 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
 
     # Web URL
     xml_url = ET.SubElement(xml_root, "Web")
+
+    # Chapter Bookmarks
+    if(len(CBZFile.toc) > 0):
+        xml_pages = ET.SubElement(xml_root, "Pages")
+        for bookmark in CBZFile.toc:
+            xml_page = ET.SubElement(xml_pages, "Page")
+            xml_page.attrib = bookmark
+            pbm.logger.debug(
+                bookmark
+            )   
 
     _type = "title" if chapter is None else "chapter"
     _obj = manga if chapter is None else chapter
@@ -126,6 +141,7 @@ def generate_Comicinfo(manga, total_pages, chapter=None, volume=None):
 
 class CBZFile:
     file_ext = ".cbz"
+    toc = []
 
     def convert(self, zip_obj, images):
         pbm.set_convert_total(len(images))
@@ -153,6 +169,9 @@ class CBZFile:
     def insert_ch_info_img(self, zip_obj, worker, chapter, count, path):
         img_name = count.get() + ".png"
         img_path = path / img_name
+
+        # Add current chapter to TOC
+        self.toc.append({"Image": count.get(), "Bookmark":chapter.get_name()})
 
         # Make sure we never duplicated it
         write_ch_info_image = False
@@ -226,6 +245,7 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
         self.volume_zip = self.make_zip(file_path)
         self.volume_path = create_directory(volume_name, self.path)
         self.total_pages = 0
+        self.toc.clear()
 
         if self.config.use_volume_cover:
             self.total_pages += 1
@@ -249,6 +269,7 @@ class ComicBookArchiveVolume(ConvertedVolumesFormat, CBZFile):
 
 
 class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
+    current_volume = -1
     def on_prepare(self, file_path, base_path):
         self.images_directory = base_path
         self.zip = self.make_zip(file_path)
@@ -257,6 +278,12 @@ class ComicBookArchiveSingle(ConvertedSingleFormat, CBZFile):
     def on_iter_chapter(self, file_path, chapter, count):
         if self.config.use_chapter_cover:
             self.total_pages += 1
+
+        if(self.current_volume != chapter.volume):
+            # Add current volume to TOC
+            self.toc.append({"Image": count.get(), "Bookmark":self.get_volume_name(chapter.volume)})
+            self.current_volume = chapter.volume
+
 
         self.total_pages += chapter.pages
         self.insert_ch_info_img(
