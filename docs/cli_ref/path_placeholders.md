@@ -45,6 +45,7 @@ For more information, see below:
 | ----- | ----- | ----- |
 | title | The title of the manga | [string](#string) |
 | id | The unique identifier of manga | [string](#string) |
+| year | The publication year of the manga | [integer](#integer) |
 | alternative_titles | Alternative titles of the manga | [array](#array)[[string](#string)] |
 | description | The description of the manga | [string](#string) |
 | authors | List of authors of the manga separated by comma | [string](#string) |

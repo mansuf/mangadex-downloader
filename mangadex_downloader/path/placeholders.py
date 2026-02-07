@@ -106,6 +106,7 @@ class Placeholder:
                 "cover": None,
                 "genres": _split_text,
                 "status": None,
+                "year": None,
                 "content_rating": None,
                 "tags": lambda x: _split_text([i.name for i in x]),
             }
