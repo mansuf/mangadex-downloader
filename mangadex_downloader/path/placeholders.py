@@ -112,6 +112,7 @@ class Placeholder:
 
         if chapter:
             attr["Chapter"] = {
+                "num": _get_or_unknown,
                 "chapter": _get_or_unknown,
                 "volume": _get_or_unknown,
                 "title": sanitize_filename,

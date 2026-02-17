@@ -157,6 +157,7 @@ class Chapter:
             data = get_chapter(_id)["data"]
 
         self.id = data["id"]
+        self.num = data.get("num")
         self.attr = data["attributes"]
 
         # Get scanlation groups and manga
@@ -351,7 +352,8 @@ def iter_chapters_feed(manga_id, lang=None):
         if not items:
             break
 
-        for item in items:
+        for i, item in enumerate(items):
+            item["num"] = i + 1
             yield item
 
         offset += len(items)

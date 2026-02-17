@@ -92,7 +92,7 @@ mangadex-dl "url" -f cbz --filename-chapter "{manga.title} Ch. {chapter.chapter}
 
 | attribute | description | type data |
 | ----- | ----- | ----- |
-| chapter | Manga chapter in number from 0 to 1 (You can get `Unknown` if there is no valid chapter number) | [integer](#integer) |
+| chapter | Manga chapter in number from 0 to 1 (You can get `Unknown` if there is no valid chapter number). May be a non-integer value | [string](#string) |
 | volume | Manga volume in number from 0 to 1 (You can get `Unknown` if there is no valid volume number) | [integer](#integer) |
 | title | Chapter title | [string](#string) |
 | pages | Total pages in the chapter | [integer](#integer) |
@@ -100,6 +100,7 @@ mangadex-dl "url" -f cbz --filename-chapter "{manga.title} Ch. {chapter.chapter}
 | name | Full parsed chapter name (ex: `Volume. 69 Chapter. 69`) | [string](#string) |
 | simple_name | Simplified parsed chapter name (ex: `Vol. 69 Ch. 69`) | [string](#string) |
 | groups_name | List of scanlation groups for the chapter separated by `&` (you can get `User - username` if there is no scanlation groups available) | [string](#string) |
+| num | Sequential integer number of the chapter (You can get Unknown if you download a single chapter) | [integer](#integer) |
 
 ## Placeholder objects for `--filename-volume` option
 
