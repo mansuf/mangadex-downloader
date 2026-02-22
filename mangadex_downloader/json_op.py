@@ -37,7 +37,7 @@ except ImportError:
 else:
     ORJSON_OK = True
 
-__all__ = ("loads", "dumps", "JSONDecodeError", "JSONEncodeError")
+__all__ = ("loads", "dumps", "parse_json", "JSONDecodeError", "JSONEncodeError")
 
 # List of errors
 if ORJSON_OK:
@@ -63,6 +63,11 @@ def _get_encoding(content):
         detector.close()
 
     return detector.result["encoding"]
+
+
+def parse_json(response) -> dict:
+    """Parse JSON from a requests.Response object."""
+    return loads(response.content)
 
 
 def loads(content: Union[str, bytes]) -> dict:

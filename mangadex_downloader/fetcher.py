@@ -30,7 +30,7 @@ from .errors import (
     MangaDexException,
     UserNotFound,
 )
-from .network import Net, base_url, origin_url
+from .network import Net, base_url, origin_url, parse_json
 from .utils import validate_url
 
 log = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def get_manga(manga_id):
     r = Net.mangadex.get(url, params=params)
     if r.status_code == 404:
         raise InvalidManga('Manga "%s" cannot be found' % manga_id)
-    return r.json()
+    return parse_json(r)
 
 
 def get_legacy_id(_type, _id):
@@ -87,7 +87,7 @@ def get_legacy_id(_type, _id):
 def get_author(author_id):
     url = "{0}/author/{1}".format(base_url, author_id)
     r = Net.mangadex.get(url)
-    return r.json()
+    return parse_json(r)
 
 
 @lru_cache(maxsize=1048)
@@ -96,14 +96,14 @@ def get_user(user_id):
     r = Net.mangadex.get(url)
     if r.status_code == 404:
         raise UserNotFound(f"user {user_id} cannot be found")
-    return r.json()
+    return parse_json(r)
 
 
 @lru_cache(maxsize=1048)
 def get_cover_art(cover_id):
     url = "{0}/cover/{1}".format(base_url, cover_id)
     r = Net.mangadex.get(url)
-    return r.json()
+    return parse_json(r)
 
 
 def get_chapter(chapter_id):
@@ -112,7 +112,7 @@ def get_chapter(chapter_id):
     r = Net.mangadex.get(url, params=params)
     if r.status_code == 404:
         raise ChapterNotFound("Chapter %s cannot be found" % chapter_id)
-    return r.json()
+    return parse_json(r)
 
 
 def get_list(list_id):
@@ -120,7 +120,7 @@ def get_list(list_id):
     r = Net.mangadex.get(url)
     if r.status_code == 404:
         raise InvalidMangaDexList("List %s cannot be found" % list_id)
-    return r.json()
+    return parse_json(r)
 
 
 @lru_cache(maxsize=1048)
@@ -129,19 +129,19 @@ def get_group(group_id):
     r = Net.mangadex.get(url)
     if r.status_code == 404:
         raise GroupNotFound(f"Scanlator group {group_id} cannot be found")
-    return r.json()
+    return parse_json(r)
 
 
 def get_all_chapters(manga_id, lang):
     url = "{0}/manga/{1}/aggregate".format(base_url, manga_id)
     r = Net.mangadex.get(url, params={"translatedLanguage[]": [lang]})
-    return r.json()
+    return parse_json(r)
 
 
 def get_chapter_images(chapter_id, force_https=False):
     url = "{0}/at-home/server/{1}".format(base_url, chapter_id)
     r = Net.mangadex.get(url, params={"forcePort443": force_https})
-    return r.json()
+    return parse_json(r)
 
 
 def get_bulk_chapters(chap_ids):
@@ -155,10 +155,10 @@ def get_bulk_chapters(chap_ids):
         "contentRating[]": content_ratings,
     }
     r = Net.mangadex.get(url, params=params)
-    return r.json()
+    return parse_json(r)
 
 
 def get_unread_chapters(manga_id):
     url = f"{base_url}/manga/{manga_id}/read"
     r = Net.mangadex.get(url)
-    return r.json()
+    return parse_json(r)

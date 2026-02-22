@@ -29,7 +29,8 @@ import time
 import logging
 import sys
 import threading
-from . import __version__, json_op
+from . import __version__
+from .json_op import parse_json  # noqa: F401 — re-exported for call sites
 from .errors import (
     AlreadyLoggedIn,
     HTTPException,
@@ -45,13 +46,6 @@ from requests_doh import DNSOverHTTPSAdapter, set_dns_provider
 from concurrent.futures import Future, TimeoutError
 
 
-def loads_json(self):
-    return json_op.loads(self.content)
-
-
-# Apply custom json loader into :class:`requests.Response`
-requests.Response.json = loads_json
-
 DEFAULT_RATE_LIMITED_TIMEOUT = 120
 
 log = logging.getLogger(__name__)
@@ -60,6 +54,7 @@ __all__ = (
     "Net",
     "NetworkManager",
     "base_url",
+    "parse_json",
     "uploads_url",
 )
 
@@ -250,18 +245,14 @@ class requestsMangaDexSession(ModifiedSession):
             delay = abs(delay)
 
             pbm.logger.info(
-                "We being rate limited, sleeping for %0.2f (attempt: %s)"
-                % (delay, attempt)
+                "We being rate limited, sleeping for %0.2f (attempt: %s)" % (delay, attempt)
             )
             time.sleep(delay)
             return None
 
         # Server error
         elif resp.status_code >= 500:
-            if (
-                "mangadex.network" in netloc
-                and "api.mangadex.network/report" not in netloc
-            ):
+            if "mangadex.network" in netloc and "api.mangadex.network/report" not in netloc:
                 # Return here anyway to not wasting time to retry to faulty node
                 return resp
 
@@ -338,8 +329,7 @@ class requestsMangaDexSession(ModifiedSession):
 
     def _is_token_cached(self):
         return bool(
-            self._login_cache.get_session_token()
-            or self._login_cache.get_refresh_token()
+            self._login_cache.get_session_token() or self._login_cache.get_refresh_token()
         )
 
     def _reset_token(self):
@@ -413,7 +403,7 @@ class requestsMangaDexSession(ModifiedSession):
         from .user import User
 
         r = self.get(f"{base_url}/user/me")
-        self.user = User(data=r.json()["data"])
+        self.user = User(data=parse_json(r)["data"])
 
         t = threading.Thread(target=self._renew_login, daemon=True)
         t.start()

@@ -32,8 +32,9 @@ import shutil
 from packaging.version import parse as parse_version
 from pathlib import Path
 
-from .network import Net
+from .network import Net, parse_json
 from .downloader import FileDownloader
+from .errors import UpdateError
 from .progress_bar import progress_bar_manager
 from . import __version__
 
@@ -55,7 +56,7 @@ def _get_api_tags():
     r = Net.requests.get(
         "https://api.github.com/repos/mansuf/mangadex-downloader/git/refs/tags"
     )
-    for version_info in r.json():
+    for version_info in parse_json(r):
         versions.append(version_info["ref"].replace("refs/tags/", ""))
     return versions
 
@@ -65,15 +66,13 @@ def _get_asset(_version):
     if not version.startswith("v"):
         version = "v" + version
 
-    r = Net.requests.get(
-        "https://api.github.com/repos/mansuf/mangadex-downloader/releases"
-    )
+    r = Net.requests.get("https://api.github.com/repos/mansuf/mangadex-downloader/releases")
     rinfo = None
     assets = None
     download_url = None
     file_hash = None
     filename = None
-    for release_info in r.json():
+    for release_info in parse_json(r):
         if version == release_info["tag_name"]:
             rinfo = release_info
             assets = release_info["assets"]
@@ -111,8 +110,7 @@ def update_app():
     try:
         latest_version = check_version()
     except Exception as e:
-        log.error(f"Failed to check update, reason: {e}")
-        sys.exit(1)
+        raise UpdateError(f"Failed to check update, reason: {e}") from e
 
     if not latest_version:
         log.info("This version mangadex-downloader is up-to-date")
@@ -124,8 +122,7 @@ def update_app():
     try:
         filename, url_update, file_hash = _get_asset(latest_version)
     except Exception as e:
-        log.error("Failed to get update url, reason: %s" % e)
-        sys.exit(1)
+        raise UpdateError("Failed to get update url, reason: %s" % e) from e
 
     current_path = Path(sys.executable).parent
 
@@ -136,8 +133,7 @@ def update_app():
         try:
             temp_folder = Path(tempfile.mkdtemp(suffix="md_downloader_update"))
         except Exception as e:
-            log.error("Failed to create temporary folder, reason: %s" % e)
-            sys.exit(1)
+            raise UpdateError("Failed to create temporary folder, reason: %s" % e) from e
 
         update_file_path = str(temp_folder / filename)
 
@@ -148,9 +144,8 @@ def update_app():
             fd.download()
             fd.cleanup()
         except Exception as e:
-            log.error("Failed to download update, reason: %s" % e)
             shutil.rmtree(temp_folder, ignore_errors=True)
-            sys.exit(1)
+            raise UpdateError("Failed to download update, reason: %s" % e) from e
 
         # Verify downloaded file
         log.info("Verifying update...")
@@ -159,11 +154,10 @@ def update_app():
             file_sha256.update(o.read())
 
         if file_sha256.hexdigest() != file_hash:
-            log.error(
+            shutil.rmtree(temp_folder, ignore_errors=True)
+            raise UpdateError(
                 "Failed to verify downloaded file, reason: File hash is not matching"
             )
-            shutil.rmtree(temp_folder, ignore_errors=True)
-            sys.exit(1)
 
         log.info("Update file is verified")
 
@@ -173,9 +167,8 @@ def update_app():
             with zipfile.ZipFile(update_file_path, "r") as update:
                 update.extractall(Path(update_file_path).parent)
         except Exception as e:
-            log.error("Failed to extract update, reason: %s" % e)
             shutil.rmtree(temp_folder, ignore_errors=True)
-            sys.exit(1)
+            raise UpdateError("Failed to extract update, reason: %s" % e) from e
 
         extracted_update_path = str(temp_folder / "mangadex-dl")
 
@@ -188,8 +181,7 @@ def update_app():
             % (current_version, latest_version)
         )
         install_script.write(
-            'xcopy /S /E /Y "%s" "%s" >nul 2>&1 \n'
-            % (extracted_update_path, current_path)
+            'xcopy /S /E /Y "%s" "%s" >nul 2>&1 \n' % (extracted_update_path, current_path)
         )
         install_script.write('start cmd /c "rmdir /Q /S "%s""\n' % temp_folder)
         install_script.write(
@@ -201,7 +193,7 @@ def update_app():
         install_script.close()
 
         os.system('start cmd /c ""%s""' % (temp_folder / "install.bat"))
-        sys.exit(0)
+        return
     else:
         subprocess.run(
             [

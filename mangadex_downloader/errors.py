@@ -117,3 +117,9 @@ class GroupNotFound(MangaDexException):
     """Raised when scanlator group are not found in MangaDex"""
 
     pass
+
+
+class UpdateError(MangaDexException):
+    """Raised when the update process fails"""
+
+    pass

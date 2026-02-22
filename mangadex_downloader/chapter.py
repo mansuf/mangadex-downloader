@@ -32,7 +32,7 @@ from .fetcher import (
     get_chapter,
     get_unread_chapters,
 )
-from .network import Net, base_url
+from .network import Net, base_url, parse_json
 from .errors import ChapterNotFound, GroupNotFound, UserNotFound
 from .group import Group
 from .config import config, env
@@ -79,8 +79,7 @@ class ChapterImages:
             if not (page >= self.start_page):
                 if log_info:
                     pbm.logger.debug(
-                        'Ignoring page %s as "start_page" is %s'
-                        % (page, self.start_page)
+                        'Ignoring page %s as "start_page" is %s' % (page, self.start_page)
                     )
 
                 return False
@@ -128,9 +127,7 @@ class ChapterImages:
                 page += 1
                 continue
 
-            url = "{0}/{1}/{2}/{3}".format(
-                self._base_url, quality_mode, self._hash, img
-            )
+            url = "{0}/{1}/{2}/{3}".format(self._base_url, quality_mode, self._hash, img)
 
             yield page, url, img
 
@@ -344,7 +341,7 @@ def iter_chapters_feed(manga_id, lang=None):
             params.update({"translatedLanguage[]": lang})
 
         r = Net.mangadex.get(f"{base_url}/manga/{manga_id}/feed", params=params)
-        d = r.json()
+        d = parse_json(r)
 
         items = d["data"]
 
@@ -597,9 +594,7 @@ class IteratorChapter:
 
         # Check blacklisted groups and users
         if chap.groups:
-            blacklisted_groups = filter(
-                lambda x: x.id in env.group_blacklist, chap.groups
-            )
+            blacklisted_groups = filter(lambda x: x.id in env.group_blacklist, chap.groups)
             for group in blacklisted_groups:
                 pbm.logger.debug(
                     f"Ignoring chapter {chap.chapter}, "
@@ -740,6 +735,5 @@ class MangaChapter:
 
         if not self.chapters:
             raise ChapterNotFound(
-                f"Manga '{self.manga.title}' with {language} "
-                "language has no chapters"
+                f"Manga '{self.manga.title}' with {language} language has no chapters"
             )
