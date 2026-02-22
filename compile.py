@@ -1,4 +1,3 @@
-import sys
 from subprocess import run
 
 output_one_folder = 'mangadex-dl'

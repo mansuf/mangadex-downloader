@@ -62,7 +62,7 @@ def download(
     """Download a manga"""
     cover = config.cover
 
-    backup_fmt = config.save_as
+    save_as_orig = config.save_as
     lang = get_language(config.language)
 
     log.info(f"Using {lang.name} language")
@@ -99,12 +99,9 @@ def download(
             "_range": _range,
         }
 
+        save_as = save_as_orig
         if splitted_format:
-            config.save_as = config.save_as.replace("-volume", "")
-        else:
-            config.save_as = backup_fmt
-
-        save_as = config.save_as
+            save_as = save_as.replace("-volume", "")
 
         log.info("Using %s format" % save_as)
 
@@ -164,8 +161,6 @@ def download(
             # Execute split format and execute it
             fmt.main()
 
-        config.save_as = backup_fmt
-
     if all_languages:
         # Print info to users
         # Let the users know how many translated languages available
@@ -190,7 +185,7 @@ def download(
             log.info(f'Download directory is set to "{formatted_path.resolve()}"')
             download_manga(new_manga, formatted_path)
 
-            if not config.create_no_volume and "-volume" in backup_fmt:
+            if not config.create_no_volume and "-volume" in save_as_orig:
                 # Fetch chapters again before downloading split format
                 new_manga.fetch_chapters(translated_lang.value, all_chapters=True)
                 download_manga(new_manga, formatted_path, splitted_format=True)
@@ -205,7 +200,7 @@ def download(
         log.info(f'Download directory is set to "{formatted_path.resolve()}"')
         download_manga(manga, formatted_path)
 
-        if not config.create_no_volume and "-volume" in backup_fmt:
+        if not config.create_no_volume and "-volume" in save_as_orig:
             manga.fetch_chapters(lang.value, all_chapters=True)
             download_manga(manga, formatted_path, splitted_format=True)
 

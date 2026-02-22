@@ -24,6 +24,7 @@ import logging
 
 from .base import MangaDexAuthBase
 from ..errors import LoginFailed
+from ..json_op import parse_json
 
 log = logging.getLogger(__name__)
 
@@ -71,12 +72,12 @@ class LegacyAuth(MangaDexAuthBase):
         # Begin to log in
         r = self.session.post(url, json=data)
         if r.status_code == 401:
-            result = r.json()
+            result = parse_json(r)
             err = result["errors"][0]["detail"]
             log.error("Login to MangaDex failed, reason: %s" % err)
             raise LoginFailed(err)
 
-        self.token = r.json()
+        self.token = parse_json(r)
 
         return self._make_ready_token(self.token)
 
@@ -89,12 +90,12 @@ class LegacyAuth(MangaDexAuthBase):
         url = f"{self.session.base_url}/auth/check"
         r = self.session.get(url)
 
-        return r.json()["isAuthenticated"]
+        return parse_json(r)["isAuthenticated"]
 
     def refresh_token(self):
         url = f"{self.session.base_url}/auth/refresh"
         r = self.session.post(url, json={"token": self.token["token"]["refresh"]})
-        result = r.json()
+        result = parse_json(r)
 
         if r.status_code != 200:
             raise LoginFailed(

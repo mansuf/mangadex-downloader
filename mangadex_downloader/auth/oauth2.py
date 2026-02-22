@@ -32,6 +32,7 @@ from multiprocessing import Process, Manager
 
 from .base import MangaDexAuthBase
 from ..errors import MangaDexException, LoginFailed
+from ..json_op import parse_json
 
 log = logging.getLogger(__name__)
 
@@ -213,7 +214,7 @@ class OAuth2(MangaDexAuthBase):
         self.openid_config_url = (
             f"{self.session.auth_url}/realms/mangadex/.well-known/openid-configuration"
         )
-        self.openid_config = self.session.get(self.openid_config_url).json()
+        self.openid_config = parse_json(self.session.get(self.openid_config_url))
 
         self.authorization_endpoint = self.openid_config["authorization_endpoint"]
         self.token_endpoint = self.openid_config["token_endpoint"]
@@ -286,9 +287,7 @@ class OAuth2(MangaDexAuthBase):
             error = result_auth.get("error")
             err_description = result_auth.get("description")
             if error:
-                raise LoginFailed(
-                    f"Login to MangaDex failed, reason: {err_description}"
-                )
+                raise LoginFailed(f"Login to MangaDex failed, reason: {err_description}")
 
             self.session_state = result_auth["session_state"]
             self.authorization_code = result_auth["code"]
@@ -342,7 +341,7 @@ class OAuth2(MangaDexAuthBase):
         url = "{0}/auth/check".format(self.session.base_url)
         r = self.session.get(url)
 
-        return r.json()["isAuthenticated"]
+        return parse_json(r)["isAuthenticated"]
 
     def update_token(self, session=None, refresh=None):
         if session:

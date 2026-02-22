@@ -23,7 +23,7 @@
 from functools import lru_cache
 from typing import List
 
-from .network import Net, base_url
+from .network import Net, base_url, parse_json
 from .utils import get_local_attr
 
 
@@ -45,7 +45,7 @@ class Tag:
 def get_all_tags() -> List[Tag]:
     tags = []
     r = Net.mangadex.get(f"{base_url}/manga/tag")
-    data = r.json()
+    data = parse_json(r)
 
     for item in data["data"]:
         tags.append(Tag(item))

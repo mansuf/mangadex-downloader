@@ -32,7 +32,7 @@ from ..utils import validate_group_url as _validate_group_url, valid_url_types
 from ..language import get_language, Language
 from ..format import formats
 from ..config import config
-from ..errors import InvalidURL
+from ..errors import InvalidURL, UpdateError
 from ..network import Net
 from .. import __description__
 from ..forums import validate_forum_thread_url
@@ -88,7 +88,11 @@ class ListLanguagesAction(argparse.Action):
 class UpdateAppAction(argparse.Action):
     def __call__(self, *args, **kwargs):
         setup_logging("mangadex_downloader")
-        update_app()
+        try:
+            update_app()
+        except UpdateError as e:
+            log.error(str(e))
+            sys.exit(1)
         sys.exit(0)
 
 
@@ -334,12 +338,14 @@ def get_args(argv):
         "-rg",
         help="[DISABLED] A range pattern to download specific chapters",
     )
-    chap_group.add_argument(
-        "--sort-by",
-        help='Download sorting method, by default it\'s selected to "volume"',
-        choices=("chapter", "volume"),
-        default=config.sort_by,
-    ),
+    (
+        chap_group.add_argument(
+            "--sort-by",
+            help='Download sorting method, by default it\'s selected to "volume"',
+            choices=("chapter", "volume"),
+            default=config.sort_by,
+        ),
+    )
     chap_group.add_argument(
         "--use-chapter-cover",
         "-ucc",
@@ -422,9 +428,7 @@ def get_args(argv):
 
     # Authentication related
     auth_group = parser.add_argument_group("Authentication")
-    auth_group.add_argument(
-        "--login", "-l", help="Login to MangaDex", action="store_true"
-    )
+    auth_group.add_argument("--login", "-l", help="Login to MangaDex", action="store_true")
     auth_group.add_argument(
         "--login-method",
         "-lm",
@@ -542,9 +546,7 @@ def get_args(argv):
         "(list, library, followed-list command)"
         ". You also can put asterisk (*) in this option to select all choices",
     )
-    misc_group.add_argument(
-        "-pipe", action="store_true", help="Download from pipe input"
-    )
+    misc_group.add_argument("-pipe", action="store_true", help="Download from pipe input")
     misc_group.add_argument(
         "-v",
         "--version",

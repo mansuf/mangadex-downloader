@@ -25,7 +25,7 @@ import queue
 
 from .mdlist import MangaDexList
 from .errors import HTTPException, MangaDexException, NotLoggedIn
-from .network import Net, base_url
+from .network import Net, base_url, parse_json
 from .manga import Manga
 from .fetcher import get_list, get_legacy_id
 from .user import User
@@ -123,7 +123,7 @@ class IteratorManga(MangaIterator):
         params = self._get_params()
         url = f"{base_url}/manga"
         r = Net.mangadex.get(url, params=params)
-        data = r.json()
+        data = parse_json(r)
 
         if r.status_code >= 400:
             err = data["errors"][0]["detail"]
@@ -173,7 +173,7 @@ class IteratorUserLibraryManga(MangaIterator):
 
     def _parse_reading_status(self):
         r = Net.mangadex.get(f"{base_url}/manga/status")
-        data = r.json()
+        data = parse_json(r)
 
         for manga_id, status in data["statuses"].items():
             self.library[status].append(manga_id)
@@ -204,7 +204,7 @@ class IteratorUserLibraryManga(MangaIterator):
         }
         url = f"{base_url}/user/follows/manga"
         r = Net.mangadex.get(url, params=params)
-        data = r.json()
+        data = parse_json(r)
 
         items = data["data"]
 
@@ -271,7 +271,7 @@ class IteratorMangaFromList(MangaIterator):
             }
             url = f"{base_url}/manga"
             r = Net.mangadex.get(url, params=params)
-            data = r.json()
+            data = parse_json(r)
 
             # TODO: Refactor this
             notexist_ids = param_ids.copy()
@@ -284,8 +284,7 @@ class IteratorMangaFromList(MangaIterator):
             if notexist_ids:
                 for manga_id in notexist_ids:
                     log.warning(
-                        "There is ghost (not exist) manga = "
-                        f"{manga_id} in list {self.name}"
+                        f"There is ghost (not exist) manga = {manga_id} in list {self.name}"
                     )
 
             for manga_data in data["data"]:
@@ -310,7 +309,7 @@ class IteratorUserLibraryList(BaseIterator):
         }
         url = f"{base_url}/user/list"
         r = Net.mangadex.get(url, params=params)
-        data = r.json()
+        data = parse_json(r)
 
         items = data["data"]
 
@@ -351,7 +350,7 @@ class IteratorUserList(BaseIterator):
                 "from MangaDex itself."
             ) from None
 
-        data = r.json()
+        data = parse_json(r)
 
         items = data["data"]
 
@@ -378,7 +377,7 @@ class IteratorUserLibraryFollowsList(BaseIterator):
         }
         url = f"{base_url}/user/follows/list"
         r = Net.mangadex.get(url, params=params)
-        data = r.json()
+        data = parse_json(r)
 
         items = data["data"]
 
@@ -431,7 +430,7 @@ def iter_random_manga(**filters):
         }
         params.update(**filter_params)
         r = Net.mangadex.get(f"{base_url}/manga/random", params=params)
-        data = r.json()["data"]
+        data = parse_json(r)["data"]
         manga = Manga(data=data)
 
         blacklisted, tags = check_blacklisted_tags_manga(manga)
@@ -481,7 +480,7 @@ class CoverArtIterator(BaseIterator):
 
             url = f"{base_url}/cover"
             r = Net.mangadex.get(url, params=params)
-            items = r.json()["data"]
+            items = parse_json(r)["data"]
 
             if not items:
                 break
