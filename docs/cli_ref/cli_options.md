@@ -166,7 +166,9 @@ Chapter info creation are not enabled if you are using any chapter format (cbz, 
 Enable creation of volume cover for any volume formats. Volume cover will be placed in first page in each volume files.
 
 ```{note} 
-Volume cover will be not created in chapter (cbz, pdf, raw, etc) and single formats 
+Volume cover will be not created in single (cbz-single, pdf-single, etc) formats.
+
+However, volume cover can be used in chapters (cbz, pdf, epub, etc) formats.
 ```
 ````
 

@@ -136,7 +136,7 @@ class NumberWithLeadingZeros:
             for _ in iter_total:
                 total_num += 1
 
-        self._total = total_num
+        self.total = total_num
         self._num = 0
 
     def reset(self):
@@ -154,7 +154,7 @@ class NumberWithLeadingZeros:
 
     def get(self):
         num_str = str(self._num)
-        return num_str.zfill(len(str(self._total)))
+        return num_str.zfill(len(str(self.total)))
 
 
 class Sha256RegexError(Exception):

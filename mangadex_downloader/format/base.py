@@ -123,6 +123,9 @@ class BaseFormat:
             pbm.logger.debug(f"Removed {removed_count} upscale marker file(s)")
 
     def get_images(self, chap_class, images, path, count):
+        from ..config import config
+        from .utils import get_volume_cover
+
         imgs = []
         chap = chap_class.chapter
         chap_name = chap_class.get_name()
@@ -138,6 +141,28 @@ class BaseFormat:
 
         pbm.set_pages_total(total)
         pages_pb = pbm.get_pages_pb()
+
+        # https://github.com/mansuf/mangadex-downloader/issues/139
+        # Option to add volume cover for chapters format only
+        if config.use_volume_cover and (
+            "-volume" not in config.save_as and "-single" not in config.save_as
+        ):
+            pbm.set_pages_total(total + 1)
+            count.total = count.total + 1
+
+            vol_cover_path = path / f"{count.get()}.png"
+
+            get_volume_cover(
+                self.manga,
+                chap_class.volume,
+                path=vol_cover_path,
+                replace=self.replace,
+                download=True,
+            )
+
+            count.increase()
+            pages_pb.update(1)
+            imgs.append(vol_cover_path)
 
         while True:
             error = False

@@ -372,8 +372,10 @@ def get_args(argv):
         action="store_true",
         help="Enable creation of volume cover for any volume formats. "
         "Volume cover will be placed in first page in each volume files. "
-        "NOTE: Volume cover will be not created in chapter "
-        "(cbz, pdf, raw, etc) and single formats",
+        "NOTE: Volume cover will be not created in "
+        "single (raw-single, cbz-single, pdf-single, etc) formats. "
+        "ANOTHER NOTE: Volume cover can be used for chapters "
+        "(raw, cbz, pdf, etc) formats.",
         default=config.use_volume_cover,
     )
     chap_group.add_argument(
