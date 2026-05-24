@@ -230,6 +230,10 @@ class QueueWorker(threading.Thread):
 
         return fut.result()
 
+    def wait(self):
+        """Wait for all queued jobs to complete"""
+        self._queue.join()
+
     def shutdown(self, blocking=False, blocking_timeout=None):
         """Shutdown the thread by passing ``None`` value to queue"""
         self._queue.put(None)
@@ -244,6 +248,7 @@ class QueueWorker(threading.Thread):
             if data is None:
                 # Shutdown signal is received
                 # begin shutting down
+                self._queue.task_done()
                 return
 
             fut, job = data
@@ -254,6 +259,8 @@ class QueueWorker(threading.Thread):
                 fut.set_exception(err)
             else:
                 fut.set_result(None)
+            finally:
+                self._queue.task_done()
 
 
 def convert_int_or_float(value):

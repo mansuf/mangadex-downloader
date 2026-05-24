@@ -38,7 +38,7 @@ def get_requirements():
     main = []
     try:
         with open("./requirements.txt", "r") as r:
-            main = r.read().splitlines()
+            main = [line.strip() for line in r.read().splitlines() if line.strip() and not line.strip().startswith("#")]
     except FileNotFoundError:
         raise RuntimeError("requirements.txt is needed to build mangadex-downloader")
 
@@ -48,7 +48,7 @@ def get_requirements():
     docs = []
     try:
         with open("./requirements-docs.txt", "r") as r:
-            docs = r.read().splitlines()
+            docs = [line.strip() for line in r.read().splitlines() if line.strip() and not line.strip().startswith("#")]
     except FileNotFoundError:
         # There is no docs requirements
         # Developers can ignore this error and continue to install without any problem.
@@ -58,7 +58,7 @@ def get_requirements():
     optional = []
     try:
         with open("./requirements-optional.txt", "r") as r:
-            optional = r.read().splitlines()
+            optional = [line.strip() for line in r.read().splitlines() if line.strip() and not line.strip().startswith("#")]
     except FileNotFoundError:
         raise RuntimeError(
             "requirements-optional.txt is needed to build mangadex-downloader"
@@ -69,7 +69,22 @@ def get_requirements():
             "requirements-optional.txt have no necessary libraries inside of it"
         )
 
-    return main, {"docs": docs, "optional": optional}
+    # Upscale-specific requirements are optional and only available for Python 3.11-3.12
+    upscale = []
+    try:
+        with open("./requirements-upscale.txt", "r") as r:
+            upscale = [line.strip() for line in r.read().splitlines() if line.strip() and not line.strip().startswith("#")]
+    except FileNotFoundError:
+        raise RuntimeError(
+            "requirements-upscale.txt is needed to build mangadex-downloader"
+        )
+
+    if not upscale:
+        raise RuntimeError(
+            "requirements-upscale.txt have no necessary libraries inside of it"
+        )
+
+    return main, {"docs": docs, "optional": optional, "upscale": upscale}
 
 
 # Get requirements needed to build app

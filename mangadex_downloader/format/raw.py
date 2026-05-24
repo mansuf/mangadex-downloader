@@ -120,7 +120,16 @@ class Raw(BaseFormat):
                 count = NumberWithLeadingZeros(chap_class.pages)
 
                 images = self.get_images(chap_class, images, chapter_path, count)
-                pbm.get_pages_pb().reset()
+                if self.config.upscale:
+                    try:
+                        upscaler = self._get_or_create_upscaler()
+                        images = upscaler.process_images(images)
+                        self._cleanup_upscale_markers(images)
+                    except ImportError:
+                        pbm.logger.warning(
+                            "Upscale dependencies are not installed. Skipping upscale.\n"
+                            "Install optional deps: pip install 'mangadex-downloader[optional,upscale]'"
+                        )
 
                 data = []
                 for im in images:
@@ -256,6 +265,18 @@ class RawVolume(BaseFormat):
                     count.increase()
 
                 images = self.get_images(chap_class, images, volume_path, count)
+
+                if self.config.upscale:
+                    try:
+                        upscaler = self._get_or_create_upscaler()
+                        images = upscaler.process_images(images)
+                        self._cleanup_upscale_markers(images)
+                    except ImportError:
+                        pbm.logger.warning(
+                            "Upscale dependencies are not installed. Skipping upscale.\n"
+                            "Install optional deps: pip install 'mangadex-downloader[optional,upscale]'"
+                        )
+
                 success_images[chap_class] = images
 
                 pbm.get_pages_pb().reset()
@@ -391,6 +412,18 @@ class RawSingle(BaseFormat):
                     count.increase()
 
                 images = self.get_images(chap_class, images, path, count)
+
+                if self.config.upscale:
+                    try:
+                        upscaler = self._get_or_create_upscaler()
+                        images = upscaler.process_images(images)
+                        self._cleanup_upscale_markers(images)
+                    except ImportError:
+                        pbm.logger.warning(
+                            "Upscale dependencies are not installed. Skipping upscale.\n"
+                            "Install optional deps: pip install 'mangadex-downloader[optional,upscale]'"
+                        )
+
                 success_images[chap_class] = images
 
                 self.mark_read_chapter(chap_class)

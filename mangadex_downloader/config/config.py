@@ -41,6 +41,7 @@ from .utils import (
     validate_progress_bar_layout,
     validate_int,
     validate_order,
+    validate_upscale_scale,
     convert_string_lowercase,
     ConfigTypeError,
 )
@@ -117,6 +118,8 @@ class _Config:
         "page_size": (0, validate_int),
         "order": ("newest", validate_order),
         "group_nomatch_behaviour": ("ignore", validate_group_nomatch_behaviour),
+        "upscale": (False, validate_bool),
+        "upscale_scale": (4, validate_upscale_scale),
     }
     default_conf = {x: y for x, (y, _) in confs.items()}
 

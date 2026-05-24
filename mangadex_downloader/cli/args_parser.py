@@ -248,6 +248,22 @@ def get_args(argv):
         "the app will find another chapter if the chapter doesn't match with specified group",
     )
 
+    # Upscale related
+    upscale_group = parser.add_argument_group("Upscale")
+    upscale_group.add_argument(
+        "--upscale",
+        action="store_true",
+        default=config.upscale,
+        help="Enable image upscaling with Real-ESRGAN after download",
+    )
+    upscale_group.add_argument(
+        "--upscale-scale",
+        type=int,
+        choices=[2, 4],
+        default=config.upscale_scale,
+        help="Upscale factor (default: 4)",
+    )
+
     # Language related
     lang_group = parser.add_argument_group("Language")
     lang_group.add_argument(

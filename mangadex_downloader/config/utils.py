@@ -53,6 +53,7 @@ __all__ = (
     "validate_progress_bar_layout",
     "validate_stacked_progress_bar_order",
     "validate_group_nomatch_behaviour",
+    "validate_upscale_scale",
     "load_env",
     "LazyLoadEnv",
     "ConfigTypeError",
@@ -139,6 +140,13 @@ def validate_int(val):
     except ValueError:
         raise ConfigTypeError(f"'{val}' is not valid integer")
 
+def validate_upscale_scale(val):
+    val = validate_int(val)
+    if val not in [2, 4]:
+        raise ConfigTypeError(
+            f"Upscale scale must be 2 or 4, got {val}"
+        )
+    return val
 
 def validate_tag(tag):
     # "Circular imports" problem smh

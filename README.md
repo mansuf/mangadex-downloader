@@ -13,6 +13,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 ## Table of Contents
 
 - [Key Features](#key-features)
+- [Image Upscaling](#image-upscaling)
 - [Supported formats](#supported-formats)
 - [Installation](#installation)
     - [Python Package Index (PyPI)](#installation-pypi)
@@ -45,8 +46,39 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 - Legacy MangaDex url support
 - Save as raw images, EPUB, PDF, Comic Book Archive (.cbz or .cb7)
 - Respect API rate limit
+- **Optional image upscaling (2x or 4x) using Real-ESRGAN with hardware acceleration.**
+- Hash-based verification and caching for upscaled images to avoid unnecessary reprocessing
 
 ***And ability to not download oneshot chapter***
+
+## Image Upscaling <a id="image-upscaling"></a>
+
+This tool supports optional 2x or 4x image upscaling using Real-ESRGAN. The implementation is optimized for different platforms to provide the best performance.
+
+### Backends
+- **macOS (Apple Silicon):** Uses a native Core ML backend that leverages the Apple Neural Engine for hardware acceleration. This results in extremely fast and efficient upscaling with minimal CPU/GPU usage.
+  - 2x model: `RealESRGAN_x2plus`
+  - 4x model: `RealESRGAN_x4plus_anime_6B` (optimized for anime/manga, default)
+- **Linux / Windows:** Uses a PyTorch-based backend that can leverage CUDA-enabled NVIDIA GPUs for acceleration, with a fallback to CPU if a compatible GPU is not available.
+  - 2x model: `RealESRGAN_x2plus`
+  - 4x model: `RealESRGAN_x4plus_anime_6B` (optimized for anime/manga, default)
+
+### How to Use
+To enable upscaling, simply add the `--upscale` flag to your download command. The tool will automatically select the best backend for your system and use 4x scaling by default.
+
+**Basic usage:**
+```shell
+mangadex-dl "insert MangaDex URL here" --upscale                     # 4x upscaling (default)
+mangadex-dl "insert MangaDex URL here" --upscale --upscale-scale 2   # 2x upscaling
+mangadex-dl "insert MangaDex URL here" --upscale --upscale-scale 4   # 4x upscaling (explicit)
+```
+
+The upscaler will perform scaling on all downloaded images. The process is cached, so running the command again on the same images will not re-upscale them unless the original files have changed.
+
+For the best experience, especially on macOS, ensure you have the optional dependencies installed:
+```shell
+pip install "mangadex-downloader[optional,upscale]"
+```
 
 ## Supported formats <a id="supported-formats"></a>
 
@@ -57,6 +89,7 @@ A command-line tool to download manga from [MangaDex](https://mangadex.org/), wr
 What will you need:
 
 - Python 3.10.x or up with Pip (if you are in Windows, you can download bundled executable. [See this instructions how to install it](#installation-bundled-executable))
+- If you plan to use the optional upscaling feature, install with Python > 3.10.x <= 3.12.x where the Real-ESRGAN toolkit currently provides wheels.
 
 That's it.
 
@@ -77,15 +110,18 @@ You can also install optional dependencies
 - [py7zr](https://pypi.org/project/py7zr/) for cb7 support
 - [orjson](https://pypi.org/project/orjson/) for maximum performance (fast JSON library)
 - [lxml](https://pypi.org/project/lxml/) for EPUB support
+- Real-ESRGAN upscaling (requires Python > 3.10.x, <= 3.12.x):
+  - **macOS**: `coremltools>=7.0`
+  - **Linux/Windows**: `torch`, `torchvision`, `opencv-python`, `realesrgan`
 
-Or you can install all optional dependencies
+Or you can install all optional dependencies together. For upscaling we recommend installing both the regular optional extras and the upscaling extras:
 
 ```shell
 # For Windows
-py -3 -m pip install mangadex-downloader[optional]
+py -3 -m pip install "mangadex-downloader[optional,upscale]"
 
 # For Mac OS / Linux
-python3 -m pip install mangadex-downloader[optional]
+python3 -m pip install "mangadex-downloader[optional,upscale]"
 ```
 
 There you go, easy ain't it ?.
@@ -117,7 +153,7 @@ docker pull mansuf/mangadex-downloader
 docker pull public.ecr.aws/mansuf/mangadex-downloader
 ```
 
-If you want to get optional features such as `EPUB` support, `cb7` support, etc.
+If you want to get optional features such as image upscaling (Real-ESRGAN), `EPUB` support, `cb7` support, etc.
 You can use tag ending with `-optional`
 
 ```sh
@@ -162,6 +198,8 @@ py -3 -m mangadex_downloader "insert MangaDex URL here"
 # For Linux / Mac OS
 python3 -m mangadex_downloader "insert MangaDex URL here" 
 ```
+
+To upscale images after download, see the [Image Upscaling](#image-upscaling) section for more details.
 
 ### Bundled executable version <a id="usage-bundled-executable-version"></a>
 
