@@ -696,6 +696,12 @@ class IteratorChapter:
             self.queue.put(chap)
 
 
+class EmptyMangaChapter:
+    def __init__(self, manga, lang=None):
+
+        self.language = lang
+        self.manga = manga
+
 class MangaChapter:
     def __init__(self, manga, lang=None, chapter=None, all_chapters=False):
         if chapter and all_chapters:

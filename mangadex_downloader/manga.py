@@ -33,7 +33,7 @@ from .language import Language, get_details_language
 from .utils import get_local_attr, input_handle, comma_separated_text
 from .artist_and_author import Author, Artist
 from .cover import CoverArt
-from .chapter import MangaChapter
+from .chapter import MangaChapter, EmptyMangaChapter
 from .tag import Tag
 from .path.op import get_manga_info_filepath
 
@@ -303,6 +303,12 @@ class Manga:
         :class:`MangaChapter`.
         """
         self._chapters = MangaChapter(self, lang, chapter, all_chapters)
+
+    def set_empty(self, lang=None):
+        """Sets the manga with no chapters
+        Needed for placeholders to work on empty mangas
+        """
+        self._chapters = EmptyMangaChapter(self, lang)
 
 
 class MangaInfo:

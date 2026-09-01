@@ -82,8 +82,12 @@ def download(
     all_languages = lang == Language.All
 
     if not all_languages:
-        log.info("Fetching all chapters...")
-        manga.fetch_chapters(lang.value, all_chapters=True)
+        if config.manga_info_only:
+            log.info("Skipping fetching chapters")
+            manga.set_empty(lang.value)
+        else:
+            log.info("Fetching all chapters...")
+            manga.fetch_chapters(lang.value, all_chapters=True)
 
     # Reuse is good
     def download_manga(m, path, splitted_format=False):
