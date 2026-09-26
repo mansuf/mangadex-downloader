@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from .errors import UserNotFound
 from .fetcher import get_user
 
 
@@ -27,11 +28,22 @@ class User:
     def __init__(self, user_id=None, data=None):
         if data is None:
             self.data = get_user(user_id)["data"]
+        elif "attributes" not in data:
+            # Relationship data without expanded attributes
+            # (e.g. deleted/banned uploader account)
+            try:
+                self.data = get_user(data["id"])["data"]
+            except UserNotFound:
+                self.data = data
         else:
             self.data = data
 
         self.id = self.data["id"]
-        attr = self.data["attributes"]
+        attr = self.data.get("attributes")
 
-        self.name = attr["username"]
-        self.roles = attr["roles"]
+        if attr is None:
+            self.name = "Unknown"
+            self.roles = []
+        else:
+            self.name = attr["username"]
+            self.roles = attr["roles"]
