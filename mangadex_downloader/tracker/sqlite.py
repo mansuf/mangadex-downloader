@@ -20,16 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import sqlite3
 import logging
+import sqlite3
 import threading
-from pathlib import Path
-from typing import Union, List
+import time
 from datetime import datetime
+from pathlib import Path
 
-from .info_data.sqlite import FileInfo
-from .sql_migrations import migrate as sql_migrate, check_if_there_is_migrations
 from ..config import config
+from .info_data.sqlite import FileInfo
+from .sql_migrations import check_if_there_is_migrations
+from .sql_migrations import migrate as sql_migrate
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,16 @@ log = logging.getLogger(__name__)
 # We need to tell sqlite3 that we're working on serialized mode
 # See https://docs.python.org/3/library/sqlite3.html#sqlite3.threadsafety
 sqlite3.threadsafety = 3
+
+# Network filesystems (NAS, SMB, NFS, etc.) can hold onto locks longer than
+# sqlite3's default 5 second timeout, especially while the database is first
+# being created and migrated. Give it more room before giving up.
+_DB_CONNECT_TIMEOUT = 30
+
+# Number of extra attempts to commit a transaction if the database
+# is momentarily reported as locked (see `_commit` below).
+_COMMIT_MAX_RETRIES = 5
+_COMMIT_RETRY_DELAY = 1
 
 
 class DownloadTrackerSQLite:
@@ -65,7 +76,11 @@ class DownloadTrackerSQLite:
 
         self.db = None
 
-        kwargs = {"check_same_thread": False, "database": self.file}
+        kwargs = {
+            "check_same_thread": False,
+            "database": self.file,
+            "timeout": _DB_CONNECT_TIMEOUT,
+        }
         self._open_connection(**kwargs)
 
         # Table names for SQL query
@@ -85,7 +100,11 @@ class DownloadTrackerSQLite:
             self.db = sqlite3.connect(**kwargs)
 
     def init_write_mode(self):
-        kwargs = {"check_same_thread": False, "database": self.file}
+        kwargs = {
+            "check_same_thread": False,
+            "database": self.file,
+            "timeout": _DB_CONNECT_TIMEOUT,
+        }
 
         locked = self._check_db_locked()
         if locked:
@@ -119,6 +138,24 @@ class DownloadTrackerSQLite:
 
             return False
 
+    def _commit(self):
+        """Commit the current transaction, retrying if the database is
+        momentarily locked (common on network filesystems like NAS shares)."""
+        for attempt in range(_COMMIT_MAX_RETRIES + 1):
+            try:
+                self.db.commit()
+            except sqlite3.OperationalError as e:
+                if "database is locked" not in str(e) or attempt == _COMMIT_MAX_RETRIES:
+                    raise
+
+                log.debug(
+                    f"Database is locked, retrying commit "
+                    f"({attempt + 1}/{_COMMIT_MAX_RETRIES})..."
+                )
+                time.sleep(_COMMIT_RETRY_DELAY)
+            else:
+                return
+
     def recreate(self):
         if config.no_track:
             return
@@ -132,7 +169,7 @@ class DownloadTrackerSQLite:
 
             for table in table_names:
                 cur.execute(f"DROP TABLE IF EXISTS {table[0]}")
-                self.db.commit()
+                self._commit()
 
             cur.close()
 
@@ -165,7 +202,7 @@ class DownloadTrackerSQLite:
 
     # I really want to rename this to `get_file_info`
     # but for compatibility reason, i won't
-    def get(self, name) -> Union[FileInfo, None]:
+    def get(self, name) -> FileInfo | None:
         if config.no_track:
             return
 
@@ -225,7 +262,7 @@ class DownloadTrackerSQLite:
 
         return self.get(fi_name[0])
 
-    def get_all_files_info(self) -> List[FileInfo]:
+    def get_all_files_info(self) -> list[FileInfo]:
         if config.no_track:
             return []
 
@@ -254,7 +291,7 @@ class DownloadTrackerSQLite:
 
             cur.execute(f"DELETE FROM '{self._fi_name}' WHERE name = ?", (name,))
 
-            self.db.commit()
+            self._commit()
             cur.close()
 
     def remove_duplicate_chapter_info(self, chapters):
@@ -269,7 +306,7 @@ class DownloadTrackerSQLite:
                 [(i[2], i[0]) for i in chapters],
             )
 
-            self.db.commit()
+            self._commit()
             cur.close()
 
     def remove_duplicate_image_info(self, images):
@@ -284,7 +321,7 @@ class DownloadTrackerSQLite:
                 [(im[3], im[0]) for im in images],
             )
 
-            self.db.commit()
+            self._commit()
             cur.close()
 
     def add_file_info(self, name, manga_id=None, ch_id=None, hash=None, volume=None):
@@ -307,7 +344,7 @@ class DownloadTrackerSQLite:
 
             cur.execute(query, (name, manga_id, ch_id, hash, None, 0, volume))
 
-            self.db.commit()
+            self._commit()
             cur.close()
 
     def add_images_info(self, images):
@@ -329,7 +366,7 @@ class DownloadTrackerSQLite:
             )
             cur.executemany(query, images)
 
-            self.db.commit()
+            self._commit()
         cur.close()
 
     def add_chapters_info(self, chapters):
@@ -350,7 +387,7 @@ class DownloadTrackerSQLite:
             )
             cur.executemany(query, chapters)
 
-            self.db.commit()
+            self._commit()
             cur.close()
 
     def toggle_complete(self, fi_name, is_complete):
@@ -374,7 +411,7 @@ class DownloadTrackerSQLite:
 
             cur.execute(query, (complete_val, dt_finished, fi_name))
 
-            self.db.commit()
+            self._commit()
             cur.close()
 
     def _load(self):
