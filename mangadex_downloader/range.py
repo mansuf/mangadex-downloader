@@ -376,8 +376,14 @@ class _Pattern:
 
         for cls in self.range_checkers:
             if chk == cls:
+                parts = self.string.split('-')
+                if len(parts) != 2:
+                    raise InvalidPattern(
+                        f"Invalid pattern \"{self.string}\", "
+                        "range pattern must contain exactly one '-'"
+                    )
                 # Non-numbers are not allowed to use range pattern
-                start, end = self.string.split('-')
+                start, end = parts
 
                 is_number = True
 
